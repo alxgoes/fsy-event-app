@@ -12,6 +12,7 @@ import {
   Loader2,
   X,
   UserCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { UserRole, ROLE_LABELS } from "@/lib/supabase/useProfile";
@@ -67,27 +68,45 @@ export function UserManager() {
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const supabase = createClient();
 
-    const [usersRes, companiesRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, full_name, role, company_id, stake, room, avatar_url")
-        .order("full_name"),
-      supabase.from("companies").select("id, name").order("name"),
-    ]);
+    try {
+      // 1. Try server admin API route
+      const res = await fetch("/api/users");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.users) {
+          setUsers(json.users as UserRecord[]);
+          if (json.companies) setCompanies(json.companies as Company[]);
+          setLoading(false);
+          return;
+        }
+      }
 
-    if (usersRes.error) {
-      setError("Erro ao carregar usuários: " + usersRes.error.message);
-    } else {
-      setUsers(usersRes.data as UserRecord[]);
+      // 2. Fallback to client Supabase
+      const supabase = createClient();
+      const [usersRes, companiesRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, full_name, role, company_id, stake, room, avatar_url")
+          .order("full_name"),
+        supabase.from("companies").select("id, name").order("name"),
+      ]);
+
+      if (usersRes.error) {
+        setError("Erro ao carregar usuários: " + usersRes.error.message);
+      } else {
+        setUsers(usersRes.data as UserRecord[]);
+      }
+
+      if (!companiesRes.error && companiesRes.data) {
+        setCompanies(companiesRes.data as Company[]);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      setError("Erro ao carregar usuários: " + msg);
+    } finally {
+      setLoading(false);
     }
-
-    if (!companiesRes.error && companiesRes.data) {
-      setCompanies(companiesRes.data as Company[]);
-    }
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -112,34 +131,45 @@ export function UserManager() {
   const saveUser = async (userId: string) => {
     setSaving(userId);
     setError(null);
-    const supabase = createClient();
 
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
+    try {
+      const payload = {
+        id: userId,
         role: editValues.role,
         company_id: editValues.company_id || null,
         stake: editValues.stake || null,
         room: editValues.room || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", userId);
+      };
 
-    if (updateError) {
-      setError("Erro ao salvar: " + updateError.message);
-    } else {
+      const res = await fetch("/api/users", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Falha ao salvar usuário no banco de dados.");
+      }
+
       setSavedId(userId);
       setTimeout(() => setSavedId(null), 2500);
-      // Update local state
+
+      // Update local state immediately
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, ...editValues } as UserRecord : u
+          u.id === userId ? ({ ...u, ...editValues } as UserRecord) : u
         )
       );
       setEditingId(null);
       setEditValues({});
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      setError("Erro ao salvar alteração: " + msg);
+    } finally {
+      setSaving(null);
     }
-    setSaving(null);
   };
 
   const filteredUsers = users.filter((u) => {
@@ -178,8 +208,14 @@ export function UserManager() {
 
       {/* Error Banner */}
       {error && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300">
-          {error}
+        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button onClick={() => setError(null)} className="underline text-xs">
+            fechar
+          </button>
         </div>
       )}
 
@@ -202,7 +238,9 @@ export function UserManager() {
         >
           <option value="all">Todas as funções</option>
           {ALL_ROLES.map((r) => (
-            <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+            <option key={r} value={r}>
+              {ROLE_LABELS[r]}
+            </option>
           ))}
         </select>
       </div>
@@ -240,15 +278,17 @@ export function UserManager() {
                   {/* User Info */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-sm border-2 border-slate-900 dark:border-slate-600 shrink-0">
-                      {user.full_name.charAt(0).toUpperCase()}
+                      {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                         {user.full_name}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span className={`rounded-md px-2 py-0.5 text-[10px] font-black ${ROLE_COLORS[user.role]}`}>
-                          {ROLE_LABELS[user.role]}
+                        <span
+                          className={`rounded-md px-2 py-0.5 text-[10px] font-black ${ROLE_COLORS[user.role] || "bg-slate-100 text-slate-800"}`}
+                        >
+                          {ROLE_LABELS[user.role] || user.role}
                         </span>
                         {user.company_id && (
                           <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
@@ -269,41 +309,63 @@ export function UserManager() {
                     <div className="flex flex-col sm:flex-row gap-3 flex-1">
                       {/* Role */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">Função</label>
+                        <label className="text-[10px] font-black uppercase text-slate-500">
+                          Função
+                        </label>
                         <select
                           value={editValues.role}
-                          onChange={(e) => setEditValues((v) => ({ ...v, role: e.target.value as UserRole }))}
+                          onChange={(e) =>
+                            setEditValues((v) => ({
+                              ...v,
+                              role: e.target.value as UserRole,
+                            }))
+                          }
                           className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
                         >
                           {ALL_ROLES.map((r) => (
-                            <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                            <option key={r} value={r}>
+                              {ROLE_LABELS[r]}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       {/* Company */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">Companhia</label>
+                        <label className="text-[10px] font-black uppercase text-slate-500">
+                          Companhia
+                        </label>
                         <select
                           value={editValues.company_id ?? ""}
-                          onChange={(e) => setEditValues((v) => ({ ...v, company_id: e.target.value || null }))}
+                          onChange={(e) =>
+                            setEditValues((v) => ({
+                              ...v,
+                              company_id: e.target.value || null,
+                            }))
+                          }
                           className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
                         >
                           <option value="">Sem companhia</option>
                           {companies.map((c) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       {/* Room */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">Alojamento</label>
+                        <label className="text-[10px] font-black uppercase text-slate-500">
+                          Alojamento
+                        </label>
                         <input
                           type="text"
                           placeholder="ex: Bloco A - 204"
                           value={editValues.room ?? ""}
-                          onChange={(e) => setEditValues((v) => ({ ...v, room: e.target.value }))}
+                          onChange={(e) =>
+                            setEditValues((v) => ({ ...v, room: e.target.value }))
+                          }
                           className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE] w-32"
                         />
                       </div>
