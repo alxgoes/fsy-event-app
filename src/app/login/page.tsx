@@ -13,7 +13,6 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
-  Shield,
   Phone,
   MapPin,
   Loader2,
@@ -25,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { UserRole } from "@/lib/supabase/useProfile";
 
 function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -68,7 +66,6 @@ function LoginFormContent() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
-  const [regRole, setRegRole] = useState<UserRole>("jovem");
   const [regStake, setRegStake] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [showRegPassword, setShowRegPassword] = useState(false);
@@ -217,7 +214,7 @@ function LoginFormContent() {
     const supabase = createClient();
 
     try {
-      // 1. Sign up with Supabase Auth
+      // 1. Sign up with Supabase Auth (default role is jovem; staff roles are assigned exclusively by admins)
       const { data, error } = await supabase.auth.signUp({
         email: regEmail.trim(),
         password: regPassword,
@@ -225,7 +222,7 @@ function LoginFormContent() {
           data: {
             full_name: fullName.trim(),
             name: fullName.trim(),
-            role: regRole,
+            role: "jovem",
             stake: regStake.trim() || null,
             phone: regPhone.trim() || null,
           },
@@ -246,7 +243,7 @@ function LoginFormContent() {
               id: data.user.id,
               email: regEmail.trim(),
               full_name: fullName.trim(),
-              role: regRole,
+              role: "jovem",
               stake: regStake.trim() || null,
               phone: regPhone.trim() || null,
             }),
@@ -264,7 +261,7 @@ function LoginFormContent() {
         if (!loginErr) {
           setSuccessMsg("Conta criada com sucesso! Redirecionando...");
           setTimeout(() => {
-            handleRoleRedirect(regRole);
+            handleRoleRedirect("jovem");
           }, 1000);
           return;
         } else {
@@ -548,29 +545,7 @@ function LoginFormContent() {
               </div>
             </div>
 
-            {/* Role / Cargo Selection */}
-            <div className="space-y-1">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
-                Função / Cargo no Evento *
-              </label>
-              <div className="relative">
-                <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4361EE]" />
-                <select
-                  value={regRole}
-                  onChange={(e) => setRegRole(e.target.value as UserRole)}
-                  disabled={loading}
-                  className="w-full pl-10 pr-4 h-10 text-xs font-bold bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#4361EE]"
-                >
-                  <option value="jovem">Jovem (Participante • 14 a 18 anos)</option>
-                  <option value="consultor">Consultor(a) de Companhia</option>
-                  <option value="medico">Equipe Multidisciplinar (Saúde)</option>
-                  <option value="logistica">Logística (Master Admin)</option>
-                  <option value="coordenador">Coordenador(a) (Master Admin)</option>
-                  <option value="casal_diretor">Casal Diretor (Master Admin)</option>
-                  <option value="midia">Equipe de Mídia / Fotografia</option>
-                </select>
-              </div>
-            </div>
+
 
             {/* Passwords (2 columns) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
