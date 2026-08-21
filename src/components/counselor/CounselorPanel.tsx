@@ -18,6 +18,7 @@ import {
   Phone,
   Home,
   Send,
+  Heart,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,8 @@ interface Announcement {
   category: string;
   target_company_id: string | null;
   created_at: string;
+  liked_by?: string[];
+  likes_count?: number;
   profiles?: { full_name: string } | null;
 }
 
@@ -577,6 +580,17 @@ export function CounselorPanel() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
+                        </div>
+
+                        {/* Likes counter indicator */}
+                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                          <span className="text-[11px] font-bold text-slate-500">
+                            Categoria: <strong>{item.category || "Companhia"}</strong>
+                          </span>
+                          <div className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-900">
+                            <Heart className="h-3 w-3 fill-rose-500" />
+                            <span>{item.likes_count ?? (item.liked_by?.length || 0)} curtida(s)</span>
+                          </div>
                         </div>
                       </motion.div>
                     );

@@ -571,7 +571,7 @@ export function MedicalDashboard() {
                   Equipe Multidisciplinar
                 </h1>
                 <Badge className="bg-emerald-600 text-white text-[10px] font-black uppercase">
-                  Saúde & Atendimento
+                  Saúde & Inclusão
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">

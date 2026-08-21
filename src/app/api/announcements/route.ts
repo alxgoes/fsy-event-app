@@ -24,8 +24,32 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    const parsed = (data ?? []).map((item) => {
+      const rawCategory = item.category || "Geral";
+      let baseCategory = rawCategory;
+      let likedBy: string[] = [];
+
+      if (rawCategory.includes("__LIKES__")) {
+        const parts = rawCategory.split("__LIKES__");
+        baseCategory = parts[0] || "Geral";
+        try {
+          likedBy = JSON.parse(parts[1]) || [];
+          if (!Array.isArray(likedBy)) likedBy = [];
+        } catch {
+          likedBy = [];
+        }
+      }
+
+      return {
+        ...item,
+        category: baseCategory,
+        liked_by: likedBy,
+        likes_count: likedBy.length,
+      };
+    });
+
     return NextResponse.json(
-      { data: data ?? [] },
+      { data: parsed },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",

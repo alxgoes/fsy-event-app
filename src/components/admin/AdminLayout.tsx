@@ -51,7 +51,7 @@ const navigationItems: NavItem[] = [
     name: "Registros & Atendimentos",
     href: "/admin/medical",
     icon: Stethoscope,
-    badge: "Saúde",
+    badge: "Saúde & Inclusão",
     allowedRoles: ["medico", "coordenador", "casal_diretor", "logistica"],
   },
   {

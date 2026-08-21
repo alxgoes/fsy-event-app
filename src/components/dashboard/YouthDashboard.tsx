@@ -63,7 +63,10 @@ interface Announcement {
   title: string;
   content: string;
   priority: string;
+  category?: string;
   created_at: string;
+  liked_by?: string[];
+  likes_count?: number;
   profiles?: { full_name: string; role: string } | null;
 }
 
@@ -183,25 +186,32 @@ export function YouthDashboard() {
 
         if (companyData) setCompany(companyData);
 
-        // Fetch announcements for this company (global or company-specific)
-        const { data: announcementsData } = await supabase
-          .from("announcements")
-          .select("id, title, content, priority, created_at, profiles(full_name, role)")
-          .or(`target_company_id.is.null,target_company_id.eq.${profile.company_id}`)
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        if (announcementsData) setAnnouncements(announcementsData as unknown as Announcement[]);
+        // Fetch announcements for this company via API to load likes
+        try {
+          const annRes = await fetch(
+            `/api/announcements?company_id=${profile.company_id}&_t=${Date.now()}`
+          );
+          if (annRes.ok) {
+            const annJson = await annRes.json();
+            setAnnouncements(annJson.data ?? []);
+          }
+        } catch {
+          // ignore
+        }
       } else {
         // Global announcements only
-        const { data: announcementsData } = await supabase
-          .from("announcements")
-          .select("id, title, content, priority, created_at, profiles(full_name, role)")
-          .is("target_company_id", null)
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        if (announcementsData) setAnnouncements(announcementsData as unknown as Announcement[]);
+        try {
+          const annRes = await fetch(`/api/announcements?_t=${Date.now()}`);
+          if (annRes.ok) {
+            const annJson = await annRes.json();
+            const globalOnly = (annJson.data ?? []).filter(
+              (a: { target_company_id: string | null }) => !a.target_company_id
+            );
+            setAnnouncements(globalOnly);
+          }
+        } catch {
+          // ignore
+        }
       }
 
       setDataLoading(false);
@@ -301,6 +311,7 @@ export function YouthDashboard() {
           {/* 4. My Company Card */}
           <motion.div variants={itemVariants} className="md:col-span-6 lg:col-span-7">
             <MyCompanyCard
+              currentUserId={profile?.id || null}
               companyName={companyName}
               counselors={company?.counselors ?? null}
               companyMotto={company?.motto ?? null}

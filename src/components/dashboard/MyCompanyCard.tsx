@@ -1,23 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Megaphone, Users, Pin, Heart, Clock } from "lucide-react";
 
-interface Announcement {
+export interface AnnouncementItem {
   id: string;
   title: string;
   content: string;
   priority: string;
+  category?: string;
   created_at: string;
+  liked_by?: string[];
+  likes_count?: number;
   profiles?: { full_name: string; role: string } | null;
 }
 
 interface MyCompanyCardProps {
+  currentUserId?: string | null;
   companyName?: string | null;
   counselors?: string[] | null;
   companyMotto?: string | null;
-  announcements?: Announcement[];
+  announcements?: AnnouncementItem[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -34,15 +38,69 @@ function timeAgo(dateStr: string): string {
 }
 
 export function MyCompanyCard({
+  currentUserId = null,
   companyName = null,
   counselors = null,
   companyMotto = null,
   announcements = [],
 }: MyCompanyCardProps) {
-  const [likedIds, setLikedIds] = useState<Record<string, boolean>>({});
+  // Local likes state keyed by announcement ID
+  const [likesState, setLikesState] = useState<
+    Record<string, { count: number; isLiked: boolean }>
+  >({});
 
-  const toggleLike = (id: string) => {
-    setLikedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  useEffect(() => {
+    const nextState: Record<string, { count: number; isLiked: boolean }> = {};
+    announcements.forEach((a) => {
+      const isLiked = Boolean(
+        currentUserId && a.liked_by && a.liked_by.includes(currentUserId)
+      );
+      const count = a.likes_count ?? (a.liked_by ? a.liked_by.length : 0);
+      nextState[a.id] = { count, isLiked };
+    });
+    setLikesState(nextState);
+  }, [announcements, currentUserId]);
+
+  const toggleLike = async (announcementId: string) => {
+    if (!currentUserId) return;
+
+    // 1. Optimistic UI update
+    setLikesState((prev) => {
+      const current = prev[announcementId] || { count: 0, isLiked: false };
+      const nextLiked = !current.isLiked;
+      const nextCount = nextLiked
+        ? current.count + 1
+        : Math.max(0, current.count - 1);
+      return {
+        ...prev,
+        [announcementId]: { count: nextCount, isLiked: nextLiked },
+      };
+    });
+
+    // 2. Persist to API
+    try {
+      const res = await fetch("/api/announcements/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          announcement_id: announcementId,
+          user_id: currentUserId,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        setLikesState((prev) => ({
+          ...prev,
+          [announcementId]: {
+            count: json.likes_count,
+            isLiked: json.is_liked,
+          },
+        }));
+      }
+    } catch (err) {
+      console.error("Error saving announcement like:", err);
+    }
   };
 
   // No company assigned yet
@@ -127,7 +185,12 @@ export function MyCompanyCard({
         ) : (
           <div className="space-y-3">
             {announcements.map((item) => {
-              const isLiked = likedIds[item.id];
+              const info = likesState[item.id] || {
+                count: item.likes_count ?? 0,
+                isLiked: Boolean(
+                  currentUserId && item.liked_by?.includes(currentUserId)
+                ),
+              };
               const isUrgent = item.priority === "urgent";
               const isImportant = item.priority === "important";
               const authorName = item.profiles?.full_name ?? "Coordenação";
@@ -135,7 +198,7 @@ export function MyCompanyCard({
               return (
                 <motion.div
                   key={item.id}
-                  whileTap={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.99 }}
                   className={`relative rounded-2xl p-3.5 transition-all border-2 ${
                     isUrgent
                       ? "border-red-500 bg-red-50 dark:bg-red-950/30"
@@ -175,16 +238,23 @@ export function MyCompanyCard({
                       Por <strong className="text-slate-800 dark:text-slate-200">{authorName}</strong>
                     </span>
 
+                    {/* Like / Heart Action with Persistent DB Counter */}
                     <button
+                      type="button"
                       onClick={() => toggleLike(item.id)}
-                      className={`flex items-center gap-1 font-bold rounded-lg px-2 py-0.5 transition-colors ${
-                        isLiked
-                          ? "text-[#FF6B8B] bg-pink-100 dark:bg-pink-950/50"
-                          : "text-slate-400 hover:text-[#FF6B8B]"
+                      className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-all cursor-pointer ${
+                        info.isLiked
+                          ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
+                          : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                       }`}
+                      title={info.isLiked ? "Descurtir" : "Curtir comunicado"}
                     >
-                      <Heart className={`h-3 w-3 ${isLiked ? "fill-[#FF6B8B]" : ""}`} />
-                      <span>{isLiked ? "1" : "0"}</span>
+                      <Heart
+                        className={`h-3.5 w-3.5 transition-transform active:scale-125 ${
+                          info.isLiked ? "fill-rose-500 text-rose-500" : ""
+                        }`}
+                      />
+                      <span>{info.count}</span>
                     </button>
                   </div>
                 </motion.div>

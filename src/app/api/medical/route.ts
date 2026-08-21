@@ -45,7 +45,10 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const parsed = (data ?? []).map((r) => parseRecord(r as Record<string, unknown>));
+    const filteredRaw = (data ?? []).filter(
+      (r) => r.emergency_contact_name !== "A registrar"
+    );
+    const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>));
 
     return NextResponse.json({ data: parsed });
   } catch (err: unknown) {

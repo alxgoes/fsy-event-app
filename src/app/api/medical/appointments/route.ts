@@ -21,85 +21,76 @@ interface AppointmentRecord {
   updated_at: string;
 }
 
-// Helper to extract JSON appointments stored in doctor_notes fallback if needed
-function parseFallbackAppointments(medicalRecords: Record<string, unknown>[]): AppointmentRecord[] {
-  const list: AppointmentRecord[] = [];
-  for (const rec of medicalRecords) {
-    if (rec.doctor_notes && typeof rec.doctor_notes === "string" && rec.doctor_notes.includes("__FSY_APPT__")) {
+const APPT_LOGISTICS_KEY = "__APPOINTMENTS_STORAGE__";
+
+// Helper to fetch appointments from persistent table fallback
+async function getStoredAppointments(supabase: ReturnType<typeof createAdminClient>): Promise<AppointmentRecord[]> {
+  try {
+    // 1. Try dedicated table first
+    const { data: dbData, error: dbErr } = await supabase
+      .from("medical_appointments")
+      .select("*")
+      .order("scheduled_at", { ascending: true });
+
+    if (!dbErr && Array.isArray(dbData)) {
+      return dbData;
+    }
+
+    // 2. Safe fallback storage in transport_logistics (isolated row)
+    const { data: logData } = await supabase
+      .from("transport_logistics")
+      .select("notes")
+      .eq("stake_city", APPT_LOGISTICS_KEY)
+      .limit(1);
+
+    if (logData && logData[0]?.notes) {
       try {
-        const parts = rec.doctor_notes.split("__FSY_APPT__");
-        if (parts[1]) {
-          const appts = JSON.parse(parts[1]);
-          if (Array.isArray(appts)) {
-            list.push(...appts);
-          }
-        }
+        const parsed = JSON.parse(logData[0].notes);
+        if (Array.isArray(parsed)) return parsed;
       } catch {
-        // ignore parse error
+        // ignore
       }
     }
+  } catch {
+    // ignore
   }
-  return list;
+  return [];
 }
 
-async function syncFallbackAppointment(supabase: ReturnType<typeof createAdminClient>, appt: AppointmentRecord) {
+// Helper to save appointments to persistent fallback without EVER touching medical_records
+async function saveStoredAppointments(
+  supabase: ReturnType<typeof createAdminClient>,
+  appointments: AppointmentRecord[]
+) {
   try {
-    // Find or create medical record for this youth/user
-    let recordQuery = supabase.from("medical_records").select("*");
-    if (appt.user_id) {
-      recordQuery = recordQuery.eq("user_id", appt.user_id);
-    } else {
-      recordQuery = recordQuery.ilike("full_name", appt.youth_name);
-    }
+    const { data: existing } = await supabase
+      .from("transport_logistics")
+      .select("id")
+      .eq("stake_city", APPT_LOGISTICS_KEY)
+      .limit(1);
 
-    const { data: records } = await recordQuery.limit(1);
-    const record = records && records[0];
-
-    if (!record) {
-      // Create a minimal medical record to hold appointments
-      const { data: newRec } = await supabase
-        .from("medical_records")
-        .insert({
-          user_id: appt.user_id || null,
-          full_name: appt.youth_name,
-          emergency_contact_name: "A registrar",
-          emergency_contact_phone: "A registrar",
-          emergency_contact_rel: "Responsável",
-          doctor_notes: `__FSY_APPT__${JSON.stringify([appt])}`,
+    if (existing && existing.length > 0) {
+      await supabase
+        .from("transport_logistics")
+        .update({
+          notes: JSON.stringify(appointments),
           updated_at: new Date().toISOString(),
         })
-        .select()
-        .single();
-      return newRec;
+        .eq("id", existing[0].id);
     } else {
-      // Update existing record's doctor_notes
-      let existingAppts: AppointmentRecord[] = [];
-      let baseNotes = record.doctor_notes || "";
-      if (baseNotes.includes("__FSY_APPT__")) {
-        const parts = baseNotes.split("__FSY_APPT__");
-        baseNotes = parts[0];
-        try {
-          existingAppts = JSON.parse(parts[1]) || [];
-        } catch {
-          existingAppts = [];
-        }
-      }
-
-      const idx = existingAppts.findIndex((a) => a.id === appt.id);
-      if (idx >= 0) {
-        existingAppts[idx] = appt;
-      } else {
-        existingAppts.push(appt);
-      }
-
-      const newNotes = `${baseNotes}__FSY_APPT__${JSON.stringify(existingAppts)}`;
-      await supabase
-        .from("medical_records")
-        .update({ doctor_notes: newNotes, updated_at: new Date().toISOString() })
-        .eq("id", record.id);
+      await supabase.from("transport_logistics").insert({
+        bus_number: "0",
+        stake_city: APPT_LOGISTICS_KEY,
+        driver_name: "Sistema",
+        driver_phone: "0000",
+        departure_city_time: "00:00",
+        arrival_fsy_time: "00:00",
+        departure_fsy_time: "00:00",
+        notes: JSON.stringify(appointments),
+      });
     }
   } catch (err) {
-    console.error("Fallback appointment sync error:", err);
+    console.error("Error saving fallback appointments:", err);
   }
 }
 
@@ -110,46 +101,21 @@ export async function GET(request: Request) {
     const unreadOnly = searchParams.get("unread") === "true";
 
     const supabase = createAdminClient();
+    const allAppointments = await getStoredAppointments(supabase);
 
-    // 1. Try fetching from medical_appointments table
-    let query = supabase
-      .from("medical_appointments")
-      .select("*")
-      .order("scheduled_at", { ascending: true });
-
+    let filtered = allAppointments;
     if (userId) {
-      query = query.eq("user_id", userId);
+      filtered = filtered.filter((a) => a.user_id === userId);
     }
     if (unreadOnly) {
-      query = query.eq("is_seen", false);
+      filtered = filtered.filter((a) => !a.is_seen);
     }
 
-    const { data, error } = await query;
-
-    if (!error && data) {
-      return NextResponse.json(
-        { data },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          },
-        }
-      );
-    }
-
-    // 2. Fallback: Retrieve appointments from medical_records doctor_notes
-    const { data: recData } = await supabase.from("medical_records").select("*");
-    let fallbackList = parseFallbackAppointments(recData ?? []);
-
-    if (userId) {
-      fallbackList = fallbackList.filter((a) => a.user_id === userId);
-    }
-    if (unreadOnly) {
-      fallbackList = fallbackList.filter((a) => !a.is_seen);
-    }
+    // Sort by scheduled_at ascending
+    filtered.sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime());
 
     return NextResponse.json(
-      { data: fallbackList },
+      { data: filtered },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -167,64 +133,50 @@ export async function POST(request: Request) {
     const body = await request.json();
     const {
       user_id,
-      medical_record_id,
       youth_name,
       professional_name,
       reason,
       scheduled_at,
       notes,
-      created_by,
     } = body;
 
-    if (!youth_name || !youth_name.trim()) {
+    if (!youth_name || !scheduled_at || !professional_name) {
       return NextResponse.json(
-        { error: "Nome do jovem é obrigatório." },
+        { error: "Nome do jovem, data/hora e profissional são obrigatórios." },
         { status: 400 }
       );
     }
 
-    if (!scheduled_at) {
-      return NextResponse.json(
-        { error: "Data e horário da consulta são obrigatórios." },
-        { status: 400 }
-      );
-    }
-
-    if (!professional_name || !professional_name.trim()) {
-      return NextResponse.json(
-        { error: "Nome do profissional é obrigatório." },
-        { status: 400 }
-      );
-    }
-
+    const now = new Date().toISOString();
     const newAppt: AppointmentRecord = {
       id: crypto.randomUUID(),
       user_id: user_id || null,
-      medical_record_id: medical_record_id || null,
-      youth_name: youth_name.trim(),
-      professional_name: professional_name.trim(),
-      reason: (reason && reason.trim()) || "Atendimento geral",
+      medical_record_id: null, // decoupled from medical_records
+      youth_name: String(youth_name).trim(),
+      professional_name: String(professional_name).trim(),
+      reason: String(reason || "Atendimento Multidisciplinar").trim(),
       scheduled_at: new Date(scheduled_at).toISOString(),
       status: "agendado",
       is_seen: false,
       seen_at: null,
-      notes: notes ? notes.trim() : null,
-      created_by: created_by || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      notes: notes ? String(notes).trim() : null,
+      created_at: now,
+      updated_at: now,
     };
 
     const supabase = createAdminClient();
 
-    // 1. Try table insertion
+    // 1. Try table insertion if medical_appointments exists
     const { data: dbData } = await supabase
       .from("medical_appointments")
       .insert(newAppt)
       .select()
       .single();
 
-    // 2. Always sync to fallback for durability
-    await syncFallbackAppointment(supabase, dbData || newAppt);
+    // 2. Also save to isolated durable storage
+    const currentList = await getStoredAppointments(supabase);
+    currentList.push(dbData || newAppt);
+    await saveStoredAppointments(supabase, currentList);
 
     return NextResponse.json({
       success: true,
@@ -248,45 +200,47 @@ export async function PUT(request: Request) {
       );
     }
 
-    const updates: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
-
-    if (is_seen !== undefined) {
-      updates.is_seen = Boolean(is_seen);
-      if (is_seen) {
-        updates.seen_at = new Date().toISOString();
-      }
-    }
-    if (status !== undefined) updates.status = status;
-    if (notes !== undefined) updates.notes = notes;
-    if (scheduled_at !== undefined) updates.scheduled_at = new Date(scheduled_at).toISOString();
-    if (professional_name !== undefined) updates.professional_name = professional_name;
-    if (reason !== undefined) updates.reason = reason;
-
     const supabase = createAdminClient();
+    const allAppts = await getStoredAppointments(supabase);
+    const idx = allAppts.findIndex((a) => a.id === id);
 
-    // 1. Try updating table
-    const { data: updatedDb } = await supabase
-      .from("medical_appointments")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    if (idx >= 0) {
+      const current = allAppts[idx];
+      const updated: AppointmentRecord = {
+        ...current,
+        is_seen: is_seen !== undefined ? Boolean(is_seen) : current.is_seen,
+        seen_at: is_seen === true ? new Date().toISOString() : current.seen_at,
+        status: status !== undefined ? status : current.status,
+        notes: notes !== undefined ? notes : current.notes,
+        scheduled_at: scheduled_at ? new Date(scheduled_at).toISOString() : current.scheduled_at,
+        professional_name: professional_name || current.professional_name,
+        reason: reason || current.reason,
+        updated_at: new Date().toISOString(),
+      };
+      allAppts[idx] = updated;
 
-    // 2. Also update in fallback
-    const { data: recData } = await supabase.from("medical_records").select("*");
-    const allAppts = parseFallbackAppointments(recData ?? []);
-    const found = allAppts.find((a) => a.id === id);
-    if (found) {
-      const merged: AppointmentRecord = { ...found, ...updates } as AppointmentRecord;
-      await syncFallbackAppointment(supabase, merged);
+      // Update in table if exists
+      await supabase
+        .from("medical_appointments")
+        .update({
+          is_seen: updated.is_seen,
+          seen_at: updated.seen_at,
+          status: updated.status,
+          notes: updated.notes,
+          scheduled_at: updated.scheduled_at,
+          professional_name: updated.professional_name,
+          reason: updated.reason,
+          updated_at: updated.updated_at,
+        })
+        .eq("id", id);
+
+      // Save to persistent storage
+      await saveStoredAppointments(supabase, allAppts);
+
+      return NextResponse.json({ success: true, data: updated });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: updatedDb || { id, ...updates },
-    });
+    return NextResponse.json({ error: "Agendamento não encontrado." }, { status: 404 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -299,38 +253,20 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "ID do agendamento é obrigatório." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ID do agendamento é obrigatório." }, { status: 400 });
     }
 
     const supabase = createAdminClient();
 
-    // 1. Try delete from table
+    // 1. Try table delete
     await supabase.from("medical_appointments").delete().eq("id", id);
 
-    // 2. Remove from fallback doctor_notes
-    const { data: recData } = await supabase.from("medical_records").select("*");
-    for (const rec of recData ?? []) {
-      if (rec.doctor_notes && rec.doctor_notes.includes(id)) {
-        try {
-          const parts = rec.doctor_notes.split("__FSY_APPT__");
-          const baseNotes = parts[0];
-          const appts: AppointmentRecord[] = JSON.parse(parts[1]) || [];
-          const filtered = appts.filter((a) => a.id !== id);
-          const newNotes = filtered.length > 0 ? `${baseNotes}__FSY_APPT__${JSON.stringify(filtered)}` : baseNotes;
-          await supabase
-            .from("medical_records")
-            .update({ doctor_notes: newNotes, updated_at: new Date().toISOString() })
-            .eq("id", rec.id);
-        } catch {
-          // ignore
-        }
-      }
-    }
+    // 2. Remove from persistent storage
+    const allAppts = await getStoredAppointments(supabase);
+    const filtered = allAppts.filter((a) => a.id !== id);
+    await saveStoredAppointments(supabase, filtered);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Agendamento excluído com sucesso." });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });

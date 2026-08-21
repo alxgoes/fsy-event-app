@@ -4,11 +4,27 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function matchesCompany(target: string | null | undefined, comp: { id: string; name: string }): boolean {
+  if (!target) return false;
+  const t = target.trim().toLowerCase().replace(/[\s\-_]/g, "");
+  const idNorm = comp.id.trim().toLowerCase().replace(/[\s\-_]/g, "");
+  const nameNorm = comp.name.trim().toLowerCase().replace(/[\s\-_]/g, "");
+
+  if (t === idNorm || t === nameNorm) return true;
+  if (nameNorm.includes(t) || t.includes(idNorm) || idNorm.includes(t)) return true;
+
+  const targetNum = target.replace(/\D/g, "");
+  const compNum = comp.id.replace(/\D/g, "");
+  if (targetNum && compNum && targetNum === compNum) return true;
+
+  return false;
+}
+
 export async function GET() {
   try {
     const supabase = createAdminClient();
 
-    const [companiesRes, profilesRes] = await Promise.all([
+    const [companiesRes, profilesRes, medicalRes] = await Promise.all([
       supabase
         .from("companies")
         .select("*")
@@ -17,6 +33,9 @@ export async function GET() {
         .from("profiles")
         .select("id, full_name, role, company_id, phone, avatar_url")
         .order("full_name", { ascending: true }),
+      supabase
+        .from("medical_records")
+        .select("id, full_name, company_id, emergency_contact_name"),
     ]);
 
     if (companiesRes.error) {
@@ -28,21 +47,39 @@ export async function GET() {
 
     const companies = companiesRes.data ?? [];
     const profiles = profilesRes.data ?? [];
+    const medicalRecords = medicalRes.data ?? [];
 
     const counselorsList = profiles.filter((p) => p.role === "consultor");
 
     // Enrich each company with counts and detailed counselor objects
     const enrichedCompanies = companies.map((comp) => {
-      const youthInComp = profiles.filter(
-        (p) => p.company_id === comp.id && p.role === "jovem"
+      const matchedProfileYouth = profiles.filter(
+        (p) => p.role === "jovem" && matchesCompany(p.company_id, comp)
       );
+
+      const matchedMedicalYouth = medicalRecords.filter(
+        (m) =>
+          m.emergency_contact_name !== "A registrar" &&
+          matchesCompany(m.company_id, comp)
+      );
+
+      const uniqueYouthSet = new Set<string>();
+      matchedProfileYouth.forEach((p) =>
+        uniqueYouthSet.add((p.full_name || p.id).trim().toLowerCase())
+      );
+      matchedMedicalYouth.forEach((m) => {
+        if (m.full_name) {
+          uniqueYouthSet.add(m.full_name.trim().toLowerCase());
+        }
+      });
+
       const counselorsInComp = profiles.filter(
-        (p) => p.company_id === comp.id && p.role === "consultor"
+        (p) => p.role === "consultor" && matchesCompany(p.company_id, comp)
       );
 
       return {
         ...comp,
-        youth_count: youthInComp.length,
+        youth_count: uniqueYouthSet.size,
         counselor_profiles: counselorsInComp,
         counselors:
           counselorsInComp.length > 0
