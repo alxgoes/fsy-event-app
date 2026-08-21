@@ -3,6 +3,36 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+interface ExtraContactsPayload {
+  contact2?: { name?: string; phone?: string; relationship?: string };
+  contact3?: { name?: string; phone?: string; relationship?: string };
+  bishop?: { name?: string; phone?: string; ward?: string };
+}
+
+function parseRecord(record: Record<string, unknown>) {
+  let extra: ExtraContactsPayload = {};
+  if (record.emergency_contact_alt_phone && typeof record.emergency_contact_alt_phone === "string") {
+    try {
+      extra = JSON.parse(record.emergency_contact_alt_phone);
+    } catch {
+      extra = {};
+    }
+  }
+
+  return {
+    ...record,
+    contact_2_name: extra.contact2?.name || "",
+    contact_2_phone: extra.contact2?.phone || "",
+    contact_2_relationship: extra.contact2?.relationship || "",
+    contact_3_name: extra.contact3?.name || "",
+    contact_3_phone: extra.contact3?.phone || "",
+    contact_3_relationship: extra.contact3?.relationship || "",
+    bishop_name: extra.bishop?.name || "",
+    bishop_phone: extra.bishop?.phone || "",
+    bishop_ward: extra.bishop?.ward || "",
+  };
+}
+
 export async function GET() {
   try {
     const supabase = createAdminClient();
@@ -15,7 +45,9 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data ?? [] });
+    const parsed = (data ?? []).map((r) => parseRecord(r as Record<string, unknown>));
+
+    return NextResponse.json({ data: parsed });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -37,6 +69,17 @@ export async function POST(request: Request) {
       emergency_contact_name,
       emergency_contact_phone,
       emergency_contact_rel,
+      contact_2_name,
+      contact_2_phone,
+      contact_2_rel,
+      contact_2_relationship,
+      contact_3_name,
+      contact_3_phone,
+      contact_3_rel,
+      contact_3_relationship,
+      bishop_name,
+      bishop_phone,
+      bishop_ward,
       blood_type,
       doctor_notes,
     } = body;
@@ -47,6 +90,24 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const extraContacts: ExtraContactsPayload = {
+      contact2: {
+        name: contact_2_name?.trim() || "",
+        phone: contact_2_phone?.trim() || "",
+        relationship: (contact_2_rel || contact_2_relationship)?.trim() || "",
+      },
+      contact3: {
+        name: contact_3_name?.trim() || "",
+        phone: contact_3_phone?.trim() || "",
+        relationship: (contact_3_rel || contact_3_relationship)?.trim() || "",
+      },
+      bishop: {
+        name: bishop_name?.trim() || "",
+        phone: bishop_phone?.trim() || "",
+        ward: bishop_ward?.trim() || "",
+      },
+    };
 
     const payload = {
       full_name: String(full_name).trim(),
@@ -60,6 +121,7 @@ export async function POST(request: Request) {
       emergency_contact_name: emergency_contact_name?.trim() || "Não informado",
       emergency_contact_phone: emergency_contact_phone?.trim() || "Não informado",
       emergency_contact_rel: emergency_contact_rel?.trim() || "Responsável",
+      emergency_contact_alt_phone: JSON.stringify(extraContacts),
       blood_type: blood_type ? String(blood_type).trim() : null,
       doctor_notes: doctor_notes ? String(doctor_notes).trim() : null,
       updated_at: new Date().toISOString(),
@@ -76,7 +138,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -86,13 +148,49 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, ...updates } = body;
+    const {
+      id,
+      contact_2_name,
+      contact_2_phone,
+      contact_2_rel,
+      contact_2_relationship,
+      contact_3_name,
+      contact_3_phone,
+      contact_3_rel,
+      contact_3_relationship,
+      bishop_name,
+      bishop_phone,
+      bishop_ward,
+      ...otherUpdates
+    } = body;
 
     if (!id) {
       return NextResponse.json({ error: "ID da ficha é obrigatório." }, { status: 400 });
     }
 
-    updates.updated_at = new Date().toISOString();
+    const extraContacts: ExtraContactsPayload = {
+      contact2: {
+        name: contact_2_name?.trim() || "",
+        phone: contact_2_phone?.trim() || "",
+        relationship: (contact_2_rel || contact_2_relationship)?.trim() || "",
+      },
+      contact3: {
+        name: contact_3_name?.trim() || "",
+        phone: contact_3_phone?.trim() || "",
+        relationship: (contact_3_rel || contact_3_relationship)?.trim() || "",
+      },
+      bishop: {
+        name: bishop_name?.trim() || "",
+        phone: bishop_phone?.trim() || "",
+        ward: bishop_ward?.trim() || "",
+      },
+    };
+
+    const updates = {
+      ...otherUpdates,
+      emergency_contact_alt_phone: JSON.stringify(extraContacts),
+      updated_at: new Date().toISOString(),
+    };
 
     const supabase = createAdminClient();
     const { data, error } = await supabase
@@ -106,7 +204,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
