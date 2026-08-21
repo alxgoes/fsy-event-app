@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 229 83% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 42 100% 70%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 347 100% 71%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 229 83% 60%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 71% 7%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 7%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 229 83% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 42 100% 68%;
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 347 100% 71%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 229 83% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-200;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+/* ==========================================================================
+   Global Repeating FSY Footprint / Watermark Pattern (Visible in Light & Dark)
+   ========================================================================== */
+.bg-fsy-watermark {
+  background-color: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%231e293b' fill-opacity='0.075' transform='rotate(-20, 70, 45)'%3EFSY%3C/text%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 140px 90px;
+}
+
+.dark .bg-fsy-watermark {
+  background-color: #020617;
+  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%23ffffff' fill-opacity='0.085' transform='rotate(-20, 70, 45)'%3EFSY%3C/text%3E%3C/svg%3E");
+}
