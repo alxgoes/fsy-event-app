@@ -11,9 +11,6 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
-  Stethoscope,
-  Users,
-  Compass,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -299,41 +296,6 @@ function LoginFormContent() {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </form>
-
-        {/* Quick Demo Shortcuts */}
-        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-center">
-          <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-2.5">
-            Atalhos Rápidos de Acesso (Demonstração)
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => handleRoleRedirect("jovem")}
-              className="flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              <Compass className="h-3.5 w-3.5 text-[#4361EE] mb-1" />
-              <span>Jovem</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleRoleRedirect("medico")}
-              className="flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              <Stethoscope className="h-3.5 w-3.5 text-[#06D6A0] mb-1" />
-              <span>Médico</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleRoleRedirect("coordenador")}
-              className="flex flex-col items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            >
-              <Users className="h-3.5 w-3.5 text-[#FF6B8B] mb-1" />
-              <span>Admin</span>
-            </button>
-          </div>
-        </div>
       </motion.div>
     </div>
   );
@@ -376,7 +338,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-[11px] font-bold text-slate-400">
-        © 2027 FSY Sessão Ribeirão Preto 2 • Sistema de Gestão de Eventos
+        © 2027 FSY Sessão Ribeirão Preto 2
       </footer>
     </div>
   );
