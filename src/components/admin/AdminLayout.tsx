@@ -16,6 +16,7 @@ import {
   ExternalLink,
   LayoutDashboard,
   Users,
+  Building2,
   Camera,
   Compass,
   ChevronDown,
@@ -23,7 +24,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { useProfile, ROLE_LABELS } from "@/lib/supabase/useProfile";
+import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 
 interface AdminLayoutProps {
@@ -36,6 +37,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   badge?: string;
+  allowedRoles?: UserRole[];
 }
 
 const navigationItems: NavItem[] = [
@@ -43,39 +45,53 @@ const navigationItems: NavItem[] = [
     name: "Visão Geral",
     href: "/admin",
     icon: LayoutDashboard,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Registros Médicos",
+    name: "Registros & Atendimentos",
     href: "/admin/medical",
     icon: Stethoscope,
-    badge: "Confidencial",
+    badge: "Saúde",
+    allowedRoles: ["medico", "coordenador", "casal_diretor", "logistica"],
+  },
+  {
+    name: "Companhias do FSY",
+    href: "/admin/companies",
+    icon: Building2,
+    badge: "Novo",
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Programação Oficial",
     href: "/admin/schedule",
     icon: Calendar,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Logística & Ônibus",
     href: "/admin/logistics",
     icon: Truck,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Comunicados Oficiais",
     href: "/admin/announcements",
     icon: Megaphone,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Fotos & Mídia",
     href: "/admin/media",
     icon: Camera,
     badge: "Mídia",
+    allowedRoles: ["midia", "casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Gestão de Usuários",
     href: "/admin/users",
     icon: Users,
     badge: "Admin",
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
 ];
 
@@ -88,16 +104,23 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { profile, loading } = useProfile();
 
-  const currentRole = profile?.role || activeRole;
+  const currentRole = (profile?.role || activeRole) as UserRole;
   const displayName = profile?.full_name ?? "Equipe";
   const displayEmail = profile?.email ?? "";
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() ?? "A";
   const roleLabel = ROLE_LABELS[currentRole as keyof typeof ROLE_LABELS] || currentRole;
 
-  // Media role isolation: if role is 'midia' and pathname is not '/admin/media', redirect immediately
+  // Media role isolation
   useEffect(() => {
     if (!loading && currentRole === "midia" && pathname !== "/admin/media") {
       router.replace("/admin/media");
+    }
+  }, [currentRole, pathname, router, loading]);
+
+  // Multidisciplinary Team isolation: restricted to /admin/medical
+  useEffect(() => {
+    if (!loading && currentRole === "medico" && pathname !== "/admin/medical" && pathname !== "/admin") {
+      router.replace("/admin/medical");
     }
   }, [currentRole, pathname, router, loading]);
 
@@ -123,17 +146,23 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   };
 
   const roleLabels: Record<string, { label: string; color: string }> = {
-    medico: { label: "Equipe Médica", color: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
+    medico: { label: "Equipe Multidisciplinar", color: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
     logistica: { label: "Logística", color: "bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
     midia: { label: "Equipe de Mídia", color: "bg-pink-50 dark:bg-pink-950/70 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800" },
     coordenador: { label: "Coordenação Geral", color: "bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" },
     casal_diretor: { label: "Casal Diretor", color: "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
   };
 
-  // If role is 'midia', ONLY show media tools in navigation
-  const visibleNav = currentRole === "midia"
-    ? navigationItems.filter((i) => i.href === "/admin/media")
-    : navigationItems;
+  const isMaster = currentRole === "casal_diretor" || currentRole === "coordenador" || currentRole === "logistica";
+
+  // Filter navigation items by active user role
+  const visibleNav = navigationItems.filter((item) => {
+    if (isMaster) return true; // Master admins have access to ALL panels
+    if (currentRole === "midia") return item.href === "/admin/media";
+    if (currentRole === "medico") return item.href === "/admin/medical";
+    if (!item.allowedRoles) return true;
+    return item.allowedRoles.includes(currentRole);
+  });
 
   return (
     <div className="min-h-screen bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
@@ -155,7 +184,11 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-none">
-                  {currentRole === "midia" ? "Painel de Mídia" : "Painel de Gestão"}
+                  {currentRole === "midia"
+                    ? "Painel de Mídia"
+                    : currentRole === "medico"
+                    ? "Equipe Multidisciplinar"
+                    : "Painel de Gestão"}
                 </span>
                 <span className="text-xs text-slate-400 hidden xs:inline">|</span>
                 <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold hidden xs:inline">
@@ -319,7 +352,9 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                   {currentRole === "midia"
                     ? "Ambiente exclusivo da Equipe de Mídia Oficial."
-                    : "Ambiente de coordenação, saúde, transporte e comunicados."}
+                    : currentRole === "medico"
+                    ? "Ambiente exclusivo da Equipe Multidisciplinar (Saúde & Atendimentos)."
+                    : "Ambiente de coordenação, companhias, saúde, transporte e comunicados."}
                 </p>
               </div>
 

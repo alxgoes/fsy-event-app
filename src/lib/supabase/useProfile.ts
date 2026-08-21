@@ -84,6 +84,11 @@ export function useProfile(): UseProfileReturn {
   return { profile, loading, error, refetch };
 }
 
+/** Returns true if the role is a master admin (Casal Diretor, Coordenadores, Logística) with full access to all panels */
+export function isMasterAdmin(role: UserRole): boolean {
+  return role === "casal_diretor" || role === "coordenador" || role === "logistica";
+}
+
 /** Returns true if the role has any admin/staff access */
 export function isStaff(role: UserRole): boolean {
   return role !== "jovem";
@@ -94,9 +99,14 @@ export function canAccessAdmin(role: UserRole): boolean {
   return role !== "jovem" && role !== "consultor";
 }
 
-/** Returns true if the role can manage users and companies */
+/** Returns true if the role can manage users */
 export function canManageUsers(role: UserRole): boolean {
-  return role === "coordenador" || role === "casal_diretor";
+  return role === "coordenador" || role === "casal_diretor" || role === "logistica";
+}
+
+/** Returns true if the role can manage companies and assign counselors */
+export function canManageCompanies(role: UserRole): boolean {
+  return role === "coordenador" || role === "casal_diretor" || role === "logistica";
 }
 
 /** Returns true if the role can manage media/photos */
@@ -109,7 +119,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   jovem: "Jovem",
   consultor: "Consultor(a)",
   midia: "Mídia",
-  medico: "Médico(a)",
+  medico: "Equipe Multidisciplinar",
   logistica: "Logística",
   coordenador: "Coordenador(a)",
   casal_diretor: "Casal Diretor",

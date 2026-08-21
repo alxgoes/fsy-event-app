@@ -3,19 +3,35 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get("company_id");
+
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    let query = supabase
       .from("announcements")
       .select("id, title, content, priority, target_company_id, category, created_at, author_id, profiles(full_name, role)")
       .order("created_at", { ascending: false });
+
+    if (companyId) {
+      query = query.or(`target_company_id.eq.${companyId},target_company_id.is.null`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data ?? [] });
+    return NextResponse.json(
+      { data: data ?? [] },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });

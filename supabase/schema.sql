@@ -49,10 +49,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
--- Medical Records Table (Confidential - Medics & Directors only)
+-- Medical Records Table (Confidential - Multidisciplinary Team & Directors only)
 CREATE TABLE IF NOT EXISTS public.medical_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE UNIQUE,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    full_name TEXT,
+    company_id TEXT,
+    room TEXT,
     allergies TEXT,
     is_severe_allergy BOOLEAN NOT NULL DEFAULT false,
     medications TEXT,
@@ -290,9 +293,60 @@ CREATE POLICY "Anyone authenticated can view visible media photos"
     TO authenticated
     USING (true);
 
-DROP POLICY IF EXISTS "Media team and Coordinators can manage photos" ON public.media_photos;
-CREATE POLICY "Media team and Coordinators can manage photos"
-    ON public.media_photos FOR ALL
+-- 8. Companies Table RLS Policies
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone authenticated can view companies" ON public.companies;
+CREATE POLICY "Anyone authenticated can view companies"
+    ON public.companies FOR SELECT
     TO authenticated
-    USING (public.get_auth_role() IN ('midia', 'coordenador', 'casal_diretor'));
+    USING (true);
+
+DROP POLICY IF EXISTS "Directors, Coordinators and Logistics can manage companies" ON public.companies;
+CREATE POLICY "Directors, Coordinators and Logistics can manage companies"
+    ON public.companies FOR ALL
+    TO authenticated
+    USING (public.get_auth_role() IN ('coordenador', 'casal_diretor', 'logistica'));
+
+-- 9. Medical Appointments Table (Equipe Multidisciplinar)
+CREATE TABLE IF NOT EXISTS public.medical_appointments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    medical_record_id UUID REFERENCES public.medical_records(id) ON DELETE SET NULL,
+    youth_name TEXT NOT NULL,
+    professional_name TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    scheduled_at TIMESTAMPTZ NOT NULL,
+    status TEXT NOT NULL DEFAULT 'agendado', -- 'agendado', 'realizado', 'cancelado'
+    is_seen BOOLEAN NOT NULL DEFAULT false,
+    seen_at TIMESTAMPTZ,
+    notes TEXT,
+    created_by UUID REFERENCES public.profiles(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.medical_appointments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own medical appointments" ON public.medical_appointments;
+CREATE POLICY "Users can view their own medical appointments"
+    ON public.medical_appointments FOR SELECT
+    TO authenticated
+    USING (
+        user_id = auth.uid() OR
+        public.get_auth_role() IN ('medico', 'coordenador', 'casal_diretor')
+    );
+
+DROP POLICY IF EXISTS "Users can mark their own appointment as seen" ON public.medical_appointments;
+CREATE POLICY "Users can mark their own appointment as seen"
+    ON public.medical_appointments FOR UPDATE
+    TO authenticated
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Medics and Coordinators can manage appointments" ON public.medical_appointments;
+CREATE POLICY "Medics and Coordinators can manage appointments"
+    ON public.medical_appointments FOR ALL
+    TO authenticated
+    USING (public.get_auth_role() IN ('medico', 'coordenador', 'casal_diretor'));
 

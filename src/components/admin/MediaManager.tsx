@@ -10,7 +10,7 @@ import {
   RefreshCw,
   CheckCircle2,
   FolderOpen,
-  Image,
+  Image as ImageIcon,
   Link2,
   Eye,
   EyeOff,
@@ -426,7 +426,7 @@ export function MediaManager() {
         </div>
       ) : filteredPhotos.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center space-y-3 bg-white dark:bg-slate-900">
-          <Image className="h-12 w-12 text-slate-400 mx-auto opacity-30" />
+          <ImageIcon className="h-12 w-12 text-slate-400 mx-auto opacity-30" />
           <h4 className="font-black text-base text-slate-900 dark:text-white">Nenhuma foto adicionada ainda</h4>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             Clique em &ldquo;Adicionar Foto&rdquo; para vincular imagens do Google Drive ao portal dos jovens.
@@ -457,7 +457,7 @@ export function MediaManager() {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center p-4 text-center">
-                      <Image className="h-8 w-8 text-slate-400 mb-1" />
+                      <ImageIcon className="h-8 w-8 text-slate-400 mb-1" />
                       <span className="text-[10px] text-slate-500 font-bold">Google Drive</span>
                     </div>
                   )}

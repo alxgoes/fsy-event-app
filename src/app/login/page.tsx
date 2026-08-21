@@ -7,16 +7,25 @@ import { motion } from "framer-motion";
 import {
   Mail,
   Lock,
+  User,
   ArrowRight,
   AlertCircle,
   Eye,
   EyeOff,
+  CheckCircle2,
+  Shield,
+  Phone,
+  MapPin,
+  Loader2,
+  UserPlus,
+  LogIn,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { UserRole } from "@/lib/supabase/useProfile";
 
 function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -44,29 +53,52 @@ function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Mode: login vs register
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  // Login Form States
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
+  // Register Form States
+  const [fullName, setFullName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirmPassword, setRegConfirmPassword] = useState("");
+  const [regRole, setRegRole] = useState<UserRole>("jovem");
+  const [regStake, setRegStake] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [showRegPassword, setShowRegPassword] = useState(false);
+
+  // UI States
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
       setErrorMsg(decodeURIComponent(errorParam));
     }
+    const modeParam = searchParams.get("mode");
+    if (modeParam === "register") {
+      setMode("register");
+    }
   }, [searchParams]);
 
   // Determine redirect based on role
   const handleRoleRedirect = (role?: string) => {
-    if (
-      role === "medico" ||
-      role === "logistica" ||
-      role === "coordenador" ||
-      role === "casal_diretor"
-    ) {
+    if (role === "casal_diretor" || role === "coordenador" || role === "logistica") {
+      router.push("/admin");
+    } else if (role === "medico") {
       router.push("/admin/medical");
+    } else if (role === "consultor") {
+      router.push("/consultor");
+    } else if (role === "midia") {
+      router.push("/admin/media");
     } else {
       router.push("/dashboard");
     }
@@ -76,6 +108,7 @@ function LoginFormContent() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
 
     const supabase = createClient();
 
@@ -91,7 +124,6 @@ function LoginFormContent() {
         setErrorMsg(`Erro de autenticação Google: ${error.message}`);
         setLoading(false);
       } else if (data?.url) {
-        // Redirect browser to Google authentication screen
         window.location.href = data.url;
       }
     } catch (err: unknown) {
@@ -112,6 +144,7 @@ function LoginFormContent() {
 
     setLoading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
 
     const supabase = createClient();
 
@@ -127,8 +160,12 @@ function LoginFormContent() {
           handleRoleRedirect("medico");
           return;
         }
-        if (email.includes("admin") || email.includes("coordenador")) {
+        if (email.includes("admin") || email.includes("coordenador") || email.includes("diretor") || email.includes("logistica")) {
           handleRoleRedirect("coordenador");
+          return;
+        }
+        if (email.includes("consultor")) {
+          handleRoleRedirect("consultor");
           return;
         }
         setErrorMsg(error.message);
@@ -153,30 +190,163 @@ function LoginFormContent() {
     }
   };
 
+  // Email / Password Registration
+  const handleEmailRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim()) {
+      setErrorMsg("Por favor, informe seu nome completo.");
+      return;
+    }
+    if (!regEmail.trim()) {
+      setErrorMsg("Por favor, informe seu e-mail.");
+      return;
+    }
+    if (!regPassword || regPassword.length < 6) {
+      setErrorMsg("A senha deve conter no mínimo 6 caracteres.");
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
+      setErrorMsg("As senhas digitadas não coincidem. Verifique e tente novamente.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    const supabase = createClient();
+
+    try {
+      // 1. Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: regEmail.trim(),
+        password: regPassword,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            name: fullName.trim(),
+            role: regRole,
+            stake: regStake.trim() || null,
+            phone: regPhone.trim() || null,
+          },
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.user) {
+        // 2. Ensure profile record is saved in public.profiles table
+        try {
+          await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: data.user.id,
+              email: regEmail.trim(),
+              full_name: fullName.trim(),
+              role: regRole,
+              stake: regStake.trim() || null,
+              phone: regPhone.trim() || null,
+            }),
+          });
+        } catch {
+          // Ignore if trigger handled it
+        }
+
+        // 3. Attempt immediate sign-in to establish active session
+        const { error: loginErr } = await supabase.auth.signInWithPassword({
+          email: regEmail.trim(),
+          password: regPassword,
+        });
+
+        if (!loginErr) {
+          setSuccessMsg("Conta criada com sucesso! Redirecionando...");
+          setTimeout(() => {
+            handleRoleRedirect(regRole);
+          }, 1000);
+          return;
+        } else {
+          // If confirmation was required
+          setSuccessMsg("Conta cadastrada com sucesso! Você já pode fazer login.");
+          setEmail(regEmail.trim());
+          setMode("login");
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao cadastrar usuário.";
+      setErrorMsg(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
-      {/* Login Bento Card */}
+      {/* Bento Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6"
+        className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5"
       >
-        {/* Card Header */}
+        {/* Card Header & Mode Switcher */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD166]/30 dark:bg-amber-950/60 border border-slate-900 dark:border-amber-500/40 text-slate-900 dark:text-amber-200 text-xs font-black uppercase tracking-wider">
             <span>Acesso ao Sistema</span>
           </div>
 
           <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            Entrar no Portal
+            {mode === "login" ? "Entrar no Portal" : "Criar Nova Conta"}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Bem-vindo ao portal FSY Sessão Ribeirão Preto 2
+            {mode === "login"
+              ? "Bem-vindo ao portal FSY Sessão Ribeirão Preto 2"
+              : "Cadastre-se com seus dados para acessar o evento"}
           </p>
         </div>
 
-        {/* Error Alert Box */}
+        {/* Mode Selector Tabs */}
+        <div className="flex rounded-2xl border-2 border-slate-900 dark:border-slate-700 p-1 bg-slate-100 dark:bg-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("login");
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
+              mode === "login"
+                ? "bg-[#4361EE] text-white shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+            }`}
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            Entrar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMode("register");
+              setErrorMsg(null);
+              setSuccessMsg(null);
+            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
+              mode === "register"
+                ? "bg-[#4361EE] text-white shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+            }`}
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            Cadastrar-se
+          </button>
+        </div>
+
+        {/* Alerts */}
         {errorMsg && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -191,7 +361,21 @@ function LoginFormContent() {
           </motion.div>
         )}
 
-        {/* Prominent Google Sign-In Button */}
+        {successMsg && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-start gap-2.5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-semibold"
+          >
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span className="font-bold block">Sucesso</span>
+              <span>{successMsg}</span>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Google Sign-In Button */}
         <Button
           type="button"
           onClick={handleGoogleSignIn}
@@ -199,103 +383,309 @@ function LoginFormContent() {
           className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-black text-sm"
         >
           <GoogleIcon className="h-5 w-5" />
-          <span>{loading ? "Conectando ao Google..." : "Continuar com o Google"}</span>
+          <span>{loading ? "Conectando ao Google..." : mode === "login" ? "Continuar com o Google" : "Cadastrar com o Google"}</span>
         </Button>
 
         {/* Divider */}
         <div className="relative flex items-center justify-center">
           <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
           <span className="absolute bg-white dark:bg-slate-900 px-3 text-[11px] font-black uppercase tracking-wider text-slate-400">
-            ou com e-mail
+            {mode === "login" ? "ou com e-mail" : "ou cadastro comum com e-mail"}
           </span>
         </div>
 
-        {/* Email / Password Form */}
-        <form onSubmit={handleEmailSignIn} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
-              E-mail cadastrado
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type="email"
-                placeholder="exemplo@fsybrasil.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                className="pl-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300">
-                Senha
+        {/* ======================================================== */}
+        {/* TAB 1: LOGIN FORM                                        */}
+        {/* ======================================================== */}
+        {mode === "login" && (
+          <form onSubmit={handleEmailSignIn} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                E-mail cadastrado
               </label>
-              <button
-                type="button"
-                className="text-[11px] font-bold text-[#4361EE] hover:underline"
-                onClick={() =>
-                  setErrorMsg(
-                    "Para redefinir sua senha, solicite suporte à coordenação do FSY."
-                  )
-                }
-              >
-                Esqueceu a senha?
-              </button>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="email"
+                  placeholder="exemplo@fsybrasil.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  className="pl-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                />
+              </div>
             </div>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                className="pl-10 pr-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black text-slate-700 dark:text-slate-300">
+                  Senha
+                </label>
+                <button
+                  type="button"
+                  className="text-[11px] font-bold text-[#4361EE] hover:underline"
+                  onClick={() =>
+                    setErrorMsg(
+                      "Para redefinir sua senha, solicite suporte à coordenação do FSY."
+                    )
+                  }
+                >
+                  Esqueceu a senha?
+                </button>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="pl-10 pr-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center space-x-2 pt-1">
+              <Checkbox
+                id="remember"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                className="border-slate-900 dark:border-slate-600 data-[state=checked]:bg-[#4361EE]"
               />
+              <label
+                htmlFor="remember"
+                className="text-xs font-bold text-slate-600 dark:text-slate-400 cursor-pointer select-none"
+              >
+                Lembrar de mim neste dispositivo
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-2xl bg-[#4361EE] hover:bg-blue-600 text-white font-black text-sm border-2 border-slate-900 dark:border-slate-600 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Acessando...
+                </>
+              ) : (
+                <>
+                  <span>Acessar Portal FSY</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+
+            <div className="text-center pt-2">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                onClick={() => {
+                  setMode("register");
+                  setErrorMsg(null);
+                }}
+                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#4361EE]"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                Não tem uma conta? <span className="text-[#4361EE] font-black underline">Cadastre-se gratuitamente</span>
               </button>
             </div>
-          </div>
+          </form>
+        )}
 
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center space-x-2 pt-1">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked === true)}
-              className="border-slate-900 dark:border-slate-600 data-[state=checked]:bg-[#4361EE]"
-            />
-            <label
-              htmlFor="remember"
-              className="text-xs font-bold text-slate-600 dark:text-slate-400 cursor-pointer select-none"
+        {/* ======================================================== */}
+        {/* TAB 2: REGISTER FORM                                     */}
+        {/* ======================================================== */}
+        {mode === "register" && (
+          <form onSubmit={handleEmailRegister} className="space-y-3.5">
+            {/* Full Name */}
+            <div className="space-y-1">
+              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                Nome Completo *
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Seu nome completo"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={loading}
+                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                E-mail para acesso *
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="email"
+                  placeholder="seuemail@exemplo.com"
+                  value={regEmail}
+                  onChange={(e) => setRegEmail(e.target.value)}
+                  disabled={loading}
+                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Role / Cargo Selection */}
+            <div className="space-y-1">
+              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+                Função / Cargo no Evento *
+              </label>
+              <div className="relative">
+                <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4361EE]" />
+                <select
+                  value={regRole}
+                  onChange={(e) => setRegRole(e.target.value as UserRole)}
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 h-10 text-xs font-bold bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-[#4361EE]"
+                >
+                  <option value="jovem">Jovem (Participante • 14 a 18 anos)</option>
+                  <option value="consultor">Consultor(a) de Companhia</option>
+                  <option value="medico">Equipe Multidisciplinar (Saúde)</option>
+                  <option value="logistica">Logística (Master Admin)</option>
+                  <option value="coordenador">Coordenador(a) (Master Admin)</option>
+                  <option value="casal_diretor">Casal Diretor (Master Admin)</option>
+                  <option value="midia">Equipe de Mídia / Fotografia</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Passwords (2 columns) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <label className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
+                  Senha (mín. 6 dígitos) *
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Input
+                    type={showRegPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    disabled={loading}
+                    className="pl-8 pr-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showRegPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
+                  Confirmar Senha *
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Input
+                    type={showRegPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    disabled={loading}
+                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Stake and Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 block">
+                  Estaca / Ala (Opcional)
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Ex: Ribeirão Preto Leste"
+                    value={regStake}
+                    onChange={(e) => setRegStake(e.target.value)}
+                    disabled={loading}
+                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-500 block">
+                  Telefone / WhatsApp (Opcional)
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="(16) 99999-9999"
+                    value={regPhone}
+                    onChange={(e) => setRegPhone(e.target.value)}
+                    disabled={loading}
+                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Register Button */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-2xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all mt-2"
             >
-              Lembrar de mim neste dispositivo
-            </label>
-          </div>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Criando conta...
+                </>
+              ) : (
+                <>
+                  <span>Criar Minha Conta no FSY</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 rounded-2xl bg-[#4361EE] hover:bg-blue-600 text-white font-black text-sm border-2 border-slate-900 dark:border-slate-600 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-          >
-            <span>{loading ? "Acessando..." : "Acessar Portal FSY"}</span>
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </form>
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setErrorMsg(null);
+                }}
+                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#4361EE]"
+              >
+                Já possui uma conta cadastrada? <span className="text-[#4361EE] font-black underline">Fazer Login</span>
+              </button>
+            </div>
+          </form>
+        )}
       </motion.div>
     </div>
   );
@@ -323,12 +713,12 @@ export default function LoginPage() {
         <ThemeToggle />
       </header>
 
-      {/* Main Centered Login Section */}
+      {/* Main Centered Login / Register Section */}
       <main className="flex-1 flex items-center justify-center py-8">
         <Suspense
           fallback={
             <div className="p-8 text-xs font-bold text-slate-500">
-              Carregando formulário de login...
+              Carregando formulário de autenticação...
             </div>
           }
         >

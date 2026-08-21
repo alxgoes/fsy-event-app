@@ -97,8 +97,43 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // CONSULTOR: no admin access — redirect to access denied
+    // MEDICO (Equipe Multidisciplinar): can only access /admin/medical or /admin (which defaults to medical)
+    if (role === "medico" && !pathname.startsWith("/admin/medical") && pathname !== "/admin") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin/medical";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // CONSULTOR: redirected to their dedicated counselor panel /consultor
     if (role === "consultor") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/consultor";
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // 4. Protect /consultor route
+  if (pathname.startsWith("/consultor")) {
+    if (!user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role;
+    if (
+      role !== "consultor" &&
+      role !== "coordenador" &&
+      role !== "casal_diretor" &&
+      role !== "logistica"
+    ) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/acesso-negado";
       return NextResponse.redirect(redirectUrl);
