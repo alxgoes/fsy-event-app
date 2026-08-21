@@ -70,8 +70,14 @@ export function UserManager() {
     setError(null);
 
     try {
-      // 1. Try server admin API route
-      const res = await fetch("/api/users");
+      // 1. Try server admin API route with anti-cache
+      const res = await fetch(`/api/users?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+        },
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.users) {
@@ -164,6 +170,9 @@ export function UserManager() {
       );
       setEditingId(null);
       setEditValues({});
+
+      // Reload fresh data from database
+      await loadData();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
       setError("Erro ao salvar alteração: " + msg);

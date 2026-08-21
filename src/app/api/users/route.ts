@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -16,16 +17,39 @@ export async function GET() {
     ]);
 
     if (usersRes.error) {
-      return NextResponse.json({ error: usersRes.error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: usersRes.error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
-    return NextResponse.json({
-      users: usersRes.data ?? [],
-      companies: companiesRes.data ?? [],
-    });
+    return NextResponse.json(
+      {
+        users: usersRes.data ?? [],
+        companies: companiesRes.data ?? [],
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }
 
@@ -63,7 +87,14 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json(
+      { success: true, data },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
