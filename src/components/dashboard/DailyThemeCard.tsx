@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Music2, ShieldAlert } from "lucide-react";
+import { BookOpen, Music2 } from "lucide-react";
 
 export function DailyThemeCard() {
   return (
@@ -26,21 +26,13 @@ export function DailyThemeCard() {
       </div>
 
       {/* Quick Action Pills */}
-      <div className="grid grid-cols-2 gap-2 mt-3 pt-2">
+      <div className="mt-3 pt-2">
         <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
-          className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm hover:bg-slate-50"
+          whileTap={{ scale: 0.97, y: 2 }}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm hover:bg-slate-50 transition-colors"
         >
-          <Music2 className="h-3.5 w-3.5 text-[#FF6B8B]" />
-          <span>Hino Oficial</span>
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.95, y: 2 }}
-          className="flex items-center justify-center gap-1.5 rounded-xl bg-rose-100 px-3 py-2 text-xs font-black text-rose-900 border-2 border-slate-900 shadow-brutal-sm hover:bg-rose-200"
-        >
-          <ShieldAlert className="h-3.5 w-3.5 text-rose-600" />
-          <span>SOS Saúde</span>
+          <Music2 className="h-4 w-4 text-[#FF6B8B]" />
+          <span>Hino Oficial do FSY 2027</span>
         </motion.button>
       </div>
     </motion.div>

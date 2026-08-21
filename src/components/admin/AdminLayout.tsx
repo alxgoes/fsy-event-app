@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   Stethoscope,
@@ -16,11 +17,14 @@ import {
   LayoutDashboard,
   Users,
   Camera,
+  Compass,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useProfile, ROLE_LABELS } from "@/lib/supabase/useProfile";
+import { createClient } from "@/lib/supabase/client";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -79,9 +83,16 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { profile, loading } = useProfile();
 
   const currentRole = profile?.role || activeRole;
+  const displayName = profile?.full_name ?? "Equipe";
+  const displayEmail = profile?.email ?? "";
+  const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() ?? "A";
+  const roleLabel = ROLE_LABELS[currentRole as keyof typeof ROLE_LABELS] || currentRole;
 
   // Media role isolation: if role is 'midia' and pathname is not '/admin/media', redirect immediately
   useEffect(() => {
@@ -89,6 +100,27 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
       router.replace("/admin/media");
     }
   }, [currentRole, pathname, router, loading]);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   const roleLabels: Record<string, { label: string; color: string }> = {
     medico: { label: "Equipe Médica", color: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
@@ -106,8 +138,8 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   return (
     <div className="min-h-screen bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 sm:px-6 flex items-center justify-between transition-colors">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 sm:px-6 flex items-center justify-between transition-colors">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -116,58 +148,153 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-[#4361EE] text-white flex items-center justify-center font-black text-xs border border-slate-900 dark:border-slate-700 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-xl bg-[#4361EE] text-white flex items-center justify-center font-black text-xs border border-slate-900 dark:border-slate-700 shadow-sm shrink-0">
               FSY
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-black text-sm text-slate-900 dark:text-white">
-                  {currentRole === "midia" ? "Painel de Mídia Oficial" : "Painel de Gestão"}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-none">
+                  {currentRole === "midia" ? "Painel de Mídia" : "Painel de Gestão"}
                 </span>
-                <span className="text-xs text-slate-400">|</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">
-                  Sessão RP 2 (2027)
+                <span className="text-xs text-slate-400 hidden xs:inline">|</span>
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold hidden xs:inline">
+                  RP 2 (2027)
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Top Header Right: Theme Toggle, Role Badge, User Info, Youth Portal Link */}
-        <div className="flex items-center gap-3">
+        {/* Top Header Right: Theme Toggle, Role Badge, User Info Dropdown */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
 
           <Badge
             variant="outline"
-            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
+            className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
           >
             <Shield className="h-3 w-3" />
-            <span>{roleLabels[currentRole]?.label || ROLE_LABELS[currentRole as keyof typeof ROLE_LABELS] || currentRole}</span>
+            <span>{roleLabels[currentRole]?.label || roleLabel}</span>
           </Badge>
 
           <Link
             href="/dashboard"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-colors"
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-colors"
           >
-            <ExternalLink className="h-3.5 w-3.5 text-[#4361EE]" />
+            <Compass className="h-3.5 w-3.5 text-[#4361EE]" />
             <span>Portal Jovem</span>
           </Link>
 
-          <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-800 pl-3">
-            <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-700">
-              <AvatarFallback className="bg-slate-900 dark:bg-slate-700 text-white text-xs font-black">
-                {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "FSY"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="hidden md:block text-left text-xs leading-tight">
-              <p className="font-bold text-slate-900 dark:text-white">
-                {profile?.full_name ? profile.full_name.split(" ")[0] : "Equipe"}
-              </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                {roleLabels[currentRole]?.label || "FSY RP 2"}
-              </p>
-            </div>
+          {/* Interactive Profile Dropdown (Mobile & Desktop) */}
+          <div className="relative" ref={dropdownRef}>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setDropdownOpen((o) => !o)}
+              className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 p-1.5 sm:px-2.5 sm:py-1.5 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer"
+              aria-label="Menu do usuário"
+            >
+              {loading ? (
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700">
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                </div>
+              ) : (
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-xs border border-slate-900 shrink-0">
+                  {avatarLetter}
+                </div>
+              )}
+
+              <div className="hidden sm:block text-left text-xs leading-tight">
+                <p className="font-black text-slate-900 dark:text-white truncate max-w-[90px]">
+                  {loading ? "..." : displayName.split(" ")[0]}
+                </p>
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {roleLabels[currentRole]?.label || roleLabel}
+                </p>
+              </div>
+
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+              />
+            </motion.button>
+
+            {/* Dropdown Menu Popover */}
+            <AnimatePresence>
+              {dropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-md overflow-hidden z-50"
+                >
+                  {/* User Info Header */}
+                  <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-base border-2 border-slate-900 dark:border-slate-700 shrink-0">
+                        {avatarLetter}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+                          {displayName}
+                        </p>
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
+                          {displayEmail}
+                        </p>
+                        <span className="inline-flex mt-0.5 items-center rounded-md bg-blue-100 dark:bg-blue-950 px-1.5 py-0.5 text-[10px] font-black text-[#4361EE]">
+                          {roleLabels[currentRole]?.label || roleLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Items */}
+                  <div className="py-2">
+                    {/* Portal do Jovem (Primary Action) */}
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#4361EE] hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Compass className="h-4 w-4" />
+                        <span>Portal do Jovem</span>
+                      </div>
+                      <span className="text-[10px] font-black bg-[#4361EE] text-white px-2 py-0.5 rounded-md">
+                        Acessar
+                      </span>
+                    </Link>
+
+                    {/* Painel de Gestão (Current Active) */}
+                    <Link
+                      href="/admin"
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <Shield className="h-4 w-4 text-slate-400" />
+                      <span>Painel de Gestão (Início)</span>
+                    </Link>
+
+                    <div className="mx-3 my-1.5 border-t border-slate-100 dark:border-slate-800" />
+
+                    {/* Sign Out */}
+                    <button
+                      onClick={handleSignOut}
+                      disabled={signingOut}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-60 text-left"
+                    >
+                      {signingOut ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogOut className="h-4 w-4" />
+                      )}
+                      <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -180,7 +307,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           }`}
         >
           <div className="flex h-full flex-col justify-between p-4">
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Event Context Pill in Sidebar */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-3">
                 <div className="flex items-center gap-2 mb-1">
@@ -195,6 +322,19 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     : "Ambiente de coordenação, saúde, transporte e comunicados."}
                 </p>
               </div>
+
+              {/* Quick Youth Portal Button in Sidebar */}
+              <Link
+                href="/dashboard"
+                onClick={() => setIsSidebarOpen(false)}
+                className="flex items-center justify-between gap-2 w-full rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-3 py-2.5 text-xs font-black text-[#4361EE] dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors shadow-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <Compass className="h-4 w-4" />
+                  <span>Ir para o Portal Jovem</span>
+                </div>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
 
               {/* Navigation Links */}
               <nav className="space-y-1">
@@ -242,19 +382,20 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {/* Sidebar Footer */}
             <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-2">
-                <span>Status:</span>
+                <span>Sessão:</span>
                 <span className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   05-10 Fev 2027
                 </span>
               </div>
-              <Link
-                href="/login"
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 <LogOut className="h-3.5 w-3.5" />
-                <span>Trocar Usuário / Sair</span>
-              </Link>
+                <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>
+              </button>
             </div>
           </div>
         </aside>

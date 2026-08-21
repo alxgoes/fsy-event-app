@@ -11,7 +11,7 @@ import { MemoriesCard } from "./MemoriesCard";
 import { DailyThemeCard } from "./DailyThemeCard";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Clock, Users } from "lucide-react";
+import { Loader2, Users } from "lucide-react";
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -72,7 +72,9 @@ export function YouthDashboard() {
   const { profile, loading: profileLoading } = useProfile();
   const [currentEvent, setCurrentEvent] = useState<ScheduleItem | null>(null);
   const [nextEvent, setNextEvent] = useState<ScheduleItem | null>(null);
-  const [activeDayLabel, setActiveDayLabel] = useState<string>("1º Dia");
+  const [activeDayLabel, setActiveDayLabel] = useState<string>("Em Breve • FSY 2027");
+  const [isPreEvent, setIsPreEvent] = useState<boolean>(true);
+  const [daysRemaining, setDaysRemaining] = useState<number>(0);
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -93,6 +95,19 @@ export function YouthDashboard() {
       setDataLoading(true);
 
       const now = new Date();
+      const eventStartDate = new Date("2027-02-05T00:00:00");
+      const eventEndDate = new Date("2027-02-10T23:59:59");
+      const isBeforeEvent = now < eventStartDate;
+      const isAfterEvent = now > eventEndDate;
+
+      setIsPreEvent(isBeforeEvent);
+      if (isBeforeEvent) {
+        const diffMs = eventStartDate.getTime() - now.getTime();
+        const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+        setDaysRemaining(diffDays);
+        setActiveDayLabel("Em Breve • 05 a 10 Fev 2027");
+      }
+
       const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
       const todayIso = now.toISOString().slice(0, 10);
 
@@ -117,43 +132,42 @@ export function YouthDashboard() {
         }
 
         if (scheduleItems.length > 0) {
-          // Check if today matches any date in schedule
-          const todayEvents = scheduleItems.filter(
-            (item) => item.date === todayIso || item.day === "dia1"
-          );
+          if (!isBeforeEvent && !isAfterEvent) {
+            // Live event active
+            const todayEvents = scheduleItems.filter(
+              (item) => item.date === todayIso
+            );
+            const candidateList = todayEvents.length > 0 ? todayEvents : scheduleItems;
 
-          const candidateList = todayEvents.length > 0 ? todayEvents : scheduleItems;
+            const activeCurrent = candidateList.find(
+              (item) => item.start_time <= currentTime && item.end_time > currentTime
+            );
+            const activeNext = candidateList.find(
+              (item) => item.start_time > currentTime
+            );
 
-          // Find current event (start_time <= currentTime <= end_time)
-          const activeCurrent = candidateList.find(
-            (item) => item.start_time <= currentTime && item.end_time > currentTime
-          );
+            const fallbackCurrent = candidateList.find((i) => i.is_highlight) || candidateList[0];
+            const fallbackNext = candidateList.find((i) => i.id !== fallbackCurrent?.id) || null;
 
-          // Find next event (start_time > currentTime)
-          const activeNext = candidateList.find(
-            (item) => item.start_time > currentTime
-          );
+            setCurrentEvent(activeCurrent || fallbackCurrent || null);
+            setNextEvent(activeNext || fallbackNext || null);
 
-          // If no active in time window, pick highlights or first event
-          const fallbackCurrent =
-            candidateList.find((i) => i.is_highlight) || candidateList[0];
-          const fallbackNext =
-            candidateList.find((i) => i.id !== fallbackCurrent?.id) || null;
-
-          setCurrentEvent(activeCurrent || fallbackCurrent || null);
-          setNextEvent(activeNext || fallbackNext || null);
-
-          // Set active day label
-          const selectedDayKey = (activeCurrent || fallbackCurrent)?.day || "dia1";
-          const dayNameMap: Record<string, string> = {
-            dia0: "Dia Zero (Sexta 05/02)",
-            dia1: "1º Dia (Sábado 06/02)",
-            dia2: "2º Dia (Domingo 07/02)",
-            dia3: "3º Dia (Segunda 08/02)",
-            dia4: "4º Dia (Terça 09/02)",
-            dia5: "5º Dia (Quarta 10/02)",
-          };
-          setActiveDayLabel(dayNameMap[selectedDayKey] || "1º Dia (Sábado 06/02)");
+            const selectedDayKey = (activeCurrent || fallbackCurrent)?.day || "dia1";
+            const dayNameMap: Record<string, string> = {
+              dia0: "Dia Zero (Sexta 05/02)",
+              dia1: "1º Dia (Sábado 06/02)",
+              dia2: "2º Dia (Domingo 07/02)",
+              dia3: "3º Dia (Segunda 08/02)",
+              dia4: "4º Dia (Terça 09/02)",
+              dia5: "5º Dia (Quarta 10/02)",
+            };
+            setActiveDayLabel(dayNameMap[selectedDayKey] || "1º Dia (Sábado 06/02)");
+          } else {
+            // Pre-event preview: first event of opening
+            const firstEvent = scheduleItems.find((i) => i.day === "dia0" || i.day === "dia1") || scheduleItems[0];
+            setCurrentEvent(firstEvent || null);
+            setNextEvent(scheduleItems[1] || null);
+          }
         }
       } catch (err) {
         console.error("Error loading schedule for dashboard:", err);
@@ -218,32 +232,22 @@ export function YouthDashboard() {
 
       {/* No Company Assigned Yet — friendly onboarding state */}
       {!profile?.company_id && !dataLoading && (
-        <div className="max-w-2xl mx-auto mt-8 mx-4 px-4">
-          <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 p-8 text-center space-y-3">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFD166] border-2 border-slate-900">
-                <Users className="h-8 w-8 text-slate-900" />
-              </div>
-            </div>
-            <h2 className="font-heading text-2xl font-black text-slate-900 dark:text-white">
-              Bem-vindo ao FSY, {firstName}!
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-              Você ainda não foi designado a uma companhia. A equipe de coordenação irá te designar em breve. Enquanto isso, você já pode ver a programação completa!
-            </p>
-            <a
-              href="/schedule"
-              className="inline-flex items-center gap-2 mt-2 rounded-2xl bg-[#4361EE] text-white px-5 py-2.5 text-sm font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-blue-600 transition-colors"
-            >
-              <Clock className="h-4 w-4" />
-              Ver Programação
-            </a>
-          </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 pt-4">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border-2 border-amber-300 dark:border-amber-700 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-brutal-sm"
+          >
+            <Users className="h-4 w-4 text-amber-600 shrink-0" />
+            <span>
+              <strong>Companhia não designada:</strong> Sua companhia será designada pela equipe na abertura do FSY 2027.
+            </span>
+          </motion.div>
         </div>
       )}
 
-      {/* Main Bento Grid */}
-      <main className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+      {/* Main Grid Content */}
+      <main className="mx-auto max-w-7xl px-4 sm:px-8 py-6">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -268,6 +272,8 @@ export function YouthDashboard() {
           {/* 3. Happening Now Card */}
           <motion.div variants={itemVariants} className="md:col-span-6 lg:col-span-5">
             <HappeningNowCard
+              isPreEvent={isPreEvent}
+              daysRemaining={daysRemaining}
               currentEvent={
                 currentEvent
                   ? {
