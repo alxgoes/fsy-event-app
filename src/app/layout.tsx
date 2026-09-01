@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Cormorant_Garamond, Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const bricolageGrotesque = Bricolage_Grotesque({
+const cinzel = Cinzel({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-heading",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -29,9 +37,9 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${inter.variable} ${bricolageGrotesque.variable}`}
+      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
-      <body className="min-h-screen bg-background font-sans antialiased bg-fsy-watermark selection:bg-[#FFD166] selection:text-slate-900">
+      <body className="min-h-screen bg-background font-sans antialiased bg-fsy-watermark selection:bg-[#FFE48A] selection:text-slate-900">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

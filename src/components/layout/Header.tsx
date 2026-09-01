@@ -22,6 +22,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, isStaff, isMasterAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
+import { FsyTempleMark } from "@/components/brand/FsyLogo";
 
 interface AppointmentNotification {
   id: string;
@@ -204,18 +205,18 @@ export function Header() {
         {/* Brand Logo & Title */}
         <Link href="/dashboard" className="flex items-center gap-3 group">
           <motion.div
-            whileHover={{ rotate: 8, scale: 1.05 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#4361EE] text-white font-black text-lg border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer p-1"
           >
-            FSY
+            <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </motion.div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-heading text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
                 Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFD166] px-1.5 py-0.5 text-[10px] font-black uppercase text-slate-950 border border-slate-900">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-[10px] font-black uppercase text-slate-950 border border-slate-900">
                 2027
               </span>
             </div>

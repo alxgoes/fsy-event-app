@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
+import { FsyTempleMark } from "@/components/brand/FsyLogo";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -177,9 +178,9 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-[#4361EE] text-white flex items-center justify-center font-black text-xs border border-slate-900 dark:border-slate-700 shadow-sm shrink-0">
-              FSY
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0 flex items-center justify-center">
+              <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -190,9 +191,8 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="text-xs text-slate-400 hidden xs:inline">|</span>
-                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold hidden xs:inline">
-                  RP 2 (2027)
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900 hidden xs:inline">
+                  2027
                 </span>
               </div>
             </div>
@@ -215,7 +215,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             href="/dashboard"
             className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-colors"
           >
-            <Compass className="h-3.5 w-3.5 text-[#4361EE]" />
+            <Compass className="h-3.5 w-3.5 text-[#007DA5]" />
             <span>Portal Jovem</span>
           </Link>
 
@@ -342,16 +342,16 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           <div className="flex h-full flex-col justify-between p-4">
             <div className="space-y-4">
               {/* Event Context Pill in Sidebar */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-3">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#EFEFE7]/50 dark:bg-slate-800/60 p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <Shield className="h-4 w-4 text-[#4361EE]" />
+                  <Shield className="h-4 w-4 text-[#007DA5]" />
                   <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                     FSY Ribeirão Preto 2
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
                   {currentRole === "midia"
-                    ? "Ambiente exclusivo da Equipe de Mídia Oficial."
+                    ? "Ambiente exclusivo da Equipe de Mídia."
                     : currentRole === "medico"
                     ? "Ambiente exclusivo da Equipe Multidisciplinar (Saúde & Atendimentos)."
                     : "Ambiente de coordenação, companhias, saúde, transporte e comunicados."}
@@ -362,7 +362,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
               <Link
                 href="/dashboard"
                 onClick={() => setIsSidebarOpen(false)}
-                className="flex items-center justify-between gap-2 w-full rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-3 py-2.5 text-xs font-black text-[#4361EE] dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors shadow-sm"
+                className="flex items-center justify-between gap-2 w-full rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800 px-3 py-2.5 text-xs font-black text-[#007DA5] dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors shadow-sm"
               >
                 <div className="flex items-center gap-2">
                   <Compass className="h-4 w-4" />

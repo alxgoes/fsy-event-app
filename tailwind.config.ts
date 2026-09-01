@@ -23,29 +23,30 @@ const config: Config = {
         background: "#F8FAFC",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#4361EE",
+          DEFAULT: "#007DA5", // Official FSY Blue 25
           foreground: "#FFFFFF",
-          50: "#EEF2FF",
-          100: "#E0E7FF",
-          500: "#4361EE",
-          600: "#3730A3",
-          700: "#312E81",
+          50: "#F0F9FF",
+          100: "#B0EEFC", // Blue 5
+          200: "#7DE3F4", // Blue 10
+          500: "#01B6D1", // Blue 20
+          600: "#007DA5", // Blue 25
+          700: "#005E7C",
         },
         secondary: {
-          DEFAULT: "#FFD166",
-          foreground: "#1E293B",
+          DEFAULT: "#FFE48A", // Official Sunshine
+          foreground: "#000000",
         },
         accent: {
-          DEFAULT: "#FF6B8B",
+          DEFAULT: "#FC4E6D", // Official Red 10
           foreground: "#FFFFFF",
         },
         success: {
-          DEFAULT: "#06D6A0",
-          foreground: "#FFFFFF",
+          DEFAULT: "#93C742", // Official Green 15
+          foreground: "#000000",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "#D45311", // Official Yellow 30 / Rust
+          foreground: "#FFFFFF",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -59,13 +60,39 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Official FSY 2027 Palette
+        fsy: {
+          neutral5: "#EFEFE7",
+          parchment: "#F5EFCA",
+          sunshine: "#FFE48A",
+          yellow10: "#FFB81C",
+          gold10: "#DBBF6B",
+          gray5: "#E0E2E2",
+          red5: "#FDA192",
+          red10: "#FC4E6D",
+          yellow20: "#F68D2E",
+          yellow30: "#D45311",
+          green5: "#D3E952",
+          green10: "#BED21E",
+          green15: "#93C742",
+          green20: "#6DB344",
+          blue5: "#B0EEFC",
+          blue10: "#7DE3F4",
+          blue20: "#01B6D1",
+          blue25: "#007DA5",
+          black: "#000000",
+        },
         brand: {
-          blue: "#4361EE",
-          yellow: "#FFD166",
-          pink: "#FF6B8B",
-          mint: "#06D6A0",
+          blue: "#007DA5",
+          teal: "#01B6D1",
+          yellow: "#FFE48A",
+          gold: "#DBBF6B",
+          pink: "#FC4E6D",
+          coral: "#FDA192",
+          green: "#93C742",
           dark: "#0F172A",
-          surface: "#F8FAFC",
+          surface: "#F5EFCA",
+          neutral: "#EFEFE7",
         },
       },
       borderRadius: {
@@ -80,11 +107,12 @@ const config: Config = {
       boxShadow: {
         "brutal-sm": "4px 4px 0px 0px rgba(0,0,0,1)",
         "brutal-md": "6px 6px 0px 0px rgba(0,0,0,1)",
-        "brutal-soft": "0 10px 0px 0px rgba(67, 97, 238, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.05)",
+        "brutal-soft": "0 10px 0px 0px rgba(0, 125, 165, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.05)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        heading: ["var(--font-heading)", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "var(--font-serif)", "Cinzel", "Cormorant Garamond", "serif"],
+        serif: ["var(--font-serif)", "var(--font-heading)", "Cormorant Garamond", "Cinzel", "serif"],
       },
       keyframes: {
         "accordion-down": {

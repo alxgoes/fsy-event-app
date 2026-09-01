@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 45 35% 97%; /* Soft Neutral / Parchment undertone */
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -13,24 +13,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 229 83% 60%;
+    --primary: 195 100% 32%; /* FSY Blue 25 #007DA5 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 100% 70%;
+    --secondary: 46 100% 77%; /* FSY Sunshine #FFE48A */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 50 20% 93%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 347 100% 71%;
+    --accent: 349 97% 65%; /* FSY Red 10 #FC4E6D */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 20 85% 45%; /* FSY Yellow 30 #D45311 */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 229 83% 60%;
+    --ring: 195 100% 32%;
 
     --radius: 0.75rem;
   }
@@ -45,24 +45,24 @@
     --popover: 224 71% 7%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 229 83% 65%;
+    --primary: 187 99% 41%; /* FSY Blue 20 #01B6D1 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 100% 68%;
+    --secondary: 46 100% 77%; /* FSY Sunshine #FFE48A */
     --secondary-foreground: 224 71% 4%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 347 100% 71%;
+    --accent: 349 97% 65%; /* FSY Red 10 #FC4E6D */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 45%;
+    --destructive: 20 85% 45%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 229 83% 65%;
+    --ring: 187 99% 41%;
   }
 }
 
@@ -79,16 +79,16 @@
 }
 
 /* ==========================================================================
-   Global Repeating FSY Footprint / Watermark Pattern (Visible in Light & Dark)
+   Global Repeating FSY 2027 Footprint / Watermark Pattern
    ========================================================================== */
 .bg-fsy-watermark {
-  background-color: #f8fafc;
-  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%231e293b' fill-opacity='0.075' transform='rotate(-20, 70, 45)'%3EFSY%3C/text%3E%3C/svg%3E");
+  background-color: #faf8f5;
+  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Cinzel, Cormorant Garamond, serif' font-weight='700' font-size='18' letter-spacing='4' fill='%231e293b' fill-opacity='0.055' transform='rotate(-20, 70, 45)'%3EFSY 2027%3C/text%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 140px 90px;
 }
 
 .dark .bg-fsy-watermark {
   background-color: #020617;
-  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='22' letter-spacing='3' fill='%23ffffff' fill-opacity='0.085' transform='rotate(-20, 70, 45)'%3EFSY%3C/text%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Cinzel, Cormorant Garamond, serif' font-weight='700' font-size='18' letter-spacing='4' fill='%23ffffff' fill-opacity='0.06' transform='rotate(-20, 70, 45)'%3EFSY 2027%3C/text%3E%3C/svg%3E");
 }

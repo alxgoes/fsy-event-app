@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { FsyTempleMark } from "@/components/brand/FsyLogo";
 
 function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -291,10 +292,16 @@ function LoginFormContent() {
         transition={{ duration: 0.3 }}
         className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5"
       >
-        {/* Card Header & Mode Switcher */}
+        {/* Card Header with Official Temple Mark & Mode Switcher */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFD166]/30 dark:bg-amber-950/60 border border-slate-900 dark:border-amber-500/40 text-slate-900 dark:text-amber-200 text-xs font-black uppercase tracking-wider">
-            <span>Acesso ao Sistema</span>
+          <div className="mx-auto flex justify-center pb-1">
+            <div className="h-16 w-auto p-1 rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+              <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase tracking-wider">
+            <span>Acesso ao Sistema • 2027</span>
           </div>
 
           <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
@@ -318,7 +325,7 @@ function LoginFormContent() {
             }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
               mode === "login"
-                ? "bg-[#4361EE] text-white shadow-sm"
+                ? "bg-[#007DA5] text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
             }`}
           >
@@ -334,7 +341,7 @@ function LoginFormContent() {
             }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
               mode === "register"
-                ? "bg-[#4361EE] text-white shadow-sm"
+                ? "bg-[#007DA5] text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
             }`}
           >
@@ -460,7 +467,7 @@ function LoginFormContent() {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked === true)}
-                className="border-slate-900 dark:border-slate-600 data-[state=checked]:bg-[#4361EE]"
+                className="border-slate-900 dark:border-slate-600 data-[state=checked]:bg-[#007DA5]"
               />
               <label
                 htmlFor="remember"
@@ -474,7 +481,7 @@ function LoginFormContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-2xl bg-[#4361EE] hover:bg-blue-600 text-white font-black text-sm border-2 border-slate-900 dark:border-slate-600 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+              className="w-full h-12 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-sm border-2 border-slate-900 dark:border-slate-600 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
             >
               {loading ? (
                 <>
@@ -496,9 +503,9 @@ function LoginFormContent() {
                   setMode("register");
                   setErrorMsg(null);
                 }}
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#4361EE]"
+                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#007DA5]"
               >
-                Não tem uma conta? <span className="text-[#4361EE] font-black underline">Cadastre-se gratuitamente</span>
+                Não tem uma conta? <span className="text-[#007DA5] dark:text-[#7DE3F4] font-black underline">Cadastre-se gratuitamente</span>
               </button>
             </div>
           </form>
@@ -632,7 +639,7 @@ function LoginFormContent() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-2xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all mt-2"
+              className="w-full h-12 rounded-2xl bg-[#93C742] hover:bg-[#BED21E] text-slate-950 font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all mt-2"
             >
               {loading ? (
                 <>
@@ -654,9 +661,9 @@ function LoginFormContent() {
                   setMode("login");
                   setErrorMsg(null);
                 }}
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#4361EE]"
+                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#007DA5]"
               >
-                Já possui uma conta cadastrada? <span className="text-[#4361EE] font-black underline">Fazer Login</span>
+                Já possui uma conta cadastrada? <span className="text-[#007DA5] dark:text-[#7DE3F4] font-black underline">Fazer Login</span>
               </button>
             </div>
           </form>
@@ -671,16 +678,21 @@ export default function LoginPage() {
     <div className="min-h-screen bg-fsy-watermark text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-6 transition-colors duration-200">
       {/* Top Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-9 w-9 rounded-xl bg-[#4361EE] flex items-center justify-center text-white font-black text-xs border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">
-            FSY
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="h-11 w-11 rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-1 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+            <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
           <div>
-            <span className="font-black text-sm tracking-tight block text-slate-900 dark:text-white">
-              Sessão Ribeirão Preto 2
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-heading font-black text-sm tracking-tight block text-slate-900 dark:text-white">
+                Sessão Ribeirão Preto 2
+              </span>
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900">
+                2027
+              </span>
+            </div>
             <span className="text-[10px] text-slate-500 font-bold block">
-              Edição 2027 (05 a 10 de Fevereiro)
+              Edição 2027 • 05 a 10 de Fevereiro
             </span>
           </div>
         </Link>
