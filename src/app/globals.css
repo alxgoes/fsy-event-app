@@ -89,6 +89,6 @@
 }
 
 .dark .bg-fsy-watermark {
-  background-color: #020617;
+  background-color: #0F172A;
   background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Cinzel, Cormorant Garamond, serif' font-weight='700' font-size='18' letter-spacing='4' fill='%23ffffff' fill-opacity='0.06' transform='rotate(-20, 70, 45)'%3EFSY 2027%3C/text%3E%3C/svg%3E");
 }

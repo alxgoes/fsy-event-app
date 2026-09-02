@@ -233,7 +233,7 @@ export function CounselorPanel() {
     return (
       <div className="min-h-screen bg-fsy-watermark flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#007DA5]" />
           <p className="font-bold text-sm text-slate-600 dark:text-slate-400">
             Carregando Painel do Consultor...
           </p>
@@ -256,25 +256,25 @@ export function CounselorPanel() {
 
       <main className="mx-auto max-w-7xl px-4 sm:px-8 py-6 space-y-6">
         {/* Banner: Counselor & Company Overview */}
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-brutal-md">
+        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-4">
               <div
-                className="flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm shrink-0"
-                style={{ backgroundColor: company?.color || "#4361EE" }}
+                className="flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0"
+                style={{ backgroundColor: company?.color || "#007DA5" }}
               >
                 <Users className="h-7 w-7" />
               </div>
 
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-md bg-blue-100 dark:bg-blue-950/80 px-2 py-0.5 text-xs font-black text-[#4361EE] border border-blue-200 dark:border-blue-800 uppercase tracking-wider">
+                  <span className="rounded-md bg-sky-100 dark:bg-sky-950/80 px-2 py-0.5 text-xs font-black text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 uppercase tracking-wider">
                     Painel do Consultor
                   </span>
                   {company && (
                     <span
                       className="rounded-md px-2 py-0.5 text-xs font-black text-white border border-slate-900/30"
-                      style={{ backgroundColor: company.color || "#4361EE" }}
+                      style={{ backgroundColor: company.color || "#007DA5" }}
                     >
                       {company.id.toUpperCase()}
                     </span>
@@ -297,14 +297,14 @@ export function CounselorPanel() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={loadCounselorData}
-                className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Atualizar
               </button>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 rounded-2xl bg-[#4361EE] text-white border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-brutal-sm hover:bg-blue-600 transition-colors"
+                className="flex items-center gap-1.5 rounded-2xl bg-[#007DA5] text-white border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-[#005E7C] transition-colors min-h-[36px]"
               >
                 <Compass className="h-3.5 w-3.5" />
                 Ver Portal Jovem
@@ -354,9 +354,9 @@ export function CounselorPanel() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setActiveTab("announcements")}
-              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all ${
+              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
                 activeTab === "announcements"
-                  ? "bg-slate-900 text-white dark:bg-[#4361EE] border-slate-900 dark:border-blue-400 shadow-brutal-sm"
+                  ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -366,9 +366,9 @@ export function CounselorPanel() {
 
             <button
               onClick={() => setActiveTab("youth")}
-              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all ${
+              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
                 activeTab === "youth"
-                  ? "bg-slate-900 text-white dark:bg-[#4361EE] border-slate-900 dark:border-blue-400 shadow-brutal-sm"
+                  ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
               }`}
             >
@@ -383,16 +383,16 @@ export function CounselorPanel() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Publisher Form (5 cols) */}
             <div className="lg:col-span-5">
-              <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md sticky top-24">
+              <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-lg sticky top-24">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6B8B] text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FC4E6D] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
                     <Send className="h-4 w-4" />
                   </div>
                   <div>
                     <h3 className="font-heading text-base font-black text-slate-900 dark:text-white">
                       Publicar para sua Companhia
                     </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Aparecerá no mural dos seus jovens
                     </p>
                   </div>
@@ -474,7 +474,7 @@ export function CounselorPanel() {
                   <Button
                     type="submit"
                     disabled={posting}
-                    className="w-full rounded-2xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 font-black text-xs border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm"
+                    className="w-full rounded-2xl bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black text-xs border-2 border-slate-900 dark:border-slate-700 shadow-sm min-h-[40px]"
                   >
                     {posting ? (
                       <>
@@ -505,7 +505,7 @@ export function CounselorPanel() {
 
               {loadingData ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-7 w-7 animate-spin text-[#4361EE]" />
+                  <Loader2 className="h-7 w-7 animate-spin text-[#007DA5]" />
                 </div>
               ) : announcements.length === 0 ? (
                 <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center">
@@ -610,21 +610,22 @@ export function CounselorPanel() {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
+                  aria-label="Buscar jovem por nome, quarto ou estaca"
                   placeholder="Buscar jovem por nome, quarto ou estaca..."
                   value={youthSearch}
                   onChange={(e) => setYouthSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
                 />
               </div>
 
-              <span className="text-xs font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 rounded-2xl shadow-brutal-sm shrink-0">
+              <span className="text-xs font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 rounded-2xl shadow-sm shrink-0">
                 {filteredYouth.length} jovem(ns) listado(s)
               </span>
             </div>
 
             {loadingData ? (
               <div className="flex justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
               </div>
             ) : filteredYouth.length === 0 ? (
               <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
@@ -645,10 +646,10 @@ export function CounselorPanel() {
                     <motion.div
                       key={youth.id}
                       whileHover={{ y: -2 }}
-                      className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-brutal-sm flex flex-col justify-between"
+                      className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col justify-between"
                     >
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#4361EE] text-white font-black text-base border border-slate-900 dark:border-slate-700 shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#007DA5] text-white font-black text-base border border-slate-900 dark:border-slate-700 shrink-0">
                           {initial}
                         </div>
                         <div className="min-w-0">

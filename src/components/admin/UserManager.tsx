@@ -193,7 +193,7 @@ export function UserManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4361EE] text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#007DA5] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
             <Users className="h-6 w-6" />
           </div>
           <div>
@@ -208,7 +208,7 @@ export function UserManager() {
 
         <button
           onClick={loadData}
-          className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-4 py-2.5 text-sm font-black shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-4 py-2.5 text-sm font-black shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
         >
           <RefreshCw className="h-4 w-4" />
           Atualizar
@@ -234,16 +234,18 @@ export function UserManager() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
+            aria-label="Buscar usuário por nome"
             placeholder="Buscar por nome..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE] transition-all"
+            className="w-full pl-9 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5] transition-all"
           />
         </div>
         <select
+          aria-label="Filtrar usuários por função"
           value={filterRole}
           onChange={(e) => setFilterRole(e.target.value)}
-          className="px-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4361EE] transition-all"
+          className="px-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007DA5] transition-all"
         >
           <option value="all">Todas as funções</option>
           {ALL_ROLES.map((r) => (
@@ -257,7 +259,7 @@ export function UserManager() {
       {/* User Table */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : filteredUsers.length === 0 ? (
         <div className="text-center py-12 text-slate-400 dark:text-slate-500">
@@ -279,7 +281,7 @@ export function UserManager() {
                 animate={{ opacity: 1, y: 0 }}
                 className={`rounded-2xl border-2 p-4 transition-all ${
                   isEditing
-                    ? "border-[#4361EE] bg-blue-50/50 dark:bg-blue-950/20 shadow-brutal-sm"
+                    ? "border-[#007DA5] bg-sky-50/50 dark:bg-sky-950/20 shadow-sm"
                     : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600"
                 }`}
               >
@@ -295,17 +297,17 @@ export function UserManager() {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <span
-                          className={`rounded-md px-2 py-0.5 text-[10px] font-black ${ROLE_COLORS[user.role] || "bg-slate-100 text-slate-800"}`}
+                          className={`rounded-md px-2 py-0.5 text-xs font-black ${ROLE_COLORS[user.role] || "bg-slate-100 text-slate-800"}`}
                         >
                           {ROLE_LABELS[user.role] || user.role}
                         </span>
                         {user.company_id && (
-                          <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
                             {user.company_id}
                           </span>
                         )}
                         {user.room && (
-                          <span className="text-[10px] font-bold text-slate-400">
+                          <span className="text-xs font-bold text-slate-400">
                             • {user.room}
                           </span>
                         )}
@@ -318,10 +320,11 @@ export function UserManager() {
                     <div className="flex flex-col sm:flex-row gap-3 flex-1">
                       {/* Role */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">
+                        <label className="text-xs font-black uppercase text-slate-500">
                           Função
                         </label>
                         <select
+                          aria-label="Alterar função"
                           value={editValues.role}
                           onChange={(e) =>
                             setEditValues((v) => ({
@@ -329,7 +332,7 @@ export function UserManager() {
                               role: e.target.value as UserRole,
                             }))
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
+                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
                         >
                           {ALL_ROLES.map((r) => (
                             <option key={r} value={r}>
@@ -341,10 +344,11 @@ export function UserManager() {
 
                       {/* Company */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">
+                        <label className="text-xs font-black uppercase text-slate-500">
                           Companhia
                         </label>
                         <select
+                          aria-label="Alterar companhia"
                           value={editValues.company_id ?? ""}
                           onChange={(e) =>
                             setEditValues((v) => ({
@@ -352,7 +356,7 @@ export function UserManager() {
                               company_id: e.target.value || null,
                             }))
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
+                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
                         >
                           <option value="">Sem companhia</option>
                           {companies.map((c) => (
@@ -365,17 +369,18 @@ export function UserManager() {
 
                       {/* Room */}
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-black uppercase text-slate-500">
+                        <label className="text-xs font-black uppercase text-slate-500">
                           Alojamento
                         </label>
                         <input
                           type="text"
+                          aria-label="Alterar alojamento"
                           placeholder="ex: Bloco A - 204"
                           value={editValues.room ?? ""}
                           onChange={(e) =>
                             setEditValues((v) => ({ ...v, room: e.target.value }))
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE] w-32"
+                          className="px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5] w-32"
                         />
                       </div>
 
@@ -384,7 +389,7 @@ export function UserManager() {
                         <button
                           onClick={() => saveUser(user.id)}
                           disabled={isSaving}
-                          className="flex items-center gap-1.5 rounded-xl bg-[#4361EE] text-white px-3 py-2 text-xs font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-blue-600 disabled:opacity-60 transition-colors"
+                          className="flex items-center gap-1.5 rounded-xl bg-[#007DA5] text-white px-3 py-2 text-xs font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] disabled:opacity-60 transition-colors"
                         >
                           {isSaving ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />

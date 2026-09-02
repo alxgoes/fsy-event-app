@@ -42,7 +42,7 @@ export default function AcessoNegadoPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/dashboard"
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#4361EE] text-white px-4 py-3 text-sm font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-blue-600 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-sm font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] transition-colors min-h-[44px]"
             >
               <Home className="h-4 w-4" />
               Meu Painel

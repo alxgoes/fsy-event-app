@@ -251,7 +251,7 @@ export function MediaManager() {
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Gestão de Fotos & Mídia
             </h1>
-            <span className="rounded-full bg-pink-100 dark:bg-pink-950 px-2 py-0.5 text-[10px] font-black text-[#FF6B8B]">
+            <span className="rounded-full bg-pink-100 dark:bg-pink-950 px-2 py-0.5 text-xs font-black text-[#FC4E6D]">
               FSY 2027 Live
             </span>
           </div>
@@ -261,7 +261,7 @@ export function MediaManager() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-800 animate-bounce">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
               <CheckCircle2 className="h-4 w-4" /> Foto publicada!
             </span>
           )}
@@ -269,17 +269,17 @@ export function MediaManager() {
             href={DRIVE_FOLDER_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3 py-2 text-xs font-black text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-brutal-sm"
+            className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3 py-2 text-xs font-black text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm min-h-[36px]"
           >
-            <FolderOpen className="h-4 w-4 text-[#4361EE]" />
+            <FolderOpen className="h-4 w-4 text-[#007DA5]" />
             Abrir Pasta Drive
           </a>
-          <Button onClick={loadPhotos} variant="outline" size="sm" className="text-xs font-bold rounded-xl">
+          <Button onClick={loadPhotos} variant="outline" size="sm" className="text-xs font-bold rounded-xl min-h-[36px]">
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Atualizar
           </Button>
           <Button
             onClick={() => setShowForm(!showForm)}
-            className="text-xs bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm"
+            className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar Foto
           </Button>
@@ -298,10 +298,10 @@ export function MediaManager() {
 
       {/* Add Photo Form Dialog / Drawer */}
       {showForm && (
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-brutal-md space-y-4">
+        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
-              <Plus className="h-5 w-5 text-[#4361EE]" />
+              <Plus className="h-5 w-5 text-[#007DA5]" />
               Cadastrar Nova Foto do Google Drive
             </h3>
             <button
@@ -349,13 +349,14 @@ export function MediaManager() {
               <div className="relative">
                 <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
+                  aria-label="Link de Compartilhamento do Google Drive"
                   value={driveUrl}
                   onChange={(e) => setDriveUrl(e.target.value)}
                   placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
                   className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-semibold"
                 />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 💡 Cole o link da foto no Google Drive com permissão &ldquo;Qualquer pessoa com o link pode ver&rdquo;.
               </p>
             </div>
@@ -367,11 +368,13 @@ export function MediaManager() {
                 <img
                   src={getDriveThumbnail(driveUrl)!}
                   alt="Prévia"
+                  loading="lazy"
+                  decoding="async"
                   className="h-16 w-16 object-cover rounded-xl border border-slate-300"
                 />
                 <div>
                   <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Miniatura detectada com sucesso!</p>
-                  <p className="text-[10px] text-slate-500">A imagem será exibida com alta definição no portal dos jovens.</p>
+                  <p className="text-xs text-slate-500">A imagem será exibida com alta definição no portal dos jovens.</p>
                 </div>
               </div>
             )}
@@ -382,7 +385,7 @@ export function MediaManager() {
                   type="checkbox"
                   checked={visible}
                   onChange={(e) => setVisible(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#4361EE] focus:ring-[#4361EE]"
+                  className="h-4 w-4 rounded border-slate-300 text-[#007DA5] focus:ring-[#007DA5]"
                 />
                 <span>Publicar imediatamente no Mural de Memórias dos Jovens</span>
               </label>
@@ -390,7 +393,7 @@ export function MediaManager() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm text-xs h-11 px-6"
+                className="bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs h-11 px-6 min-h-[36px]"
               >
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {saving ? "Publicando..." : "Publicar Foto"}
@@ -407,10 +410,10 @@ export function MediaManager() {
             <button
               key={cat}
               onClick={() => setFilterCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all border ${
+              className={`px-3.5 py-1.5 rounded-2xl text-xs font-black transition-all border-2 min-h-[36px] ${
                 filterCategory === cat
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 border-slate-900 dark:border-white shadow-sm"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400"
+                  ? "bg-[#007DA5] text-white border-slate-900 shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400"
               }`}
             >
               {cat}
@@ -422,26 +425,24 @@ export function MediaManager() {
       {/* Photos Grid */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : filteredPhotos.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center space-y-3 bg-white dark:bg-slate-900">
-          <ImageIcon className="h-12 w-12 text-slate-400 mx-auto opacity-30" />
-          <h4 className="font-black text-base text-slate-900 dark:text-white">Nenhuma foto adicionada ainda</h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Clique em &ldquo;Adicionar Foto&rdquo; para vincular imagens do Google Drive ao portal dos jovens.
+        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
+          <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+          <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma foto encontrada</p>
+          <p className="text-xs max-w-sm mx-auto">
+            Clique no botão &ldquo;Adicionar Foto&rdquo; para sincronizar links de fotos oficiais da equipe.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredPhotos.map((photo) => {
             const thumb = photo.thumbnail_url || getDriveThumbnail(photo.drive_url);
             return (
               <div
                 key={photo.id}
-                className={`rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-brutal-sm flex flex-col justify-between ${
-                  !photo.visible ? "opacity-60" : ""
-                }`}
+                className="group rounded-3xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shadow-sm hover:border-slate-400 dark:hover:border-slate-600 transition-all flex flex-col justify-between"
               >
                 {/* Photo Image / Thumbnail */}
                 <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden border-b-2 border-slate-900 dark:border-slate-700 flex items-center justify-center">
@@ -450,6 +451,8 @@ export function MediaManager() {
                     <img
                       src={thumb}
                       alt={photo.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.currentTarget as HTMLElement).style.display = "none";
@@ -458,14 +461,14 @@ export function MediaManager() {
                   ) : (
                     <div className="flex flex-col items-center justify-center p-4 text-center">
                       <ImageIcon className="h-8 w-8 text-slate-400 mb-1" />
-                      <span className="text-[10px] text-slate-500 font-bold">Google Drive</span>
+                      <span className="text-xs text-slate-500 font-bold">Google Drive</span>
                     </div>
                   )}
-                  <span className="absolute top-2 left-2 rounded-xl bg-slate-900/80 text-white text-[10px] font-black px-2 py-0.5 backdrop-blur-sm">
+                  <span className="absolute top-2 left-2 rounded-xl bg-slate-900/80 text-white text-xs font-black px-2 py-0.5 backdrop-blur-sm">
                     {photo.category}
                   </span>
                   {!photo.visible && (
-                    <span className="absolute top-2 right-2 rounded-xl bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5">
+                    <span className="absolute top-2 right-2 rounded-xl bg-amber-500 text-amber-950 text-xs font-black px-2 py-0.5">
                       Oculta
                     </span>
                   )}
@@ -487,7 +490,7 @@ export function MediaManager() {
                       href={photo.drive_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-[10px] font-black text-[#4361EE] hover:underline"
+                      className="flex items-center gap-1 text-xs font-black text-[#007DA5] hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Abrir no Drive

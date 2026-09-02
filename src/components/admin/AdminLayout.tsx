@@ -191,7 +191,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900 hidden xs:inline">
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40 hidden xs:inline">
                   2027
                 </span>
               </div>
@@ -275,7 +275,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
                           {displayEmail}
                         </p>
-                        <span className="inline-flex mt-0.5 items-center rounded-md bg-blue-100 dark:bg-blue-950 px-1.5 py-0.5 text-[10px] font-black text-[#4361EE]">
+                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-black text-[#007DA5] dark:text-cyan-300">
                           {roleLabels[currentRole]?.label || roleLabel}
                         </span>
                       </div>
@@ -288,13 +288,13 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#4361EE] hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#007DA5] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <Compass className="h-4 w-4" />
                         <span>Portal do Jovem</span>
                       </div>
-                      <span className="text-[10px] font-black bg-[#4361EE] text-white px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-black bg-[#007DA5] text-white px-2 py-0.5 rounded-md">
                         Acessar
                       </span>
                     </Link>
@@ -389,7 +389,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       onClick={() => setIsSidebarOpen(false)}
                       className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all ${
                         isActive
-                          ? "bg-slate-900 text-white dark:bg-[#4361EE] dark:text-white shadow-sm"
+                          ? "bg-slate-900 text-white dark:bg-[#007DA5] dark:text-white shadow-sm"
                           : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >

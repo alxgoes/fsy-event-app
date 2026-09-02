@@ -94,12 +94,12 @@ export function DriveGallery() {
       {/* Sub-Header / View Mode Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4361EE] text-white border border-slate-900 shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#007DA5] text-white border border-slate-900 shadow-sm">
             <FolderOpen className="h-4 w-4" />
           </div>
           <div>
             <p className="text-xs font-black text-slate-900 dark:text-white">Fotos Oficiais FSY 2027</p>
-            <p className="text-[10px] font-bold text-slate-500">Registros diários da equipe de mídia oficial</p>
+            <p className="text-xs font-medium text-slate-500">Registros diários da equipe de mídia oficial</p>
           </div>
         </div>
 
@@ -109,9 +109,9 @@ export function DriveGallery() {
               <button
                 type="button"
                 onClick={() => setViewMode("gallery")}
-                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all min-h-[36px] ${
                   viewMode === "gallery"
-                    ? "bg-[#4361EE] text-white shadow-sm"
+                    ? "bg-[#007DA5] text-white shadow-sm"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
@@ -120,9 +120,9 @@ export function DriveGallery() {
               <button
                 type="button"
                 onClick={() => setViewMode("drive")}
-                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all ${
+                className={`px-3 py-1.5 text-xs font-black rounded-lg transition-all min-h-[36px] ${
                   viewMode === "drive"
-                    ? "bg-[#4361EE] text-white shadow-sm"
+                    ? "bg-[#007DA5] text-white shadow-sm"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
@@ -135,9 +135,9 @@ export function DriveGallery() {
             href={DRIVE_OPEN_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-1.5 text-xs font-black text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-brutal-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-1.5 text-xs font-black text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm min-h-[36px]"
           >
-            <ExternalLink className="h-3.5 w-3.5 text-[#4361EE]" />
+            <ExternalLink className="h-3.5 w-3.5 text-[#007DA5]" />
             Abrir Pasta Completa
           </a>
         </div>
@@ -146,7 +146,7 @@ export function DriveGallery() {
       {/* Loading state */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : viewMode === "gallery" && photos.length > 0 ? (
         <div className="space-y-4">
@@ -158,9 +158,9 @@ export function DriveGallery() {
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all border min-h-[36px] ${
                     selectedCategory === cat
-                      ? "bg-slate-900 text-white dark:bg-[#4361EE] border-slate-900 dark:border-blue-500 shadow-brutal-sm -translate-y-0.5"
+                      ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-500 shadow-sm -translate-y-0.5"
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400"
                   }`}
                 >
@@ -180,13 +180,15 @@ export function DriveGallery() {
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setActivePhoto(photo)}
-                  className="group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-brutal-sm aspect-square flex flex-col justify-between"
+                  className="group relative cursor-pointer overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm aspect-square flex flex-col justify-between"
                 >
                   {thumb ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={thumb}
                       alt={photo.title}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
@@ -195,23 +197,23 @@ export function DriveGallery() {
                   ) : null}
 
                   {/* Fallback card content when image is loading / direct link */}
-                  <div className="absolute inset-0 p-3 flex flex-col justify-between bg-gradient-to-br from-[#4361EE]/10 to-[#06D6A0]/10 -z-0">
-                    <span className="self-start rounded-md bg-slate-900/90 text-white text-[9px] font-black px-2 py-0.5 backdrop-blur-sm">
+                  <div className="absolute inset-0 p-3 flex flex-col justify-between bg-gradient-to-br from-[#007DA5]/10 to-[#06D6A0]/10 -z-0">
+                    <span className="self-start rounded-md bg-slate-900/90 text-white text-xs font-black px-2 py-0.5 backdrop-blur-sm">
                       {photo.category}
                     </span>
                     <div className="flex flex-col items-center justify-center flex-1 my-auto">
-                      <ImageIcon className="h-8 w-8 text-[#4361EE] opacity-60 group-hover:scale-110 transition-transform" />
+                      <ImageIcon className="h-8 w-8 text-[#007DA5] opacity-60 group-hover:scale-110 transition-transform" />
                     </div>
-                    <p className="text-[11px] font-black text-slate-900 dark:text-white truncate">
+                    <p className="text-xs font-black text-slate-900 dark:text-white truncate">
                       {photo.title}
                     </p>
                   </div>
 
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end">
-                    <span className="text-[10px] font-black uppercase text-[#FFD166]">{photo.category}</span>
+                    <span className="text-xs font-black uppercase text-[#FFD166]">{photo.category}</span>
                     <p className="text-xs font-black text-white line-clamp-2">{photo.title}</p>
-                    <span className="text-[9px] text-slate-300 mt-1 flex items-center gap-1 font-bold">
+                    <span className="text-xs text-slate-300 mt-1 flex items-center gap-1 font-bold">
                       <Sparkles className="h-3 w-3 text-amber-400" /> Clique para ampliar
                     </span>
                   </div>
@@ -226,7 +228,7 @@ export function DriveGallery() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="relative w-full overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm bg-slate-50 dark:bg-slate-800"
+          className="relative w-full overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 shadow-sm bg-slate-50 dark:bg-slate-800"
           style={{ height: "480px" }}
         >
           <iframe
@@ -254,7 +256,7 @@ export function DriveGallery() {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative max-w-2xl w-full rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 overflow-hidden shadow-brutal-lg"
+              className="relative max-w-2xl w-full rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 overflow-hidden shadow-xl"
             >
               <div className="relative aspect-video bg-slate-950 flex items-center justify-center overflow-hidden">
                 {resolveThumbnail(activePhoto) ? (
@@ -262,6 +264,8 @@ export function DriveGallery() {
                   <img
                     src={resolveThumbnail(activePhoto)!}
                     alt={activePhoto.title}
+                    loading="lazy"
+                    decoding="async"
                     className="max-h-full max-w-full object-contain"
                   />
                 ) : (
@@ -269,7 +273,7 @@ export function DriveGallery() {
                 )}
                 <button
                   onClick={() => setActivePhoto(null)}
-                  className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 transition-colors"
+                  className="absolute top-3 right-3 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -277,7 +281,7 @@ export function DriveGallery() {
 
               <div className="p-4 flex items-center justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-black uppercase text-[#4361EE] dark:text-blue-400">
+                  <span className="text-xs font-black uppercase text-[#007DA5] dark:text-cyan-400">
                     {activePhoto.category}
                   </span>
                   <h3 className="font-heading font-black text-base text-slate-900 dark:text-white">
@@ -289,7 +293,7 @@ export function DriveGallery() {
                   href={activePhoto.drive_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-xl bg-[#4361EE] text-white px-4 py-2 text-xs font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-blue-600 transition-colors shrink-0"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#007DA5] text-white px-4 py-2 text-xs font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] transition-colors shrink-0 min-h-[36px]"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Abrir no Drive

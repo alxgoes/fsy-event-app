@@ -343,7 +343,7 @@ export function ScheduleManager() {
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Gestão do Cronograma Oficial
             </h1>
-            <Badge className="bg-[#4361EE] text-white text-[10px] font-black uppercase">
+            <Badge className="bg-[#007DA5] text-white text-xs font-black uppercase">
               FSY 2027 Live
             </Badge>
           </div>
@@ -354,7 +354,7 @@ export function ScheduleManager() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-800 animate-bounce">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
               <CheckCircle2 className="h-4 w-4" /> Atualizado!
             </span>
           )}
@@ -364,19 +364,19 @@ export function ScheduleManager() {
             variant="outline"
             size="sm"
             disabled={seeding}
-            className="text-xs border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-black rounded-xl"
+            className="text-xs border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-black rounded-xl min-h-[36px]"
           >
             {seeding ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Database className="mr-1.5 h-3.5 w-3.5 text-amber-500" />}
             {seeding ? "Sincronizando..." : "Sincronizar Oficial (82)"}
           </Button>
 
-          <Button onClick={loadSchedule} variant="outline" size="sm" className="text-xs font-bold rounded-xl">
+          <Button onClick={loadSchedule} variant="outline" size="sm" className="text-xs font-bold rounded-xl min-h-[36px]">
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Atualizar
           </Button>
 
           <Button
             onClick={handleOpenCreateModal}
-            className="text-xs bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm"
+            className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar Evento
           </Button>
@@ -402,15 +402,15 @@ export function ScheduleManager() {
             <button
               key={day.key}
               onClick={() => setSelectedDayTab(day.key)}
-              className={`flex shrink-0 items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all border-2 ${
+              className={`flex shrink-0 items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all border-2 min-h-[40px] ${
                 isSelected
-                  ? "bg-[#4361EE] text-white border-slate-900 shadow-brutal-sm -translate-y-0.5"
+                  ? "bg-[#007DA5] text-white border-slate-900 shadow-sm -translate-y-0.5"
                   : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400"
               }`}
             >
               <span>{day.label}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                className={`rounded-full px-2 py-0.5 text-xs font-black ${
                   isSelected
                     ? "bg-white/20 text-white"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
@@ -428,6 +428,7 @@ export function ScheduleManager() {
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
+            aria-label="Buscar por título, local ou descrição"
             placeholder="Buscar por título, local ou descrição..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -455,11 +456,11 @@ export function ScheduleManager() {
       {/* Schedule Items List */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#4361EE]" />
+          <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma atividade encontrada</p>
           <p className="text-xs max-w-sm mx-auto">
             Clique no botão &ldquo;Adicionar Evento&rdquo; ou &ldquo;Sincronizar Oficial (82)&rdquo; para carregar a grade completa.
@@ -471,29 +472,29 @@ export function ScheduleManager() {
             <Card
               key={item.id}
               className={`border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all hover:border-slate-400 ${
-                item.is_highlight ? "border-l-4 border-l-amber-500 dark:border-l-amber-400 bg-amber-50/10" : ""
+                item.is_highlight ? "border-amber-400/80 dark:border-amber-500/80 bg-amber-50/20 dark:bg-amber-950/10 ring-1 ring-amber-400/40" : ""
               }`}
             >
               <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-black text-slate-900 dark:text-white">
-                      <Clock className="h-3.5 w-3.5 text-[#4361EE]" />
+                      <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
                       {item.start_time} {item.end_time && item.end_time !== "--" ? `— ${item.end_time}` : ""}
                     </span>
 
-                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-black uppercase text-slate-500">
+                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-black uppercase text-slate-500">
                       {item.day.toUpperCase()}
                     </span>
 
                     {item.category && (
-                      <Badge variant="outline" className={`text-[10px] font-black px-2 py-0.5 ${getCategoryColor(item.category)}`}>
+                      <Badge variant="outline" className={`text-xs font-black px-2 py-0.5 ${getCategoryColor(item.category)}`}>
                         {item.category}
                       </Badge>
                     )}
 
                     {item.is_highlight && (
-                      <Badge className="bg-amber-400 text-slate-950 font-black text-[10px] flex items-center gap-1 border border-amber-500 shadow-sm">
+                      <Badge className="bg-amber-400 text-amber-950 font-black text-xs flex items-center gap-1 border border-amber-500 shadow-sm">
                         <Sparkles className="h-3 w-3" /> Destaque
                       </Badge>
                     )}
@@ -676,21 +677,21 @@ export function ScheduleManager() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl border ${formIsHighlight ? "bg-amber-400 text-slate-950 border-amber-500" : "bg-slate-200 dark:bg-slate-700 text-slate-500 border-slate-300"}`}>
+                <div className={`p-2 rounded-xl border ${formIsHighlight ? "bg-amber-400 text-amber-950 border-amber-500" : "bg-muted text-muted-foreground border-border"}`}>
                   <Star className="h-4 w-4 fill-current" />
                 </div>
                 <div>
                   <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                     Marcar como Destaque
-                    {formIsHighlight && <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
+                    {formIsHighlight && <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
                   </p>
-                  <p className="text-[11px] text-slate-500">Exibido com card dourado no mural e no feed dos jovens</p>
+                  <p className="text-xs text-slate-500">Exibido com card dourado no mural e no feed dos jovens</p>
                 </div>
               </div>
 
               <div
                 className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
-                  formIsHighlight ? "bg-[#4361EE]" : "bg-slate-300 dark:bg-slate-600"
+                  formIsHighlight ? "bg-[#007DA5]" : "bg-slate-300 dark:bg-slate-600"
                 }`}
               >
                 <div
@@ -713,7 +714,7 @@ export function ScheduleManager() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="text-xs bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm"
+                className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
               >
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {saving ? "Salvando..." : "Salvar no Cronograma"}
@@ -758,7 +759,7 @@ export function ScheduleManager() {
       <Dialog open={isSyncModalOpen} onOpenChange={setIsSyncModalOpen}>
         <DialogContent className="sm:max-w-[460px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-[#4361EE]">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-[#007DA5]">
               <Database className="h-5 w-5" /> Sincronizar Cronograma 2027
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -769,14 +770,14 @@ export function ScheduleManager() {
             <Button
               variant="outline"
               onClick={() => setIsSyncModalOpen(false)}
-              className="flex-1 rounded-xl text-xs font-bold"
+              className="flex-1 rounded-xl text-xs font-bold min-h-[36px]"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSyncOfficial}
               disabled={seeding}
-              className="flex-1 bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl text-xs"
+              className="flex-1 bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl text-xs min-h-[36px]"
             >
               {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Database className="h-4 w-4 mr-1" />}
               {seeding ? "Sincronizando..." : "Sincronizar Agora"}

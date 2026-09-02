@@ -65,13 +65,13 @@ export function HappeningNowCard({
 
           {/* Time & Location Pill Row */}
           <div className="mt-4 flex flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm">
-              <Clock className="h-3.5 w-3.5 text-[#4361EE]" />
+            <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
+              <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
               <span>Início: 05/02/2027 (Dia Zero)</span>
             </div>
 
-            <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm">
-              <MapPin className="h-3.5 w-3.5 text-[#FF6B8B]" />
+            <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
+              <MapPin className="h-3.5 w-3.5 text-[#FC4E6D]" />
               <span>Sessão Ribeirão Preto 2</span>
             </div>
           </div>
@@ -81,7 +81,7 @@ export function HappeningNowCard({
         <div className="mt-5 pt-4 border-t-2 border-slate-900/20 space-y-3">
           <div className="flex items-center justify-between text-xs font-bold text-slate-800 bg-white/70 px-3 py-2 rounded-xl border border-slate-900/15">
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-[10px] font-black uppercase text-slate-950 bg-amber-300 px-1.5 py-0.5 rounded border border-amber-400">
+              <span className="text-xs font-black uppercase text-amber-950 bg-amber-300 px-1.5 py-0.5 rounded border border-amber-400">
                 1º Dia (06/02)
               </span>
               <span className="truncate font-extrabold text-slate-900">
@@ -94,7 +94,7 @@ export function HappeningNowCard({
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95, y: 2 }}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white border-2 border-slate-900 shadow-brutal-sm hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white border-2 border-slate-900 shadow-sm hover:bg-slate-800 transition-colors cursor-pointer min-h-[44px]"
             >
               <span>Ver Programação Completa</span>
               <ArrowRight className="h-4 w-4" />
@@ -143,12 +143,12 @@ export function HappeningNowCard({
     <motion.div
       whileHover={{ y: -3 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#FFD166] p-6 text-slate-900 shadow-brutal-md"
+      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#FFE48A] p-6 text-slate-900 shadow-lg"
     >
       <div>
         {/* Top Bar: Live Status & Tag */}
         <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-xs font-black uppercase tracking-wider text-[#FFD166] border border-slate-900 shadow-brutal-sm">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-xs font-black uppercase tracking-wider text-[#FFE48A] border border-slate-900 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#06D6A0] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#06D6A0]"></span>
@@ -157,7 +157,7 @@ export function HappeningNowCard({
           </div>
 
           {currentEvent.tag && (
-            <span className="rounded-xl bg-white/80 px-2.5 py-1 text-[11px] font-extrabold text-slate-900 border border-slate-900/20">
+            <span className="rounded-xl bg-white/80 px-2.5 py-1 text-xs font-extrabold text-slate-900 border border-slate-900/20">
               {currentEvent.tag}
             </span>
           )}
@@ -170,13 +170,13 @@ export function HappeningNowCard({
 
         {/* Time & Location Pill Row */}
         <div className="mt-4 flex flex-wrap gap-2">
-          <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm">
-            <Clock className="h-3.5 w-3.5 text-[#4361EE]" />
+          <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
+            <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
             <span>{currentEvent.startTime} - {currentEvent.endTime}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-brutal-sm">
-            <MapPin className="h-3.5 w-3.5 text-[#FF6B8B]" />
+          <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
+            <MapPin className="h-3.5 w-3.5 text-[#FC4E6D]" />
             <span className="truncate max-w-[180px]">{currentEvent.location}</span>
           </div>
         </div>

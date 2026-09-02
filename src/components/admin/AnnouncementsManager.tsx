@@ -215,7 +215,7 @@ export function AnnouncementsManager() {
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Comunicados & Transmissões Oficiais
             </h1>
-            <Badge className="bg-[#4361EE] text-white text-[10px] font-black uppercase">
+            <Badge className="bg-[#007DA5] text-white text-xs font-black uppercase">
               Supabase Live
             </Badge>
           </div>
@@ -225,16 +225,16 @@ export function AnnouncementsManager() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-800 animate-bounce">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
               <CheckCircle2 className="h-4 w-4" /> Comunicado publicado!
             </span>
           )}
-          <Button onClick={loadAnnouncements} variant="outline" size="sm" className="text-xs font-bold rounded-xl">
+          <Button onClick={loadAnnouncements} variant="outline" size="sm" className="text-xs font-bold rounded-xl min-h-[36px]">
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Atualizar
           </Button>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="text-xs bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm"
+            className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Emitir Novo Comunicado
           </Button>
@@ -258,7 +258,7 @@ export function AnnouncementsManager() {
             <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Comunicados Ativos
             </CardTitle>
-            <Megaphone className="h-4 w-4 text-[#4361EE]" />
+            <Megaphone className="h-4 w-4 text-[#007DA5]" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-slate-900 dark:text-white">{announcements.length}</div>
@@ -299,6 +299,7 @@ export function AnnouncementsManager() {
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <Input
+          aria-label="Buscar comunicado por título ou conteúdo"
           placeholder="Buscar comunicado por título ou conteúdo..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -309,11 +310,11 @@ export function AnnouncementsManager() {
       {/* Announcements List */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Megaphone className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#4361EE]" />
+          <Megaphone className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhum comunicado encontrado</p>
           <p className="text-xs max-w-sm mx-auto">Clique em &quot;Emitir Novo Comunicado&quot; para criar o primeiro.</p>
         </div>
@@ -338,7 +339,8 @@ export function AnnouncementsManager() {
                     onClick={() => setAnnouncementToDelete(announcement)}
                     disabled={deleting === announcement.id}
                     title="Excluir comunicado"
-                    className="text-slate-400 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                    aria-label={`Excluir comunicado: ${announcement.title}`}
+                    className="text-rose-600/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -350,10 +352,10 @@ export function AnnouncementsManager() {
 
                 <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <span className="flex items-center gap-1 font-semibold">
-                    <Users className="h-3.5 w-3.5 text-[#4361EE]" />
+                    <Users className="h-3.5 w-3.5 text-[#007DA5]" />
                     {announcement.target_company_id ? `Companhia: ${announcement.target_company_id}` : "Todos os Jovens (Global)"}
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-400">
                     {announcement.category}
                   </span>
                 </div>
@@ -363,29 +365,33 @@ export function AnnouncementsManager() {
         </div>
       )}
 
-      {/* Dialog for Create */}
+      {/* Create Announcement Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[540px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
+        <DialogContent className="max-w-lg rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Emitir Comunicado Oficial</DialogTitle>
-            <DialogDescription className="text-slate-500 dark:text-slate-400 text-xs">
-              Será transmitido instantaneamente para os participantes no portal.
+            <DialogTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-[#007DA5]" />
+              Novo Comunicado Oficial
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              O comunicado será transmitido instantaneamente com notificação sonora/visual no topo do app.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-3 py-2">
+          <div className="space-y-4 pt-2">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-500">Título do Comunicado *</label>
+              <label className="text-xs font-black uppercase text-slate-500">Título do Alerta</label>
               <Input
+                aria-label="Título do comunicado"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Ex: Mudança de local para a Reunião Espiritual"
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                placeholder="ex: Reunião Geral no Pavilhão A às 19:30"
+                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-500">Conteúdo / Mensagem *</label>
+              <label className="text-xs font-black uppercase text-slate-500">Conteúdo do Comunicado</label>
               <Textarea
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
@@ -397,7 +403,7 @@ export function AnnouncementsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Prioridade</label>
+                <label className="text-xs font-black uppercase text-slate-500">Prioridade</label>
                 <Select value={newPriority} onValueChange={(val) => val && setNewPriority(val)}>
                   <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10">
                     <SelectValue />
@@ -411,7 +417,7 @@ export function AnnouncementsManager() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Categoria</label>
+                <label className="text-xs font-black uppercase text-slate-500">Categoria</label>
                 <Select value={newCategory} onValueChange={(val) => val && setNewCategory(val)}>
                   <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10">
                     <SelectValue />
@@ -427,13 +433,13 @@ export function AnnouncementsManager() {
           </div>
 
           <DialogFooter className="pt-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold text-xs">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold text-xs min-h-[36px]">
               Cancelar
             </Button>
             <Button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm text-xs"
+              className="bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
             >
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {saving ? "Transmitindo..." : "Publicar Comunicado"}

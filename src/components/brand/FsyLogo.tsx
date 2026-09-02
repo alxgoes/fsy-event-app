@@ -135,9 +135,9 @@ export function FsyLogo({
   const sizeClasses = {
     sm: {
       mark: "h-9 w-auto",
-      rejoice: "text-[9px] tracking-[0.18em]",
+      rejoice: "text-[10px] tracking-[0.18em]",
       christ: "text-base tracking-[0.06em]",
-      scripture: "text-[7.5px] tracking-[0.2em]",
+      scripture: "text-[10px] tracking-[0.2em]",
       gap: "gap-2.5",
     },
     md: {

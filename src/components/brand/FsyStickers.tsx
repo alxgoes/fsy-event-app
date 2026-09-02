@@ -50,13 +50,13 @@ export function OrangeArchSticker({ className = "", size = "md" }: StickerProps)
  */
 export function GreenStampSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "w-14 h-14 p-1.5 text-[8px]",
+    sm: "w-14 h-14 p-1.5 text-[10px]",
     md: "w-20 h-20 p-2 text-[10px]",
     lg: "w-28 h-28 p-3 text-xs",
   };
   return (
     <div
-      className={`relative inline-flex flex-col items-center justify-between rounded-2xl bg-[#93C742] border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none text-slate-950 font-black ${sizeMap[size]} ${className}`}
+      className={`relative inline-flex flex-col items-center justify-between rounded-2xl bg-[#93C742] border-2 border-slate-900 shadow-sm select-none text-slate-950 font-black ${sizeMap[size]} ${className}`}
     >
       <div className="w-full flex justify-between px-1">
         <span>20</span>
@@ -77,13 +77,13 @@ export function GreenStampSticker({ className = "", size = "md" }: StickerProps)
  */
 export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "w-16 p-2 text-[7px]",
-    md: "w-24 p-3 text-[9px]",
+    sm: "w-16 p-2 text-[10px]",
+    md: "w-24 p-3 text-[10px]",
     lg: "w-32 p-4 text-[11px]",
   };
   return (
     <div
-      className={`inline-flex flex-col items-center rounded-2xl bg-[#01B6D1] text-white border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] select-none text-center ${sizeMap[size]} ${className}`}
+      className={`inline-flex flex-col items-center rounded-2xl bg-[#01B6D1] text-white border-2 border-slate-900 shadow-sm select-none text-center ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
     >
       <div className="h-10 w-auto mb-1">
@@ -102,7 +102,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
 export function BluePennantSticker({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center px-4 py-1.5 bg-[#B0EEFC] text-slate-950 border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none font-serif ${className}`}
+      className={`inline-flex items-center px-4 py-1.5 bg-[#B0EEFC] text-slate-950 border-2 border-slate-900 shadow-sm select-none font-serif ${className}`}
       style={{
         clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
         minWidth: "120px",
@@ -110,7 +110,7 @@ export function BluePennantSticker({ className = "" }: { className?: string }) {
       }}
     >
       <span className="text-xs font-bold tracking-widest pl-1">REJOICE</span>
-      <span className="text-[9px] font-normal tracking-wider ml-1.5">4:4</span>
+      <span className="text-[10px] font-normal tracking-wider ml-1.5">4:4</span>
     </div>
   );
 }
@@ -120,7 +120,7 @@ export function BluePennantSticker({ className = "" }: { className?: string }) {
  */
 export function YellowCapsuleSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "px-3 py-1 text-[9px]",
+    sm: "px-3 py-1 text-[10px]",
     md: "px-4 py-1.5 text-xs",
     lg: "px-6 py-2.5 text-sm",
   };

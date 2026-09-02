@@ -415,7 +415,7 @@ function LoginFormContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
-                  className="pl-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                  className="pl-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -427,7 +427,7 @@ function LoginFormContent() {
                 </label>
                 <button
                   type="button"
-                  className="text-[11px] font-bold text-[#4361EE] hover:underline"
+                  className="text-xs font-bold text-[#007DA5] hover:underline"
                   onClick={() =>
                     setErrorMsg(
                       "Para redefinir sua senha, solicite suporte à coordenação do FSY."
@@ -445,7 +445,7 @@ function LoginFormContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="pl-10 pr-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                  className="pl-10 pr-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
                 />
                 <button
                   type="button"
@@ -529,7 +529,7 @@ function LoginFormContent() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={loading}
-                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -547,7 +547,7 @@ function LoginFormContent() {
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   disabled={loading}
-                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#4361EE] text-slate-900 dark:text-white"
+                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -687,7 +687,7 @@ export default function LoginPage() {
               <span className="font-heading font-black text-sm tracking-tight block text-slate-900 dark:text-white">
                 Sessão Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40">
                 2027
               </span>
             </div>

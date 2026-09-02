@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T19:22:45.000Z",
+  "title": "Design System: FSY Sessão Ribeirão Preto 2",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Azul Índigo Oceânico",
+        "canonical": "#007DA5",
+        "tonalRamp": [
+          "#002430",
+          "#004358",
+          "#005E7C",
+          "#007DA5",
+          "#01B6D1",
+          "#7DE3F4",
+          "#B0EEFC",
+          "#F0F9FF"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Ouro Solar Radiante",
+        "canonical": "#FFE48A",
+        "tonalRamp": [
+          "#5C4300",
+          "#8C6900",
+          "#C79500",
+          "#FFB81C",
+          "#FFD166",
+          "#FFE48A",
+          "#FFF3C4",
+          "#FFFBEA"
+        ]
+      },
+      "accent": {
+        "role": "accent",
+        "displayName": "Coral Vivo Festivo",
+        "canonical": "#FC4E6D",
+        "tonalRamp": [
+          "#540413",
+          "#8A0B22",
+          "#C21838",
+          "#FC4E6D",
+          "#FDA192",
+          "#FFC5BD",
+          "#FFE5E1",
+          "#FFF5F4"
+        ]
+      },
+      "success": {
+        "role": "accent",
+        "displayName": "Verde Folha 2027",
+        "canonical": "#93C742",
+        "tonalRamp": [
+          "#223D05",
+          "#3D660F",
+          "#6DB344",
+          "#93C742",
+          "#BED21E",
+          "#D3E952",
+          "#EBF7A1",
+          "#F7FDDE"
+        ]
+      },
+      "destructive": {
+        "role": "accent",
+        "displayName": "Terracota de Alerta",
+        "canonical": "#D45311",
+        "tonalRamp": [
+          "#401400",
+          "#6E2403",
+          "#A13B09",
+          "#D45311",
+          "#F68D2E",
+          "#FFA866",
+          "#FFD6BD",
+          "#FFF3EB"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Pergaminho Quente",
+        "canonical": "#FAF8F5",
+        "tonalRamp": [
+          "#0F172A",
+          "#1E293B",
+          "#475569",
+          "#64748B",
+          "#94A3B8",
+          "#CBD5E1",
+          "#EFEFE7",
+          "#FAF8F5"
+        ]
+      },
+      "gold-temple": {
+        "role": "accent",
+        "displayName": "Ouro do Templo",
+        "canonical": "#DBBF6B",
+        "tonalRamp": [
+          "#382E12",
+          "#5C4C1F",
+          "#8A7331",
+          "#B89B47",
+          "#DBBF6B",
+          "#E6D294",
+          "#F2E6C2",
+          "#FAF5E6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display Cinzel",
+        "purpose": "Aberturas, lemas e boas-vindas solenes."
+      },
+      "headline": {
+        "displayName": "Headline Serif",
+        "purpose": "Títulos de companhias, seções e módulos."
+      },
+      "title": {
+        "displayName": "Title UI",
+        "purpose": "Nomes de eventos, atividades e cartões."
+      },
+      "body": {
+        "displayName": "Body Sans",
+        "purpose": "Leitura contínua, prontuários, descrições e avisos."
+      },
+      "label": {
+        "displayName": "Label All-Caps",
+        "purpose": "Badges de status, dias, categorias e horários."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float-subtle",
+        "value": "0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05)",
+        "purpose": "Cartões e superfícies em repouso."
+      },
+      {
+        "name": "float-elevated",
+        "value": "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
+        "purpose": "Cartões em destaque, popovers, dropdowns e diálogos."
+      },
+      {
+        "name": "focus-glow",
+        "value": "0 0 0 3px rgba(0, 125, 165, 0.25)",
+        "purpose": "Anel de foco acessível para botões e inputs."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Abertura de gavetas, modais e transições táteis."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão Primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Comando principal de ação (salvar, confirmar, navegar).",
+      "html": "<button class=\"ds-btn-primary\">Confirmar Inscrição</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; background-color: #007DA5; color: #FFFFFF; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); } .ds-btn-primary:hover { background-color: #005E7C; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 125, 165, 0.25); } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Botão Secundário Ouro Solar",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ações de suporte e celebração com o tom oficial Sunshine.",
+      "html": "<button class=\"ds-btn-secondary\">Ver Programação</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; background-color: #FFE48A; color: #0F172A; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(15, 23, 42, 0.1); cursor: pointer; transition: all 0.2s ease; } .ds-btn-secondary:hover { background-color: #FFD166; transform: translateY(-1px); }"
+    },
+    {
+      "name": "Card Flutuante",
+      "kind": "card",
+      "refersTo": "card-base",
+      "description": "Superfície padrão branca sobre fundo pergaminho para módulos e blocos.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">1º Dia • Sábado</h3><p class=\"ds-card-body\">Abertura oficial e apresentação das companhias no auditório principal.</p></div>",
+      "css": ".ds-card { background-color: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 20px; padding: 20px; box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05); transition: box-shadow 0.2s ease, transform 0.2s ease; } .ds-card:hover { box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); transform: translateY(-2px); } .ds-card-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 8px 0; } .ds-card-body { font-family: 'Inter', sans-serif; font-size: 14px; color: #475569; margin: 0; line-height: 1.5; }"
+    },
+    {
+      "name": "Badge de Status 2027",
+      "kind": "chip",
+      "refersTo": "badge-status",
+      "description": "Pílula identificadora para categorias, horários e prioridades.",
+      "html": "<span class=\"ds-badge\">Filipenses 4:4</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; background-color: #FFE48A; color: #0F172A; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 9999px; border: 1px solid rgba(15, 23, 42, 0.12); }"
+    },
+    {
+      "name": "Campo de Entrada",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo para formulários, filtros e busca.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Buscar jovem ou quarto...\" />",
+      "css": ".ds-input { width: 100%; height: 40px; padding: 8px 14px; font-family: 'Inter', sans-serif; font-size: 14px; color: #0F172A; background-color: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 12px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; } .ds-input:focus { border-color: #007DA5; box-shadow: 0 0 0 3px rgba(0, 125, 165, 0.2); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "A Flâmula da Juventude",
+    "overview": "O sistema de design do FSY Sessão Ribeirão Preto 2 traduz o tema oficial da juventude para 2027, 'Rejoice in Christ' (Filipenses 4:4), em uma experiência digital acolhedora, vibrante e funcional. Inspirado nas flâmulas históricas de eventos e na arquitetura sagrada do templo, o sistema equilibra a solenidade serena de proporções clássicas com o entusiasmo juvenil de uma conferência de cinco dias repleta de aprendizado, música e companheirismo.\n\nA interface rejeita deliberadamente o visual frio e asséptico de dashboards corporativos cinzas, assim como sombras pesadas ou estéticas carregadas. Em seu lugar, emprega uma atmosfera banhada em tons de pergaminho (Parchment e Neutral 5), toques quentes de sol (Sunshine), tipografia serifada nobre nos títulos e contrastes nítidos de leitura que garantem acessibilidade plena sob a luz natural do dia.",
+    "keyCharacteristics": [
+      "Calor Solar & Serenidade: Fundos suaves com textura sutil e toques de luz que transmitem acolhimento e celebração.",
+      "Tipografia Nobre com Clareza: Títulos que ecoam a dignidade do tema (Cinzel e Cormorant Garamond) combinados com a legibilidade cristalina de Inter para dados e horários.",
+      "Camadas Flutuantes Táteis: Superfícies elevadas com suavidade, cantos amigáveis e feedback imediato de toque para uso ágil em celulares.",
+      "Selos Gráficos e Badges 2027: Uso intencional dos selos e adesivos temáticos para identificar categorias, status e prioridades sem sobrecarregar a visão."
+    ],
+    "rules": [
+      {
+        "name": "The No-Shadow-On-Brand Rule",
+        "body": "O identificador, o arco do templo e a tipografia 'Rejoice in Christ' nunca devem receber sombras projetadas (drop shadow) nem gradientes. A marca vive sempre limpa sobre fundo neutro ou claro.",
+        "section": "colors"
+      },
+      {
+        "name": "The Daylight Contrast Rule",
+        "body": "Todo texto ou dado operacional deve atingir conformidade WCAG AA sobre sua superfície imediata, assegurando leitura perfeita em smartphones sob sol aberto.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scripture Voice Rule",
+        "body": "Passagens bíblicas e citações temáticas utilizam Cormorant Garamond com proporções elegantes e subtis, nunca fontes sans-serif genéricas.",
+        "section": "typography"
+      },
+      {
+        "name": "The Soft Flight Rule",
+        "body": "Elementos interativos levitam sutilmente no hover ou foco (translação de -2px no eixo Y), reforçando a sensação tátil sem rigidez.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do manter a paleta base em tons quentes de pergaminho (#FAF8F5 / #F5EFCA) com cartões brancos e texto em grafite de alto contraste.",
+      "Do reservar o tom Gold 10 (#DBBF6B) estritamente para elementos do templo, ícones sagrados e coroamentos honoríficos.",
+      "Do priorizar a legibilidade móvel com alvos de toque de pelo menos 44x44px.",
+      "Do aplicar animações fluidas com Framer Motion (transições de primavera com amortecimento de 24).",
+      "Do incluir indicações imediatas de restrições alimentares e alergias severas nos cards da equipe médica e consultores."
+    ],
+    "donts": [
+      "Don't aplicar gradientes ou sombras projetadas (drop shadows) na marca oficial do FSY, no templo ou na tipografia 'Rejoice in Christ'.",
+      "Don't utilizar fundos cinzas frios ou paletas genéricas corporativas de dashboards convencionais.",
+      "Don't inventar selos ou alterar as proporções do arco do templo.",
+      "Don't inserir avisos ou disclaimers declarando que a aplicação é o site institucional geral da Igreja.",
+      "Don't quebrar a proteção de dados: prontuários e alergias confidenciais nunca devem ser expostos fora da equipe autorizada."
+    ]
+  }
+}

@@ -50,10 +50,10 @@ interface CompanyItem {
 }
 
 const PRESET_COLORS = [
-  { name: "Azul FSY", value: "#4361EE" },
-  { name: "Rosa Vibrante", value: "#FF6B8B" },
+  { name: "Azul Índigo Oceânico", value: "#007DA5" },
+  { name: "Coral Vivo Festivo", value: "#FC4E6D" },
   { name: "Verde Esmeralda", value: "#06D6A0" },
-  { name: "Amarelo Dourado", value: "#FFD166" },
+  { name: "Ouro Solar Radiante", value: "#FFE48A" },
   { name: "Roxo Real", value: "#7209B7" },
   { name: "Laranja Solar", value: "#F77F00" },
   { name: "Ciano Marinho", value: "#4CC9F0" },
@@ -76,7 +76,7 @@ export function CompanyManager() {
   const [formId, setFormId] = useState("");
   const [formName, setFormName] = useState("");
   const [formMotto, setFormMotto] = useState("");
-  const [formColor, setFormColor] = useState("#4361EE");
+  const [formColor, setFormColor] = useState("#007DA5");
   const [selectedCounselorIds, setSelectedCounselorIds] = useState<string[]>([]);
   const [counselorSearch, setCounselorSearch] = useState("");
 
@@ -128,7 +128,7 @@ export function CompanyManager() {
     setFormId(comp.id);
     setFormName(comp.name);
     setFormMotto(comp.motto || "");
-    setFormColor(comp.color || "#4361EE");
+    setFormColor(comp.color || "#007DA5");
 
     // Pre-select counselors that belong to this company
     const assignedIds = counselors
@@ -236,7 +236,7 @@ export function CompanyManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4361EE] text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#007DA5] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
             <Building2 className="h-6 w-6" />
           </div>
           <div>
@@ -252,14 +252,14 @@ export function CompanyManager() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={loadData}
-            className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 text-xs font-black shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 text-xs font-black shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 rounded-2xl bg-[#06D6A0] text-slate-950 border-2 border-slate-900 dark:border-slate-700 px-4 py-2.5 text-xs font-black shadow-brutal-sm hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 rounded-2xl bg-[#06D6A0] text-emerald-950 border-2 border-slate-900 dark:border-slate-700 px-4 py-2.5 text-xs font-black shadow-sm hover:opacity-90 transition-opacity min-h-[36px]"
           >
             <Plus className="h-4 w-4" />
             Nova Companhia
@@ -274,7 +274,7 @@ export function CompanyManager() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-brutal-sm"
+            className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-sm"
           >
             <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
             <span>Companhia e consultores salvos no banco de dados com sucesso!</span>
@@ -284,7 +284,7 @@ export function CompanyManager() {
 
       {/* Error Banner */}
       {error && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-brutal-sm">
+        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
@@ -297,20 +297,20 @@ export function CompanyManager() {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-brutal-sm">
-          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
             Total de Companhias
           </span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-3xl font-black text-slate-900 dark:text-white">
               {companies.length}
             </span>
-            <Building2 className="h-5 w-5 text-[#4361EE]" />
+            <Building2 className="h-5 w-5 text-[#007DA5]" />
           </div>
         </div>
 
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-brutal-sm">
-          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
             Consultores Designados
           </span>
           <div className="flex items-baseline justify-between mt-1">
@@ -321,15 +321,15 @@ export function CompanyManager() {
           </div>
         </div>
 
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-brutal-sm">
-          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400">
+        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
             Jovens Alocados
           </span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-3xl font-black text-slate-900 dark:text-white">
               {totalYouth}
             </span>
-            <Users className="h-5 w-5 text-[#FF6B8B]" />
+            <Users className="h-5 w-5 text-[#FC4E6D]" />
           </div>
         </div>
       </div>
@@ -339,17 +339,18 @@ export function CompanyManager() {
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
           type="text"
+          aria-label="Buscar por companhia, lema ou consultor"
           placeholder="Buscar por companhia, lema ou consultor..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE] transition-all"
+          className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5] transition-all"
         />
       </div>
 
       {/* Companies Grid */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
           <p className="text-sm font-bold">Carregando companhias...</p>
         </div>
       ) : filteredCompanies.length === 0 ? (
@@ -378,7 +379,7 @@ export function CompanyManager() {
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-white font-black text-xs border border-slate-900/40 shadow-sm"
-                    style={{ backgroundColor: comp.color || "#4361EE" }}
+                    style={{ backgroundColor: comp.color || "#007DA5" }}
                   >
                     <span className="h-2 w-2 rounded-full bg-white/80" />
                     <span>{comp.id.toUpperCase()}</span>
@@ -387,14 +388,16 @@ export function CompanyManager() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => openEditModal(comp)}
-                      className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors"
+                      aria-label={`Editar ${comp.name}`}
+                      className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                       title="Editar Companhia"
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => setCompanyToDelete(comp)}
-                      className="p-1.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                      aria-label={`Excluir ${comp.name}`}
+                      className="p-1.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                       title="Excluir Companhia"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -416,7 +419,7 @@ export function CompanyManager() {
 
                 {/* Counselors Section */}
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">
                     Consultores Designados
                   </span>
                   {comp.counselors && comp.counselors.length > 0 ? (
@@ -424,7 +427,7 @@ export function CompanyManager() {
                       {comp.counselors.map((cName, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#4361EE] dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 text-xs font-bold"
+                          className="inline-flex items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-xs font-bold"
                         >
                           <UserCheck className="h-3 w-3" />
                           {cName}
@@ -456,10 +459,10 @@ export function CompanyManager() {
 
       {/* Create / Edit Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#4361EE]" />
+              <Building2 className="h-5 w-5 text-[#007DA5]" />
               {editingCompany ? "Editar Companhia" : "Criar Nova Companhia"}
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
@@ -512,7 +515,7 @@ export function CompanyManager() {
             {/* Color Selector */}
             <div>
               <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5 text-[#4361EE]" />
+                <Palette className="h-3.5 w-3.5 text-[#007DA5]" />
                 Cor da Companhia
               </label>
               <div className="flex flex-wrap gap-2">
@@ -521,9 +524,9 @@ export function CompanyManager() {
                     key={col.value}
                     type="button"
                     onClick={() => setFormColor(col.value)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border-2 transition-all ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border-2 transition-all min-h-[36px] ${
                       formColor === col.value
-                        ? "border-slate-900 dark:border-white shadow-brutal-sm scale-105"
+                        ? "border-slate-900 dark:border-white shadow-sm scale-105"
                         : "border-transparent opacity-80 hover:opacity-100"
                     }`}
                     style={{ backgroundColor: col.value, color: "#fff" }}
@@ -538,16 +541,17 @@ export function CompanyManager() {
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <UserCheck className="h-4 w-4 text-[#4361EE]" />
+                  <UserCheck className="h-4 w-4 text-[#007DA5]" />
                   Designar Consultores ({selectedCounselorIds.length} selecionados)
                 </label>
-                <span className="text-[10px] text-slate-500 font-bold">
+                <span className="text-xs text-slate-500 font-bold">
                   Apenas usuários com cargo &apos;Consultor&apos;
                 </span>
               </div>
 
               {/* Counselor search */}
               <Input
+                aria-label="Filtrar consultores por nome"
                 value={counselorSearch}
                 onChange={(e) => setCounselorSearch(e.target.value)}
                 placeholder="Filtrar consultores por nome..."
@@ -578,7 +582,7 @@ export function CompanyManager() {
                           key={c.id}
                           className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-colors text-xs font-semibold ${
                             isSelected
-                              ? "bg-blue-50 dark:bg-blue-950/60 border-[#4361EE] text-[#4361EE] dark:text-blue-200"
+                              ? "bg-sky-50 dark:bg-sky-950/60 border-[#007DA5] text-[#007DA5] dark:text-cyan-200"
                               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                           }`}
                         >
@@ -587,13 +591,13 @@ export function CompanyManager() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleCounselorSelection(c.id)}
-                              className="rounded border-slate-400 text-[#4361EE] focus:ring-[#4361EE]"
+                              className="rounded border-slate-400 text-[#007DA5] focus:ring-[#007DA5]"
                             />
                             <span className="font-bold">{c.full_name}</span>
                           </div>
 
                           {isAssignedOther && !isSelected && (
-                            <span className="text-[10px] text-amber-600 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-amber-600 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
                               Na {c.company_id}
                             </span>
                           )}
@@ -610,7 +614,7 @@ export function CompanyManager() {
               type="button"
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 text-xs font-black"
+              className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 text-xs font-black min-h-[36px]"
             >
               Cancelar
             </Button>
@@ -618,7 +622,7 @@ export function CompanyManager() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-2xl bg-[#4361EE] hover:bg-blue-600 text-white font-black text-xs shadow-brutal-sm"
+              className="rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-xs shadow-sm min-h-[36px]"
             >
               {saving ? (
                 <>

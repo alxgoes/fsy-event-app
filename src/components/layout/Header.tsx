@@ -240,12 +240,12 @@ export function Header() {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               aria-label="Lembretes e Notificações"
             >
               <Bell className="h-5 w-5 text-slate-800 dark:text-slate-200" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF6B8B] text-[10px] font-black text-white border-2 border-slate-900 animate-bounce">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FC4E6D] text-xs font-black text-white border-2 border-slate-900 motion-safe:animate-pulse">
                   {totalUnread}
                 </span>
               )}
@@ -259,22 +259,22 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50"
                 >
                   {/* Popover Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4 text-[#4361EE]" />
+                      <Bell className="h-4 w-4 text-[#007DA5]" />
                       <h3 className="font-heading text-sm font-black text-slate-900 dark:text-white">
                         Lembretes & Comunicados
                       </h3>
                     </div>
                     {totalUnread > 0 ? (
-                      <span className="rounded-md bg-[#FF6B8B] text-white text-[10px] font-black px-2 py-0.5">
+                      <span className="rounded-md bg-[#FC4E6D] text-white text-xs font-black px-2 py-0.5">
                         {totalUnread} pendente(s)
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold text-slate-400">
+                      <span className="text-xs font-bold text-slate-400">
                         Tudo em dia
                       </span>
                     )}
@@ -329,11 +329,11 @@ export function Header() {
                                     {isUrgent ? "Urgente" : isImportant ? "Importante" : "Recado Cia"}
                                   </span>
                                   {!isRead && (
-                                    <span className="h-2 w-2 rounded-full bg-[#FF6B8B] animate-ping" />
+                                    <span className="h-2 w-2 rounded-full bg-[#FC4E6D] animate-ping" />
                                   )}
                                 </div>
 
-                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(ann.created_at).toLocaleTimeString("pt-BR", {
                                     hour: "2-digit",
@@ -346,26 +346,26 @@ export function Header() {
                                 {ann.title}
                               </p>
 
-                              <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
                                 {ann.content}
                               </p>
 
-                              <div className="mt-2.5 pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                                <span className="text-[10px] font-bold text-slate-500 truncate max-w-[150px]">
+                              <div className="mt-2.5 pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+                                <span className="text-xs font-bold text-slate-500 truncate max-w-[150px]">
                                   Por: <strong>{author}</strong>
                                 </span>
 
                                 {!isRead ? (
                                   <button
                                     onClick={() => handleMarkAnnouncementAsRead(ann.id)}
-                                    className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 text-[10px] font-black px-2 py-0.5 border border-slate-900 shadow-sm transition-all cursor-pointer"
+                                    className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1.5 border border-slate-900 shadow-sm transition-all cursor-pointer min-h-[36px]"
                                   >
-                                    <Check className="h-3 w-3" />
+                                    <Check className="h-3.5 w-3.5" />
                                     <span>Marcar como lido</span>
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                    <CheckCircle2 className="h-3 w-3" />
+                                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
                                     Lido
                                   </span>
                                 )}
@@ -384,17 +384,17 @@ export function Header() {
                               key={appt.id}
                               className={`rounded-2xl border-2 p-3.5 transition-all ${
                                 !isSeen
-                                  ? "border-slate-900 dark:border-slate-700 bg-emerald-50/70 dark:bg-emerald-950/30 shadow-brutal-sm"
+                                  ? "border-slate-900 dark:border-slate-700 bg-emerald-50/70 dark:bg-emerald-950/30 shadow-sm"
                                   : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 opacity-75"
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2 mb-1.5">
-                                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 text-[10px] font-black uppercase">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 text-xs font-black uppercase">
                                   <Stethoscope className="h-3 w-3" />
                                   Saúde & Inclusão
                                 </span>
 
-                                <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(appt.scheduled_at).toLocaleDateString("pt-BR", {
                                     day: "2-digit",
@@ -409,7 +409,7 @@ export function Header() {
                                 {appt.reason}
                               </p>
 
-                              <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+                              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
                                 Com: <strong>{appt.professional_name}</strong>
                               </p>
 
@@ -419,23 +419,23 @@ export function Header() {
                                   <button
                                     onClick={() => handleMarkAppointmentAsSeen(appt.id)}
                                     disabled={isMarking}
-                                    className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 text-[10px] font-black px-2 py-0.5 border border-slate-900 shadow-sm transition-all cursor-pointer"
+                                    className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1.5 border border-slate-900 shadow-sm transition-all cursor-pointer min-h-[36px]"
                                   >
                                     {isMarking ? (
-                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                     ) : (
-                                      <Check className="h-3 w-3" />
+                                      <Check className="h-3.5 w-3.5" />
                                     )}
                                     <span>Marcar como visto</span>
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                    <CheckCircle2 className="h-3 w-3" />
+                                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
                                     Visualizado
                                   </span>
                                 )}
 
-                                <span className="text-[10px] font-bold text-slate-400">
+                                <span className="text-xs font-bold text-slate-400">
                                   {appt.status === "realizado" ? "Realizado" : "Agendado"}
                                 </span>
                               </div>
@@ -451,7 +451,7 @@ export function Header() {
                     <Link
                       href="/announcements"
                       onClick={() => setNotificationsOpen(false)}
-                      className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#4361EE] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#007DA5] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[40px]"
                     >
                       <span>Ver mural de lembretes completo</span>
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -487,7 +487,7 @@ export function Header() {
                 <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
-                <p className="text-[10px] font-bold text-[#4361EE] dark:text-blue-400">
+                <p className="text-xs font-bold text-[#007DA5] dark:text-cyan-400">
                   {loading ? "Carregando" : displayCompany ?? roleLabel}
                 </p>
               </div>
@@ -504,19 +504,19 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-md overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50"
                 >
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06D6A0] text-slate-950 font-black text-sm border-2 border-slate-900 shadow-brutal-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06D6A0] text-slate-950 font-black text-sm border-2 border-slate-900 shadow-sm">
                         {avatarLetter}
                       </div>
                       <div className="overflow-hidden">
                         <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                           {displayName}
                         </p>
-                        <span className="inline-block px-2 py-0.5 rounded-md bg-[#4361EE]/10 text-[#4361EE] dark:text-blue-300 text-[10px] font-black uppercase tracking-wider">
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-[#007DA5]/10 text-[#007DA5] dark:text-cyan-300 text-xs font-black uppercase tracking-wider">
                           {roleLabel}
                         </span>
                       </div>
@@ -539,7 +539,7 @@ export function Header() {
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <Megaphone className="h-4 w-4 text-[#FF6B8B]" />
+                      <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
                       Lembretes & Comunicados
                     </Link>
 
@@ -560,9 +560,9 @@ export function Header() {
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#4361EE] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
                       >
-                        <Shield className="h-4 w-4 text-[#4361EE]" />
+                        <Shield className="h-4 w-4 text-[#007DA5]" />
                         <span>Painel de Gestão</span>
                       </Link>
                     )}

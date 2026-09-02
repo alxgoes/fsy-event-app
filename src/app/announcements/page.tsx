@@ -263,14 +263,14 @@ export default function AnnouncementsPage() {
         </div>
 
         {/* Page Hero Banner */}
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-brutal-md mb-6">
+        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-lg mb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FF6B8B] text-white border-2 border-slate-900 shadow-brutal-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FC4E6D] text-white border-2 border-slate-900 shadow-sm">
                 <Megaphone className="h-6 w-6" />
               </div>
               <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-[#4361EE] dark:text-blue-400">
+                <span className="text-xs font-black uppercase tracking-wider text-[#007DA5] dark:text-cyan-400">
                   Lembretes & Mensagens Oficiais
                 </span>
                 <h1 className="font-heading text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
@@ -298,10 +298,11 @@ export default function AnnouncementsPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
+              aria-label="Pesquisar comunicados, avisos ou recados"
               placeholder="Pesquisar comunicados, avisos ou recados..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4361EE]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
             />
           </div>
 
@@ -309,10 +310,10 @@ export default function AnnouncementsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setFilter("todas")}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "todas"
-                  ? "bg-[#4361EE] text-white shadow-brutal-md"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-brutal-sm hover:bg-slate-50"
+                  ? "bg-[#007DA5] text-white shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
               }`}
             >
               Todos ({announcements.length})
@@ -320,10 +321,10 @@ export default function AnnouncementsPage() {
 
             <button
               onClick={() => setFilter("minha_cia")}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "minha_cia"
-                  ? "bg-[#FFD166] text-slate-950 shadow-brutal-md"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-brutal-sm hover:bg-slate-50"
+                  ? "bg-[#FFE48A] text-amber-950 shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
               }`}
             >
               Minha Companhia {profile?.company_id ? `(${profile.company_id})` : ""}
@@ -331,10 +332,10 @@ export default function AnnouncementsPage() {
 
             <button
               onClick={() => setFilter("urgentes")}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "urgentes"
-                  ? "bg-[#FF6B8B] text-white shadow-brutal-md"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-brutal-sm hover:bg-slate-50"
+                  ? "bg-[#FC4E6D] text-white shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
               }`}
             >
               Urgentes & Importantes
@@ -342,10 +343,10 @@ export default function AnnouncementsPage() {
 
             <button
               onClick={() => setFilter("nao_lidos")}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "nao_lidos"
-                  ? "bg-[#06D6A0] text-slate-950 shadow-brutal-md"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-brutal-sm hover:bg-slate-50"
+                  ? "bg-[#06D6A0] text-emerald-950 shadow-sm"
+                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
               }`}
             >
               Não Lidos ({unreadCount})
@@ -356,7 +357,7 @@ export default function AnnouncementsPage() {
         {/* Announcements List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
-            <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
             <p className="text-xs font-bold">Carregando mural de comunicados...</p>
           </div>
         ) : filteredAnnouncements.length === 0 ? (
@@ -414,24 +415,24 @@ export default function AnnouncementsPage() {
                             isUrgent
                               ? "bg-red-500 text-white animate-pulse"
                               : isImportant
-                              ? "bg-[#FFD166] text-slate-950"
-                              : "bg-[#4361EE] text-white"
+                              ? "bg-[#FFE48A] text-amber-950"
+                              : "bg-[#007DA5] text-white"
                           }`}
                         >
                           {isUrgent ? "Urgente" : isImportant ? "Importante" : "Lembrete"}
                         </span>
 
-                        <span className="rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-[10px] font-black text-slate-700 dark:text-slate-300 border border-slate-900 dark:border-slate-700">
+                        <span className="rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-black text-slate-700 dark:text-slate-300 border border-slate-900 dark:border-slate-700">
                           {item.category || "Geral"}
                         </span>
 
-                        <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {timeAgo(item.created_at)}
                         </span>
                       </div>
 
-                      <span className="text-xs font-black text-[#4361EE] dark:text-blue-400 flex items-center gap-1">
+                      <span className="text-xs font-black text-[#007DA5] dark:text-cyan-400 flex items-center gap-1">
                         <Building2 className="h-3.5 w-3.5" />
                         <span>Para: {targetLabel}</span>
                       </span>
@@ -477,7 +478,7 @@ export default function AnnouncementsPage() {
                           <button
                             type="button"
                             onClick={() => markAsRead(item.id)}
-                            className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-slate-950 text-xs font-black px-3 py-1 border border-slate-900 shadow-sm transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1 rounded-xl bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 text-xs font-black px-3 py-1.5 border border-slate-900 shadow-sm transition-all cursor-pointer min-h-[36px]"
                           >
                             <Check className="h-3.5 w-3.5" />
                             <span>Marcar como lido</span>

@@ -110,7 +110,7 @@ export default function SchedulePage() {
           </Link>
 
           <div className="flex items-center gap-2 text-xs font-black text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
-            <Calendar className="h-3.5 w-3.5 text-[#4361EE]" />
+            <Calendar className="h-3.5 w-3.5 text-[#007DA5]" />
             <span>Cronograma Oficial da Sessão</span>
             {hasDbEventsForDay && (
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Sincronizado em tempo real" />
@@ -124,7 +124,7 @@ export default function SchedulePage() {
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Programação do Evento
             </h1>
-            {loading && <Loader2 className="h-5 w-5 animate-spin text-[#4361EE]" />}
+            {loading && <Loader2 className="h-5 w-5 animate-spin text-[#007DA5]" />}
           </div>
           <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium mt-1">
             FSY Sessão Ribeirão Preto 2 — Horários oficiais de todas as atividades, refeições e reuniões espirituais.
@@ -142,11 +142,11 @@ export default function SchedulePage() {
                   onClick={() => setSelectedDayKey(key)}
                   className={`flex flex-col items-center justify-center p-2.5 rounded-xl font-black text-xs transition-all border-2 ${
                     isSelected
-                      ? "bg-[#4361EE] text-white border-slate-900 dark:border-white shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] -translate-y-0.5"
+                      ? "bg-[#007DA5] text-white border-slate-900 dark:border-white shadow-sm -translate-y-0.5"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
-                  <span className="text-[13px]">{day.name}</span>
+                  <span className="text-xs font-bold">{day.name}</span>
                   <span className="text-[10px] opacity-80 font-semibold">{count} ativ.</span>
                 </button>
               );
@@ -155,7 +155,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Selected Day Info Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFD166]/20 dark:bg-amber-950/40 border-2 border-slate-900 dark:border-amber-500/40 rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-none">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFE48A]/20 dark:bg-amber-950/40 border-2 border-slate-900 dark:border-amber-500/40 rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-none">
           <div>
             <h2 className="text-base font-black text-slate-900 dark:text-amber-200">
               {currentDayMeta.name} — {currentDayMeta.label}
@@ -183,9 +183,9 @@ export default function SchedulePage() {
               <div
                 className={`absolute -left-[27px] md:-left-[31px] top-4 h-4 w-4 rounded-full border-2 border-white dark:border-slate-950 ${
                   event.isHighlight
-                    ? "bg-[#FFD166] ring-4 ring-amber-200 dark:ring-amber-900/60"
+                    ? "bg-[#FFE48A] ring-4 ring-amber-200 dark:ring-amber-900/60"
                     : event.category === "Espiritual"
-                    ? "bg-[#4361EE] ring-2 ring-blue-100 dark:ring-blue-950"
+                    ? "bg-[#007DA5] ring-2 ring-sky-100 dark:ring-sky-950"
                     : event.category === "Alimentação"
                     ? "bg-[#06D6A0] ring-2 ring-emerald-100 dark:ring-emerald-950"
                     : "bg-slate-400 dark:bg-slate-600"
@@ -196,7 +196,7 @@ export default function SchedulePage() {
               <div
                 className={`border-2 rounded-2xl p-4 md:p-5 transition-all ${
                   event.isHighlight
-                    ? "bg-white dark:bg-slate-900 border-slate-900 dark:border-[#FFD166] shadow-[4px_4px_0px_0px_rgba(255,209,102,1)] dark:shadow-none"
+                    ? "bg-white dark:bg-slate-900 border-slate-900 dark:border-amber-400 shadow-md"
                     : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-400 dark:hover:border-slate-700"
                 }`}
               >
@@ -225,7 +225,7 @@ export default function SchedulePage() {
                       )}
 
                       {event.isHighlight && (
-                        <Badge className="bg-[#FFD166] text-slate-950 hover:bg-amber-300 text-[10px] font-black border border-slate-900/20">
+                        <Badge className="bg-[#FFE48A] text-amber-950 hover:bg-amber-300 text-xs font-black border border-amber-500/30">
                           <Sparkles className="mr-1 h-3 w-3" /> Destaque
                         </Badge>
                       )}
@@ -236,7 +236,7 @@ export default function SchedulePage() {
                     </h3>
 
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
-                      <MapPin className="h-3.5 w-3.5 text-[#FF6B8B]" />
+                      <MapPin className="h-3.5 w-3.5 text-[#FC4E6D]" />
                       <span>{event.location}</span>
                     </div>
 

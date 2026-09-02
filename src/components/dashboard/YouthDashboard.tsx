@@ -224,7 +224,7 @@ export function YouthDashboard() {
     return (
       <div className="min-h-screen bg-fsy-watermark flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-slate-600 dark:text-slate-400">
-          <Loader2 className="h-10 w-10 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#007DA5]" />
           <p className="font-bold text-sm">Carregando seu perfil...</p>
         </div>
       </div>

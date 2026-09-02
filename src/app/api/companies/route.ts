@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         id: companyId,
         name: name.trim(),
         motto: motto ? motto.trim() : null,
-        color: color || "#4361EE",
+        color: color || "#007DA5",
         counselors: counselorNames,
         updated_at: new Date().toISOString(),
       })

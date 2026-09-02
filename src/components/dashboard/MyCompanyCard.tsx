@@ -132,17 +132,17 @@ export function MyCompanyCard({
     <motion.div
       whileHover={{ y: -3 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-slate-100 shadow-brutal-md"
+      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-slate-100 shadow-lg"
     >
       <div>
         {/* Card Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FF6B8B] text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FC4E6D] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#4361EE]">
+              <span className="text-xs font-black uppercase tracking-wider text-[#007DA5]">
                 Minha Companhia
               </span>
               <h3 className="font-heading text-xl font-extrabold text-slate-900 dark:text-white">
@@ -163,12 +163,12 @@ export function MyCompanyCard({
         {(companyMotto || counselors) && (
           <div className="mb-4 rounded-2xl bg-slate-50 dark:bg-slate-800 p-3 border-2 border-slate-900/10 dark:border-slate-700 space-y-1 text-xs">
             {companyMotto && (
-              <p className="font-extrabold italic text-slate-800 dark:text-slate-200 text-center text-[11px]">
+              <p className="font-extrabold italic text-slate-800 dark:text-slate-200 text-center text-xs">
                 {companyMotto}
               </p>
             )}
             {counselors && counselors.length > 0 && (
-              <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300">
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300">
                 <span className="text-slate-500 font-semibold">Consultores:</span>
                 <span className="font-extrabold text-slate-900 dark:text-white">{counselors.join(" & ")}</span>
               </div>
@@ -203,19 +203,19 @@ export function MyCompanyCard({
                     isUrgent
                       ? "border-red-500 bg-red-50 dark:bg-red-950/30"
                       : isImportant
-                      ? "border-slate-900 dark:border-slate-600 bg-amber-50/70 dark:bg-amber-950/20 shadow-brutal-sm"
+                      ? "border-slate-900 dark:border-slate-600 bg-amber-50/70 dark:bg-amber-950/20 shadow-sm"
                       : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isUrgent && (
-                        <span className="flex items-center gap-1 rounded-md bg-red-500 px-1.5 py-0.5 text-[10px] font-black uppercase text-white">
+                        <span className="flex items-center gap-1 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-black uppercase text-white">
                           <Pin className="h-2.5 w-2.5" /> Urgente
                         </span>
                       )}
                       {isImportant && (
-                        <span className="flex items-center gap-1 rounded-md bg-[#FF6B8B] px-1.5 py-0.5 text-[10px] font-black uppercase text-white">
+                        <span className="flex items-center gap-1 rounded-md bg-[#FC4E6D] px-1.5 py-0.5 text-xs font-black uppercase text-white">
                           <Pin className="h-2.5 w-2.5" /> Importante
                         </span>
                       )}
@@ -223,7 +223,7 @@ export function MyCompanyCard({
                         {item.title}
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap flex items-center gap-1">
+                    <span className="text-xs font-bold text-slate-400 whitespace-nowrap flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {timeAgo(item.created_at)}
                     </span>
@@ -233,7 +233,7 @@ export function MyCompanyCard({
                     {item.content}
                   </p>
 
-                  <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-slate-900/5 dark:border-slate-700 text-[11px]">
+                  <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-slate-900/5 dark:border-slate-700 text-xs">
                     <span className="font-bold text-slate-500">
                       Por <strong className="text-slate-800 dark:text-slate-200">{authorName}</strong>
                     </span>
@@ -241,8 +241,9 @@ export function MyCompanyCard({
                     {/* Like / Heart Action with Persistent DB Counter */}
                     <button
                       type="button"
+                      aria-label={`Curtir comunicado ${item.title}`}
                       onClick={() => toggleLike(item.id)}
-                      className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-all cursor-pointer min-h-[36px] ${
                         info.isLiked
                           ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
                           : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"

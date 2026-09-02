@@ -114,7 +114,7 @@ export function InstagramFeed() {
               key={post.id}
               whileHover={{ y: -4 }}
               onClick={() => setSelectedPost(post)}
-              className="group relative overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-brutal-sm cursor-pointer flex flex-col justify-between"
+              className="group relative overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm cursor-pointer flex flex-col justify-between"
             >
               {/* Image Container with overlay */}
               <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
@@ -123,11 +123,12 @@ export function InstagramFeed() {
                   alt={post.caption}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
+                  decoding="async"
                 />
 
                 {/* Tag Badge */}
                 <div className="absolute top-2.5 left-2.5">
-                  <span className="rounded-lg bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-black text-white border border-white/20 uppercase">
+                  <span className="rounded-lg bg-black/60 backdrop-blur-md px-2 py-0.5 text-xs font-black text-white border border-white/20 uppercase">
                     {post.tag}
                   </span>
                 </div>
@@ -137,7 +138,7 @@ export function InstagramFeed() {
                   <p className="text-xs font-bold line-clamp-2 leading-snug drop-shadow-md">
                     {post.caption}
                   </p>
-                  <span className="text-[10px] font-semibold text-white/80 mt-1">
+                  <span className="text-xs font-semibold text-white/80 mt-1">
                     {post.timestamp}
                   </span>
                 </div>
@@ -146,20 +147,21 @@ export function InstagramFeed() {
               {/* Bottom Card Bar */}
               <div className="p-3 border-t-2 border-slate-900 dark:border-slate-700 flex items-center justify-between text-xs bg-white dark:bg-slate-800">
                 <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                  <span className="text-[11px] font-extrabold text-[#4361EE]">@{post.authorHandle}</span>
+                  <span className="text-xs font-extrabold text-[#007DA5]">@{post.authorHandle}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    aria-label={`Curtir publicação de @${post.authorHandle}`}
                     onClick={(e) => toggleLike(post.id, e)}
-                    className={`flex items-center gap-1 font-bold transition-colors ${
+                    className={`flex items-center gap-1 font-bold transition-colors min-h-[36px] min-w-[36px] ${
                       isLiked
-                        ? "text-[#FF6B8B]"
-                        : "text-slate-500 hover:text-[#FF6B8B]"
+                        ? "text-[#FC4E6D]"
+                        : "text-slate-500 hover:text-[#FC4E6D]"
                     }`}
                   >
-                    <Heart className={`h-4 w-4 ${isLiked ? "fill-[#FF6B8B]" : ""}`} />
+                    <Heart className={`h-4 w-4 ${isLiked ? "fill-[#FC4E6D]" : ""}`} />
                     <span className="text-xs">{post.likesCount}</span>
                   </button>
 
@@ -177,7 +179,7 @@ export function InstagramFeed() {
       {/* Direct Instagram Profile Link */}
       <div className="flex items-center justify-between pt-2">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
-          <Sparkles className="h-3.5 w-3.5 text-[#FFD166]" />
+          <Sparkles className="h-3.5 w-3.5 text-[#FFE48A]" />
           <span>Use a hashtag <strong>#FSYRibeirao2</strong> para aparecer no mural oficial</span>
         </div>
 
@@ -185,7 +187,7 @@ export function InstagramFeed() {
           href="https://instagram.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-black text-[#FF6B8B] hover:underline"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-[#FC4E6D] hover:underline min-h-[36px]"
         >
           <InstagramIcon className="h-3.5 w-3.5" />
           <span>Ver perfil oficial @fsy_ribeirao2</span>
@@ -223,6 +225,8 @@ export function InstagramFeed() {
                 <img
                   src={selectedPost.imageUrl}
                   alt={selectedPost.caption}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover max-h-[360px] md:max-h-full"
                 />
               </div>
@@ -231,7 +235,7 @@ export function InstagramFeed() {
               <div className="md:w-1/2 p-6 flex flex-col justify-between space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FF6B8B] text-white font-bold text-xs">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FC4E6D] text-white font-bold text-xs">
                       FSY
                     </div>
                     <div>
@@ -239,7 +243,7 @@ export function InstagramFeed() {
                         @{selectedPost.authorHandle}
                       </p>
                       {selectedPost.location && (
-                        <p className="text-[10px] text-slate-500 font-medium">
+                        <p className="text-xs text-slate-500 font-medium">
                           {selectedPost.location}
                         </p>
                       )}
@@ -250,7 +254,7 @@ export function InstagramFeed() {
                     {selectedPost.caption}
                   </p>
 
-                  <span className="text-[11px] font-bold text-slate-400 block mt-2">
+                  <span className="text-xs font-bold text-slate-400 block mt-2">
                     Publicado {selectedPost.timestamp}
                   </span>
                 </div>
@@ -258,13 +262,13 @@ export function InstagramFeed() {
                 <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <button
                     onClick={() => toggleLike(selectedPost.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm font-black text-xs transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm font-black text-xs transition-all min-h-[36px] ${
                       likedPosts[selectedPost.id]
-                        ? "bg-pink-100 text-[#FF6B8B]"
+                        ? "bg-pink-100 text-[#FC4E6D]"
                         : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
                     }`}
                   >
-                    <Heart className={`h-4 w-4 ${likedPosts[selectedPost.id] ? "fill-[#FF6B8B]" : ""}`} />
+                    <Heart className={`h-4 w-4 ${likedPosts[selectedPost.id] ? "fill-[#FC4E6D]" : ""}`} />
                     <span>{selectedPost.likesCount} Curtidas</span>
                   </button>
 
@@ -272,7 +276,7 @@ export function InstagramFeed() {
                     href="https://instagram.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs font-bold text-[#4361EE] hover:underline"
+                    className="flex items-center gap-1 text-xs font-bold text-[#007DA5] hover:underline min-h-[36px]"
                   >
                     <span>Abrir no Instagram</span>
                     <ExternalLink className="h-3 w-3" />

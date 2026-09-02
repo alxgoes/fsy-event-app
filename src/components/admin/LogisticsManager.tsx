@@ -279,9 +279,9 @@ export function LogisticsManager() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-              Logística de Ônibus & Transporte
+              Logística de Transporte & Ônibus
             </h1>
-            <Badge className="bg-[#4361EE] text-white text-[10px] font-black uppercase">
+            <Badge className="bg-[#007DA5] text-white text-xs font-black uppercase">
               Supabase Live
             </Badge>
           </div>
@@ -291,16 +291,16 @@ export function LogisticsManager() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950 px-3 py-1.5 rounded-xl border border-green-200 dark:border-green-800 animate-bounce">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
               <CheckCircle2 className="h-4 w-4" /> Salvo com sucesso!
             </span>
           )}
-          <Button onClick={loadBuses} variant="outline" size="sm" className="text-xs font-bold rounded-xl">
+          <Button onClick={loadBuses} variant="outline" size="sm" className="text-xs font-bold rounded-xl min-h-[36px]">
             <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Atualizar
           </Button>
           <Button
             onClick={() => setIsDialogOpen(true)}
-            className="text-xs bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm"
+            className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
           >
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar Ônibus
           </Button>
@@ -324,7 +324,7 @@ export function LogisticsManager() {
             <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Ônibus
             </CardTitle>
-            <Truck className="h-4 w-4 text-[#4361EE]" />
+            <Truck className="h-4 w-4 text-[#007DA5]" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-slate-900 dark:text-white">{buses.length}</div>
@@ -363,6 +363,7 @@ export function LogisticsManager() {
       <div className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <Input
+          aria-label="Buscar por estaca, número do ônibus ou motorista"
           placeholder="Buscar por estaca, número do ônibus ou motorista..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -373,11 +374,11 @@ export function LogisticsManager() {
       {/* Buses Grid */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#4361EE]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
         </div>
       ) : filteredBuses.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Truck className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#4361EE]" />
+          <Truck className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhum ônibus cadastrado</p>
           <p className="text-xs max-w-sm mx-auto">
             Clique no botão &ldquo;Adicionar Ônibus&rdquo; para registrar a primeira caravana.
@@ -397,7 +398,7 @@ export function LogisticsManager() {
                       <span className="font-black text-base text-slate-900 dark:text-white">
                         {bus.bus_number}
                       </span>
-                      <Badge variant="outline" className={`text-[10px] font-black px-2 py-0.5 ${getStatusBadge(bus.status)}`}>
+                      <Badge variant="outline" className={`text-xs font-black px-2 py-0.5 ${getStatusBadge(bus.status)}`}>
                         {STATUS_LABELS[bus.status] ?? bus.status}
                       </Badge>
                     </div>
@@ -409,7 +410,8 @@ export function LogisticsManager() {
                     onClick={() => setBusToDelete(bus)}
                     disabled={deleting === bus.id}
                     title="Remover ônibus"
-                    className="text-slate-400 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                    aria-label={`Remover ônibus ${bus.bus_number}`}
+                    className="text-rose-600/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -417,7 +419,7 @@ export function LogisticsManager() {
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                    <Phone className="h-3.5 w-3.5 text-[#4361EE] shrink-0" />
+                    <Phone className="h-3.5 w-3.5 text-[#007DA5] shrink-0" />
                     <span className="truncate font-semibold">{bus.driver_name}</span>
                   </div>
                   <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
@@ -508,7 +510,7 @@ export function LogisticsManager() {
                   key={s}
                   type="button"
                   onClick={() => setForm({ ...form, stake_city: s })}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-[#4361EE] hover:text-white transition-colors"
+                  className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-[#007DA5] hover:text-white transition-colors min-h-[36px]"
                 >
                   {s.replace("Estaca ", "")}
                 </button>
@@ -517,7 +519,7 @@ export function LogisticsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Nome do Motorista</label>
+                <label className="text-xs font-black uppercase text-slate-500">Nome do Motorista</label>
                 <Input
                   placeholder="Nome do motorista"
                   value={form.driver_name}
@@ -593,13 +595,13 @@ export function LogisticsManager() {
           </div>
 
           <DialogFooter className="pt-2">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl text-xs font-bold">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-xl text-xs font-bold min-h-[36px]">
               Cancelar
             </Button>
             <Button
               onClick={handleCreate}
               disabled={saving}
-              className="bg-[#4361EE] hover:bg-blue-600 text-white font-black rounded-xl border-2 border-slate-900 shadow-brutal-sm text-xs"
+              className="bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
             >
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               {saving ? "Salvando..." : "Salvar Ônibus"}
