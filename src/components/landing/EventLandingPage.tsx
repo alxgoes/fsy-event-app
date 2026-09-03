@@ -585,7 +585,7 @@ export function EventLandingPage() {
               key={DAYS_SCHEDULE[selectedDayIndex].dayId}
               initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={shouldReduceMotion ? false : { opacity: 0, y: -8 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
               className="mt-6 mx-auto max-w-4xl rounded-3xl bg-white dark:bg-slate-900 p-6 sm:p-10 border border-slate-200/80 dark:border-slate-800 shadow-sm"
             >
@@ -683,7 +683,7 @@ export function EventLandingPage() {
                       <motion.div
                         initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
-                        exit={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
+                        exit={shouldReduceMotion ? undefined : { height: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >

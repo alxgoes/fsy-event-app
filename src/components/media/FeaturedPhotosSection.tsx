@@ -183,7 +183,7 @@ export function FeaturedPhotosSection() {
             <motion.div
               initial={shouldReduceMotion ? false : { scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
-              exit={shouldReduceMotion ? false : { scale: 0.95, y: 10 }}
+              exit={shouldReduceMotion ? undefined : { scale: 0.95, y: 10 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
               className="relative max-h-[90vh] max-w-4xl w-full overflow-hidden rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
