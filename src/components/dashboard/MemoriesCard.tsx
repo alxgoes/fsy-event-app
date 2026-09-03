@@ -67,3 +67,4 @@ export function MemoriesCard() {
     </motion.div>
   );
 }
+
