@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Camera, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { MagneticCarousel, CarouselImage } from "@/components/ui/MagneticCarousel";
+import NeonBorder from "@/components/ui/NeonBorder";
 
 export interface MediaPhoto {
   id: string;
@@ -153,8 +154,21 @@ export function FeaturedPhotosSection({
         </div>
       </div>
 
-      {/* Magnetic Carousel — card-style panel matching site design */}
-      <div className="rounded-3xl border-2 border-slate-200 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800/60 overflow-visible">
+      {/* Magnetic Carousel — card-style panel with NeonBorder */}
+      <div className="relative rounded-3xl border-2 border-slate-200 dark:border-slate-700 bg-slate-100/70 dark:bg-slate-800/60 overflow-visible">
+        {/* Animated neon border */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+          <NeonBorder
+            color="#007DA5"
+            rounded={100}
+            thickness={3}
+            borderSize={45}
+            glow={80}
+            movement="continuous"
+            speed={8}
+          />
+        </div>
+
         <div style={{ height: 380, position: "relative", padding: "20px 16px 0" }}>
           <MagneticCarousel
             images={carouselImages}
