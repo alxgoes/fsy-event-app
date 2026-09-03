@@ -42,9 +42,8 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Unauthenticated users: Protect all internal pages (/dashboard, /admin, /schedule, /announcements, etc.)
+  // 1. Unauthenticated users: Protect all internal pages (/, /dashboard, /admin, /schedule, /announcements)
   const isPublicRoute =
-    pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api") ||
@@ -59,8 +58,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 2. Authenticated user visiting /login -> redirect to /dashboard
-  if (user && pathname === "/login") {
+  // 2. Authenticated user visiting /login or / -> redirect to /dashboard
+  if (user && (pathname === "/login" || pathname === "/")) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/dashboard";
     return NextResponse.redirect(redirectUrl);

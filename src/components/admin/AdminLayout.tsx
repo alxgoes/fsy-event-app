@@ -444,7 +444,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         </aside>
 
         {/* Main Administrative Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50/80 dark:bg-slate-950 transition-colors">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-fsy-watermark transition-colors">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>

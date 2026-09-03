@@ -6,5 +6,5 @@ export default function AdminRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AdminLayout activeRole="medico">{children}</AdminLayout>;
+  return <AdminLayout activeRole="coordenador">{children}</AdminLayout>;
 }

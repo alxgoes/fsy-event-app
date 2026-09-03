@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Compass,
 } from "lucide-react";
-import { AdminLayout } from "./AdminLayout";
 import { createClient } from "@/lib/supabase/client";
 
 interface ExecutiveMetrics {
@@ -129,10 +128,9 @@ export function ExecutiveDashboard() {
   }, [loadExecutiveData]);
 
   return (
-    <AdminLayout activeRole="coordenador">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* 1. Header Banner */}
-        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#007DA5] text-white shadow-sm shrink-0">
@@ -187,7 +185,7 @@ export function ExecutiveDashboard() {
           <motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -210,7 +208,7 @@ export function ExecutiveDashboard() {
           <motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -233,7 +231,7 @@ export function ExecutiveDashboard() {
           <motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -258,7 +256,7 @@ export function ExecutiveDashboard() {
           <motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -297,7 +295,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -327,7 +325,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -357,7 +355,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -387,7 +385,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -417,7 +415,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -447,7 +445,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -476,7 +474,7 @@ export function ExecutiveDashboard() {
 
         {/* 4. Recent Announcements Feed */}
         {recentAnnouncements.length > 0 && (
-          <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-[#007DA5]" />
@@ -523,6 +521,5 @@ export function ExecutiveDashboard() {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 }
