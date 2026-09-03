@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { X, ZoomIn } from "lucide-react";
 
 const EASE_PRESETS: Record<string, string> = {
   linear: "linear",
@@ -12,6 +14,7 @@ const EASE_PRESETS: Record<string, string> = {
 
 export interface CarouselImage {
   src: string;
+  highResSrc?: string;
   alt?: string;
 }
 
@@ -63,25 +66,26 @@ export function MagneticCarousel({
   hoverWidth = 180,
   collapsedHeight = 300,
   hoverHeight = 360,
-  openSize = 500,
   gap = 12,
   influence = 200,
-  blur = 2,
   transition = { type: "tween", duration: 0.3, ease: "easeInOut" },
   className = "",
 }: MagneticCarouselProps) {
   const items = images && images.length > 0 ? images : DEFAULT_IMAGES;
   const count = items.length;
 
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [factors, setFactors] = useState<number[]>(() => items.map(() => 0));
+  const [factors, setFactors] = useState<number[]>(() => Array(count).fill(0));
   const [open, setOpen] = useState<number | null>(null);
-  const [closing, setClosing] = useState(false);
 
-  const targetRef = useRef<number[]>(items.map(() => 0));
-  const curRef = useRef<number[]>(items.map(() => 0));
+  const targetRef = useRef<number[]>(Array(count).fill(0));
+  const curRef = useRef<number[]>(Array(count).fill(0));
   const loopRef = useRef(0);
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     targetRef.current = Array(count).fill(0);
@@ -92,9 +96,17 @@ export function MagneticCarousel({
   useEffect(() => {
     return () => {
       cancelAnimationFrame(loopRef.current);
-      if (closeTimer.current) clearTimeout(closeTimer.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (open === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const startLoop = () => {
     if (loopRef.current) return;
@@ -148,21 +160,12 @@ export function MagneticCarousel({
   const { dur, ease } = parseTransition(transition);
 
   const close = () => {
-    targetRef.current = items.map(() => 0);
-    curRef.current = items.map(() => 0);
-    setFactors(items.map(() => 0));
-    setClosing(true);
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setClosing(false), dur * 1000);
     setOpen(null);
+    targetRef.current = items.map(() => 0);
+    startLoop();
   };
 
   const sizeFor = (i: number) => {
-    if (open !== null) {
-      return i === open
-        ? { width: openSize, height: openSize }
-        : { width: collapsedWidth, height: collapsedHeight };
-    }
     const f = factors[i] ?? 0;
     return {
       width: collapsedWidth + (hoverWidth - collapsedWidth) * f,
@@ -170,35 +173,10 @@ export function MagneticCarousel({
     };
   };
 
-  const openEase = `width ${dur}s ${ease}, height ${dur}s ${ease}, filter ${dur}s ${ease}, opacity ${dur}s ${ease}`;
-  const barTransition = open !== null || closing ? openEase : "none";
+  const barTransition = `width ${dur}s ${ease}, height ${dur}s ${ease}, filter ${dur}s ${ease}, opacity ${dur}s ${ease}`;
 
   return (
     <>
-      {/* Full-screen backdrop with blur when a photo is open */}
-      <AnimatePresence>
-        {open !== null && (
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={close}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 40,
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              background: "rgba(2, 8, 23, 0.55)",
-              pointerEvents: "auto",
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Carousel */}
       <div
         ref={containerRef}
         className={className}
@@ -206,60 +184,114 @@ export function MagneticCarousel({
           width: "100%",
           height: "100%",
           display: "flex",
-          alignItems: "flex-end",
+          alignItems: "center",
           justifyContent: "center",
           gap,
           position: "relative",
           overflow: "visible",
-          zIndex: open !== null ? 50 : "auto",
         }}
         onMouseMove={onMove}
         onMouseLeave={onLeave}
       >
-        {/* Transparent backdrop inside carousel — click to close */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 1,
-            pointerEvents: open !== null ? "auto" : "none",
-          }}
-          onClick={close}
-        />
         {items.map((img, i) => {
           const { width, height } = sizeFor(i);
-          const blurred = open !== null && i !== open;
+          const isSelected = open === i;
           return (
             <div
               key={i}
               onClick={(e) => {
                 e.stopPropagation();
-                if (open === i) close();
-                else setOpen(i);
+                setOpen(i);
               }}
-              title={img.alt}
+              title={img.alt || "Clique para ampliar"}
+              className="group relative cursor-pointer"
               style={{
                 flex: "none",
                 width,
                 height,
                 overflow: "hidden",
-                cursor: "pointer",
                 transition: barTransition,
                 willChange: "width, height",
                 position: "relative",
-                zIndex: open === i ? 3 : 2,
-                filter: blurred ? `blur(${blur}px)` : "none",
-                opacity: blurred ? 0.6 : 1,
-                borderRadius: 12,
+                zIndex: isSelected ? 3 : 2,
+                borderRadius: 14,
                 backgroundImage: `url(${img.src})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
+                boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.45)",
+                border: isSelected ? "2px solid #01B6D1" : "1px solid rgba(255, 255, 255, 0.15)",
               }}
-            />
+            >
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                <div className="p-2 rounded-full bg-black/50 text-white backdrop-blur-sm shadow-md">
+                  <ZoomIn className="h-4 w-4" />
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
+
+      {mounted &&
+        open !== null &&
+        createPortal(
+          <AnimatePresence>
+            <motion.div
+              key="zoom-lightbox-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={close}
+              className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-8 select-none"
+              style={{
+                backgroundColor: "rgba(2, 6, 23, 0.85)",
+                backdropFilter: "blur(18px)",
+                WebkitBackdropFilter: "blur(18px)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={close}
+                className="fixed top-5 right-5 sm:top-7 sm:right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white backdrop-blur-xl border border-white/20 shadow-2xl transition-all cursor-pointer outline-none"
+                aria-label="Fechar zoom da foto"
+                title="Fechar (Esc)"
+              >
+                <X className="h-6 w-6" />
+              </button>
+
+              <motion.div
+                initial={{ scale: 0.92, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.92, opacity: 0, y: 10 }}
+                transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative flex flex-col items-center justify-center max-h-[85vh] max-w-[90vw]"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={items[open].highResSrc || items[open].src}
+                  alt={items[open].alt || "Foto em destaque ampliada"}
+                  draggable={false}
+                  className="max-h-[80vh] max-w-[88vw] object-contain rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] border border-white/15 select-none"
+                />
+
+                {items[open].alt && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="mt-3.5 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 text-white text-xs font-bold shadow-lg max-w-sm text-center truncate"
+                  >
+                    {items[open].alt}
+                  </motion.div>
+                )}
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )}
     </>
   );
 }

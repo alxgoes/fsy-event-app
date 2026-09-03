@@ -32,13 +32,30 @@ function resolveCardThumbnail(photo: MediaPhoto): string | null {
   return url;
 }
 
+function resolveHighResPhoto(photo: MediaPhoto): string | null {
+  const url = photo.drive_url;
+  if (!url) return photo.thumbnail_url || null;
+
+  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch) {
+    return `https://lh3.googleusercontent.com/d/${fileMatch[1]}=w1600`;
+  }
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch) {
+    return `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1600`;
+  }
+
+  return photo.thumbnail_url || url;
+}
+
 /** Converts MediaPhoto array into CarouselImage array for MagneticCarousel */
 function toCarouselImages(photos: MediaPhoto[]): CarouselImage[] {
   const result: CarouselImage[] = [];
   for (const p of photos) {
     const src = resolveCardThumbnail(p);
     if (src) {
-      result.push({ src, alt: p.title });
+      const highResSrc = resolveHighResPhoto(p) || src;
+      result.push({ src, highResSrc, alt: p.title });
     }
   }
   return result;
@@ -169,10 +186,8 @@ export function FeaturedPhotosSection({
               hoverWidth={200}
               collapsedHeight={340}
               hoverHeight={380}
-              openSize={500}
               gap={12}
               influence={220}
-              blur={2}
               transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
             />
           </div>
