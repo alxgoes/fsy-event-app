@@ -14,6 +14,9 @@ import {
   Loader2,
   Sparkles,
   CheckCircle2,
+  Database,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +37,46 @@ interface CompanyOption {
   color: string;
 }
 
+const COUNSELOR_AUDIT_SQL = `-- 10. Counselor Audit Logs Table (Auditoria dos Consultores)
+CREATE TABLE IF NOT EXISTS public.counselor_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    author_name TEXT NOT NULL,
+    author_role TEXT NOT NULL DEFAULT 'consultor',
+    company_id TEXT,
+    company_name TEXT,
+    action_type TEXT NOT NULL,
+    action_label TEXT NOT NULL,
+    title TEXT,
+    content TEXT NOT NULL,
+    details JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_created_at ON public.counselor_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_author_name ON public.counselor_audit_logs(author_name);
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_company_id ON public.counselor_audit_logs(company_id);
+
+ALTER TABLE public.counselor_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Directors, Coordinators and Logistics can view counselor audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Directors, Coordinators and Logistics can view counselor audit logs"
+    ON public.counselor_audit_logs FOR SELECT
+    TO authenticated
+    USING (public.get_auth_role() IN ('coordenador', 'casal_diretor', 'logistica'));
+
+DROP POLICY IF EXISTS "Authenticated users can insert audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Authenticated users can insert audit logs"
+    ON public.counselor_audit_logs FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Directors, Coordinators and Logistics can delete counselor audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Directors, Coordinators and Logistics can delete counselor audit logs"
+    ON public.counselor_audit_logs FOR DELETE
+    TO authenticated
+    USING (public.get_auth_role() IN ('coordenador', 'casal_diretor', 'logistica'));`;
+
 export function CounselorAuditManager() {
   const { profile, loading: profileLoading } = useProfile();
   const shouldReduceMotion = useReducedMotion();
@@ -43,6 +86,11 @@ export function CounselorAuditManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Table pending setup in Supabase state
+  const [tablePending, setTablePending] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [showSql, setShowSql] = useState(false);
 
   // Filters & Search
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,10 +132,13 @@ export function CounselorAuditManager() {
       const res = await fetch(url.toString());
       const json = await res.json();
 
-      if (!res.ok || json.error) {
-        throw new Error(json.error || "Erro ao carregar histórico de auditoria.");
+      if (json.tablePending) {
+        setTablePending(true);
+        setLogs([]);
+        return;
       }
 
+      setTablePending(false);
       setLogs(json.data ?? []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
@@ -96,6 +147,12 @@ export function CounselorAuditManager() {
       setLoading(false);
     }
   }, [selectedCompany, selectedAction, searchTerm]);
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(COUNSELOR_AUDIT_SQL);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 3000);
+  };
 
   useEffect(() => {
     if (!profileLoading && isAuthorized) {
@@ -253,8 +310,54 @@ export function CounselorAuditManager() {
           </div>
         </div>
 
+        {/* Setup Banner when table is pending in Supabase */}
+        {tablePending && (
+          <div className="mt-4 p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Database className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-heading text-sm sm:text-base font-black text-amber-950 dark:text-amber-200">
+                    Ativação da Tabela no Supabase
+                  </h4>
+                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 max-w-xl leading-relaxed">
+                    Para habilitar o salvamento automático e a persistência das alterações dos consultores,
+                    basta executar o script SQL no <strong>SQL Editor</strong> do painel Supabase. Leva menos de 10 segundos!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-sm transition-colors cursor-pointer min-h-[38px]"
+                >
+                  {copiedSql ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  <span>{copiedSql ? "SQL Copiado!" : "Copiar Script SQL"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSql(!showSql)}
+                  className="px-3.5 py-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 font-bold text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer min-h-[38px]"
+                >
+                  {showSql ? "Ocultar" : "Ver Código"}
+                </button>
+              </div>
+            </div>
+
+            {showSql && (
+              <div className="mt-4">
+                <pre className="p-4 rounded-2xl bg-slate-900 text-slate-100 text-[11px] font-mono overflow-x-auto max-h-56 border border-slate-700 leading-relaxed shadow-inner">
+                  {COUNSELOR_AUDIT_SQL}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Feedback Alerts */}
-        {error && (
+        {!tablePending && error && (
           <div className="mt-4 p-3 rounded-2xl bg-red-50 dark:bg-red-950/50 border-2 border-red-300 dark:border-red-900 text-xs font-bold text-red-600 dark:text-red-300 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>

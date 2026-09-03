@@ -47,9 +47,17 @@ export async function GET(request: Request) {
 
     if (error) {
       // If table doesn't exist yet in Supabase, return empty array without crashing
-      if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      if (
+        error.code === "42P01" ||
+        error.code === "PGRST204" ||
+        error.code === "PGRST205" ||
+        error.message?.toLowerCase().includes("schema cache") ||
+        error.message?.toLowerCase().includes("could not find the table") ||
+        error.message?.includes("does not exist")
+      ) {
         return NextResponse.json({
           data: [],
+          tablePending: true,
           notice: "Tabela counselor_audit_logs pendente de criação no Supabase.",
         });
       }
@@ -128,7 +136,14 @@ export async function POST(request: Request) {
 
     if (error) {
       // If table doesn't exist yet, return soft success with error info
-      if (error.code === "42P01" || error.message?.includes("does not exist")) {
+      if (
+        error.code === "42P01" ||
+        error.code === "PGRST204" ||
+        error.code === "PGRST205" ||
+        error.message?.toLowerCase().includes("schema cache") ||
+        error.message?.toLowerCase().includes("could not find the table") ||
+        error.message?.includes("does not exist")
+      ) {
         return NextResponse.json({
           success: true,
           data: payload,
