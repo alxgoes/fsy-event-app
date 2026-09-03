@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Camera, FolderHeart, Sparkles } from "lucide-react";
 import { InstagramFeed } from "@/components/media/InstagramFeed";
 import { DriveGallery } from "@/components/media/DriveGallery";
@@ -26,10 +26,11 @@ function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
 
 export function MemoriesCard() {
   const [activeTab, setActiveTab] = useState<string>("drive");
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
       className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 sm:p-7 text-slate-900 dark:text-slate-100 shadow-brutal-md"
     >
@@ -55,59 +56,76 @@ export function MemoriesCard() {
             </div>
           </div>
 
-          {/* Navigation Pill Switcher */}
+          {/* Navigation Pill Switcher with Spatial Continuity (layoutId) */}
           <div className="flex items-center">
-            <div className="grid grid-cols-2 w-full md:w-auto p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-sm gap-1">
+            <div className="relative grid grid-cols-2 w-full md:w-auto p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-sm gap-1">
               <button
                 type="button"
                 onClick={() => setActiveTab("drive")}
-                className={`flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-all min-h-[36px] ${
+                className={`relative z-10 flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-colors min-h-[36px] ${
                   activeTab === "drive"
-                    ? "bg-[#007DA5] text-white shadow-sm border border-slate-900/20"
+                    ? "text-white"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                <FolderHeart className="h-4 w-4" />
-                <span>Fotos do Drive</span>
+                {activeTab === "drive" && (
+                  <motion.div
+                    layoutId={shouldReduceMotion ? undefined : "memoriesActivePill"}
+                    className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm border border-slate-900/20 -z-10"
+                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                  />
+                )}
+                <FolderHeart className="h-4 w-4 relative z-10" />
+                <span className="relative z-10">Fotos do Drive</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab("instagram")}
-                className={`flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-all min-h-[36px] ${
+                className={`relative z-10 flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-colors min-h-[36px] ${
                   activeTab === "instagram"
-                    ? "bg-[#FC4E6D] text-white shadow-sm border border-slate-900/20"
+                    ? "text-white"
                     : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
                 }`}
               >
-                <InstagramIcon className="h-4 w-4" />
-                <span>Instagram Oficial</span>
+                {activeTab === "instagram" && (
+                  <motion.div
+                    layoutId={shouldReduceMotion ? undefined : "memoriesActivePill"}
+                    className="absolute inset-0 bg-[#FC4E6D] rounded-xl shadow-sm border border-slate-900/20 -z-10"
+                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                  />
+                )}
+                <InstagramIcon className="h-4 w-4 relative z-10" />
+                <span className="relative z-10">Instagram Oficial</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Tab 1: Google Drive Gallery */}
-        {activeTab === "drive" && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <DriveGallery />
-          </motion.div>
-        )}
-
-        {/* Tab 2: Instagram Feed */}
-        {activeTab === "instagram" && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <InstagramFeed />
-          </motion.div>
-        )}
+        {/* Tab Content with AnimatePresence */}
+        <AnimatePresence mode="wait" initial={false}>
+          {activeTab === "drive" ? (
+            <motion.div
+              key="drive"
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.99 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <DriveGallery />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="instagram"
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.99 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <InstagramFeed />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );

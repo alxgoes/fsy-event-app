@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Clock, MapPin, ArrowRight, CalendarX, Sparkles, Hourglass } from "lucide-react";
 
 interface HappeningNowCardProps {
@@ -29,11 +29,13 @@ export function HappeningNowCard({
   currentEvent,
   nextEvent,
 }: HappeningNowCardProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   // Pre-event mode (Before Feb 05, 2027)
   if (isPreEvent) {
     return (
       <motion.div
-        whileHover={{ y: -3 }}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
         className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#FFD166] p-6 text-slate-900 shadow-brutal-md"
       >
@@ -92,8 +94,9 @@ export function HappeningNowCard({
 
           <Link href="/schedule" className="block w-full">
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95, y: 2 }}
+              whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white border-2 border-slate-900 shadow-sm hover:bg-slate-800 transition-colors cursor-pointer min-h-[44px]"
             >
               <span>Ver Programação Completa</span>
@@ -109,7 +112,7 @@ export function HappeningNowCard({
   if (!currentEvent) {
     return (
       <motion.div
-        whileHover={{ y: -3 }}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
         className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#FFD166] p-6 text-slate-900 shadow-brutal-md min-h-[200px]"
       >
@@ -125,8 +128,9 @@ export function HappeningNowCard({
           </div>
           <Link href="/schedule">
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className="flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white border-2 border-slate-900 shadow-brutal-sm hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <span>Ver Programação</span>
@@ -141,7 +145,7 @@ export function HappeningNowCard({
   // Live Event Mode
   return (
     <motion.div
-      whileHover={{ y: -3 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
       className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#FFE48A] p-6 text-slate-900 shadow-lg"
     >
@@ -202,8 +206,9 @@ export function HappeningNowCard({
 
         <Link href="/schedule" className="block w-full">
           <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95, y: 2 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white border-2 border-slate-900 shadow-brutal-sm hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <span>Ver Programação Completa</span>

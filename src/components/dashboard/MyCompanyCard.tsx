@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Megaphone, Users, Pin, Heart, Clock } from "lucide-react";
 
 export interface AnnouncementItem {
@@ -44,6 +44,7 @@ export function MyCompanyCard({
   companyMotto = null,
   announcements = [],
 }: MyCompanyCardProps) {
+  const shouldReduceMotion = useReducedMotion();
   // Local likes state keyed by announcement ID
   const [likesState, setLikesState] = useState<
     Record<string, { count: number; isLiked: boolean }>
@@ -130,7 +131,7 @@ export function MyCompanyCard({
 
   return (
     <motion.div
-      whileHover={{ y: -3 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
       className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 text-slate-900 dark:text-slate-100 shadow-lg"
     >
@@ -238,25 +239,49 @@ export function MyCompanyCard({
                       Por <strong className="text-slate-800 dark:text-slate-200">{authorName}</strong>
                     </span>
 
-                    {/* Like / Heart Action with Persistent DB Counter */}
-                    <button
+                    {/* Like / Heart Action with Micro-interaction & Persistent DB Counter */}
+                    <motion.button
                       type="button"
                       aria-label={`Curtir comunicado ${item.title}`}
                       onClick={() => toggleLike(item.id)}
-                      className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-all cursor-pointer min-h-[36px] ${
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
+                      whileHover={shouldReduceMotion ? undefined : { y: -1 }}
+                      transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                      className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-colors cursor-pointer min-h-[36px] ${
                         info.isLiked
                           ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
                           : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                       }`}
                       title={info.isLiked ? "Descurtir" : "Curtir comunicado"}
                     >
-                      <Heart
-                        className={`h-3.5 w-3.5 transition-transform active:scale-125 ${
-                          info.isLiked ? "fill-rose-500 text-rose-500" : ""
-                        }`}
-                      />
-                      <span>{info.count}</span>
-                    </button>
+                      <motion.span
+                        key={info.isLiked ? "liked" : "unliked"}
+                        initial={shouldReduceMotion ? false : { scale: info.isLiked ? 0.75 : 1 }}
+                        animate={
+                          shouldReduceMotion
+                            ? { scale: 1 }
+                            : info.isLiked
+                            ? { scale: [1, 1.4, 0.95, 1] }
+                            : { scale: 1 }
+                        }
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className="inline-flex items-center justify-center"
+                      >
+                        <Heart
+                          className={`h-3.5 w-3.5 ${
+                            info.isLiked ? "fill-rose-500 text-rose-500" : ""
+                          }`}
+                        />
+                      </motion.span>
+                      <motion.span
+                        key={`count-${info.count}`}
+                        initial={shouldReduceMotion ? false : { y: -2, opacity: 0.6 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        {info.count}
+                      </motion.span>
+                    </motion.button>
                   </div>
                 </motion.div>
               );

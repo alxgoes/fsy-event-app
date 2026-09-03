@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, Variants } from "framer-motion";
+import { motion, Variants, useReducedMotion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { HeroCard } from "./HeroCard";
 import { HappeningNowCard } from "./HappeningNowCard";
@@ -13,30 +13,6 @@ import { useProfile } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Users } from "lucide-react";
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.05,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { y: 20, opacity: 0, scale: 0.96 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 280,
-      damping: 24,
-    },
-  },
-};
 
 interface ScheduleItem {
   id: string;
@@ -73,6 +49,7 @@ interface Announcement {
 export function YouthDashboard() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useProfile();
+  const shouldReduceMotion = useReducedMotion();
   const [currentEvent, setCurrentEvent] = useState<ScheduleItem | null>(null);
   const [nextEvent, setNextEvent] = useState<ScheduleItem | null>(null);
   const [activeDayLabel, setActiveDayLabel] = useState<string>("Em Breve • FSY 2027");
@@ -230,6 +207,37 @@ export function YouthDashboard() {
       </div>
     );
   }
+
+  const containerVariants: Variants = {
+    hidden: { opacity: shouldReduceMotion ? 1 : 0 },
+    visible: {
+      opacity: 1,
+      transition: shouldReduceMotion
+        ? { duration: 0 }
+        : {
+            staggerChildren: 0.08,
+            delayChildren: 0.04,
+          },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: shouldReduceMotion
+      ? { opacity: 1, y: 0, scale: 1 }
+      : { y: 16, opacity: 0, scale: 0.98 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      transition: shouldReduceMotion
+        ? { duration: 0 }
+        : {
+            type: "spring",
+            stiffness: 320,
+            damping: 26,
+          },
+    },
+  };
 
   const firstName = profile?.full_name?.split(" ")[0] ?? "Olá";
   const companyName = company?.name ?? profile?.company_id ?? null;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-02T19:22:45.000Z",
+  "generatedAt": "2026-09-03T01:43:00.000Z",
   "title": "Design System: FSY Sessão Ribeirão Preto 2",
   "extensions": {
     "colorMeta": {
@@ -11,6 +11,21 @@
         "tonalRamp": [
           "#002430",
           "#004358",
+          "#005E7C",
+          "#007DA5",
+          "#01B6D1",
+          "#7DE3F4",
+          "#B0EEFC",
+          "#F0F9FF"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Azul Índigo Escuro (Hover)",
+        "canonical": "#005E7C",
+        "tonalRamp": [
+          "#001C25",
+          "#00384A",
           "#005E7C",
           "#007DA5",
           "#01B6D1",
@@ -81,7 +96,7 @@
       },
       "neutral-bg": {
         "role": "neutral",
-        "displayName": "Pergaminho Quente",
+        "displayName": "Fundo Pergaminho Quente",
         "canonical": "#FAF8F5",
         "tonalRamp": [
           "#0F172A",
@@ -92,6 +107,66 @@
           "#CBD5E1",
           "#EFEFE7",
           "#FAF8F5"
+        ]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Branco Puro (Superfície)",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0F172A",
+          "#334155",
+          "#64748B",
+          "#94A3B8",
+          "#CBD5E1",
+          "#E2E8F0",
+          "#F8FAFC",
+          "#FFFFFF"
+        ]
+      },
+      "neutral-parchment": {
+        "role": "neutral",
+        "displayName": "Pergaminho Histórico",
+        "canonical": "#F5EFCA",
+        "tonalRamp": [
+          "#423B1C",
+          "#6B602E",
+          "#968740",
+          "#C7B458",
+          "#D9C979",
+          "#E8DDA0",
+          "#F5EFCA",
+          "#FAF8EA"
+        ]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "Grafite Nobre",
+        "canonical": "#0F172A",
+        "tonalRamp": [
+          "#020617",
+          "#0F172A",
+          "#1E293B",
+          "#334155",
+          "#475569",
+          "#64748B",
+          "#94A3B8",
+          "#CBD5E1"
+        ]
+      },
+      "neutral-muted": {
+        "role": "neutral",
+        "displayName": "Ardósia Suave",
+        "canonical": "#64748B",
+        "tonalRamp": [
+          "#0F172A",
+          "#1E293B",
+          "#334155",
+          "#475569",
+          "#64748B",
+          "#94A3B8",
+          "#CBD5E1",
+          "#F1F5F9"
         ]
       },
       "gold-temple": {
@@ -130,6 +205,14 @@
       "label": {
         "displayName": "Label All-Caps",
         "purpose": "Badges de status, dias, categorias e horários."
+      },
+      "caption": {
+        "displayName": "Caption Subtitle",
+        "purpose": "Legendas, metadados e notas de rodapé."
+      },
+      "micro": {
+        "displayName": "Micro Tag",
+        "purpose": "Micro-indicadores e identificadores compactos."
       }
     },
     "shadows": [
@@ -154,6 +237,11 @@
         "name": "ease-spring",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
         "purpose": "Abertura de gavetas, modais e transições táteis."
+      },
+      {
+        "name": "ease-smooth",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Transições padrão de hover e cores."
       }
     ],
     "breakpoints": [
@@ -173,6 +261,14 @@
       "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; background-color: #007DA5; color: #FFFFFF; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); } .ds-btn-primary:hover { background-color: #005E7C; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 125, 165, 0.25); } .ds-btn-primary:active { transform: translateY(0); }"
     },
     {
+      "name": "Botão Primário (Hover)",
+      "kind": "button",
+      "refersTo": "button-primary-hover",
+      "description": "Estado de hover do comando principal com azul aprofundado e elevação sutil.",
+      "html": "<button class=\"ds-btn-primary-hover\">Confirmar Inscrição</button>",
+      "css": ".ds-btn-primary-hover { display: inline-flex; align-items: center; justify-content: center; background-color: #005E7C; color: #FFFFFF; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 125, 165, 0.25); }"
+    },
+    {
       "name": "Botão Secundário Ouro Solar",
       "kind": "button",
       "refersTo": "button-secondary",
@@ -186,7 +282,7 @@
       "refersTo": "card-base",
       "description": "Superfície padrão branca sobre fundo pergaminho para módulos e blocos.",
       "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">1º Dia • Sábado</h3><p class=\"ds-card-body\">Abertura oficial e apresentação das companhias no auditório principal.</p></div>",
-      "css": ".ds-card { background-color: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 20px; padding: 20px; box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05); transition: box-shadow 0.2s ease, transform 0.2s ease; } .ds-card:hover { box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); transform: translateY(-2px); } .ds-card-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 8px 0; } .ds-card-body { font-family: 'Inter', sans-serif; font-size: 14px; color: #475569; margin: 0; line-height: 1.5; }"
+      "css": ".ds-card { background-color: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 24px; padding: 20px; box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05); transition: box-shadow 0.2s ease, transform 0.2s ease; } .ds-card:hover { box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08); transform: translateY(-2px); } .ds-card-title { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: #0F172A; margin: 0 0 8px 0; } .ds-card-body { font-family: 'Inter', sans-serif; font-size: 14px; color: #475569; margin: 0; line-height: 1.5; }"
     },
     {
       "name": "Badge de Status 2027",

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ShieldCheck, Compass } from "lucide-react";
 import { YellowCapsuleSticker } from "@/components/brand/FsyStickers";
 
@@ -18,15 +18,48 @@ export function HeroCard({
   sessionDay = "FSY 2027",
   room = null,
 }: HeroCardProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <motion.div
-      whileHover={{ y: -3 }}
+      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
       className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-br from-[#007DA5] via-[#01B6D1] to-[#005E7C] p-6 sm:p-8 text-white shadow-brutal-md"
     >
-      {/* Playful Background Elements */}
-      <div className="absolute -right-8 -top-8 h-44 w-44 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-      <div className="absolute right-12 bottom-4 h-32 w-32 rounded-full bg-[#FFE48A]/25 blur-xl pointer-events-none" />
+      {/* Ambient Lighting Focal Elements */}
+      <motion.div
+        animate={
+          shouldReduceMotion
+            ? undefined
+            : {
+                scale: [1, 1.1, 1],
+                opacity: [0.12, 0.22, 0.12],
+              }
+        }
+        transition={{
+          duration: 7,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/15 blur-2xl pointer-events-none will-change-transform"
+      />
+      <motion.div
+        animate={
+          shouldReduceMotion
+            ? undefined
+            : {
+                scale: [1, 1.14, 1],
+                opacity: [0.2, 0.35, 0.2],
+              }
+        }
+        transition={{
+          duration: 9,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1.5,
+        }}
+        className="absolute right-12 bottom-4 h-36 w-36 rounded-full bg-[#FFE48A]/30 blur-xl pointer-events-none will-change-transform"
+      />
       
       <div className="absolute top-4 right-6 hidden sm:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/25 text-white">
@@ -55,7 +88,9 @@ export function HeroCard({
         <div className="flex flex-wrap items-center gap-2.5 pt-2">
           {/* Company Badge */}
           <motion.div
-            whileTap={{ scale: 0.95 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className="flex items-center gap-2 rounded-2xl bg-white px-3.5 py-2 text-slate-900 border-2 border-slate-900 shadow-brutal-sm cursor-default"
           >
             <ShieldCheck className="h-4 w-4 text-[#007DA5]" />
@@ -65,7 +100,9 @@ export function HeroCard({
           {/* Room Badge — only if room is assigned */}
           {room && (
             <motion.div
-              whileTap={{ scale: 0.95 }}
+              whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
               className="flex items-center gap-2 rounded-2xl bg-[#FFE48A] px-3.5 py-2 text-slate-950 border-2 border-slate-900 shadow-brutal-sm cursor-default"
             >
               <Compass className="h-4 w-4 text-slate-950" />
