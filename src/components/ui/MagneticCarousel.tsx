@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ZoomIn, Loader2 } from "lucide-react";
+import { X, ZoomIn, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface CarouselImage {
   src: string;
@@ -137,8 +137,10 @@ export function MagneticCarousel({
 
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
   const [factors, setFactors] = useState<number[]>(() => Array(count).fill(0));
   const [open, setOpen] = useState<number | null>(null);
+  const [activeMobileIndex, setActiveMobileIndex] = useState(0);
 
   const targetRef = useRef<number[]>(Array(count).fill(0));
   const curRef = useRef<number[]>(Array(count).fill(0));
@@ -232,15 +234,57 @@ export function MagneticCarousel({
     };
   };
 
+  // Mobile navigation handlers
+  const scrollToIndex = (idx: number) => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const cards = el.querySelectorAll<HTMLElement>("[data-mobile-card]");
+    const target = cards[idx];
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    }
+    setActiveMobileIndex(idx);
+  };
+
+  const scrollPrev = () => {
+    const nextIdx = Math.max(0, activeMobileIndex - 1);
+    scrollToIndex(nextIdx);
+  };
+
+  const scrollNext = () => {
+    const nextIdx = Math.min(items.length - 1, activeMobileIndex + 1);
+    scrollToIndex(nextIdx);
+  };
+
+  const handleMobileScroll = () => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const scrollCenter = el.scrollLeft + el.clientWidth / 2;
+    const cards = el.querySelectorAll<HTMLElement>("[data-mobile-card]");
+    let closestIdx = 0;
+    let minDistance = Infinity;
+
+    cards.forEach((card, i) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const dist = Math.abs(scrollCenter - cardCenter);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = i;
+      }
+    });
+
+    setActiveMobileIndex(closestIdx);
+  };
+
   return (
     <>
+      {/* 1. Desktop Magnetic Hover Layout (md and up) */}
       <div
         ref={containerRef}
-        className={className}
+        className={`hidden md:flex ${className}`}
         style={{
           width: "100%",
           height: "100%",
-          display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap,
@@ -291,6 +335,103 @@ export function MagneticCarousel({
         })}
       </div>
 
+      {/* 2. Mobile Swipeable Animated Carousel (below md) */}
+      <div className="flex md:hidden flex-col items-center justify-center w-full max-w-full relative select-none py-1">
+        {/* Horizontal Swipe Track */}
+        <div
+          ref={mobileScrollRef}
+          onScroll={handleMobileScroll}
+          className="flex w-full items-center gap-3.5 overflow-x-auto no-scrollbar snap-x snap-mandatory py-3 px-8 touch-pan-x scroll-smooth"
+        >
+          {items.map((img, i) => {
+            const isActive = activeMobileIndex === i;
+            return (
+              <motion.div
+                key={i}
+                data-mobile-card={i}
+                whileTap={{ scale: 0.96 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(i);
+                }}
+                className={`relative shrink-0 snap-center cursor-pointer transition-all duration-300 rounded-2xl overflow-hidden ${
+                  isActive
+                    ? "w-[74vw] max-w-[270px] h-[270px] sm:h-[300px] shadow-[0_12px_36px_-6px_rgba(1,182,209,0.45)] border-2 border-[#01B6D1] scale-100 opacity-100"
+                    : "w-[66vw] max-w-[235px] h-[250px] sm:h-[280px] border border-white/20 scale-95 opacity-70"
+                }`}
+                style={{
+                  backgroundImage: `url(${img.src})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {/* Visual Depth Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/25 p-3 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-lg bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-black text-white border border-white/20 uppercase tracking-wider">
+                      {i + 1} / {items.length}
+                    </span>
+                    <div className="p-1.5 rounded-full bg-black/60 text-white backdrop-blur-sm border border-white/20 shadow-md">
+                      <ZoomIn className="h-3.5 w-3.5 text-[#01B6D1]" />
+                    </div>
+                  </div>
+
+                  <div>
+                    {img.alt && (
+                      <p className="text-xs font-bold text-white line-clamp-2 drop-shadow leading-snug">
+                        {img.alt}
+                      </p>
+                    )}
+                    <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-semibold text-[#7DE3F4]">
+                      Toque para ampliar
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Floating Prev/Next Buttons */}
+        <button
+          type="button"
+          onClick={scrollPrev}
+          disabled={activeMobileIndex === 0}
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/85 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 shadow-lg disabled:opacity-20 disabled:pointer-events-none transition-all active:scale-90"
+          aria-label="Foto anterior"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={scrollNext}
+          disabled={activeMobileIndex === items.length - 1}
+          className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/85 hover:bg-slate-900 text-white backdrop-blur-md border border-white/20 shadow-lg disabled:opacity-20 disabled:pointer-events-none transition-all active:scale-90"
+          aria-label="Próxima foto"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+
+        {/* Pagination Dots Indicator */}
+        <div className="flex items-center gap-1.5 mt-2">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => scrollToIndex(i)}
+              aria-label={`Ver foto ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                activeMobileIndex === i
+                  ? "w-5 bg-[#01B6D1] shadow-[0_0_8px_#01B6D1]"
+                  : "w-1.5 bg-white/30 hover:bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox Modal */}
       {mounted && open !== null && items[open] && (
         createPortal(
           <AnimatePresence>

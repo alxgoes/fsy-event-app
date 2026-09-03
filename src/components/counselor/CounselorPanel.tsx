@@ -19,6 +19,7 @@ import {
   Heart,
   MessageCircle,
   Bed,
+  Edit3,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,11 @@ export function CounselorPanel() {
   // Delete announcement confirmation
   const [announcementToDelete, setAnnouncementToDelete] = useState<Announcement | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Edit motto state
+  const [editingMotto, setEditingMotto] = useState(false);
+  const [mottoText, setMottoText] = useState("");
+  const [savingMotto, setSavingMotto] = useState(false);
 
   const loadCounselorData = useCallback(async () => {
     if (!profile) return;
@@ -180,6 +186,9 @@ export function CounselorPanel() {
         category,
         target_company_id: profile.company_id,
         author_id: profile.id,
+        author_name: profile.full_name,
+        author_role: profile.role,
+        company_name: company?.name,
       };
 
       const res = await fetch("/api/announcements", {
@@ -230,6 +239,41 @@ export function CounselorPanel() {
       setError(msg);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleSaveMotto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!company || !profile) return;
+    setSavingMotto(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/companies", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: company.id,
+          motto: mottoText.trim() || null,
+          previous_motto: company.motto,
+          author_id: profile.id,
+          author_name: profile.full_name,
+          author_role: profile.role,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Erro ao atualizar lema da companhia.");
+      }
+
+      setEditingMotto(false);
+      await loadCounselorData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      setError(msg);
+    } finally {
+      setSavingMotto(false);
     }
   };
 
@@ -292,11 +336,30 @@ export function CounselorPanel() {
                   {company ? company.name : "Companhia Não Designada"}
                 </h1>
 
-                {company?.motto && (
-                  <p className="text-xs sm:text-sm font-serif italic text-slate-600 dark:text-slate-400 mt-0.5">
-                    &ldquo;{company.motto}&rdquo;
-                  </p>
-                )}
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {company?.motto ? (
+                    <p className="text-xs sm:text-sm font-serif italic text-slate-600 dark:text-slate-400">
+                      &ldquo;{company.motto}&rdquo;
+                    </p>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">
+                      Nenhum lema ou grito de guerra definido
+                    </p>
+                  )}
+                  {company && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMottoText(company.motto || "");
+                        setEditingMotto(true);
+                      }}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#007DA5] dark:text-cyan-400 hover:underline cursor-pointer"
+                    >
+                      <Edit3 className="h-3 w-3" />
+                      <span>{company.motto ? "Alterar Lema" : "Definir Lema"}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -848,6 +911,62 @@ export function CounselorPanel() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Motto / War Cry Modal */}
+      <Dialog open={editingMotto} onOpenChange={(open) => !open && setEditingMotto(false)}>
+        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Edit3 className="h-4 w-4 text-[#007DA5]" />
+              Lema & Grito de Guerra da Companhia
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-600 dark:text-slate-400">
+              Defina o grito de guerra oficial que aparecerá no portal dos jovens da sua companhia. Todas as
+              alterações são registradas para a liderança.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveMotto} className="space-y-4 pt-2">
+            <div>
+              <label className="block text-xs font-black uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                Grito de Guerra / Lema *
+              </label>
+              <Textarea
+                rows={3}
+                value={mottoText}
+                onChange={(e) => setMottoText(e.target.value)}
+                placeholder="ex: Firme na fé, sem vacilar! Companhia 1 pronta pra ganhar!"
+                className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium"
+              />
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditingMotto(false)}
+                className="rounded-2xl text-xs font-bold"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={savingMotto}
+                className="rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white text-xs font-bold"
+              >
+                {savingMotto ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    Salvando...
+                  </>
+                ) : (
+                  "Salvar Lema"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

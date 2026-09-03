@@ -239,6 +239,29 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    // If motto was updated and author info provided, record in counselor audit logs
+    if (motto !== undefined && body.author_name) {
+      try {
+        await supabase.from("counselor_audit_logs").insert({
+          author_id: body.author_id || null,
+          author_name: body.author_name,
+          author_role: body.author_role || "consultor",
+          company_id: id,
+          company_name: updatedCompany?.name || id,
+          action_type: "atualizou_grito_de_guerra",
+          action_label: "Lema / Grito de Guerra Atualizado",
+          title: "Novo Lema / Grito de Guerra da Companhia",
+          content: motto ? String(motto).trim() : "(Lema removido)",
+          details: {
+            previous_motto: body.previous_motto || null,
+          },
+          created_at: new Date().toISOString(),
+        });
+      } catch (auditErr) {
+        console.error("Non-fatal: Failed to write audit log on motto update:", auditErr);
+      }
+    }
+
     return NextResponse.json({ success: true, company: updatedCompany });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";

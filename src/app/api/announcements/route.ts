@@ -88,11 +88,60 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from("announcements")
       .insert(payload)
-      .select()
+      .select("*, profiles(full_name, role)")
       .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Automatically record in counselor audit logs
+    try {
+      let authorName = "Autor Desconhecido";
+      let authorRole = "consultor";
+      let companyName: string | null = null;
+
+      if (author_id) {
+        const { data: authorProfile } = await supabase
+          .from("profiles")
+          .select("full_name, role, company_id")
+          .eq("id", author_id)
+          .single();
+
+        if (authorProfile) {
+          authorName = authorProfile.full_name || authorName;
+          authorRole = authorProfile.role || authorRole;
+        }
+      }
+
+      if (target_company_id) {
+        const { data: comp } = await supabase
+          .from("companies")
+          .select("name")
+          .eq("id", target_company_id)
+          .single();
+        if (comp) companyName = comp.name;
+      }
+
+      await supabase.from("counselor_audit_logs").insert({
+        author_id: author_id || null,
+        author_name: authorName,
+        author_role: authorRole,
+        company_id: target_company_id || null,
+        company_name: companyName,
+        action_type: "publicou_comunicado",
+        action_label: "Novo Comunicado Publicado",
+        title: payload.title,
+        content: payload.content,
+        details: {
+          priority: payload.priority,
+          category: payload.category,
+          target_company_id: payload.target_company_id,
+        },
+        created_at: new Date().toISOString(),
+      });
+    } catch (auditErr) {
+      console.error("Non-fatal: Failed to write counselor audit log on post:", auditErr);
     }
 
     return NextResponse.json({ success: true, data });
@@ -151,6 +200,14 @@ export async function DELETE(request: Request) {
     }
 
     const supabase = createAdminClient();
+
+    // Fetch existing announcement first so we preserve what was deleted in the audit log
+    const { data: existing } = await supabase
+      .from("announcements")
+      .select("*, profiles(full_name, role)")
+      .eq("id", id)
+      .single();
+
     const { error } = await supabase
       .from("announcements")
       .delete()
@@ -158,6 +215,44 @@ export async function DELETE(request: Request) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Record deletion in counselor audit logs
+    if (existing) {
+      try {
+        let compName: string | null = null;
+        if (existing.target_company_id) {
+          const { data: comp } = await supabase
+            .from("companies")
+            .select("name")
+            .eq("id", existing.target_company_id)
+            .single();
+          if (comp) compName = comp.name;
+        }
+
+        const authorName = existing.profiles?.full_name || "Consultor(a)";
+        const authorRole = existing.profiles?.role || "consultor";
+
+        await supabase.from("counselor_audit_logs").insert({
+          author_id: existing.author_id || null,
+          author_name: authorName,
+          author_role: authorRole,
+          company_id: existing.target_company_id || null,
+          company_name: compName,
+          action_type: "excluiu_comunicado",
+          action_label: "Comunicado Removido",
+          title: existing.title,
+          content: existing.content,
+          details: {
+            deleted_announcement_id: id,
+            original_priority: existing.priority,
+            original_category: existing.category,
+          },
+          created_at: new Date().toISOString(),
+        });
+      } catch (auditErr) {
+        console.error("Non-fatal: Failed to write counselor audit log on delete:", auditErr);
+      }
     }
 
     return NextResponse.json({ success: true });

@@ -258,23 +258,23 @@ export function Header() {
   const totalUnread = unreadAppointments.length + unreadAnnouncements.length;
 
   return (
-    <header className="sticky top-0 z-40 w-full px-3 py-2 sm:px-6 transition-all">
-      <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs px-3.5 sm:px-5 py-2">
+    <header className="sticky top-0 z-40 w-full px-2 sm:px-6 py-2 transition-all max-w-full overflow-x-clip">
+      <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs px-2.5 sm:px-5 py-1.5 sm:py-2 min-w-0">
         {/* Brand Logo & Title */}
-        <Link href="/dashboard" className="flex items-center gap-2.5 group shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#EFEFE7] dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer p-1"
+            className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#EFEFE7] dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer p-0.5 sm:p-1 shrink-0"
           >
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </motion.div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-heading text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">
                 Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-[11px] font-black uppercase text-slate-950 border border-slate-900/30">
+              <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
                 2027
               </span>
             </div>
@@ -410,7 +410,7 @@ export function Header() {
         </div>
 
         {/* Right Header Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Theme Toggle (Dark / Light Mode) */}
           <ThemeToggle />
 
@@ -423,7 +423,7 @@ export function Header() {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-10 w-10 sm:h-9 sm:w-9 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
               aria-label="Lembretes e Notificações"
             >
               <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
@@ -442,7 +442,7 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50"
+                  className="fixed sm:absolute top-14 sm:top-full left-3 right-3 sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50 max-h-[82vh] flex flex-col"
                 >
                   {/* Popover Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between">
@@ -645,8 +645,8 @@ export function Header() {
             </AnimatePresence>
           </div>
 
-          {/* User Avatar Dropdown */}
-          <div className="relative" ref={dropdownRef}>
+          {/* User Avatar Dropdown (Desktop / lg:flex) */}
+          <div className="relative hidden lg:block" ref={dropdownRef}>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
@@ -654,7 +654,7 @@ export function Header() {
                 setDropdownOpen((o) => !o);
                 setNotificationsOpen(false);
               }}
-              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1.5 min-h-[42px] border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1.5 min-h-[38px] border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
               aria-label="Menu do usuário"
             >
               {loading ? (
@@ -771,7 +771,7 @@ export function Header() {
             </AnimatePresence>
           </div>
 
-          {/* Mobile Hamburger Toggle Button */}
+          {/* Mobile Hamburger Toggle Button (lg:hidden) */}
           <button
             type="button"
             onClick={() => {
@@ -779,7 +779,7 @@ export function Header() {
               setDropdownOpen(false);
               setNotificationsOpen(false);
             }}
-            className="flex lg:hidden h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+            className="flex lg:hidden h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer shrink-0"
             aria-label="Abrir menu de navegação"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -795,63 +795,104 @@ export function Header() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18 }}
-            className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg p-3 space-y-1"
+            className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg p-3 space-y-2"
           >
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Compass className="h-4 w-4 text-[#007DA5]" />
-              <span>Início</span>
-            </Link>
-
-            <Link
-              href="/schedule"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Calendar className="h-4 w-4 text-[#007DA5]" />
-              <span>Programação & Cronograma</span>
-            </Link>
-
-            <Link
-              href="/announcements"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <div className="flex items-center gap-2.5">
-                <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
-                <span>Lembretes & Comunicados</span>
+            {/* User Profile Card inside Mobile Drawer */}
+            <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#007DA5] text-white font-black text-sm shadow-xs shrink-0">
+                {avatarLetter}
               </div>
-              {totalUnread > 0 && (
-                <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] font-black px-2 py-0.5">
-                  {totalUnread}
-                </span>
+              <div className="overflow-hidden min-w-0">
+                <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  {displayName}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="inline-block px-1.5 py-0.5 rounded-md bg-[#007DA5]/10 text-[#007DA5] dark:text-cyan-300 text-[10px] font-black uppercase tracking-wider">
+                    {roleLabel}
+                  </span>
+                  {displayCompany && (
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                      {displayCompany}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="space-y-1 pt-1">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Compass className="h-4 w-4 text-[#007DA5]" />
+                <span>Início</span>
+              </Link>
+
+              <Link
+                href="/schedule"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Calendar className="h-4 w-4 text-[#007DA5]" />
+                <span>Programação & Cronograma</span>
+              </Link>
+
+              <Link
+                href="/announcements"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
+                  <span>Lembretes & Comunicados</span>
+                </div>
+                {totalUnread > 0 && (
+                  <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] font-black px-2 py-0.5">
+                    {totalUnread}
+                  </span>
+                )}
+              </Link>
+
+              {canSeeCounselorPanel && (
+                <Link
+                  href="/consultor"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+                >
+                  <Building2 className="h-4 w-4 text-[#7209B7]" />
+                  <span>Painel do Consultor</span>
+                </Link>
               )}
-            </Link>
 
-            {canSeeCounselorPanel && (
-              <Link
-                href="/consultor"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
-              >
-                <Building2 className="h-4 w-4 text-[#7209B7]" />
-                <span>Painel do Consultor</span>
-              </Link>
-            )}
+              {canAccessFullAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+                >
+                  <Shield className="h-4 w-4 text-[#007DA5]" />
+                  <span>Painel de Gestão</span>
+                </Link>
+              )}
+            </div>
 
-            {canAccessFullAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+            {/* Logout action in mobile menu */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
               >
-                <Shield className="h-4 w-4 text-[#007DA5]" />
-                <span>Painel de Gestão</span>
-              </Link>
-            )}
+                {signingOut ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
+                <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

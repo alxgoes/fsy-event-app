@@ -10,6 +10,7 @@ import {
   Megaphone,
   Truck,
   Shield,
+  ShieldAlert,
   Menu,
   X,
   LogOut,
@@ -47,6 +48,13 @@ const navigationItems: NavItem[] = [
     name: "Visão Geral",
     href: "/admin",
     icon: LayoutDashboard,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
+  },
+  {
+    name: "Auditoria dos Consultores",
+    href: "/admin/counselor-audit",
+    icon: ShieldAlert,
+    badge: "Liderança",
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {

@@ -2,9 +2,8 @@
 
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { BookOpen, Music2 } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { FsyLogo } from "@/components/brand/FsyLogo";
-import { GooeyButton } from "@/components/ui/GooeyButton";
 
 export function DailyThemeCard() {
   const shouldReduceMotion = useReducedMotion();
@@ -13,7 +12,7 @@ export function DailyThemeCard() {
     <motion.div
       whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#F5EFCA] dark:bg-slate-900 p-6 text-slate-900 dark:text-slate-100 shadow-brutal-md"
+      className="relative flex flex-col justify-between rounded-3xl border-2 border-slate-900 bg-[#F5EFCA] dark:bg-slate-900 p-6 text-slate-900 dark:text-slate-100 shadow-brutal-md h-full"
     >
       <div>
         <div className="flex items-center justify-between mb-3">
@@ -30,7 +29,7 @@ export function DailyThemeCard() {
         <motion.div
           whileHover={shouldReduceMotion ? undefined : { scale: 1.01 }}
           transition={{ type: "spring", stiffness: 400, damping: 28 }}
-          className="my-2 rounded-2xl bg-white dark:bg-slate-800 p-4 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm"
+          className="my-1 sm:my-2 rounded-2xl bg-white dark:bg-slate-800 p-4 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm"
         >
           <div className="flex items-center gap-3">
             <FsyLogo variant="temple-only" colorMode="four-color" className="h-12 w-auto shrink-0" />
@@ -47,19 +46,6 @@ export function DailyThemeCard() {
             “Regozijai-vos sempre no Senhor; outra vez digo, regozijai-vos.”
           </blockquote>
         </motion.div>
-      </div>
-
-      {/* Quick Action Pill — Uses Tactile GooeyButton matching the exact reference */}
-      <div className="mt-3 pt-1">
-        <GooeyButton
-          variant="tactile-dark"
-          size="sm"
-          icon={<Music2 className="h-4 w-4" />}
-          iconColor="text-[#FC4E6D]"
-          className="w-full justify-center"
-        >
-          Hino e Álbum da Juventude 2027
-        </GooeyButton>
       </div>
     </motion.div>
   );

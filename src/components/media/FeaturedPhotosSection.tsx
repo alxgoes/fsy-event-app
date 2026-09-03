@@ -179,7 +179,7 @@ export function FeaturedPhotosSection({
           <div className="absolute top-0 left-1/3 w-1/3 h-28 bg-[#01B6D1]/15 blur-3xl pointer-events-none" />
 
           {/* Magnetic Carousel */}
-          <div style={{ height: 380, position: "relative" }}>
+          <div className="min-h-[330px] md:h-[380px] relative w-full overflow-hidden flex items-center justify-center">
             <MagneticCarousel
               images={carouselImages}
               collapsedWidth={carouselImages.length <= 4 ? 110 : carouselImages.length <= 6 ? 95 : 75}
@@ -192,8 +192,8 @@ export function FeaturedPhotosSection({
           </div>
 
           {/* Mobile interaction hint */}
-          <p className="mt-3 text-center text-xs font-bold text-slate-400 sm:hidden">
-            Toque para explorar · Toque novamente para ampliar
+          <p className="mt-2 text-center text-[11px] font-bold text-slate-300 md:hidden flex items-center justify-center gap-1">
+            <span>👈 Deslize para o lado · Toque para ampliar 👉</span>
           </p>
         </div>
       </div>

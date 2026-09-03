@@ -350,3 +350,43 @@ CREATE POLICY "Medics and Coordinators can manage appointments"
     TO authenticated
     USING (public.get_auth_role() IN ('medico', 'coordenador', 'casal_diretor'));
 
+-- 10. Counselor Audit Logs Table (Auditoria das alterações dos consultores)
+CREATE TABLE IF NOT EXISTS public.counselor_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    author_name TEXT NOT NULL,
+    author_role TEXT NOT NULL DEFAULT 'consultor',
+    company_id TEXT,
+    company_name TEXT,
+    action_type TEXT NOT NULL, -- 'publicou_comunicado', 'excluiu_comunicado', 'atualizou_grito_de_guerra', etc.
+    action_label TEXT NOT NULL, -- 'Novo Comunicado Publicado', 'Comunicado Removido'
+    title TEXT,
+    content TEXT NOT NULL,
+    details JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_created_at ON public.counselor_audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_author_name ON public.counselor_audit_logs(author_name);
+CREATE INDEX IF NOT EXISTS idx_counselor_audit_company_id ON public.counselor_audit_logs(company_id);
+
+ALTER TABLE public.counselor_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Directors, Coordinators and Logistics can view counselor audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Directors, Coordinators and Logistics can view counselor audit logs"
+    ON public.counselor_audit_logs FOR SELECT
+    TO authenticated
+    USING (public.get_auth_role() IN ('coordenador', 'casal_diretor', 'logistica'));
+
+DROP POLICY IF EXISTS "Authenticated users can insert audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Authenticated users can insert audit logs"
+    ON public.counselor_audit_logs FOR INSERT
+    TO authenticated
+    WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Directors, Coordinators and Logistics can delete counselor audit logs" ON public.counselor_audit_logs;
+CREATE POLICY "Directors, Coordinators and Logistics can delete counselor audit logs"
+    ON public.counselor_audit_logs FOR DELETE
+    TO authenticated
+    USING (public.get_auth_role() IN ('coordenador', 'casal_diretor', 'logistica'));
+
