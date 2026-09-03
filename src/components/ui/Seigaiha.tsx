@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useEffect, useRef } from "react";
@@ -95,6 +95,9 @@ class WaveScene {
   private grip = 0;
   private gripTarget = 0;
 
+  private prefersReducedMotion = false;
+  private mediaQueryList?: MediaQueryList;
+
   constructor(container: HTMLElement, cfg: Config) {
     this.container = container;
     this.cfg = cfg;
@@ -111,10 +114,39 @@ class WaveScene {
     if (!ctx) throw new Error("no 2d context");
     this.ctx = ctx;
 
+    // Detect user reduced motion preference
+    if (typeof window !== "undefined" && window.matchMedia) {
+      this.mediaQueryList = window.matchMedia("(prefers-reduced-motion: reduce)");
+      this.prefersReducedMotion = this.mediaQueryList.matches;
+      this.mediaQueryList.addEventListener("change", this.onMotionChange);
+    }
+
+    // Pause rendering when tab is hidden to save GPU/battery
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
+
     // Window-level listeners allow pointer interaction everywhere on page
     window.addEventListener("pointermove", this.onMove);
     window.addEventListener("pointerleave", this.onLeave);
   }
+
+  private onMotionChange = (e: MediaQueryListEvent) => {
+    this.prefersReducedMotion = e.matches;
+    if (this.prefersReducedMotion) {
+      cancelAnimationFrame(this.frameId);
+      this.step();
+    } else {
+      this.start();
+    }
+  };
+
+  private onVisibilityChange = () => {
+    if (document.hidden) {
+      cancelAnimationFrame(this.frameId);
+    } else if (!this.prefersReducedMotion && !this.disposed) {
+      this.lastT = performance.now();
+      this.start();
+    }
+  };
 
   private onLeave = () => {
     this.gripTarget = 0;
@@ -133,12 +165,20 @@ class WaveScene {
   };
 
   start() {
+    if (this.prefersReducedMotion) {
+      this.step();
+      return;
+    }
+    cancelAnimationFrame(this.frameId);
     this.lastT = performance.now();
     const loop = () => {
-      this.frameId = requestAnimationFrame(loop);
+      if (this.disposed) return;
       this.step();
+      if (!this.prefersReducedMotion && !document.hidden) {
+        this.frameId = requestAnimationFrame(loop);
+      }
     };
-    loop();
+    this.frameId = requestAnimationFrame(loop);
   }
 
   setSize(width: number, height: number) {
@@ -248,6 +288,8 @@ class WaveScene {
   dispose() {
     this.disposed = true;
     cancelAnimationFrame(this.frameId);
+    this.mediaQueryList?.removeEventListener("change", this.onMotionChange);
+    document.removeEventListener("visibilitychange", this.onVisibilityChange);
     window.removeEventListener("pointermove", this.onMove);
     window.removeEventListener("pointerleave", this.onLeave);
     if (this.canvas.parentNode === this.container) {

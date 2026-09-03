@@ -170,7 +170,7 @@ export default function SchedulePage() {
                   <span className="text-xs font-bold">{day.name}</span>
                   <span className="text-[10px] opacity-80 font-semibold">{count} ativ.</span>
                   {key === "dia0" && (
-                    <span className="text-[8px] font-black uppercase text-amber-900 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1 rounded mt-0.5 border border-amber-400">
+                    <span className="text-[10px] font-black tracking-wider uppercase text-amber-950 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1.5 py-0.5 rounded mt-0.5 border border-amber-400">
                       Consultores
                     </span>
                   )}

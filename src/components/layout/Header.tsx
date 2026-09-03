@@ -89,7 +89,7 @@ function NavCardItem({
               <span>{title}</span>
             </div>
             {badge && (
-              <span className="rounded-full bg-[#FFE48A] dark:bg-yellow-950 px-1.5 py-0.5 text-[9px] font-black text-slate-950 dark:text-yellow-300">
+              <span className="rounded-full bg-[#FFE48A] text-amber-950 dark:bg-amber-950/80 dark:text-amber-200 dark:border dark:border-amber-700/50 px-2 py-0.5 text-xs font-black tracking-wide uppercase">
                 {badge}
               </span>
             )}
@@ -273,7 +273,7 @@ export function Header() {
               <span className="font-heading text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
                 Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900/30">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-[11px] font-black uppercase text-slate-950 border border-slate-900/30">
                 2027
               </span>
             </div>
@@ -420,12 +420,12 @@ export function Header() {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="relative flex h-10 w-10 sm:h-9 sm:w-9 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               aria-label="Lembretes e Notificações"
             >
               <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FC4E6D] text-[9px] font-black text-white border border-slate-900 motion-safe:animate-pulse">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FC4E6D] text-[10px] font-black text-white border border-slate-900 motion-safe:animate-pulse">
                   {totalUnread}
                 </span>
               )}
@@ -651,7 +651,7 @@ export function Header() {
                 setDropdownOpen((o) => !o);
                 setNotificationsOpen(false);
               }}
-              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1.5 min-h-[42px] border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
               aria-label="Menu do usuário"
             >
               {loading ? (
@@ -776,7 +776,7 @@ export function Header() {
               setDropdownOpen(false);
               setNotificationsOpen(false);
             }}
-            className="flex lg:hidden h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+            className="flex lg:hidden h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
             aria-label="Abrir menu de navegação"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

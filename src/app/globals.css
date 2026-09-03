@@ -210,13 +210,13 @@ html:not(.dark) .text-slate-700 {
 }
 
 .animate-check-bob {
-  animation: tdev-bob 380ms cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+  animation: tdev-bob 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-check-draw {
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
-  animation: tdev-check-draw 320ms cubic-bezier(0.34, 1.2, 0.64, 1) 100ms forwards;
+  animation: tdev-check-draw 320ms cubic-bezier(0.16, 1, 0.3, 1) 100ms forwards;
 }
 
 /* Gooey SVG Filter classes */
@@ -234,5 +234,5 @@ html:not(.dark) .text-slate-700 {
 }
 
 .dark .shadow-tactile-pill {
-  box-shadow: 0px 3px 0px 0px rgba(0, 0, 0, 0.85);
+  box-shadow: 0px 3px 0px 0px rgba(15, 23, 42, 0.85);
 }

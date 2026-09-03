@@ -17,7 +17,7 @@ type Props = {
 };
 
 const DEFAULTS = {
-  color: "#CC9149",
+  color: "#01B6D1",
   rounded: 24,
   thickness: 6,
   borderSize: 50,
