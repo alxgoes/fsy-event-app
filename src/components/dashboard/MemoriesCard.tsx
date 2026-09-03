@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Camera, FolderHeart, Sparkles } from "lucide-react";
+import React from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 import { InstagramFeed } from "@/components/media/InstagramFeed";
-import { DriveGallery } from "@/components/media/DriveGallery";
 
-function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
+function InstagramIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -25,7 +24,6 @@ function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
 }
 
 export function MemoriesCard() {
-  const [activeTab, setActiveTab] = useState<string>("drive");
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -36,96 +34,35 @@ export function MemoriesCard() {
     >
       <div>
         {/* Header Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 pb-5 border-b-2 border-slate-100 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-5 border-b-2 border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#06D6A0] text-emerald-950 border-2 border-slate-900 dark:border-slate-700 shadow-sm">
-              <Camera className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0">
+              <InstagramIcon className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Galeria & Redes Oficiais
+                <span className="text-xs font-black uppercase tracking-wider text-[#FC4E6D] flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" /> Instagram Oficial
                 </span>
                 <span className="rounded-full bg-pink-100 dark:bg-pink-950 px-2.5 py-0.5 text-xs font-black text-[#FC4E6D] border border-pink-200 dark:border-pink-800">
                   #FSYRibeirao2
                 </span>
               </div>
               <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
-                Mural de Memórias ✨
+                Mural Social da Juventude ✨
               </h3>
             </div>
           </div>
 
-          {/* Navigation Pill Switcher with Spatial Continuity (layoutId) */}
-          <div className="flex items-center">
-            <div className="relative grid grid-cols-2 w-full md:w-auto p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-sm gap-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab("drive")}
-                className={`relative z-10 flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-colors min-h-[36px] ${
-                  activeTab === "drive"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
-                }`}
-              >
-                {activeTab === "drive" && (
-                  <motion.div
-                    layoutId={shouldReduceMotion ? undefined : "memoriesActivePill"}
-                    className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm border border-slate-900/20 -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                  />
-                )}
-                <FolderHeart className="h-4 w-4 relative z-10" />
-                <span className="relative z-10">Fotos do Drive</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("instagram")}
-                className={`relative z-10 flex items-center justify-center gap-2 py-2 px-4 text-xs font-black rounded-xl transition-colors min-h-[36px] ${
-                  activeTab === "instagram"
-                    ? "text-white"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white"
-                }`}
-              >
-                {activeTab === "instagram" && (
-                  <motion.div
-                    layoutId={shouldReduceMotion ? undefined : "memoriesActivePill"}
-                    className="absolute inset-0 bg-[#FC4E6D] rounded-xl shadow-sm border border-slate-900/20 -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
-                  />
-                )}
-                <InstagramIcon className="h-4 w-4 relative z-10" />
-                <span className="relative z-10">Instagram Oficial</span>
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              Acompanhe as publicações e curta os melhores momentos!
+            </span>
           </div>
         </div>
 
-        {/* Tab Content with AnimatePresence */}
-        <AnimatePresence mode="wait" initial={false}>
-          {activeTab === "drive" ? (
-            <motion.div
-              key="drive"
-              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.99 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.99 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <DriveGallery />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="instagram"
-              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, scale: 0.99 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.99 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <InstagramFeed />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Dedicated Instagram Feed Component */}
+        <InstagramFeed />
       </div>
     </motion.div>
   );

@@ -42,8 +42,9 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Unauthenticated users: Protect all internal pages (/, /dashboard, /admin, /schedule, /announcements)
+  // 1. Unauthenticated users: Protect all internal pages (/dashboard, /admin, /schedule, /announcements, etc.)
   const isPublicRoute =
+    pathname === "/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api") ||

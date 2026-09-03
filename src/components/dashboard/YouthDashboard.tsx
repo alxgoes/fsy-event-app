@@ -9,6 +9,7 @@ import { HappeningNowCard } from "./HappeningNowCard";
 import { MyCompanyCard } from "./MyCompanyCard";
 import { MemoriesCard } from "./MemoriesCard";
 import { DailyThemeCard } from "./DailyThemeCard";
+import { FeaturedPhotosSection } from "@/components/media/FeaturedPhotosSection";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Users } from "lucide-react";
@@ -327,7 +328,12 @@ export function YouthDashboard() {
             />
           </motion.div>
 
-          {/* 5. Memories Card */}
+          {/* 5. Featured Drive Photos (conditionally rendered only if published photos exist) */}
+          <motion.div variants={itemVariants} className="md:col-span-12">
+            <FeaturedPhotosSection />
+          </motion.div>
+
+          {/* 6. Instagram Memories Card */}
           <motion.div variants={itemVariants} className="md:col-span-12">
             <MemoriesCard />
           </motion.div>

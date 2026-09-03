@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   Calendar,
   Stethoscope,
@@ -104,6 +104,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   const [signingOut, setSigningOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { profile, loading } = useProfile();
+  const shouldReduceMotion = useReducedMotion();
 
   const currentRole = (profile?.role || activeRole) as UserRole;
   const displayName = profile?.full_name ?? "Equipe";
@@ -387,19 +388,26 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-all ${
+                      className={`relative z-10 flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-colors ${
                         isActive
-                          ? "bg-slate-900 text-white dark:bg-[#007DA5] dark:text-white shadow-sm"
+                          ? "text-white"
                           : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      {isActive && (
+                        <motion.div
+                          layoutId={shouldReduceMotion ? undefined : "adminActiveNavPill"}
+                          className="absolute inset-0 bg-slate-900 dark:bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                        />
+                      )}
+                      <div className="flex items-center gap-3 relative z-10">
                         <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
                         <span>{item.name}</span>
                       </div>
                       {item.badge && (
                         <span
-                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+                          className={`relative z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
                             isActive
                               ? "bg-emerald-500 text-white"
                               : "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"

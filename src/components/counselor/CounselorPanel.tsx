@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   Megaphone,
@@ -10,15 +10,15 @@ import {
   Search,
   Compass,
   AlertTriangle,
-  Pin,
   Clock,
   Loader2,
   RefreshCw,
   CheckCircle2,
   Phone,
-  Home,
   Send,
   Heart,
+  MessageCircle,
+  Bed,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,7 @@ interface Announcement {
 
 export function CounselorPanel() {
   const { profile, loading: profileLoading } = useProfile();
+  const shouldReduceMotion = useReducedMotion();
 
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [youthList, setYouthList] = useState<YouthMember[]>([]);
@@ -131,7 +132,9 @@ export function CounselorPanel() {
       }
 
       // 3. Fetch announcements for this company
-      const res = await fetch(`/api/announcements?company_id=${encodeURIComponent(companyId)}&_t=${Date.now()}`);
+      const res = await fetch(
+        `/api/announcements?company_id=${encodeURIComponent(companyId)}&_t=${Date.now()}`
+      );
       if (res.ok) {
         const json = await res.json();
         const companyOnly = (json.data ?? []).filter(
@@ -250,17 +253,23 @@ export function CounselorPanel() {
     return matchName || matchRoom || matchStake;
   });
 
+  const totalLikes = announcements.reduce(
+    (acc, a) => acc + (a.likes_count ?? (a.liked_by?.length || 0)),
+    0
+  );
+  const youthWithRoom = youthList.filter((y) => !!y.room).length;
+
   return (
     <div className="min-h-screen bg-fsy-watermark pb-24 text-slate-900 dark:text-slate-100">
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 sm:px-8 py-6 space-y-6">
-        {/* Banner: Counselor & Company Overview */}
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-lg">
+        {/* 1. Banner Bento: Counselor & Company Overview */}
+        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-4">
               <div
-                className="flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0"
+                className="flex h-14 w-14 items-center justify-center rounded-2xl text-white font-black text-xl shadow-sm shrink-0"
                 style={{ backgroundColor: company?.color || "#007DA5" }}
               >
                 <Users className="h-7 w-7" />
@@ -268,12 +277,12 @@ export function CounselorPanel() {
 
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-md bg-sky-100 dark:bg-sky-950/80 px-2 py-0.5 text-xs font-black text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 uppercase tracking-wider">
+                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black text-[#007DA5] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800 uppercase tracking-wider">
                     Painel do Consultor
                   </span>
                   {company && (
                     <span
-                      className="rounded-md px-2 py-0.5 text-xs font-black text-white border border-slate-900/30"
+                      className="rounded-md px-2 py-0.5 text-xs font-black text-white"
                       style={{ backgroundColor: company.color || "#007DA5" }}
                     >
                       {company.id.toUpperCase()}
@@ -281,12 +290,12 @@ export function CounselorPanel() {
                   )}
                 </div>
 
-                <h1 className="font-heading text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+                <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
                   {company ? company.name : "Companhia Não Designada"}
                 </h1>
 
                 {company?.motto && (
-                  <p className="text-xs sm:text-sm font-semibold italic text-slate-600 dark:text-slate-400 mt-0.5">
+                  <p className="text-xs sm:text-sm font-serif italic text-slate-600 dark:text-slate-400 mt-0.5">
                     &ldquo;{company.motto}&rdquo;
                   </p>
                 )}
@@ -296,18 +305,23 @@ export function CounselorPanel() {
             {/* Quick Actions */}
             <div className="flex items-center gap-2 flex-wrap">
               <button
+                type="button"
                 onClick={loadCounselorData}
-                className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
+                disabled={loadingData}
+                className="flex items-center gap-1.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors min-h-[38px]"
               >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Atualizar
+                <RefreshCw className={`h-3.5 w-3.5 ${loadingData ? "animate-spin text-[#007DA5]" : ""}`} />
+                <span>Atualizar</span>
               </button>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-1.5 rounded-2xl bg-[#007DA5] text-white border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-[#005E7C] transition-colors min-h-[36px]"
-              >
-                <Compass className="h-3.5 w-3.5" />
-                Ver Portal Jovem
+              <Link href="/dashboard">
+                <motion.div
+                  whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+                  className="flex items-center gap-1.5 rounded-2xl bg-[#007DA5] text-white px-4 py-2 text-xs font-black shadow-sm hover:bg-[#005E7C] transition-colors min-h-[38px]"
+                >
+                  <Compass className="h-3.5 w-3.5" />
+                  <span>Ver Portal do Jovem</span>
+                </motion.div>
               </Link>
             </div>
           </div>
@@ -317,17 +331,17 @@ export function CounselorPanel() {
             <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-500 dark:text-slate-400">
-                  Consultores desta companhia:
+                  Consultores parceiros:
                 </span>
-                <span className="font-black text-slate-900 dark:text-white">
+                <span className="font-bold text-slate-900 dark:text-white">
                   {company.counselors.join(" & ")}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-slate-500 dark:text-slate-400">
-                  Jovens sob sua responsabilidade:
+                  Total de Jovens na Companhia:
                 </span>
-                <span className="rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 font-black px-2 py-0.5 border border-emerald-300 dark:border-emerald-800">
+                <span className="rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-black px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
                   {youthList.length} jovens
                 </span>
               </div>
@@ -337,96 +351,178 @@ export function CounselorPanel() {
 
         {/* Warning if no company */}
         {!profile?.company_id && !loadingData && (
-          <div className="rounded-3xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/40 p-6 shadow-brutal-sm text-center space-y-2">
+          <div className="rounded-3xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 p-6 text-center space-y-2 shadow-sm">
             <AlertTriangle className="h-8 w-8 mx-auto text-amber-600" />
-            <h3 className="font-heading text-lg font-black text-amber-900 dark:text-amber-200">
+            <h3 className="font-serif text-lg font-bold text-amber-900 dark:text-amber-200">
               Aguardando Designação de Companhia
             </h3>
             <p className="text-xs text-amber-800 dark:text-amber-300 max-w-md mx-auto">
-              Você tem acesso ao perfil de consultor, mas a coordenação ainda não vinculou seu usuário a uma companhia.
+              Seu perfil é de consultor, mas a coordenação ainda não vinculou seu usuário a uma companhia.
               Assim que for designado, você poderá publicar comunicados e acompanhar seus jovens aqui.
             </p>
           </div>
         )}
 
-        {/* Navigation Tabs */}
+        {/* 2. Top Minimalist Metrics Row */}
         {profile?.company_id && (
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Metric 1 */}
+            <motion.div
+              whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+              className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Jovens Alocados
+                </span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#007DA5]">
+                  <Users className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {youthList.length}
+              </div>
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {youthWithRoom} com alojamento/quarto informado
+              </div>
+            </motion.div>
+
+            {/* Metric 2 */}
+            <motion.div
+              whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+              className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Mural & Avisos
+                </span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950 text-[#FC4E6D]">
+                  <Megaphone className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {announcements.length}
+              </div>
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Comunicados publicados no mural da companhia
+              </div>
+            </motion.div>
+
+            {/* Metric 3 */}
+            <motion.div
+              whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+              className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Curtidas Recebidas
+                </span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-950 text-pink-600">
+                  <Heart className="h-4 w-4 fill-pink-500" />
+                </div>
+              </div>
+              <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                {totalLikes}
+              </div>
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Interações dos jovens nos avisos da companhia
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 3. Navigation Tabs with layoutId */}
+        {profile?.company_id && (
+          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 w-fit shadow-sm">
             <button
               onClick={() => setActiveTab("announcements")}
-              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
+              className={`relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-colors ${
                 activeTab === "announcements"
-                  ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
+                  ? "text-white"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
+              {activeTab === "announcements" && (
+                <motion.div
+                  layoutId={shouldReduceMotion ? undefined : "counselorTabActive"}
+                  className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                  transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                />
+              )}
               <Megaphone className="h-4 w-4" />
-              Mural & Comunicados ({announcements.length})
+              <span>Mural de Avisos ({announcements.length})</span>
             </button>
 
             <button
               onClick={() => setActiveTab("youth")}
-              className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
+              className={`relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-colors ${
                 activeTab === "youth"
-                  ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
+                  ? "text-white"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
+              {activeTab === "youth" && (
+                <motion.div
+                  layoutId={shouldReduceMotion ? undefined : "counselorTabActive"}
+                  className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                  transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                />
+              )}
               <Users className="h-4 w-4" />
-              Jovens da Companhia ({youthList.length})
+              <span>Quadro de Jovens ({youthList.length})</span>
             </button>
           </div>
         )}
 
-        {/* Tab 1: Announcements & Reminders */}
+        {/* 4. Tab 1: Announcements & Reminders */}
         {profile?.company_id && activeTab === "announcements" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Publisher Form (5 cols) */}
             <div className="lg:col-span-5">
-              <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-lg sticky top-24">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FC4E6D] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
+              <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm sticky top-24">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#007DA5] text-white shadow-sm">
                     <Send className="h-4 w-4" />
                   </div>
                   <div>
-                    <h3 className="font-heading text-base font-black text-slate-900 dark:text-white">
-                      Publicar para sua Companhia
+                    <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                      Publicar para a Companhia
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Aparecerá no mural dos seus jovens
+                      Aparecerá imediatamente no portal dos seus jovens
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handlePostAnnouncement} className="space-y-3.5">
+                <form onSubmit={handlePostAnnouncement} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
-                      Título do Comunicado / Lembrete *
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                      Título do Comunicado *
                     </label>
                     <Input
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      placeholder="ex: Reunião de Companhia no Pátio"
-                      className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold"
+                      placeholder="ex: Reunião da Companhia no Pátio"
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
-                      Mensagem *
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                      Mensagem / Instruções *
                     </label>
                     <Textarea
                       rows={4}
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      placeholder="Escreva as instruções, horários ou recados para os jovens da sua companhia..."
-                      className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-semibold"
+                      placeholder="Escreva orientações de horários, pontos de encontro ou recados para seus jovens..."
+                      className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-black text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Prioridade
                       </label>
                       <select
@@ -434,7 +530,7 @@ export function CounselorPanel() {
                         onChange={(e) =>
                           setPriority(e.target.value as "normal" | "important" | "urgent")
                         }
-                        className="w-full px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
                       >
                         <option value="important">Importante</option>
                         <option value="urgent">Urgente</option>
@@ -443,48 +539,48 @@ export function CounselorPanel() {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Categoria
                       </label>
                       <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
                       >
                         <option value="Companhia">Companhia</option>
-                        <option value="Espiritual">Espiritual</option>
-                        <option value="Atividade">Atividade</option>
-                        <option value="Logística">Logística</option>
+                        <option value="Atividades">Atividades</option>
                         <option value="Geral">Geral</option>
                       </select>
                     </div>
                   </div>
 
                   {error && (
-                    <p className="text-xs text-red-600 font-bold">{error}</p>
+                    <div className="rounded-xl bg-red-50 dark:bg-red-950/50 p-3 text-xs font-bold text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900">
+                      {error}
+                    </div>
                   )}
 
                   {postSuccess && (
-                    <p className="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      Comunicado publicado com sucesso!
-                    </p>
+                    <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/50 p-3 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <span>Comunicado publicado com sucesso!</span>
+                    </div>
                   )}
 
                   <Button
                     type="submit"
                     disabled={posting}
-                    className="w-full rounded-2xl bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black text-xs border-2 border-slate-900 dark:border-slate-700 shadow-sm min-h-[40px]"
+                    className="w-full rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-xs py-3 shadow-sm min-h-[42px]"
                   >
                     {posting ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         Publicando...
                       </>
                     ) : (
                       <>
-                        <Megaphone className="h-4 w-4 mr-1.5" />
-                        Publicar Comunicado
+                        <Send className="h-3.5 w-3.5 mr-2" />
+                        Enviar Comunicado
                       </>
                     )}
                   </Button>
@@ -494,27 +590,27 @@ export function CounselorPanel() {
 
             {/* Announcements Feed (7 cols) */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-heading text-lg font-black text-slate-900 dark:text-white">
-                  Comunicados Ativos da sua Companhia
+              <div className="flex items-center justify-between gap-2 pb-1">
+                <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                  Comunicados Ativos da Companhia
                 </h3>
-                <span className="text-xs font-bold text-slate-500">
+                <span className="text-xs text-slate-500 font-medium">
                   {announcements.length} publicado(s)
                 </span>
               </div>
 
               {loadingData ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-7 w-7 animate-spin text-[#007DA5]" />
+                  <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
                 </div>
               ) : announcements.length === 0 ? (
-                <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center">
-                  <Pin className="h-8 w-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
-                  <p className="font-heading text-base font-black text-slate-700 dark:text-slate-300">
+                <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
+                  <Megaphone className="h-8 w-8 mx-auto text-slate-400 mb-2" />
+                  <p className="font-serif text-base font-bold text-slate-700 dark:text-slate-300">
                     Nenhum comunicado publicado ainda
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                    Use o formulário ao lado para postar o primeiro recado para os jovens da sua companhia.
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                    Use o formulário ao lado para enviar o primeiro aviso ou instruções para os jovens da sua companhia.
                   </p>
                 </div>
               ) : (
@@ -526,35 +622,30 @@ export function CounselorPanel() {
                     return (
                       <motion.div
                         key={item.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`rounded-2xl border-2 p-4 shadow-brutal-sm transition-all ${
+                        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                        className={`rounded-3xl border p-5 bg-white dark:bg-slate-900 shadow-sm transition-all ${
                           isUrgent
-                            ? "border-red-500 bg-red-50 dark:bg-red-950/30"
+                            ? "border-red-300 dark:border-red-800"
                             : isImportant
-                            ? "border-slate-900 dark:border-slate-700 bg-amber-50/60 dark:bg-amber-950/20"
-                            : "border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900"
+                            ? "border-[#FC4E6D]/40"
+                            : "border-slate-200/80 dark:border-slate-800"
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                               <span
-                                className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase ${
                                   isUrgent
                                     ? "bg-red-500 text-white"
                                     : isImportant
-                                    ? "bg-[#FFD166] text-slate-950"
-                                    : "bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+                                    ? "bg-[#FC4E6D] text-white"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                                 }`}
                               >
-                                {item.priority === "urgent"
-                                  ? "Urgente"
-                                  : item.priority === "important"
-                                  ? "Importante"
-                                  : "Lembrete"}
+                                {isUrgent ? "Urgente" : isImportant ? "Importante" : "Lembrete"}
                               </span>
-                              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {new Date(item.created_at).toLocaleDateString("pt-BR", {
                                   day: "2-digit",
@@ -565,26 +656,27 @@ export function CounselorPanel() {
                               </span>
                             </div>
 
-                            <h4 className="font-heading text-base font-extrabold text-slate-900 dark:text-white">
+                            <h4 className="font-serif text-base font-bold text-slate-900 dark:text-white">
                               {item.title}
                             </h4>
-                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-line leading-relaxed">
+                            <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-line leading-relaxed">
                               {item.content}
                             </p>
                           </div>
 
                           <button
+                            type="button"
                             onClick={() => setAnnouncementToDelete(item)}
-                            className="p-1.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
+                            className="p-1.5 rounded-xl text-red-600/70 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors shrink-0"
                             title="Excluir comunicado"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
 
-                        {/* Likes counter indicator */}
-                        <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                          <span className="text-[11px] font-bold text-slate-500">
+                        {/* Likes indicator */}
+                        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                          <span className="text-[11px] text-slate-500">
                             Categoria: <strong>{item.category || "Companhia"}</strong>
                           </span>
                           <div className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-900">
@@ -601,7 +693,7 @@ export function CounselorPanel() {
           </div>
         )}
 
-        {/* Tab 2: Youth List */}
+        {/* 5. Tab 2: Youth List */}
         {profile?.company_id && activeTab === "youth" && (
           <div className="space-y-4">
             {/* Search Bar */}
@@ -614,11 +706,11 @@ export function CounselorPanel() {
                   placeholder="Buscar jovem por nome, quarto ou estaca..."
                   value={youthSearch}
                   onChange={(e) => setYouthSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
                 />
               </div>
 
-              <span className="text-xs font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 rounded-2xl shadow-sm shrink-0">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-3.5 py-2.5 rounded-2xl shadow-sm shrink-0">
                 {filteredYouth.length} jovem(ns) listado(s)
               </span>
             </div>
@@ -628,52 +720,84 @@ export function CounselorPanel() {
                 <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
               </div>
             ) : filteredYouth.length === 0 ? (
-              <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
+              <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
                 <Users className="h-8 w-8 mx-auto text-slate-400 mb-2" />
-                <p className="font-heading text-base font-black text-slate-700 dark:text-slate-300">
-                  Nenhum jovem encontrado nesta companhia
+                <p className="font-serif text-base font-bold text-slate-700 dark:text-slate-300">
+                  Nenhum jovem encontrado
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                  A coordenação e o casal diretor alocam os jovens registrados nas companhias.
+                  A coordenação vincula os jovens registrados às companhias.
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredYouth.map((youth) => {
                   const initial = youth.full_name?.charAt(0)?.toUpperCase() ?? "J";
+                  const cleanPhone = youth.phone ? youth.phone.replace(/\D/g, "") : null;
 
                   return (
                     <motion.div
                       key={youth.id}
-                      whileHover={{ y: -2 }}
-                      className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col justify-between"
+                      whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+                      className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm flex flex-col justify-between"
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#007DA5] text-white font-black text-base border border-slate-900 dark:border-slate-700 shrink-0">
-                          {initial}
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div
+                            className="flex h-10 w-10 items-center justify-center rounded-2xl text-white font-black text-sm shadow-sm shrink-0"
+                            style={{ backgroundColor: company?.color || "#007DA5" }}
+                          >
+                            {initial}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-serif text-sm font-bold text-slate-900 dark:text-white truncate">
+                              {youth.full_name}
+                            </h4>
+                            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+                              {youth.stake || "Estaca não informada"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="font-heading text-sm font-black text-slate-900 dark:text-white truncate">
-                            {youth.full_name}
-                          </h4>
-                          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                            {youth.stake || "Estaca não informada"}
-                          </p>
+
+                        <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                          {youth.room ? (
+                            <div className="flex items-center gap-1.5 font-medium">
+                              <Bed className="h-3.5 w-3.5 text-[#007DA5]" />
+                              <span>Quarto: <strong>{youth.room}</strong></span>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-slate-400 italic">
+                              Quarto pendente
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1 text-xs">
-                        {youth.room && (
-                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-semibold">
-                            <Home className="h-3.5 w-3.5 text-slate-400" />
-                            <span>Quarto: <strong>{youth.room}</strong></span>
+                      {/* Quick Contact Action */}
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        {cleanPhone ? (
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`https://wa.me/55${cleanPhone}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                              <span>WhatsApp</span>
+                            </a>
+                            <a
+                              href={`tel:${cleanPhone}`}
+                              className="flex items-center justify-center rounded-xl bg-[#FAF8F5] dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                              title="Ligar"
+                            >
+                              <Phone className="h-3.5 w-3.5" />
+                            </a>
                           </div>
-                        )}
-                        {youth.phone && (
-                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-semibold">
-                            <Phone className="h-3.5 w-3.5 text-slate-400" />
-                            <span>{youth.phone}</span>
-                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">
+                            Telefone não informado
+                          </span>
                         )}
                       </div>
                     </motion.div>
@@ -690,9 +814,9 @@ export function CounselorPanel() {
         open={!!announcementToDelete}
         onOpenChange={(open) => !open && setAnnouncementToDelete(null)}
       >
-        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="sm:max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="font-heading text-lg font-black text-red-600 dark:text-red-400 flex items-center gap-2">
+            <DialogTitle className="font-serif text-lg font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Excluir Comunicado
             </DialogTitle>
@@ -706,7 +830,7 @@ export function CounselorPanel() {
               type="button"
               variant="outline"
               onClick={() => setAnnouncementToDelete(null)}
-              className="rounded-2xl text-xs font-black"
+              className="rounded-2xl text-xs font-bold"
             >
               Cancelar
             </Button>
@@ -714,7 +838,7 @@ export function CounselorPanel() {
               type="button"
               onClick={handleDeleteAnnouncement}
               disabled={!!deletingId}
-              className="rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-black"
+              className="rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
             >
               {deletingId ? (
                 <>
