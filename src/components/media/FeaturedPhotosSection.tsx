@@ -14,37 +14,7 @@ export interface MediaPhoto {
   created_at: string;
 }
 
-function resolveHighResPhoto(photo: MediaPhoto): string | null {
-  const url = photo.drive_url;
-  if (!url) return photo.thumbnail_url || null;
 
-  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch) {
-    return `https://lh3.googleusercontent.com/d/${fileMatch[1]}=w1600`;
-  }
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) {
-    return `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1600`;
-  }
-
-  return photo.thumbnail_url || url;
-}
-
-function resolveOriginalDownloadUrl(photo: MediaPhoto): string {
-  const url = photo.drive_url;
-  if (!url) return photo.thumbnail_url || "#";
-
-  const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch) {
-    return `https://drive.google.com/uc?export=download&id=${fileMatch[1]}`;
-  }
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) {
-    return `https://drive.google.com/uc?export=download&id=${idMatch[1]}`;
-  }
-
-  return url;
-}
 
 function resolveCardThumbnail(photo: MediaPhoto): string | null {
   if (photo.thumbnail_url) return photo.thumbnail_url;
@@ -65,13 +35,14 @@ function resolveCardThumbnail(photo: MediaPhoto): string | null {
 
 /** Converts MediaPhoto array into CarouselImage array for MagneticCarousel */
 function toCarouselImages(photos: MediaPhoto[]): CarouselImage[] {
-  return photos
-    .map((p) => {
-      const src = resolveCardThumbnail(p);
-      if (!src) return null;
-      return { src, alt: p.title };
-    })
-    .filter((x): x is CarouselImage => x !== null);
+  const result: CarouselImage[] = [];
+  for (const p of photos) {
+    const src = resolveCardThumbnail(p);
+    if (src) {
+      result.push({ src, alt: p.title });
+    }
+  }
+  return result;
 }
 
 export function FeaturedPhotosSection({

@@ -84,9 +84,9 @@ export function MagneticCarousel({
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    targetRef.current = items.map(() => 0);
-    curRef.current = items.map(() => 0);
-    setFactors(items.map(() => 0));
+    targetRef.current = Array(count).fill(0);
+    curRef.current = Array(count).fill(0);
+    setFactors(Array(count).fill(0));
   }, [count]);
 
   useEffect(() => {
