@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, MessageCircle, ExternalLink, Sparkles, X } from "lucide-react";
 
@@ -118,12 +119,13 @@ export function InstagramFeed() {
             >
               {/* Image Container with overlay */}
               <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
-                <img
+                <Image
                   src={post.imageUrl}
                   alt={post.caption}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
-                  decoding="async"
                 />
 
                 {/* Tag Badge */}
@@ -221,13 +223,13 @@ export function InstagramFeed() {
               </button>
 
               {/* Modal Image */}
-              <div className="md:w-1/2 bg-slate-950 flex items-center justify-center aspect-square md:aspect-auto">
-                <img
+              <div className="relative md:w-1/2 bg-slate-950 flex items-center justify-center aspect-square md:aspect-auto min-h-[300px]">
+                <Image
                   src={selectedPost.imageUrl}
                   alt={selectedPost.caption}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover max-h-[360px] md:max-h-full"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover"
                 />
               </div>
 
