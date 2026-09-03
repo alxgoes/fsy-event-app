@@ -18,12 +18,27 @@ import {
   Check,
   Megaphone,
   ExternalLink,
+  Calendar,
+  Sparkles,
+  Camera,
+  Menu,
+  X,
+  Compass,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, isStaff, isMasterAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { FsyTempleMark } from "@/components/brand/FsyLogo";
 import { VoluteLoader } from "@/components/ui/VoluteLoader";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 
 interface AppointmentNotification {
   id: string;
@@ -48,6 +63,46 @@ interface AnnouncementNotification {
   profiles?: { full_name: string; role: string } | null;
 }
 
+function NavCardItem({
+  title,
+  children,
+  href,
+  icon: Icon,
+  badge,
+}: {
+  title: string;
+  children: React.ReactNode;
+  href: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}) {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <Link
+          href={href}
+          className="group block select-none space-y-1 rounded-xl p-3 leading-none no-underline outline-none transition-all hover:bg-[#007DA5]/10 dark:hover:bg-[#01B6D1]/10 border border-transparent hover:border-[#007DA5]/20 dark:hover:border-[#01B6D1]/20 cursor-pointer"
+        >
+          <div className="flex items-center justify-between gap-1.5 mb-1">
+            <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white group-hover:text-[#007DA5] dark:group-hover:text-[#01B6D1] transition-colors">
+              {Icon && <Icon className="h-4 w-4 text-[#007DA5] dark:text-[#01B6D1]" />}
+              <span>{title}</span>
+            </div>
+            {badge && (
+              <span className="rounded-full bg-[#FFE48A] dark:bg-yellow-950 px-1.5 py-0.5 text-[9px] font-black text-slate-950 dark:text-yellow-300">
+                {badge}
+              </span>
+            )}
+          </div>
+          <p className="line-clamp-2 text-[11px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
+            {children}
+          </p>
+        </Link>
+      </NavigationMenuLink>
+    </li>
+  );
+}
+
 export function Header() {
   const router = useRouter();
   const { profile, loading } = useProfile();
@@ -57,6 +112,7 @@ export function Header() {
   const [readAnnouncements, setReadAnnouncements] = useState<string[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [markingSeenId, setMarkingSeenId] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -201,34 +257,157 @@ export function Header() {
   const totalUnread = unreadAppointments.length + unreadAnnouncements.length;
 
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-slate-900 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-3 sm:px-8 transition-colors">
-      <div className="mx-auto flex max-w-7xl items-center justify-between">
+    <header className="sticky top-0 z-40 w-full px-3 py-2 sm:px-6 transition-all">
+      <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs px-3.5 sm:px-5 py-2">
         {/* Brand Logo & Title */}
-        <Link href="/dashboard" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-2.5 group shrink-0">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer p-1"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#EFEFE7] dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer p-1"
           >
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </motion.div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-heading text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              <span className="font-heading text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">
                 Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-[10px] font-black uppercase text-slate-950 border border-slate-900">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[9px] font-black uppercase text-slate-950 border border-slate-900/30">
                 2027
               </span>
             </div>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              Portal do Jovem • 14 a 18 anos
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hidden sm:block">
+              Portal do Jovem
             </p>
           </div>
         </Link>
 
+        {/* Center: Modern NavigationMenu (Desktop) */}
+        <div className="hidden lg:flex items-center justify-center">
+          <NavigationMenu>
+            <NavigationMenuList className="gap-0.5">
+              {/* Dashboard Link */}
+              <NavigationMenuItem>
+                <Link href="/dashboard" legacyBehavior passHref>
+                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                    Início
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+
+              {/* Programação Dropdown */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Programação</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 p-3 md:w-[480px] md:grid-cols-2">
+                    <NavCardItem
+                      title="Cronograma Oficial"
+                      href="/schedule"
+                      icon={Calendar}
+                      badge="5 Dias"
+                    >
+                      Horários, temas e roteiro completo das atividades da sessão.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Aulas & Oficinas"
+                      href="/schedule"
+                      icon={Sparkles}
+                    >
+                      Encontros espirituais matinais e mensagens edificantes.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Noite dos Talentos"
+                      href="/schedule"
+                      icon={Compass}
+                    >
+                      Apresentações musicais e artísticas das companhias.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Baile & Confraternização"
+                      href="/schedule"
+                      icon={Sparkles}
+                    >
+                      Músicas, dança e momentos marcantes do FSY.
+                    </NavCardItem>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Comunidade & Mídia Dropdown */}
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Comunidade & Mídia</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-2 p-3 md:w-[480px] md:grid-cols-2">
+                    <NavCardItem
+                      title="Lembretes & Avisos"
+                      href="/announcements"
+                      icon={Megaphone}
+                      badge={totalUnread > 0 ? `${totalUnread} novos` : undefined}
+                    >
+                      Comunicados da coordenação e recados da sua companhia.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Fotos em Destaque"
+                      href="/dashboard"
+                      icon={Camera}
+                    >
+                      Galeria dos melhores registros fotográficos da sessão.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Mural Social"
+                      href="/dashboard"
+                      icon={Sparkles}
+                    >
+                      Publicações compartilhadas com a hashtag oficial do FSY.
+                    </NavCardItem>
+                    <NavCardItem
+                      title="Minha Companhia"
+                      href="/dashboard"
+                      icon={Building2}
+                    >
+                      Grito de guerra, consultores e integrantes da companhia.
+                    </NavCardItem>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              {/* Gestão FSY Dropdown (Staff / Consultores) */}
+              {(canSeeCounselorPanel || userIsStaff) && (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>Gestão</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[360px] gap-2 p-3">
+                      {canSeeCounselorPanel && (
+                        <NavCardItem
+                          title="Painel do Consultor"
+                          href="/consultor"
+                          icon={Building2}
+                          badge="Consultor"
+                        >
+                          Diário de bordo e acompanhamento dos jovens da companhia.
+                        </NavCardItem>
+                      )}
+                      {userIsStaff && (
+                        <NavCardItem
+                          title="Painel Geral de Gestão"
+                          href="/admin"
+                          icon={Shield}
+                          badge="Admin"
+                        >
+                          Coordenação, logística, escala médica e relatórios gerais.
+                        </NavCardItem>
+                      )}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              )}
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+
         {/* Right Header Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {/* Theme Toggle (Dark / Light Mode) */}
           <ThemeToggle />
 
@@ -236,17 +415,17 @@ export function Header() {
           <div className="relative" ref={notificationsRef}>
             <motion.button
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.92, y: 2 }}
+              whileTap={{ scale: 0.94 }}
               onClick={() => {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               aria-label="Lembretes e Notificações"
             >
-              <Bell className="h-5 w-5 text-slate-800 dark:text-slate-200" />
+              <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FC4E6D] text-xs font-black text-white border-2 border-slate-900 motion-safe:animate-pulse">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FC4E6D] text-[9px] font-black text-white border border-slate-900 motion-safe:animate-pulse">
                   {totalUnread}
                 </span>
               )}
@@ -467,20 +646,20 @@ export function Header() {
           <div className="relative" ref={dropdownRef}>
             <motion.button
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => {
                 setDropdownOpen((o) => !o);
                 setNotificationsOpen(false);
               }}
-              className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-2.5 py-1.5 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
               aria-label="Menu do usuário"
             >
               {loading ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
-                  <VoluteLoader size={20} variant="subtle" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <VoluteLoader size={18} variant="subtle" />
                 </div>
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-xs border border-slate-900">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#007DA5] text-white font-black text-xs shadow-2xs">
                   {avatarLetter}
                 </div>
               )}
@@ -488,12 +667,12 @@ export function Header() {
                 <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
-                <p className="text-xs font-bold text-[#007DA5] dark:text-cyan-400">
+                <p className="text-[10px] font-bold text-[#007DA5] dark:text-cyan-400 truncate max-w-[100px]">
                   {loading ? "Carregando" : displayCompany ?? roleLabel}
                 </p>
               </div>
               <ChevronDown
-                className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </motion.button>
 
@@ -505,12 +684,12 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-xl overflow-hidden z-50"
                 >
                   {/* User Info Header */}
-                  <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#06D6A0] text-slate-950 font-black text-sm border-2 border-slate-900 shadow-sm">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#007DA5] text-white font-black text-sm shadow-xs">
                         {avatarLetter}
                       </div>
                       <div className="overflow-hidden">
@@ -525,7 +704,7 @@ export function Header() {
                   </div>
 
                   {/* Navigation Links */}
-                  <div className="p-2 space-y-1">
+                  <div className="p-2 space-y-0.5">
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
@@ -549,7 +728,7 @@ export function Header() {
                       <Link
                         href="/consultor"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                       >
                         <Building2 className="h-4 w-4 text-[#7209B7]" />
                         <span>Painel do Consultor</span>
@@ -561,7 +740,7 @@ export function Header() {
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 bg-sky-50/50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
                       >
                         <Shield className="h-4 w-4 text-[#007DA5]" />
                         <span>Painel de Gestão</span>
@@ -574,7 +753,7 @@ export function Header() {
                     <button
                       onClick={handleSignOut}
                       disabled={signingOut}
-                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                     >
                       {signingOut ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -588,8 +767,91 @@ export function Header() {
               )}
             </AnimatePresence>
           </div>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen((o) => !o);
+              setDropdownOpen(false);
+              setNotificationsOpen(false);
+            }}
+            className="flex lg:hidden h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+            aria-label="Abrir menu de navegação"
+          >
+            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg p-3 space-y-1"
+          >
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Compass className="h-4 w-4 text-[#007DA5]" />
+              <span>Início</span>
+            </Link>
+
+            <Link
+              href="/schedule"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Calendar className="h-4 w-4 text-[#007DA5]" />
+              <span>Programação & Cronograma</span>
+            </Link>
+
+            <Link
+              href="/announcements"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
+                <span>Lembretes & Comunicados</span>
+              </div>
+              {totalUnread > 0 && (
+                <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] font-black px-2 py-0.5">
+                  {totalUnread}
+                </span>
+              )}
+            </Link>
+
+            {canSeeCounselorPanel && (
+              <Link
+                href="/consultor"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+              >
+                <Building2 className="h-4 w-4 text-[#7209B7]" />
+                <span>Painel do Consultor</span>
+              </Link>
+            )}
+
+            {userIsStaff && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+              >
+                <Shield className="h-4 w-4 text-[#007DA5]" />
+                <span>Painel de Gestão</span>
+              </Link>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
