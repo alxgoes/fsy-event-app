@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
-import { useProfile, isStaff, isMasterAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
+import { useProfile, isMasterAdmin, canAccessAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { FsyTempleMark } from "@/components/brand/FsyLogo";
 import { VoluteLoader } from "@/components/ui/VoluteLoader";
 import {
@@ -242,14 +242,15 @@ export function Header() {
     router.push("/login");
   };
 
+  const isYouth = !profile || profile.role === "jovem";
   const displayName = profile?.full_name ?? "Carregando...";
   const displayCompany = profile?.company_id ?? null;
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() ?? "?";
   const role = profile?.role ?? "jovem";
   const roleLabel = ROLE_LABELS[role];
-  const userIsStaff = isStaff(role);
-  const userIsMaster = isMasterAdmin(role);
-  const canSeeCounselorPanel = userIsMaster || role === "consultor";
+  const userIsMaster = !isYouth && isMasterAdmin(role);
+  const canAccessFullAdmin = !isYouth && canAccessAdmin(role);
+  const canSeeCounselorPanel = !isYouth && (userIsMaster || role === "consultor");
 
   // Count unread items
   const unreadAppointments = appointments.filter((a) => !a.is_seen && a.status === "agendado");
@@ -372,10 +373,12 @@ export function Header() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
 
-              {/* Gestão FSY Dropdown (Staff / Consultores) */}
-              {(canSeeCounselorPanel || userIsStaff) && (
+              {/* Gestão / Consultor Dropdown (Exibido ESTRITAMENTE para Staff e Consultores, NUNCA para jovens) */}
+              {!isYouth && (canAccessFullAdmin || canSeeCounselorPanel) && (
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>Gestão</NavigationMenuTrigger>
+                  <NavigationMenuTrigger>
+                    {canAccessFullAdmin ? "Gestão" : "Consultor"}
+                  </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[360px] gap-2 p-3">
                       {canSeeCounselorPanel && (
@@ -388,7 +391,7 @@ export function Header() {
                           Diário de bordo e acompanhamento dos jovens da companhia.
                         </NavCardItem>
                       )}
-                      {userIsStaff && (
+                      {canAccessFullAdmin && (
                         <NavCardItem
                           title="Painel Geral de Gestão"
                           href="/admin"
@@ -736,7 +739,7 @@ export function Header() {
                     )}
 
                     {/* Staff / Admin Management Link */}
-                    {userIsStaff && (
+                    {canAccessFullAdmin && (
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
@@ -839,7 +842,7 @@ export function Header() {
               </Link>
             )}
 
-            {userIsStaff && (
+            {canAccessFullAdmin && (
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
