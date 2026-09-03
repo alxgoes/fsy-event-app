@@ -33,16 +33,16 @@ function resolveCardThumbnail(photo: MediaPhoto): string | null {
 }
 
 function resolveHighResPhoto(photo: MediaPhoto): string | null {
+  if (photo.thumbnail_url && !photo.thumbnail_url.includes("=w700")) {
+    return photo.thumbnail_url;
+  }
   const url = photo.drive_url;
   if (!url) return photo.thumbnail_url || null;
 
   const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch) {
-    return `https://lh3.googleusercontent.com/d/${fileMatch[1]}=w1600`;
-  }
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) {
-    return `https://lh3.googleusercontent.com/d/${idMatch[1]}=w1600`;
+  const fileId = fileMatch ? fileMatch[1] : url.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
   }
 
   return photo.thumbnail_url || url;
@@ -182,13 +182,12 @@ export function FeaturedPhotosSection({
           <div style={{ height: 380, position: "relative" }}>
             <MagneticCarousel
               images={carouselImages}
-              collapsedWidth={75}
-              hoverWidth={200}
-              collapsedHeight={340}
-              hoverHeight={380}
-              gap={12}
-              influence={220}
-              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+              collapsedWidth={carouselImages.length <= 4 ? 110 : carouselImages.length <= 6 ? 95 : 75}
+              hoverWidth={carouselImages.length <= 4 ? 225 : carouselImages.length <= 6 ? 200 : 180}
+              collapsedHeight={320}
+              hoverHeight={360}
+              gap={14}
+              influence={carouselImages.length <= 4 ? 250 : 210}
             />
           </div>
 

@@ -1,16 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ZoomIn } from "lucide-react";
-
-const EASE_PRESETS: Record<string, string> = {
-  linear: "linear",
-  easeIn: "ease-in",
-  easeOut: "ease-out",
-  easeInOut: "ease-in-out",
-};
+import { X, ZoomIn, Loader2 } from "lucide-react";
 
 export interface CarouselImage {
   src: string;
@@ -24,16 +17,8 @@ interface MagneticCarouselProps {
   hoverWidth?: number;
   collapsedHeight?: number;
   hoverHeight?: number;
-  openSize?: number;
   gap?: number;
   influence?: number;
-  blur?: number;
-  transition?: {
-    type?: string;
-    duration?: number;
-    delay?: number;
-    ease?: string | number[];
-  };
   className?: string;
 }
 
@@ -42,22 +27,102 @@ const DEFAULT_IMAGES: CarouselImage[] = [
   { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/6d2ad64a-102d-4eab-0efe-31479e34b500/w=800", alt: "FSY Momento 2" },
   { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/51984031-9176-484b-f5e0-4af9a8e9ed00/w=800", alt: "FSY Momento 3" },
   { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/34ce1842-4b7a-4d52-0302-38582c341700/w=800", alt: "FSY Momento 4" },
-  { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/88369c6d-00cc-4ac9-74ca-0f0965e06300/w=800", alt: "FSY Momento 5" },
-  { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/aeaa0756-9647-4f6c-d900-204bd25e4a00/w=800", alt: "FSY Momento 6" },
-  { src: "https://imagedelivery.net/IEUjvl3YUlxY-MrTpOAWDQ/316d1761-fd79-4ca9-b8d4-f2bb20521a00/w=800", alt: "FSY Momento 7" },
 ];
 
-function parseTransition(t: MagneticCarouselProps["transition"]) {
-  const dur = Math.max(0.05, (t && t.duration) || 0.5);
-  let ease = "cubic-bezier(0.44, 0, 0.56, 1)";
-  if (t && Array.isArray(t.ease) && t.ease.length === 4) {
-    ease = `cubic-bezier(${t.ease.join(", ")})`;
-  } else if (t && typeof t.ease === "string" && EASE_PRESETS[t.ease]) {
-    ease = EASE_PRESETS[t.ease];
-  } else if (t && t.type === "spring") {
-    ease = "cubic-bezier(0.34, 1.56, 0.64, 1)";
-  }
-  return { dur, ease };
+function ZoomLightbox({
+  image,
+  onClose,
+}: {
+  image: CarouselImage;
+  onClose: () => void;
+}) {
+  const [src, setSrc] = useState(image.highResSrc || image.src);
+  const [failedHighRes, setFailedHighRes] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setSrc(image.highResSrc || image.src);
+    setFailedHighRes(false);
+    setLoading(true);
+  }, [image]);
+
+  return (
+    <motion.div
+      key="zoom-lightbox-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.22 }}
+      onClick={onClose}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-8 select-none"
+      style={{
+        backgroundColor: "rgba(2, 6, 23, 0.88)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+    >
+      {/* Floating Close Button */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="fixed top-5 right-5 sm:top-7 sm:right-7 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white backdrop-blur-xl border border-white/20 shadow-2xl transition-all cursor-pointer outline-none"
+        aria-label="Fechar zoom da foto"
+        title="Fechar (Esc)"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      {/* Main Image Container */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0, y: 12 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 12 }}
+        transition={{ type: "spring", stiffness: 340, damping: 28 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex flex-col items-center justify-center max-h-[88vh] max-w-[92vw]"
+      >
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center min-h-[220px] min-w-[220px]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#01B6D1]" />
+          </div>
+        )}
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={src}
+          src={src}
+          alt={image.alt || "Foto em destaque ampliada"}
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
+          onLoad={() => setLoading(false)}
+          onError={() => {
+            // If highResSrc fails or gets blocked, fallback to working thumbnail src!
+            if (!failedHighRes && src !== image.src) {
+              setFailedHighRes(true);
+              setSrc(image.src);
+            } else {
+              setLoading(false);
+            }
+          }}
+          className={`max-h-[82vh] max-w-[90vw] object-contain rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border border-white/15 select-none transition-opacity duration-300 ${
+            loading ? "opacity-0" : "opacity-100"
+          }`}
+          draggable={false}
+        />
+
+        {image.alt && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mt-3.5 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 text-white text-xs font-bold shadow-lg max-w-sm text-center truncate"
+          >
+            {image.alt}
+          </motion.div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
 }
 
 export function MagneticCarousel({
@@ -68,7 +133,6 @@ export function MagneticCarousel({
   hoverHeight = 360,
   gap = 12,
   influence = 200,
-  transition = { type: "tween", duration: 0.3, ease: "easeInOut" },
   className = "",
 }: MagneticCarouselProps) {
   const items = images && images.length > 0 ? images : DEFAULT_IMAGES;
@@ -117,7 +181,7 @@ export function MagneticCarousel({
       for (let i = 0; i < cur.length; i++) {
         const d = (tgt[i] ?? 0) - cur[i];
         if (Math.abs(d) > 0.001) {
-          cur[i] += d * 0.2;
+          cur[i] += d * 0.22; // Smooth 60fps lerp loop
           moving = true;
         } else {
           cur[i] = tgt[i] ?? 0;
@@ -157,8 +221,6 @@ export function MagneticCarousel({
     startLoop();
   };
 
-  const { dur, ease } = parseTransition(transition);
-
   const close = () => {
     setOpen(null);
     targetRef.current = items.map(() => 0);
@@ -172,8 +234,6 @@ export function MagneticCarousel({
       height: collapsedHeight + (hoverHeight - collapsedHeight) * f,
     };
   };
-
-  const barTransition = `width ${dur}s ${ease}, height ${dur}s ${ease}, filter ${dur}s ${ease}, opacity ${dur}s ${ease}`;
 
   return (
     <>
@@ -210,17 +270,19 @@ export function MagneticCarousel({
                 width,
                 height,
                 overflow: "hidden",
-                transition: barTransition,
+                // Crucial: 'transition: none' ensures the 60fps lerp loop is not delayed or made sluggish by CSS
+                transition: "none",
+                transform: "translateZ(0)",
                 willChange: "width, height",
                 position: "relative",
                 zIndex: isSelected ? 3 : 2,
-                borderRadius: 14,
+                borderRadius: 16,
                 backgroundImage: `url(${img.src})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.45)",
-                border: isSelected ? "2px solid #01B6D1" : "1px solid rgba(255, 255, 255, 0.15)",
+                boxShadow: "0 8px 28px -4px rgba(0, 0, 0, 0.5)",
+                border: isSelected ? "2px solid #01B6D1" : "1px solid rgba(255, 255, 255, 0.18)",
               }}
             >
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
@@ -233,65 +295,14 @@ export function MagneticCarousel({
         })}
       </div>
 
-      {mounted &&
-        open !== null &&
+      {mounted && open !== null && items[open] && (
         createPortal(
           <AnimatePresence>
-            <motion.div
-              key="zoom-lightbox-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={close}
-              className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 sm:p-8 select-none"
-              style={{
-                backgroundColor: "rgba(2, 6, 23, 0.85)",
-                backdropFilter: "blur(18px)",
-                WebkitBackdropFilter: "blur(18px)",
-              }}
-            >
-              <button
-                type="button"
-                onClick={close}
-                className="fixed top-5 right-5 sm:top-7 sm:right-7 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white backdrop-blur-xl border border-white/20 shadow-2xl transition-all cursor-pointer outline-none"
-                aria-label="Fechar zoom da foto"
-                title="Fechar (Esc)"
-              >
-                <X className="h-6 w-6" />
-              </button>
-
-              <motion.div
-                initial={{ scale: 0.92, opacity: 0, y: 10 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.92, opacity: 0, y: 10 }}
-                transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                onClick={(e) => e.stopPropagation()}
-                className="relative flex flex-col items-center justify-center max-h-[85vh] max-w-[90vw]"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={items[open].highResSrc || items[open].src}
-                  alt={items[open].alt || "Foto em destaque ampliada"}
-                  draggable={false}
-                  className="max-h-[80vh] max-w-[88vw] object-contain rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] border border-white/15 select-none"
-                />
-
-                {items[open].alt && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="mt-3.5 px-4 py-1.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 text-white text-xs font-bold shadow-lg max-w-sm text-center truncate"
-                  >
-                    {items[open].alt}
-                  </motion.div>
-                )}
-              </motion.div>
-            </motion.div>
+            <ZoomLightbox image={items[open]} onClose={close} />
           </AnimatePresence>,
           document.body
-        )}
+        )
+      )}
     </>
   );
 }
