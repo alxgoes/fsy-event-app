@@ -21,7 +21,7 @@ export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
       className={`inline-flex flex-col items-center justify-center rounded-full bg-[#FDA192] text-slate-950 font-serif border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
     >
-      <span className="text-[0.7em] tracking-[0.2em] uppercase font-light">REJOICE IN</span>
+      <span className="text-[0.7em] tracking-[0.2em] uppercase font-bold">REJOICE IN</span>
       <span className="text-[1.15em] tracking-[0.1em] uppercase font-bold leading-tight">CHRIST</span>
     </div>
   );
@@ -89,7 +89,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
       <div className="h-10 w-auto mb-1">
         <FsyTempleMark colorMode="four-color" className="h-full w-auto mx-auto" />
       </div>
-      <span className="text-[0.75em] tracking-[0.15em] uppercase font-light text-slate-950">REJOICE IN</span>
+      <span className="text-[0.75em] tracking-[0.15em] uppercase font-bold text-slate-950">REJOICE IN</span>
       <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold text-slate-950 leading-tight">CHRIST</span>
       <span className="text-[0.65em] tracking-[0.2em] uppercase font-medium text-slate-900 mt-0.5">PHILIPPIANS 4:4</span>
     </div>
@@ -130,7 +130,7 @@ export function YellowCapsuleSticker({ className = "", size = "md" }: StickerPro
       style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
     >
       <div className="flex flex-col text-left">
-        <span className="text-[0.7em] tracking-[0.18em] uppercase font-light leading-none">REJOICE IN</span>
+        <span className="text-[0.7em] tracking-[0.18em] uppercase font-bold leading-none">REJOICE IN</span>
         <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold leading-tight">CHRIST</span>
       </div>
       <div className="flex flex-col text-right font-sans font-black text-[0.8em] leading-tight border-l border-slate-900/30 pl-2">

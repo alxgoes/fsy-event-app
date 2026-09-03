@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api") ||
-    pathname.startsWith("/acesso-negado");
+    pathname.startsWith("/acesso-negado") ||
+    pathname.startsWith("/loading-preview");
 
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone();

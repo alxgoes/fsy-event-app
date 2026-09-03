@@ -48,13 +48,27 @@ function resolveCardThumbnail(photo: MediaPhoto): string | null {
   return url;
 }
 
-export function FeaturedPhotosSection() {
-  const [photos, setPhotos] = useState<MediaPhoto[]>([]);
-  const [loading, setLoading] = useState(true);
+export function FeaturedPhotosSection({
+  initialPhotos,
+  initialLoading,
+}: {
+  initialPhotos?: MediaPhoto[];
+  initialLoading?: boolean;
+} = {}) {
+  const [photos, setPhotos] = useState<MediaPhoto[]>(initialPhotos ?? []);
+  const [loading, setLoading] = useState(
+    initialLoading !== undefined ? initialLoading : initialPhotos === undefined
+  );
   const [activePhoto, setActivePhoto] = useState<MediaPhoto | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
+    if (initialPhotos !== undefined) {
+      setPhotos(initialPhotos);
+      setLoading(false);
+      return;
+    }
+
     async function loadFeaturedPhotos() {
       try {
         const res = await fetch(`/api/media?_t=${Date.now()}`);
@@ -88,7 +102,7 @@ export function FeaturedPhotosSection() {
     }
 
     loadFeaturedPhotos();
-  }, []);
+  }, [initialPhotos]);
 
   // Strict conditional rendering: if loading or no photos, render nothing
   if (loading || photos.length === 0) {

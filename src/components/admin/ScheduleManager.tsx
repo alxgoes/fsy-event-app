@@ -31,6 +31,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
+import { GooeyButton } from "@/components/ui/GooeyButton";
+import { GooeyPillTabs } from "@/components/ui/GooeyPillTabs";
 
 interface ScheduleItem {
   id: string;
@@ -47,8 +49,8 @@ interface ScheduleItem {
 
 const DAY_TABS = [
   { key: "all", label: "Todos os Dias" },
-  { key: "dia0", label: "Dia Zero (Sexta 05/02)", defaultDate: "2027-02-05" },
-  { key: "dia1", label: "1º Dia (Sábado 06/02)", defaultDate: "2027-02-06" },
+  { key: "dia0", label: "Dia Zero (Sexta 05/02 • Consultores)", defaultDate: "2027-02-05" },
+  { key: "dia1", label: "1º Dia (Sábado 06/02 • Chegada Jovens)", defaultDate: "2027-02-06" },
   { key: "dia2", label: "2º Dia (Domingo 07/02)", defaultDate: "2027-02-07" },
   { key: "dia3", label: "3º Dia (Segunda 08/02)", defaultDate: "2027-02-08" },
   { key: "dia4", label: "4º Dia (Terça 09/02)", defaultDate: "2027-02-09" },
@@ -359,27 +361,37 @@ export function ScheduleManager() {
             </span>
           )}
 
-          <Button
+          <GooeyButton
+            variant="gold"
+            size="sm"
             onClick={() => setIsSyncModalOpen(true)}
+            disabled={seeding}
+            loading={seeding}
+            icon={<Database className="h-3.5 w-3.5 text-amber-900 dark:text-amber-300" />}
+          >
+            {seeding ? "Sincronizando..." : "Sincronizar Oficial"}
+          </GooeyButton>
+
+          <GooeyButton
             variant="outline"
             size="sm"
-            disabled={seeding}
-            className="text-xs border-amber-500/50 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/50 font-black rounded-xl min-h-[36px]"
+            onClick={loadSchedule}
+            loading={loading}
+            icon={<RefreshCw className="h-3.5 w-3.5" />}
+            iconColor="text-emerald-600 dark:text-emerald-400"
           >
-            {seeding ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Database className="mr-1.5 h-3.5 w-3.5 text-amber-500" />}
-            {seeding ? "Sincronizando..." : "Sincronizar Oficial (82)"}
-          </Button>
+            Atualizar
+          </GooeyButton>
 
-          <Button onClick={loadSchedule} variant="outline" size="sm" className="text-xs font-bold rounded-xl min-h-[36px]">
-            <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Atualizar
-          </Button>
-
-          <Button
+          <GooeyButton
+            variant="primary"
+            size="sm"
             onClick={handleOpenCreateModal}
-            className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
+            icon={<Plus className="h-4 w-4" />}
+            iconColor="text-white"
           >
-            <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar Evento
-          </Button>
+            Adicionar Evento
+          </GooeyButton>
         </div>
       </div>
 
@@ -393,34 +405,18 @@ export function ScheduleManager() {
         </div>
       )}
 
-      {/* Day Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {DAY_TABS.map((day) => {
-          const count = getDayCount(day.key);
-          const isSelected = selectedDayTab === day.key;
-          return (
-            <button
-              key={day.key}
-              onClick={() => setSelectedDayTab(day.key)}
-              className={`flex shrink-0 items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black transition-all border-2 min-h-[40px] ${
-                isSelected
-                  ? "bg-[#007DA5] text-white border-slate-900 shadow-sm -translate-y-0.5"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400"
-              }`}
-            >
-              <span>{day.label}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-black ${
-                  isSelected
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-                }`}
-              >
-                {count} {count === 1 ? "atividade" : "atividades"}
-              </span>
-            </button>
-          );
-        })}
+      {/* Day Tabs using Liquid Gooey Pill Tabs */}
+      <div className="pt-1">
+        <GooeyPillTabs
+          tabs={DAY_TABS.map((day) => ({
+            id: day.key,
+            label: day.label,
+            count: getDayCount(day.key),
+          }))}
+          activeTab={selectedDayTab}
+          onChange={(key) => setSelectedDayTab(key)}
+          variant="brand"
+        />
       </div>
 
       {/* Filter and Search Bar */}
@@ -579,8 +575,8 @@ export function ScheduleManager() {
                   onChange={(e) => handleDayChange(e.target.value)}
                   className="w-full h-9 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 px-2 font-semibold"
                 >
-                  <option value="dia0">Dia Zero (05/02)</option>
-                  <option value="dia1">1º Dia (06/02)</option>
+                  <option value="dia0">Dia Zero (05/02 • Consultores)</option>
+                  <option value="dia1">1º Dia (06/02 • Chegada Jovens)</option>
                   <option value="dia2">2º Dia (07/02)</option>
                   <option value="dia3">3º Dia (08/02)</option>
                   <option value="dia4">4º Dia (09/02)</option>

@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   LogOut,
-  ExternalLink,
   LayoutDashboard,
   Users,
   Building2,
@@ -27,6 +26,8 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 import { FsyTempleMark } from "@/components/brand/FsyLogo";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
+import { GooeyButton } from "@/components/ui/GooeyButton";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -166,6 +167,16 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
     return item.allowedRoles.includes(currentRole);
   });
 
+  if (loading) {
+    return (
+      <LoadingScreen
+        title="Painel Administrativo FSY"
+        message="Verificando permissões e credenciais de acesso..."
+        submessage="Sessão Ribeirão Preto 2"
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
@@ -212,13 +223,16 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <span>{roleLabels[currentRole]?.label || roleLabel}</span>
           </Badge>
 
-          <Link
+          <GooeyButton
+            variant="tactile-dark"
+            size="sm"
             href="/dashboard"
-            className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl transition-colors"
+            icon={<Compass className="h-3.5 w-3.5" />}
+            iconColor="text-[#007DA5] dark:text-cyan-400"
+            className="hidden md:inline-flex"
           >
-            <Compass className="h-3.5 w-3.5 text-[#007DA5]" />
-            <span>Portal Jovem</span>
-          </Link>
+            Portal Jovem
+          </GooeyButton>
 
           {/* Interactive Profile Dropdown (Mobile & Desktop) */}
           <div className="relative" ref={dropdownRef}>
@@ -360,17 +374,17 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
               </div>
 
               {/* Quick Youth Portal Button in Sidebar */}
-              <Link
+              <GooeyButton
+                variant="primary"
+                size="sm"
                 href="/dashboard"
                 onClick={() => setIsSidebarOpen(false)}
-                className="flex items-center justify-between gap-2 w-full rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800 px-3 py-2.5 text-xs font-black text-[#007DA5] dark:text-cyan-300 hover:bg-cyan-100 dark:hover:bg-cyan-900/50 transition-colors shadow-sm"
+                icon={<Compass className="h-4 w-4" />}
+                iconColor="text-white"
+                className="w-full justify-center"
               >
-                <div className="flex items-center gap-2">
-                  <Compass className="h-4 w-4" />
-                  <span>Ir para o Portal Jovem</span>
-                </div>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+                Ir para o Portal Jovem
+              </GooeyButton>
 
               {/* Navigation Links */}
               <nav className="space-y-1">

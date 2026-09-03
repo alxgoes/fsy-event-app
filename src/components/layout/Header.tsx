@@ -23,6 +23,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, isStaff, isMasterAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { FsyTempleMark } from "@/components/brand/FsyLogo";
+import { VoluteLoader } from "@/components/ui/VoluteLoader";
 
 interface AppointmentNotification {
   id: string;
@@ -475,8 +476,8 @@ export function Header() {
               aria-label="Menu do usuário"
             >
               {loading ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700">
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+                  <VoluteLoader size={20} variant="subtle" />
                 </div>
               ) : (
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-xs border border-slate-900">

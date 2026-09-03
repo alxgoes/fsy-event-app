@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ProfileProvider } from "@/lib/supabase/useProfile";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -46,7 +47,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ProfileProvider>
+            {children}
+          </ProfileProvider>
         </ThemeProvider>
       </body>
     </html>

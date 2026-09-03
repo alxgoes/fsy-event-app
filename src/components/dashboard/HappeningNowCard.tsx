@@ -44,7 +44,7 @@ export function HappeningNowCard({
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#FFD166] border border-slate-900 shadow-brutal-sm">
               <Hourglass className="h-3.5 w-3.5 text-[#06D6A0] animate-pulse" />
-              <span>Em Breve • 05 a 10 Fev 2027</span>
+              <span>Em Breve • 06 a 10 Fev 2027</span>
             </div>
 
             <span className="rounded-xl bg-white/90 px-2.5 py-1 text-[11px] font-black text-slate-900 border border-slate-900/20 shadow-sm flex items-center gap-1">
@@ -61,15 +61,15 @@ export function HappeningNowCard({
           </h2>
 
           {/* Description */}
-          <p className="mt-3 text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed bg-white/60 p-3.5 rounded-2xl border border-slate-900/10">
-            A <strong>Sessão Ribeirão Preto 2</strong> começará na sexta-feira, <strong>05 de Fevereiro de 2027</strong>. Prepare-se para uma semana inesquecível de espiritualidade, novas amizades e muita diversão!
+          <p className="mt-3 text-xs sm:text-sm font-semibold text-slate-900 leading-relaxed bg-white/70 p-3.5 rounded-2xl border border-slate-900/15">
+            A chegada dos jovens da <strong>Sessão Ribeirão Preto 2</strong> será no sábado, <strong>06 de Fevereiro de 2027</strong>. Prepare-se para uma semana inesquecível de espiritualidade, novas amizades e muita diversão!
           </p>
 
           {/* Time & Location Pill Row */}
           <div className="mt-4 flex flex-wrap gap-2">
             <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
               <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
-              <span>Início: 05/02/2027 (Dia Zero)</span>
+              <span>Chegada: 06/02/2027 (1º Dia)</span>
             </div>
 
             <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">

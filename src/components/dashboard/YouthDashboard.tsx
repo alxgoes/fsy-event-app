@@ -9,10 +9,11 @@ import { HappeningNowCard } from "./HappeningNowCard";
 import { MyCompanyCard } from "./MyCompanyCard";
 import { MemoriesCard } from "./MemoriesCard";
 import { DailyThemeCard } from "./DailyThemeCard";
-import { FeaturedPhotosSection } from "@/components/media/FeaturedPhotosSection";
+import { FeaturedPhotosSection, MediaPhoto } from "@/components/media/FeaturedPhotosSection";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Users } from "lucide-react";
+import { Users } from "lucide-react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 
 interface ScheduleItem {
@@ -58,6 +59,7 @@ export function YouthDashboard() {
   const [daysRemaining, setDaysRemaining] = useState<number>(0);
   const [company, setCompany] = useState<CompanyData | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [featuredPhotos, setFeaturedPhotos] = useState<MediaPhoto[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -69,143 +71,203 @@ export function YouthDashboard() {
   useEffect(() => {
     if (!profile) return;
 
+    let isMounted = true;
     const supabase = createClient();
+
+    // Safety timeout: never hang forever if network is offline or throttled
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        setDataLoading(false);
+      }
+    }, 3500);
 
     async function loadDashboardData() {
       if (!profile) return;
       setDataLoading(true);
 
       const now = new Date();
-      const eventStartDate = new Date("2027-02-05T00:00:00");
+      // Youth arrival is Saturday, 06 of February (Dia 1). Friday (Dia 0) is counselors only.
+      const eventStartDate = new Date("2027-02-06T08:00:00");
       const eventEndDate = new Date("2027-02-10T23:59:59");
       const isBeforeEvent = now < eventStartDate;
       const isAfterEvent = now > eventEndDate;
 
-      setIsPreEvent(isBeforeEvent);
-      if (isBeforeEvent) {
-        const diffMs = eventStartDate.getTime() - now.getTime();
-        const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-        setDaysRemaining(diffDays);
-        setActiveDayLabel("Em Breve • 05 a 10 Fev 2027");
+      if (isMounted) {
+        setIsPreEvent(isBeforeEvent);
+        if (isBeforeEvent) {
+          const diffMs = eventStartDate.getTime() - now.getTime();
+          const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+          setDaysRemaining(diffDays);
+          setActiveDayLabel("Em Breve • 06 a 10 Fev 2027");
+        }
       }
 
       const currentTime = now.toTimeString().slice(0, 5); // "HH:MM"
       const todayIso = now.toISOString().slice(0, 10);
 
-      // Fetch all schedule items from API or Supabase
-      try {
-        let scheduleItems: ScheduleItem[] = [];
-
-        const res = await fetch("/api/schedule");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && json.data.length > 0) {
-            scheduleItems = json.data;
+      // Task 1: Schedule items
+      const scheduleTask = (async () => {
+        try {
+          const res = await fetch("/api/schedule");
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data && json.data.length > 0) {
+              return json.data as ScheduleItem[];
+            }
           }
-        }
-
-        if (scheduleItems.length === 0) {
           const { data } = await supabase
             .from("schedule_items")
             .select("*")
             .order("start_time", { ascending: true });
-          if (data) scheduleItems = data as ScheduleItem[];
+          return (data as ScheduleItem[]) || [];
+        } catch {
+          return [];
         }
+      })();
 
-        if (scheduleItems.length > 0) {
-          if (!isBeforeEvent && !isAfterEvent) {
-            // Live event active
-            const todayEvents = scheduleItems.filter(
-              (item) => item.date === todayIso
-            );
-            const candidateList = todayEvents.length > 0 ? todayEvents : scheduleItems;
-
-            const activeCurrent = candidateList.find(
-              (item) => item.start_time <= currentTime && item.end_time > currentTime
-            );
-            const activeNext = candidateList.find(
-              (item) => item.start_time > currentTime
-            );
-
-            const fallbackCurrent = candidateList.find((i) => i.is_highlight) || candidateList[0];
-            const fallbackNext = candidateList.find((i) => i.id !== fallbackCurrent?.id) || null;
-
-            setCurrentEvent(activeCurrent || fallbackCurrent || null);
-            setNextEvent(activeNext || fallbackNext || null);
-
-            const selectedDayKey = (activeCurrent || fallbackCurrent)?.day || "dia1";
-            const dayNameMap: Record<string, string> = {
-              dia0: "Dia Zero (Sexta 05/02)",
-              dia1: "1º Dia (Sábado 06/02)",
-              dia2: "2º Dia (Domingo 07/02)",
-              dia3: "3º Dia (Segunda 08/02)",
-              dia4: "4º Dia (Terça 09/02)",
-              dia5: "5º Dia (Quarta 10/02)",
-            };
-            setActiveDayLabel(dayNameMap[selectedDayKey] || "1º Dia (Sábado 06/02)");
-          } else {
-            // Pre-event preview: first event of opening
-            const firstEvent = scheduleItems.find((i) => i.day === "dia0" || i.day === "dia1") || scheduleItems[0];
-            setCurrentEvent(firstEvent || null);
-            setNextEvent(scheduleItems[1] || null);
-          }
-        }
-      } catch (err) {
-        console.error("Error loading schedule for dashboard:", err);
-      }
-
-      // Fetch company data if profile has company_id
-      if (profile.company_id) {
-        const { data: companyData } = await supabase
-          .from("companies")
-          .select("*")
-          .eq("id", profile.company_id)
-          .single();
-
-        if (companyData) setCompany(companyData);
-
-        // Fetch announcements for this company via API to load likes
+      // Task 2: Company data
+      const companyTask = (async () => {
+        if (!profile.company_id) return null;
         try {
-          const annRes = await fetch(
-            `/api/announcements?company_id=${profile.company_id}&_t=${Date.now()}`
+          const { data } = await supabase
+            .from("companies")
+            .select("*")
+            .eq("id", profile.company_id)
+            .single();
+          return (data as CompanyData) || null;
+        } catch {
+          return null;
+        }
+      })();
+
+      // Task 3: Announcements
+      const announcementsTask = (async () => {
+        try {
+          const endpoint = profile.company_id
+            ? `/api/announcements?company_id=${profile.company_id}&_t=${Date.now()}`
+            : `/api/announcements?_t=${Date.now()}`;
+          const res = await fetch(endpoint);
+          if (res.ok) {
+            const json = await res.json();
+            if (profile.company_id) {
+              return (json.data as Announcement[]) || [];
+            } else {
+              return ((json.data ?? []) as (Announcement & { target_company_id?: string | null })[]).filter(
+                (a) => !a.target_company_id
+              );
+            }
+          }
+        } catch {
+          // ignore
+        }
+        return [];
+      })();
+
+      // Task 4: Pre-load featured photos so they don't pop-in afterwards
+      const mediaTask = (async () => {
+        try {
+          const res = await fetch(`/api/media?_t=${Date.now()}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data && Array.isArray(json.data)) {
+              return (json.data as MediaPhoto[]).filter((p) => p.visible);
+            }
+          }
+          const { data } = await supabase
+            .from("media_photos")
+            .select("*")
+            .eq("visible", true)
+            .order("created_at", { ascending: false });
+          return (data as MediaPhoto[]) || [];
+        } catch {
+          return [];
+        }
+      })();
+
+      // Execute all essential tasks concurrently
+      const [scheduleRes, compRes, annRes, mediaRes] = await Promise.allSettled([
+        scheduleTask,
+        companyTask,
+        announcementsTask,
+        mediaTask,
+      ]);
+
+      if (!isMounted) return;
+
+      // 1. Process Schedule (Dia 0 is for counselors only; youth schedule starts on Dia 1)
+      if (scheduleRes.status === "fulfilled" && scheduleRes.value.length > 0) {
+        const rawScheduleItems = scheduleRes.value;
+        const youthScheduleItems = rawScheduleItems.filter((item) => item.day !== "dia0");
+        const scheduleItems = youthScheduleItems.length > 0 ? youthScheduleItems : rawScheduleItems;
+
+        if (!isBeforeEvent && !isAfterEvent) {
+          const todayEvents = scheduleItems.filter((item) => item.date === todayIso);
+          const candidateList = todayEvents.length > 0 ? todayEvents : scheduleItems;
+
+          const activeCurrent = candidateList.find(
+            (item) => item.start_time <= currentTime && item.end_time > currentTime
           );
-          if (annRes.ok) {
-            const annJson = await annRes.json();
-            setAnnouncements(annJson.data ?? []);
-          }
-        } catch {
-          // ignore
-        }
-      } else {
-        // Global announcements only
-        try {
-          const annRes = await fetch(`/api/announcements?_t=${Date.now()}`);
-          if (annRes.ok) {
-            const annJson = await annRes.json();
-            const globalOnly = (annJson.data ?? []).filter(
-              (a: { target_company_id: string | null }) => !a.target_company_id
-            );
-            setAnnouncements(globalOnly);
-          }
-        } catch {
-          // ignore
+          const activeNext = candidateList.find((item) => item.start_time > currentTime);
+
+          const fallbackCurrent = candidateList.find((i) => i.is_highlight) || candidateList[0];
+          const fallbackNext = candidateList.find((i) => i.id !== fallbackCurrent?.id) || null;
+
+          setCurrentEvent(activeCurrent || fallbackCurrent || null);
+          setNextEvent(activeNext || fallbackNext || null);
+
+          const selectedDayKey = (activeCurrent || fallbackCurrent)?.day || "dia1";
+          const dayNameMap: Record<string, string> = {
+            dia1: "1º Dia (Sábado 06/02)",
+            dia2: "2º Dia (Domingo 07/02)",
+            dia3: "3º Dia (Segunda 08/02)",
+            dia4: "4º Dia (Terça 09/02)",
+            dia5: "5º Dia (Quarta 10/02)",
+          };
+          setActiveDayLabel(dayNameMap[selectedDayKey] || "1º Dia (Sábado 06/02)");
+        } else {
+          const firstEvent =
+            scheduleItems.find((i) => i.day === "dia1") || scheduleItems[0];
+          setCurrentEvent(firstEvent || null);
+          setNextEvent(scheduleItems[1] || null);
         }
       }
 
+      // 2. Process Company
+      if (compRes.status === "fulfilled" && compRes.value) {
+        setCompany(compRes.value);
+      }
+
+      // 3. Process Announcements
+      if (annRes.status === "fulfilled" && annRes.value) {
+        setAnnouncements(annRes.value);
+      }
+
+      // 4. Process Media
+      if (mediaRes.status === "fulfilled" && mediaRes.value) {
+        setFeaturedPhotos(mediaRes.value);
+      }
+
+      clearTimeout(safetyTimeout);
       setDataLoading(false);
     }
 
     loadDashboardData();
+
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+    };
   }, [profile]);
 
-  if (profileLoading) {
+  const isReady = !profileLoading && !dataLoading && Boolean(profile);
+
+  if (!isReady) {
     return (
-      <div className="min-h-screen bg-fsy-watermark flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-slate-600 dark:text-slate-400">
-          <Loader2 className="h-10 w-10 animate-spin text-[#007DA5]" />
-          <p className="font-bold text-sm">Carregando seu perfil...</p>
-        </div>
-      </div>
+      <LoadingScreen
+        title="Preparando o FSY 2027"
+        message="Sincronizando atividades, comunicados e companhia..."
+        submessage="Verificando dados da sua sessão em tempo real"
+      />
     );
   }
 
@@ -328,9 +390,9 @@ export function YouthDashboard() {
             />
           </motion.div>
 
-          {/* 5. Featured Drive Photos (conditionally rendered only if published photos exist) */}
+          {/* 5. Featured Drive Photos (pre-loaded and verified before dashboard reveals) */}
           <motion.div variants={itemVariants} className="md:col-span-12">
-            <FeaturedPhotosSection />
+            <FeaturedPhotosSection initialPhotos={featuredPhotos} initialLoading={false} />
           </motion.div>
 
           {/* 6. Instagram Memories Card */}

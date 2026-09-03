@@ -12,12 +12,12 @@ import {
   Check,
   CheckCircle2,
   Search,
-  Loader2,
   RefreshCw,
   Building2,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { useProfile } from "@/lib/supabase/useProfile";
+import { VoluteLoader } from "@/components/ui/VoluteLoader";
 
 interface Announcement {
   id: string;
@@ -356,9 +356,9 @@ export default function AnnouncementsPage() {
 
         {/* Announcements List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
-            <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
-            <p className="text-xs font-bold">Carregando mural de comunicados...</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-600 dark:text-slate-300">
+            <VoluteLoader size={60} variant="brand" />
+            <p className="text-xs font-bold tracking-wide">Sincronizando comunicados da sessão...</p>
           </div>
         ) : filteredAnnouncements.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">

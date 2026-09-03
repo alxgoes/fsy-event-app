@@ -143,10 +143,10 @@ export function MyCompanyCard({
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <span className="text-xs font-black uppercase tracking-wider text-[#007DA5]">
+              <span className="text-xs font-black uppercase tracking-wider text-[#005E7C] dark:text-[#01B6D1]">
                 Minha Companhia
               </span>
-              <h3 className="font-heading text-xl font-extrabold text-slate-900 dark:text-white">
+              <h3 className="font-heading text-xl font-extrabold text-slate-950 dark:text-white">
                 {companyName}
               </h3>
             </div>
@@ -164,14 +164,14 @@ export function MyCompanyCard({
         {(companyMotto || counselors) && (
           <div className="mb-4 rounded-2xl bg-slate-50 dark:bg-slate-800 p-3 border-2 border-slate-900/10 dark:border-slate-700 space-y-1 text-xs">
             {companyMotto && (
-              <p className="font-extrabold italic text-slate-800 dark:text-slate-200 text-center text-xs">
+              <p className="font-extrabold italic text-slate-900 dark:text-slate-100 text-center text-xs">
                 {companyMotto}
               </p>
             )}
             {counselors && counselors.length > 0 && (
-              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-300">
-                <span className="text-slate-500 font-semibold">Consultores:</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">{counselors.join(" & ")}</span>
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200 dark:border-slate-700 font-bold text-slate-800 dark:text-slate-200">
+                <span className="text-slate-700 dark:text-slate-300 font-bold">Consultores:</span>
+                <span className="font-extrabold text-slate-950 dark:text-white">{counselors.join(" & ")}</span>
               </div>
             )}
           </div>
@@ -179,8 +179,8 @@ export function MyCompanyCard({
 
         {/* Announcements List */}
         {announcements.length === 0 ? (
-          <div className="text-center py-6 text-slate-400 dark:text-slate-500">
-            <Pin className="h-8 w-8 mx-auto mb-2 opacity-30" />
+          <div className="text-center py-6 text-slate-500 dark:text-slate-400">
+            <Pin className="h-8 w-8 mx-auto mb-2 opacity-40" />
             <p className="text-xs font-bold">Nenhum aviso ainda</p>
           </div>
         ) : (
@@ -220,23 +220,23 @@ export function MyCompanyCard({
                           <Pin className="h-2.5 w-2.5" /> Importante
                         </span>
                       )}
-                      <span className="text-xs font-black text-slate-900 dark:text-white">
+                      <span className="text-xs font-black text-slate-950 dark:text-white">
                         {item.title}
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-slate-400 whitespace-nowrap flex items-center gap-1">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {timeAgo(item.created_at)}
                     </span>
                   </div>
 
-                  <p className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
                     {item.content}
                   </p>
 
-                  <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-slate-900/5 dark:border-slate-700 text-xs">
-                    <span className="font-bold text-slate-500">
-                      Por <strong className="text-slate-800 dark:text-slate-200">{authorName}</strong>
+                  <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-slate-900/10 dark:border-slate-700 text-xs">
+                    <span className="font-bold text-slate-700 dark:text-slate-300">
+                      Por <strong className="text-slate-950 dark:text-slate-100">{authorName}</strong>
                     </span>
 
                     {/* Like / Heart Action with Micro-interaction & Persistent DB Counter */}

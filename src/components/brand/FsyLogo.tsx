@@ -171,7 +171,7 @@ export function FsyLogo({
     return (
       <div className={`flex flex-col select-none ${className}`}>
         <span
-          className={`font-serif uppercase font-light text-slate-900 dark:text-white leading-none ${sizeClasses.rejoice}`}
+          className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
           REJOICE IN
@@ -201,7 +201,7 @@ export function FsyLogo({
         {/* Official 2-stones vertical lockup spacing */}
         <div className="mt-3 flex flex-col items-center">
           <span
-            className={`font-serif uppercase font-light text-slate-900 dark:text-white leading-none ${sizeClasses.rejoice}`}
+            className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
             style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
           >
             REJOICE IN
@@ -232,7 +232,7 @@ export function FsyLogo({
       {/* Official window width lockup spacing */}
       <div className="flex flex-col justify-center">
         <span
-          className={`font-serif uppercase font-light text-slate-900 dark:text-white leading-none ${sizeClasses.rejoice}`}
+          className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
           REJOICE IN

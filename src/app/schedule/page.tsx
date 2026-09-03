@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, MapPin, Sparkles, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Sparkles, Calendar } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Badge } from "@/components/ui/badge";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { createClient } from "@/lib/supabase/client";
+import { VoluteLoader } from "@/components/ui/VoluteLoader";
+import { useProfile } from "@/lib/supabase/useProfile";
 
 interface DbScheduleItem {
   id: string;
@@ -23,11 +25,26 @@ interface DbScheduleItem {
 }
 
 export default function SchedulePage() {
+  const { profile } = useProfile();
+  const isStaff = Boolean(
+    profile &&
+    ["admin", "coordenacao", "consultor", "assistente_coordenacao", "midia", "saude", "seguranca"].includes(profile.role)
+  );
+
+  // Day zero is staff & counselor preparation only. Youth and general public only see Day 01 (arrival) to Day 05.
+  const dayKeys = isStaff
+    ? ["dia0", "dia1", "dia2", "dia3", "dia4", "dia5"]
+    : ["dia1", "dia2", "dia3", "dia4", "dia5"];
+
   const [selectedDayKey, setSelectedDayKey] = useState<string>("dia1");
   const [dbItems, setDbItems] = useState<DbScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const dayKeys = ["dia0", "dia1", "dia2", "dia3", "dia4", "dia5"];
+  useEffect(() => {
+    if (!isStaff && selectedDayKey === "dia0") {
+      setSelectedDayKey("dia1");
+    }
+  }, [isStaff, selectedDayKey]);
   const currentDayMeta = OFFICIAL_FSY_SCHEDULE[selectedDayKey] || OFFICIAL_FSY_SCHEDULE["dia1"];
 
   // Fetch schedule items from Supabase in real time
@@ -124,14 +141,18 @@ export default function SchedulePage() {
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               Programação do Evento
             </h1>
-            {loading && <Loader2 className="h-5 w-5 animate-spin text-[#007DA5]" />}
+            {loading && <VoluteLoader size={26} variant="brand" className="inline-block" />}
           </div>
           <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium mt-1">
             FSY Sessão Ribeirão Preto 2 — Horários oficiais de todas as atividades, refeições e reuniões espirituais.
           </p>
 
           {/* Day Switcher Tabs */}
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-5">
+          <div
+            className={`grid gap-2 mt-5 ${
+              isStaff ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"
+            }`}
+          >
             {dayKeys.map((key) => {
               const day = OFFICIAL_FSY_SCHEDULE[key];
               const isSelected = selectedDayKey === key;
@@ -140,7 +161,7 @@ export default function SchedulePage() {
                 <button
                   key={key}
                   onClick={() => setSelectedDayKey(key)}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl font-black text-xs transition-all border-2 ${
+                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-xl font-black text-xs transition-all border-2 ${
                     isSelected
                       ? "bg-[#007DA5] text-white border-slate-900 dark:border-white shadow-sm -translate-y-0.5"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -148,6 +169,11 @@ export default function SchedulePage() {
                 >
                   <span className="text-xs font-bold">{day.name}</span>
                   <span className="text-[10px] opacity-80 font-semibold">{count} ativ.</span>
+                  {key === "dia0" && (
+                    <span className="text-[8px] font-black uppercase text-amber-900 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1 rounded mt-0.5 border border-amber-400">
+                      Consultores
+                    </span>
+                  )}
                 </button>
               );
             })}
