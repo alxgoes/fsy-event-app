@@ -102,18 +102,16 @@ html:not(.dark) .text-slate-700 {
 }
 
 /* ==========================================================================
-   Global Repeating FSY 2027 Footprint / Watermark Pattern
+   Global Background - Passthrough for Seigaiha Animated Waves
    ========================================================================== */
 .bg-fsy-watermark {
-  background-color: #f3ede2;
-  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Cinzel, Cormorant Garamond, serif' font-weight='700' font-size='18' letter-spacing='4' fill='%231e293b' fill-opacity='0.085' transform='rotate(-20, 70, 45)'%3EFSY 2027%3C/text%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 140px 90px;
+  background-color: transparent;
+  background-image: none;
 }
 
 .dark .bg-fsy-watermark {
-  background-color: #0d1527;
-  background-image: url("data:image/svg+xml,%3Csvg width='140' height='90' viewBox='0 0 140 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Cinzel, Cormorant Garamond, serif' font-weight='700' font-size='18' letter-spacing='4' fill='%23ffffff' fill-opacity='0.08' transform='rotate(-20, 70, 45)'%3EFSY 2027%3C/text%3E%3C/svg%3E");
+  background-color: transparent;
+  background-image: none;
 }
 
 /* ==========================================================================

@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ProfileProvider } from "@/lib/supabase/useProfile";
+import { SeigaihaBackground } from "@/components/ui/SeigaihaBackground";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -40,13 +41,14 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
-      <body className="min-h-screen bg-background font-sans antialiased bg-fsy-watermark selection:bg-[#FFE48A] selection:text-slate-900">
+      <body className="min-h-screen font-sans antialiased bg-transparent selection:bg-[#FFE48A] selection:text-slate-900">
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
+          <SeigaihaBackground />
           <ProfileProvider>
             {children}
           </ProfileProvider>
