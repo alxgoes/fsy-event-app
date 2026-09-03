@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -32,8 +32,7 @@ const GLOW_LAYERS = [
   { blur: 15, opacity: 0.3, reach: 0.6 },
   { blur: 57, opacity: 0.18, reach: 1 },
 ];
-const MAX_GLOW_BLUR = Math.max(...GLOW_LAYERS.map((l) => l.blur));
-const MAX_GLOW_REACH = 36;
+
 
 function withAlpha(input: string, alpha: number) {
   const a = Math.max(0, Math.min(1, alpha));
@@ -233,43 +232,33 @@ export default function NeonBorder(props: Props) {
   }, []);
 
   const thick = Math.max(1, Math.min(10, thickness));
-  const radius = (Math.max(0, Math.min(100, rounded)) / 100) * (Math.min(size.w, size.h) / 2);
-  const amount = Math.max(0, Math.min(100, glow)) / 100;
-  const ringAt = (share: number) => thick + amount * MAX_GLOW_REACH * share;
-  const glowOuter = 10 + MAX_GLOW_REACH + MAX_GLOW_BLUR * 2;
+  // If rounded is <= 64, treat as direct pixel radius (e.g. 16 for rounded-2xl, 24 for rounded-3xl).
+  // Otherwise treat as percentage of container min dimension.
+  const radius =
+    typeof rounded === "number"
+      ? rounded <= 64
+        ? rounded
+        : (Math.min(100, rounded) / 100) * (Math.min(size.w, size.h) / 2)
+      : 20;
 
-  const band = (r: number, offset = 0) => (
+  const amount = Math.max(0, Math.min(100, glow)) / 100;
+
+  const band = (r: number, blurPx = 0, opacity = 1) => (
     <div
       style={{
         position: "absolute",
-        inset: offset - r,
+        inset: -r / 2,
         boxSizing: "border-box",
         padding: r,
-        borderRadius: radius > 0 ? radius + r : 0,
+        borderRadius: radius > 0 ? radius + r / 2 : 0,
         background: "var(--arc)",
+        opacity,
+        filter: blurPx ? `blur(${blurPx.toFixed(1)}px)` : "none",
+        WebkitFilter: blurPx ? `blur(${blurPx.toFixed(1)}px)` : "none",
+        pointerEvents: "none",
         ...BAND_MASK,
       }}
     />
-  );
-
-  const glowLayer = (key: string, r: number, blurPx: number, opacity: number) => (
-    <div
-      key={key}
-      style={{
-        position: "absolute",
-        inset: -glowOuter,
-        boxSizing: "border-box",
-        padding: glowOuter,
-        borderRadius: radius > 0 ? radius + glowOuter : 0,
-        opacity,
-        mixBlendMode: "plus-lighter",
-        filter: blurPx ? `blur(${blurPx.toFixed(1)}px)` : "none",
-        WebkitFilter: blurPx ? `blur(${blurPx.toFixed(1)}px)` : "none",
-        ...BAND_MASK,
-      }}
-    >
-      {band(r, glowOuter)}
-    </div>
   );
 
   const glowGroup = (start: number, ref: React.Ref<HTMLDivElement>) => (
@@ -285,10 +274,34 @@ export default function NeonBorder(props: Props) {
         } as React.CSSProperties
       }
     >
-      {amount > 0 && GLOW_LAYERS.map((l, i) => glowLayer(`glow-${i}`, ringAt(l.reach), l.blur, l.opacity))}
+      {/* Soft multi-layer glow radiating from the border */}
+      {amount > 0 &&
+        GLOW_LAYERS.map((l, i) => (
+          <div
+            key={`glow-${i}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              mixBlendMode: "screen",
+              pointerEvents: "none",
+            }}
+          >
+            {band(thick + l.reach * 10, l.blur, l.opacity * amount)}
+          </div>
+        ))}
+
+      {/* Crisp edge bands tracing the perimeter */}
       {Array.from({ length: EDGE_COPIES }).map((_, i) => (
-        <div key={`edge-${i}`} style={{ position: "absolute", inset: 0, mixBlendMode: "plus-lighter" }}>
-          {band(thick)}
+        <div
+          key={`edge-${i}`}
+          style={{
+            position: "absolute",
+            inset: 0,
+            mixBlendMode: "screen",
+            pointerEvents: "none",
+          }}
+        >
+          {band(thick, 0, 1)}
         </div>
       ))}
     </div>
@@ -298,11 +311,13 @@ export default function NeonBorder(props: Props) {
     <div
       ref={rootRef}
       style={{
-        position: "relative",
+        position: "absolute",
+        inset: 0,
         width: "100%",
         height: "100%",
         flexShrink: 0,
         borderRadius: radius,
+        pointerEvents: "none",
         ...style,
       }}
     >
