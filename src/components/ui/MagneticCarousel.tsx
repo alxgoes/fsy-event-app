@@ -37,14 +37,7 @@ function ZoomLightbox({
   onClose: () => void;
 }) {
   const [src, setSrc] = useState(image.highResSrc || image.src);
-  const [failedHighRes, setFailedHighRes] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setSrc(image.highResSrc || image.src);
-    setFailedHighRes(false);
-    setLoading(true);
-  }, [image]);
 
   return (
     <motion.div
@@ -74,43 +67,47 @@ function ZoomLightbox({
 
       {/* Main Image Container */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 12 }}
+        initial={{ scale: 0.92, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 12 }}
+        exit={{ scale: 0.92, opacity: 0, y: 10 }}
         transition={{ type: "spring", stiffness: 340, damping: 28 }}
         onClick={(e) => e.stopPropagation()}
         className="relative flex flex-col items-center justify-center max-h-[88vh] max-w-[92vw]"
       >
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center min-h-[220px] min-w-[220px]">
-            <Loader2 className="h-8 w-8 animate-spin text-[#01B6D1]" />
-          </div>
-        )}
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={src}
-          src={src}
-          alt={image.alt || "Foto em destaque ampliada"}
-          referrerPolicy="no-referrer"
-          crossOrigin="anonymous"
-          onLoad={() => setLoading(false)}
-          onError={() => {
-            // If highResSrc fails or gets blocked, fallback to working thumbnail src!
-            if (!failedHighRes && src !== image.src) {
-              setFailedHighRes(true);
-              setSrc(image.src);
-            } else {
-              setLoading(false);
-            }
+        <div
+          className="relative flex items-center justify-center rounded-2xl overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border border-white/15 bg-slate-950/60"
+          style={{
+            minWidth: 260,
+            minHeight: 260,
           }}
-          className={`max-h-[82vh] max-w-[90vw] object-contain rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] border border-white/15 select-none transition-opacity duration-300 ${
-            loading ? "opacity-0" : "opacity-100"
-          }`}
-          draggable={false}
-        />
+        >
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-[#01B6D1]" />
+            </div>
+          )}
 
-        {image.alt && !loading && (
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={image.alt || "Foto em destaque ampliada"}
+            onLoad={() => setLoading(false)}
+            onError={() => {
+              // Fallback to working thumbnail if high-res fails
+              if (src !== image.src) {
+                setSrc(image.src);
+              } else {
+                setLoading(false);
+              }
+            }}
+            className={`max-h-[82vh] max-w-[90vw] w-auto h-auto object-contain rounded-2xl select-none transition-opacity duration-200 ${
+              loading ? "opacity-0" : "opacity-100"
+            }`}
+            draggable={false}
+          />
+        </div>
+
+        {image.alt && (
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -270,7 +267,6 @@ export function MagneticCarousel({
                 width,
                 height,
                 overflow: "hidden",
-                // Crucial: 'transition: none' ensures the 60fps lerp loop is not delayed or made sluggish by CSS
                 transition: "none",
                 transform: "translateZ(0)",
                 willChange: "width, height",
@@ -298,7 +294,11 @@ export function MagneticCarousel({
       {mounted && open !== null && items[open] && (
         createPortal(
           <AnimatePresence>
-            <ZoomLightbox image={items[open]} onClose={close} />
+            <ZoomLightbox
+              key={items[open].src}
+              image={items[open]}
+              onClose={close}
+            />
           </AnimatePresence>,
           document.body
         )

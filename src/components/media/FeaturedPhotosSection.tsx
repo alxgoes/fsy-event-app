@@ -21,31 +21,31 @@ function resolveCardThumbnail(photo: MediaPhoto): string | null {
   if (!url) return null;
 
   const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch) {
-    return `https://lh3.googleusercontent.com/d/${fileMatch[1]}=w700`;
-  }
-  const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch) {
-    return `https://lh3.googleusercontent.com/d/${idMatch[1]}=w700`;
+  const fileId = fileMatch ? fileMatch[1] : url.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
+  if (fileId) {
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
   }
 
   return url;
 }
 
 function resolveHighResPhoto(photo: MediaPhoto): string | null {
-  if (photo.thumbnail_url && !photo.thumbnail_url.includes("=w700")) {
+  if (photo.thumbnail_url) {
+    if (photo.thumbnail_url.includes("sz=w")) {
+      return photo.thumbnail_url.replace(/sz=w\d+/, "sz=w2000");
+    }
     return photo.thumbnail_url;
   }
   const url = photo.drive_url;
-  if (!url) return photo.thumbnail_url || null;
+  if (!url) return null;
 
   const fileMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
   const fileId = fileMatch ? fileMatch[1] : url.match(/[?&]id=([a-zA-Z0-9_-]+)/)?.[1];
   if (fileId) {
-    return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w2000`;
   }
 
-  return photo.thumbnail_url || url;
+  return url;
 }
 
 /** Converts MediaPhoto array into CarouselImage array for MagneticCarousel */
