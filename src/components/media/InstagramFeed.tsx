@@ -160,14 +160,14 @@ export function InstagramFeed() {
                     className={`flex items-center gap-1 font-bold transition-colors min-h-[36px] min-w-[36px] ${
                       isLiked
                         ? "text-[#FC4E6D]"
-                        : "text-slate-500 hover:text-[#FC4E6D]"
+                        : "text-slate-600 dark:text-slate-300 hover:text-[#FC4E6D]"
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isLiked ? "fill-[#FC4E6D]" : ""}`} />
                     <span className="text-xs">{post.likesCount}</span>
                   </button>
 
-                  <div className="flex items-center gap-1 text-slate-500 font-bold">
+                  <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300 font-bold">
                     <MessageCircle className="h-4 w-4" />
                     <span className="text-xs">{post.commentsCount}</span>
                   </div>
@@ -180,7 +180,7 @@ export function InstagramFeed() {
 
       {/* Direct Instagram Profile Link */}
       <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
           <Sparkles className="h-3.5 w-3.5 text-[#FFE48A]" />
           <span>Use a hashtag <strong>#FSYRibeirao2</strong> para aparecer no mural oficial</span>
         </div>
@@ -245,7 +245,7 @@ export function InstagramFeed() {
                         @{selectedPost.authorHandle}
                       </p>
                       {selectedPost.location && (
-                        <p className="text-xs text-slate-500 font-medium">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                           {selectedPost.location}
                         </p>
                       )}
@@ -256,7 +256,7 @@ export function InstagramFeed() {
                     {selectedPost.caption}
                   </p>
 
-                  <span className="text-xs font-bold text-slate-400 block mt-2">
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mt-2">
                     Publicado {selectedPost.timestamp}
                   </span>
                 </div>

@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
 import { ChevronDown } from "lucide-react";
@@ -41,7 +41,7 @@ NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName;
 const NavigationMenuItem = NavigationMenuPrimitive.Item;
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-9 w-max items-center justify-center rounded-xl px-3.5 py-2 text-xs font-bold transition-colors hover:bg-slate-100 hover:text-slate-900 focus:bg-slate-100 focus:text-slate-900 focus:outline-none disabled:pointer-events-none disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-100 dark:focus:bg-slate-800 dark:focus:text-slate-100 data-[active]:bg-slate-100 dark:data-[active]:bg-slate-800 data-[state=open]:bg-slate-100 dark:data-[state=open]:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer"
+  "group inline-flex h-9 sm:h-9.5 w-max items-center justify-center rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-black transition-all duration-200 ease-out border-2 border-transparent text-slate-800 dark:text-slate-200 cursor-pointer select-none hover:bg-[#007DA5] hover:text-white hover:border-slate-950 dark:hover:border-slate-700 hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0 active:shadow-none focus:outline-none data-[active]:bg-[#007DA5] data-[active]:text-white data-[active]:border-slate-950 dark:data-[active]:border-slate-700 data-[active]:shadow-tactile-pill data-[state=open]:bg-[#007DA5] data-[state=open]:text-white data-[state=open]:border-slate-950 dark:data-[state=open]:border-slate-700 data-[state=open]:shadow-tactile-pill"
 );
 
 const NavigationMenuTrigger = React.forwardRef<
@@ -55,7 +55,7 @@ const NavigationMenuTrigger = React.forwardRef<
   >
     {children}{" "}
     <ChevronDown
-      className="relative top-[1px] ml-1 h-3 w-3 transition duration-200 group-data-[state=open]:rotate-180 text-slate-400"
+      className="relative top-[1px] ml-1.5 h-3.5 w-3.5 transition duration-200 group-hover:text-white group-hover:scale-110 group-data-[state=open]:rotate-180 group-data-[state=open]:text-white text-slate-500 dark:text-slate-400"
       aria-hidden="true"
     />
   </NavigationMenuPrimitive.Trigger>
@@ -86,7 +86,7 @@ const NavigationMenuViewport = React.forwardRef<
   <div className={cn("absolute left-0 top-full flex justify-center")}>
     <NavigationMenuPrimitive.Viewport
       className={cn(
-        "origin-top-center relative mt-2.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-1 text-slate-950 shadow-xl backdrop-blur-xl transition-[width,height] duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-50 md:w-[var(--radix-navigation-menu-viewport-width)]",
+        "origin-top-center relative mt-2.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-3xl border-2 border-slate-950 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-950 dark:text-slate-50 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] backdrop-blur-xl transition-[width,height] duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
         className
       )}
       ref={ref}

@@ -33,9 +33,9 @@ const VARIANT_STYLES: Record<NonNullable<GooeyButtonProps["variant"]>, string> =
   coral:
     "bg-[#FC4E6D] text-white border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#e63c5b]",
   outline:
-    "bg-white dark:bg-slate-850 text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-tactile-pill hover:bg-slate-100 dark:hover:bg-slate-800",
+    "bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-tactile-pill hover:bg-slate-100 dark:hover:bg-slate-700",
   ghost:
-    "bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-transparent",
+    "bg-transparent text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-transparent",
 };
 
 const SIZE_STYLES: Record<NonNullable<GooeyButtonProps["size"]>, string> = {

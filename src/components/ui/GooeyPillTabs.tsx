@@ -57,10 +57,10 @@ export function GooeyPillTabs({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
-            className={`group relative z-10 inline-flex items-center justify-center gap-2 rounded-full font-black select-none whitespace-nowrap transition-colors duration-200 cursor-pointer min-h-[34px] ${paddingClass} ${
+            className={`group relative z-10 inline-flex items-center justify-center gap-2 rounded-full font-black select-none whitespace-nowrap transition-all duration-200 cursor-pointer min-h-[34px] border-2 ${paddingClass} ${
               isActive
-                ? "text-white"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                ? "text-white border-transparent"
+                : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:border-slate-900/30 dark:hover:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
             }`}
           >
             {/* Morphing Liquid Indicator (P13 Fluid Pill Glide) */}

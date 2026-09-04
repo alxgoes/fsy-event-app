@@ -633,10 +633,10 @@ export function MedicalDashboard() {
       <div className="flex items-center gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab("records")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[40px] cursor-pointer ${
             activeTab === "records"
-              ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
-              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
+              ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
           }`}
         >
           <FileText className="h-4 w-4" />
@@ -645,10 +645,10 @@ export function MedicalDashboard() {
 
         <button
           onClick={() => setActiveTab("appointments")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all min-h-[40px] ${
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[40px] cursor-pointer ${
             activeTab === "appointments"
-              ? "bg-slate-900 text-white dark:bg-[#007DA5] border-slate-900 dark:border-sky-400 shadow-sm"
-              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900 dark:border-slate-700 hover:bg-slate-50"
+              ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
           }`}
         >
           <Calendar className="h-4 w-4" />

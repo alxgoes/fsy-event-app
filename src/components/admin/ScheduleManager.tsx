@@ -437,10 +437,10 @@ export function ScheduleManager() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition-all border ${
+              className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
                 selectedCategory === cat
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 border-slate-900 dark:border-white shadow-sm"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-400"
+                  ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
               {cat === "all" ? "Todas Categorias" : cat}

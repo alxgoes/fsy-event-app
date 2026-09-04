@@ -143,7 +143,7 @@ export function FeaturedPhotosSection({
                 <span className="rounded-full bg-sky-100 dark:bg-sky-950 px-2.5 py-0.5 text-xs font-black text-[#007DA5] border border-sky-200 dark:border-sky-800">
                   #FSYRibeirao2
                 </span>
-                <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                   {photos.length} {photos.length === 1 ? "foto" : "fotos"}
                 </span>
               </div>
@@ -154,7 +154,7 @@ export function FeaturedPhotosSection({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 hidden sm:inline-block">
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 hidden sm:inline-block">
               Passe o mouse para explorar · Clique para ampliar
             </span>
           </div>

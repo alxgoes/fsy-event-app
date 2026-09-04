@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   Bell,
   Shield,
@@ -81,22 +82,30 @@ function NavCardItem({
       <NavigationMenuLink asChild>
         <Link
           href={href}
-          className="group block select-none space-y-1 rounded-xl p-3 leading-none no-underline outline-none transition-all hover:bg-[#007DA5]/10 dark:hover:bg-[#01B6D1]/10 border border-transparent hover:border-[#007DA5]/20 dark:hover:border-[#01B6D1]/20 cursor-pointer"
+          className="group block select-none rounded-2xl p-3 leading-none no-underline outline-none transition-all duration-200 ease-out bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:border-[#007DA5] dark:hover:border-[#01B6D1] hover:shadow-[4px_4px_0px_0px_rgba(0,125,165,0.9)] dark:hover:shadow-[4px_4px_0px_0px_rgba(1,182,209,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] hover:bg-sky-50/80 dark:hover:bg-slate-700/80 cursor-pointer"
         >
-          <div className="flex items-center justify-between gap-1.5 mb-1">
-            <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white group-hover:text-[#007DA5] dark:group-hover:text-[#01B6D1] transition-colors">
-              {Icon && <Icon className="h-4 w-4 text-[#007DA5] dark:text-[#01B6D1]" />}
-              <span>{title}</span>
-            </div>
-            {badge && (
-              <span className="rounded-full bg-[#FFE48A] text-amber-950 dark:bg-amber-950/80 dark:text-amber-200 dark:border dark:border-amber-700/50 px-2 py-0.5 text-xs font-black tracking-wide uppercase">
-                {badge}
-              </span>
+          <div className="flex items-start gap-3">
+            {Icon && (
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#007DA5] dark:text-[#01B6D1] border-2 border-slate-900/60 dark:border-slate-700 shadow-xs group-hover:bg-[#007DA5] group-hover:text-white group-hover:border-slate-950 transition-all shrink-0 mt-0.5">
+                <Icon className="h-4 w-4" />
+              </div>
             )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-1.5 mb-1">
+                <h4 className="text-xs sm:text-sm font-black text-slate-950 dark:text-white group-hover:text-[#007DA5] dark:group-hover:text-[#01B6D1] transition-colors leading-snug">
+                  {title}
+                </h4>
+                {badge && (
+                  <span className="rounded-md bg-[#FFE48A] text-slate-950 border border-slate-900/40 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider shrink-0 shadow-2xs">
+                    {badge}
+                  </span>
+                )}
+              </div>
+              <p className="line-clamp-2 text-[11px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
+                {children}
+              </p>
+            </div>
           </div>
-          <p className="line-clamp-2 text-[11px] font-medium leading-relaxed text-slate-500 dark:text-slate-400">
-            {children}
-          </p>
         </Link>
       </NavigationMenuLink>
     </li>
@@ -105,7 +114,10 @@ function NavCardItem({
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { profile, loading } = useProfile();
+
+  const isHomeActive = pathname === "/dashboard" || pathname === "/";
 
   const [appointments, setAppointments] = useState<AppointmentNotification[]>([]);
   const [announcements, setAnnouncements] = useState<AnnouncementNotification[]>([]);
@@ -278,7 +290,7 @@ export function Header() {
                 2027
               </span>
             </div>
-            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hidden sm:block">
+            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 hidden sm:block">
               Portal do Jovem
             </p>
           </div>
@@ -287,11 +299,17 @@ export function Header() {
         {/* Center: Modern NavigationMenu (Desktop) */}
         <div className="hidden lg:flex items-center justify-center">
           <NavigationMenu>
-            <NavigationMenuList className="gap-0.5">
+            <NavigationMenuList className="gap-1 p-1 rounded-full bg-slate-100/70 dark:bg-slate-800/70 border-2 border-slate-900/10 dark:border-slate-700/60 shadow-inner backdrop-blur-sm">
               {/* Dashboard Link */}
               <NavigationMenuItem>
                 <Link href="/dashboard" legacyBehavior passHref>
-                  <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <NavigationMenuLink
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      isHomeActive &&
+                        "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+                    )}
+                  >
                     Início
                   </NavigationMenuLink>
                 </Link>
@@ -301,9 +319,9 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Programação</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-2 p-3 md:w-[480px] md:grid-cols-2">
+                  <ul className="grid w-[430px] gap-3 p-1.5 md:w-[520px] md:grid-cols-2">
                     <NavCardItem
-                      title="Cronograma Oficial"
+                       title="Cronograma Oficial"
                       href="/schedule"
                       icon={Calendar}
                       badge="5 Dias"
@@ -339,7 +357,7 @@ export function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Comunidade & Mídia</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-2 p-3 md:w-[480px] md:grid-cols-2">
+                  <ul className="grid w-[430px] gap-3 p-1.5 md:w-[520px] md:grid-cols-2">
                     <NavCardItem
                       title="Lembretes & Avisos"
                       href="/announcements"
@@ -380,7 +398,7 @@ export function Header() {
                     {canAccessFullAdmin ? "Gestão" : "Consultor"}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[360px] gap-2 p-3">
+                    <ul className="grid w-[380px] gap-3 p-1.5">
                       {canSeeCounselorPanel && (
                         <NavCardItem
                           title="Painel do Consultor"
@@ -423,7 +441,7 @@ export function Header() {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer shrink-0"
+              className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shrink-0"
               aria-label="Lembretes e Notificações"
             >
               <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
@@ -442,7 +460,7 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="fixed sm:absolute top-14 sm:top-full left-3 right-3 sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden z-50 max-h-[82vh] flex flex-col"
+                  className="fixed sm:absolute top-14 sm:top-full left-3 right-3 sm:left-auto sm:right-0 mt-2 sm:w-96 rounded-3xl border-2 border-slate-950 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50 max-h-[82vh] flex flex-col"
                 >
                   {/* Popover Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between">
@@ -457,7 +475,7 @@ export function Header() {
                         {totalUnread} pendente(s)
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-slate-400">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                         Tudo em dia
                       </span>
                     )}
@@ -466,12 +484,12 @@ export function Header() {
                   {/* Notifications Content List */}
                   <div className="max-h-84 overflow-y-auto p-3 space-y-2.5">
                     {appointments.length === 0 && announcements.length === 0 ? (
-                      <div className="py-8 text-center text-slate-400 dark:text-slate-500">
-                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-40 text-emerald-500" />
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      <div className="py-8 text-center text-slate-500 dark:text-slate-400">
+                        <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-60 text-emerald-500" />
+                        <p className="text-xs font-black text-slate-800 dark:text-slate-200">
                           Nenhum lembrete ou agendamento
                         </p>
-                        <p className="text-[11px] mt-0.5">
+                        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mt-0.5">
                           Quando os consultores ou a coordenação postarem algo, você verá aqui.
                         </p>
                       </div>
@@ -516,7 +534,7 @@ export function Header() {
                                   )}
                                 </div>
 
-                                <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(ann.created_at).toLocaleTimeString("pt-BR", {
                                     hour: "2-digit",
@@ -529,12 +547,12 @@ export function Header() {
                                 {ann.title}
                               </p>
 
-                              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                              <p className="text-xs font-medium text-slate-700 dark:text-slate-200 mt-1 line-clamp-2">
                                 {ann.content}
                               </p>
 
                               <div className="mt-2.5 pt-2 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
-                                <span className="text-xs font-bold text-slate-500 truncate max-w-[150px]">
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate max-w-[150px]">
                                   Por: <strong>{author}</strong>
                                 </span>
 
@@ -577,7 +595,7 @@ export function Header() {
                                   Saúde & Inclusão
                                 </span>
 
-                                <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {new Date(appt.scheduled_at).toLocaleDateString("pt-BR", {
                                     day: "2-digit",
@@ -592,7 +610,7 @@ export function Header() {
                                 {appt.reason}
                               </p>
 
-                              <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+                              <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 mt-0.5">
                                 Com: <strong>{appt.professional_name}</strong>
                               </p>
 
@@ -618,7 +636,7 @@ export function Header() {
                                   </span>
                                 )}
 
-                                <span className="text-xs font-bold text-slate-400">
+                                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                                   {appt.status === "realizado" ? "Realizado" : "Agendado"}
                                 </span>
                               </div>
@@ -634,7 +652,7 @@ export function Header() {
                     <Link
                       href="/announcements"
                       onClick={() => setNotificationsOpen(false)}
-                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white dark:bg-slate-850 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#007DA5] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[40px]"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#007DA5] dark:text-cyan-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors min-h-[40px]"
                     >
                       <span>Ver mural de lembretes completo</span>
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -654,7 +672,7 @@ export function Header() {
                 setDropdownOpen((o) => !o);
                 setNotificationsOpen(false);
               }}
-              className="flex items-center gap-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 px-2.5 py-1.5 min-h-[38px] border border-slate-200 dark:border-slate-700 shadow-2xs hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer"
+              className="flex items-center gap-2 rounded-xl bg-slate-100/90 dark:bg-slate-800/90 px-2.5 py-1.5 min-h-[38px] border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               aria-label="Menu do usuário"
             >
               {loading ? (
@@ -670,12 +688,12 @@ export function Header() {
                 <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
-                <p className="text-[10px] font-bold text-[#007DA5] dark:text-cyan-400 truncate max-w-[100px]">
+                <p className="text-[10px] font-extrabold text-[#005E7C] dark:text-cyan-400 truncate max-w-[100px]">
                   {loading ? "Carregando" : displayCompany ?? roleLabel}
                 </p>
               </div>
               <ChevronDown
-                className={`h-3 w-3 text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3 w-3 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </motion.button>
 
@@ -687,7 +705,7 @@ export function Header() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-xl overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-3xl border-2 border-slate-950 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden z-50"
                 >
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70">
@@ -711,16 +729,16 @@ export function Header() {
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <User className="h-4 w-4 text-slate-400" />
+                      <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                       Meu Dashboard
                     </Link>
 
                     <Link
                       href="/announcements"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                       <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
                       Lembretes & Comunicados
@@ -811,7 +829,7 @@ export function Header() {
                     {roleLabel}
                   </span>
                   {displayCompany && (
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate">
                       {displayCompany}
                     </span>
                   )}
@@ -820,36 +838,54 @@ export function Header() {
             </div>
 
             {/* Navigation Links */}
-            <div className="space-y-1 pt-1">
+            <div className="space-y-1.5 pt-1">
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className={cn(
+                  "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
+                  pathname === "/dashboard"
+                    ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
+                    : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
+                )}
               >
-                <Compass className="h-4 w-4 text-[#007DA5]" />
+                <Compass className={cn("h-4 w-4", pathname === "/dashboard" ? "text-white" : "text-[#007DA5]")} />
                 <span>Início</span>
               </Link>
 
               <Link
                 href="/schedule"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className={cn(
+                  "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
+                  pathname === "/schedule"
+                    ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
+                    : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
+                )}
               >
-                <Calendar className="h-4 w-4 text-[#007DA5]" />
+                <Calendar className={cn("h-4 w-4", pathname === "/schedule" ? "text-white" : "text-[#007DA5]")} />
                 <span>Programação & Cronograma</span>
               </Link>
 
               <Link
                 href="/announcements"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className={cn(
+                  "flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
+                  pathname === "/announcements"
+                    ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
+                    : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
+                )}
               >
                 <div className="flex items-center gap-2.5">
-                  <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
+                  <Megaphone className={cn("h-4 w-4", pathname === "/announcements" ? "text-white" : "text-[#FC4E6D]")} />
                   <span>Lembretes & Comunicados</span>
                 </div>
                 {totalUnread > 0 && (
-                  <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] font-black px-2 py-0.5">
+                  <span className={cn(
+                    "rounded-full text-[10px] font-black px-2 py-0.5",
+                    pathname === "/announcements" ? "bg-white text-slate-950" : "bg-[#FC4E6D] text-white"
+                  )}>
                     {totalUnread}
                   </span>
                 )}
@@ -859,9 +895,14 @@ export function Header() {
                 <Link
                   href="/consultor"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition-colors"
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
+                    pathname === "/consultor"
+                      ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
+                      : "border-transparent text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:border-purple-800/30 hover:shadow-tactile-pill"
+                  )}
                 >
-                  <Building2 className="h-4 w-4 text-[#7209B7]" />
+                  <Building2 className={cn("h-4 w-4", pathname === "/consultor" ? "text-white" : "text-[#7209B7]")} />
                   <span>Painel do Consultor</span>
                 </Link>
               )}
@@ -870,9 +911,14 @@ export function Header() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
+                    pathname.startsWith("/admin")
+                      ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
+                      : "border-transparent text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:border-[#007DA5]/30 hover:shadow-tactile-pill"
+                  )}
                 >
-                  <Shield className="h-4 w-4 text-[#007DA5]" />
+                  <Shield className={cn("h-4 w-4", pathname.startsWith("/admin") ? "text-white" : "text-[#007DA5]")} />
                   <span>Painel de Gestão</span>
                 </Link>
               )}

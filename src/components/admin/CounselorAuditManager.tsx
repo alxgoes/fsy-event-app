@@ -579,7 +579,7 @@ export function CounselorAuditManager() {
                     </h4>
                   )}
 
-                  <div className="rounded-2xl bg-[#FAF8F5] dark:bg-slate-850 p-4 border border-slate-200/80 dark:border-slate-800 text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed shadow-inner">
+                  <div className="rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 p-4 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed shadow-inner">
                     {log.content}
                   </div>
                 </div>

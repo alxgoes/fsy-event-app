@@ -410,16 +410,16 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`relative z-10 flex items-center justify-between rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition-colors ${
+                      className={`relative z-10 flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-black transition-all duration-200 border-2 cursor-pointer ${
                         isActive
-                          ? "text-white"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                          ? "text-white border-transparent"
+                          : "border-transparent text-slate-600 dark:text-slate-300 hover:border-slate-900/30 dark:hover:border-slate-700 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
                       }`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId={shouldReduceMotion ? undefined : "adminActiveNavPill"}
-                          className="absolute inset-0 bg-slate-900 dark:bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                          className="absolute inset-0 bg-[#007DA5] rounded-2xl border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill -z-10"
                           transition={{ type: "spring", stiffness: 450, damping: 32 }}
                         />
                       )}

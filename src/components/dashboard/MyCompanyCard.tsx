@@ -117,10 +117,10 @@ export function MyCompanyCard({
             <Users className="h-7 w-7 text-slate-400" />
           </div>
           <div>
-            <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
+            <h3 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
               Aguardando Designação
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mt-1 max-w-xs">
               Você ainda não foi designado a uma companhia. A coordenação irá te designar em breve.
             </p>
           </div>
@@ -181,7 +181,7 @@ export function MyCompanyCard({
         {announcements.length === 0 ? (
           <div className="text-center py-6 text-slate-500 dark:text-slate-400">
             <Pin className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            <p className="text-xs font-bold">Nenhum aviso ainda</p>
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Nenhum aviso ainda</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -250,7 +250,7 @@ export function MyCompanyCard({
                       className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-colors cursor-pointer min-h-[36px] ${
                         info.isLiked
                           ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
-                          : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
+                          : "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                       }`}
                       title={info.isLiked ? "Descurtir" : "Curtir comunicado"}
                     >

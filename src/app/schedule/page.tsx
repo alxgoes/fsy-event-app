@@ -161,10 +161,10 @@ export default function SchedulePage() {
                 <button
                   key={key}
                   onClick={() => setSelectedDayKey(key)}
-                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-xl font-black text-xs transition-all border-2 ${
+                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-2xl font-black text-xs transition-all duration-200 border-2 cursor-pointer ${
                     isSelected
-                      ? "bg-[#007DA5] text-white border-slate-900 dark:border-white shadow-sm -translate-y-0.5"
-                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700"
+                      ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
                   }`}
                 >
                   <span className="text-xs font-bold">{day.name}</span>
@@ -230,13 +230,13 @@ export default function SchedulePage() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center gap-1 font-mono text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">
-                        <Clock className="h-3 w-3 text-slate-500 dark:text-slate-400" />
+                        <Clock className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                         {event.time} {event.endTime && event.endTime !== "--" && `- ${event.endTime}`}
                       </span>
 
                       <Badge
                         variant="outline"
-                        className="text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                        className="text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                       >
                         {event.category}
                       </Badge>
@@ -261,13 +261,13 @@ export default function SchedulePage() {
                       {event.title}
                     </h3>
 
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                       <MapPin className="h-3.5 w-3.5 text-[#FC4E6D]" />
                       <span>{event.location}</span>
                     </div>
 
                     {event.description && (
-                      <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 pt-1 font-medium leading-relaxed">
+                      <p className="text-xs md:text-sm text-slate-700 dark:text-slate-200 pt-1 font-medium leading-relaxed">
                         {event.description}
                       </p>
                     )}

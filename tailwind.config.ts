@@ -22,6 +22,7 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "#F8FAFC",
         foreground: "hsl(var(--foreground))",
+        "slate-850": "#1e293b",
         primary: {
           DEFAULT: "#007DA5", // Official FSY Blue 25
           foreground: "#FFFFFF",

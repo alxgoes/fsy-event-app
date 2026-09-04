@@ -494,19 +494,19 @@ export function CounselorPanel() {
 
         {/* 3. Navigation Tabs with layoutId */}
         {profile?.company_id && (
-          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 w-fit shadow-sm">
+          <div className="flex items-center gap-2 p-1.5 rounded-full bg-slate-100/90 dark:bg-slate-900 border-2 border-slate-900/15 dark:border-slate-800 w-fit shadow-inner">
             <button
               onClick={() => setActiveTab("announcements")}
-              className={`relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-colors ${
+              className={`group relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-black rounded-full transition-all duration-200 cursor-pointer border-2 ${
                 activeTab === "announcements"
-                  ? "text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                  ? "text-white border-transparent"
+                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-900/30 hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
               {activeTab === "announcements" && (
                 <motion.div
                   layoutId={shouldReduceMotion ? undefined : "counselorTabActive"}
-                  className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                  className="absolute inset-0 bg-[#007DA5] rounded-full border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill -z-10"
                   transition={{ type: "spring", stiffness: 450, damping: 32 }}
                 />
               )}
@@ -516,16 +516,16 @@ export function CounselorPanel() {
 
             <button
               onClick={() => setActiveTab("youth")}
-              className={`relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-colors ${
+              className={`group relative z-10 flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-black rounded-full transition-all duration-200 cursor-pointer border-2 ${
                 activeTab === "youth"
-                  ? "text-white"
-                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                  ? "text-white border-transparent"
+                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-900/30 hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
               {activeTab === "youth" && (
                 <motion.div
                   layoutId={shouldReduceMotion ? undefined : "counselorTabActive"}
-                  className="absolute inset-0 bg-[#007DA5] rounded-xl shadow-sm -z-10"
+                  className="absolute inset-0 bg-[#007DA5] rounded-full border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill -z-10"
                   transition={{ type: "spring", stiffness: 450, damping: 32 }}
                 />
               )}

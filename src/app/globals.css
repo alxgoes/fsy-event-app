@@ -102,19 +102,26 @@
    High-Contrast Typography & Ink Calibration for Light Theme
    Eliminates washed-out / faint text across all pages in light mode
    ========================================================================== */
-html:not(.dark) .text-slate-400 {
-  color: #64748b; /* Replaces faint #94a3b8 with readable #64748b in light mode */
+html:not(.dark) .text-slate-400,
+html:not(.dark) .text-gray-400,
+html:not(.dark) .text-zinc-400 {
+  color: #475569; /* Replaces faint #94a3b8 with high-contrast readable #475569 in light mode */
 }
 
-html:not(.dark) .text-slate-500 {
-  color: #334155; /* Replaces #64748b with high-contrast #334155 in light mode */
+html:not(.dark) .text-slate-500,
+html:not(.dark) .text-gray-500,
+html:not(.dark) .text-zinc-500 {
+  color: #334155; /* Replaces faint grays with high-contrast #334155 in light mode */
 }
 
-html:not(.dark) .text-slate-600 {
+html:not(.dark) .text-slate-600,
+html:not(.dark) .text-gray-600,
+html:not(.dark) .text-zinc-600 {
   color: #1e293b; /* Replaces #475569 with deep #1e293b in light mode */
 }
 
-html:not(.dark) .text-slate-700 {
+html:not(.dark) .text-slate-700,
+html:not(.dark) .text-slate-800 {
   color: #0f172a; /* Solid ink */
 }
 

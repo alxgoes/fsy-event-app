@@ -287,7 +287,7 @@ export default function AnnouncementsPage() {
             )}
           </div>
 
-          <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mt-3 leading-relaxed">
             Aqui você acompanha todas as mensagens, instruções, horários e lembretes lançados pelos consultores da sua companhia e pela coordenação geral.
           </p>
         </div>
@@ -295,14 +295,14 @@ export default function AnnouncementsPage() {
         {/* Search & Filter Bar */}
         <div className="space-y-3 mb-6">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               aria-label="Pesquisar comunicados, avisos ou recados"
               placeholder="Pesquisar comunicados, avisos ou recados..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
             />
           </div>
 
@@ -313,7 +313,7 @@ export default function AnnouncementsPage() {
               className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "todas"
                   ? "bg-[#007DA5] text-white shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50"
               }`}
             >
               Todos ({announcements.length})
@@ -324,7 +324,7 @@ export default function AnnouncementsPage() {
               className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "minha_cia"
                   ? "bg-[#FFE48A] text-amber-950 shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50"
               }`}
             >
               Minha Companhia {profile?.company_id ? `(${profile.company_id})` : ""}
@@ -335,7 +335,7 @@ export default function AnnouncementsPage() {
               className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "urgentes"
                   ? "bg-[#FC4E6D] text-white shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50"
               }`}
             >
               Urgentes & Importantes
@@ -346,7 +346,7 @@ export default function AnnouncementsPage() {
               className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "nao_lidos"
                   ? "bg-[#06D6A0] text-emerald-950 shadow-sm"
-                  : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm hover:bg-slate-50"
+                  : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50"
               }`}
             >
               Não Lidos ({unreadCount})
@@ -422,11 +422,11 @@ export default function AnnouncementsPage() {
                           {isUrgent ? "Urgente" : isImportant ? "Importante" : "Lembrete"}
                         </span>
 
-                        <span className="rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-black text-slate-700 dark:text-slate-300 border border-slate-900 dark:border-slate-700">
+                        <span className="rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-black text-slate-800 dark:text-slate-200 border border-slate-900 dark:border-slate-700">
                           {item.category || "Geral"}
                         </span>
 
-                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {timeAgo(item.created_at)}
                         </span>
@@ -443,14 +443,14 @@ export default function AnnouncementsPage() {
                       {item.title}
                     </h3>
 
-                    <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                    <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
                       {item.content}
                     </p>
 
                     {/* Footer Actions: Author, Heart Likes, and Marcar como Lido */}
                     <div className="mt-4 pt-3 border-t-2 border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                      <span className="font-bold text-slate-500 dark:text-slate-400">
-                        Postado por: <strong className="text-slate-900 dark:text-white">{authorName}</strong>
+                      <span className="font-bold text-slate-600 dark:text-slate-300">
+                        Postado por: <strong className="text-slate-950 dark:text-white">{authorName}</strong>
                       </span>
 
                       <div className="flex items-center gap-2.5">
@@ -461,7 +461,7 @@ export default function AnnouncementsPage() {
                           className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-3 py-1 border transition-all cursor-pointer ${
                             likeInfo.isLiked
                               ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
-                              : "text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
+                              : "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                           }`}
                           title={likeInfo.isLiked ? "Descurtir" : "Curtir lembrete"}
                         >
