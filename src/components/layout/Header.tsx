@@ -29,7 +29,7 @@ import {
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile, isMasterAdmin, canAccessAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
-import { FsyTempleMark } from "@/components/brand/FsyLogo";
+import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { VoluteLoader } from "@/components/ui/VoluteLoader";
 import {
   NavigationMenu,
@@ -277,13 +277,15 @@ export function Header() {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-[#EFEFE7] dark:bg-slate-800 border border-slate-300 dark:border-slate-700 shadow-xs cursor-pointer p-0.5 sm:p-1 shrink-0"
+            className="flex h-8 sm:h-9.5 aspect-[1/1.5] items-center justify-center rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs cursor-pointer p-0.5 shrink-0 overflow-hidden"
+            title="Templo de Salt Lake - FSY 2027"
           >
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </motion.div>
+          <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
           <div className="min-w-0">
             <div className="flex items-center gap-1 sm:gap-1.5">
-              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">
+              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[120px] xs:max-w-[170px] sm:max-w-none">
                 Ribeirão Preto 2
               </span>
               <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">

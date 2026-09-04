@@ -35,6 +35,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "FSY Sessão Ribeirão Preto 2",
   description: "Web application for FSY Sessão Ribeirão Preto 2 event",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

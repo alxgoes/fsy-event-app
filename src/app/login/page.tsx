@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { FsyTempleMark } from "@/components/brand/FsyLogo";
+import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 
 function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -294,10 +294,11 @@ function LoginFormContent() {
       >
         {/* Card Header with Official Temple Mark & Mode Switcher */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex justify-center pb-1">
-            <div className="h-16 w-auto p-1 rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+          <div className="mx-auto flex flex-col items-center justify-center gap-2 pb-1">
+            <div className="h-16 aspect-[1/1.5] p-1 rounded-t-full rounded-b-xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
+            <FsyFloatingLetters size="sm" />
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase tracking-wider">
@@ -678,13 +679,14 @@ export default function LoginPage() {
     <div className="min-h-screen bg-fsy-watermark text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-6 transition-colors duration-200">
       {/* Top Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="h-11 w-11 rounded-2xl bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-1 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+          <div className="h-8 sm:h-9.5 aspect-[1/1.5] rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs shrink-0 overflow-hidden">
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
+          <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-heading font-black text-sm tracking-tight block text-slate-900 dark:text-white">
+              <span className="font-heading font-black text-xs sm:text-sm tracking-tight block text-slate-900 dark:text-white">
                 Sessão Ribeirão Preto 2
               </span>
               <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40">

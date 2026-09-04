@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
-import { FsyTempleMark } from "@/components/brand/FsyLogo";
+import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { GooeyButton } from "@/components/ui/GooeyButton";
 
@@ -198,10 +198,11 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0 flex items-center justify-center">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="h-8 sm:h-9 aspect-[1/1.5] rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs shrink-0 flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
+            <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-none">
