@@ -287,7 +287,7 @@ function LoginFormContent() {
     <div className="w-full max-w-md">
       {/* Bento Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5"
@@ -295,7 +295,7 @@ function LoginFormContent() {
         {/* Card Header with Official Temple Mark & Mode Switcher */}
         <div className="text-center space-y-2">
           <div className="mx-auto flex flex-col items-center justify-center gap-2 pb-1">
-            <div className="h-16 aspect-[1/1.5] p-1 rounded-t-full rounded-b-xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm flex items-center justify-center overflow-hidden">
+            <div className="w-11 h-16 shrink-0 p-1 rounded-t-full rounded-b-xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
             <FsyFloatingLetters size="sm" />
@@ -327,7 +327,7 @@ function LoginFormContent() {
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
               mode === "login"
                 ? "bg-[#007DA5] text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <LogIn className="h-3.5 w-3.5" />
@@ -343,7 +343,7 @@ function LoginFormContent() {
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
               mode === "register"
                 ? "bg-[#007DA5] text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             <UserPlus className="h-3.5 w-3.5" />
@@ -394,7 +394,7 @@ function LoginFormContent() {
         {/* Divider */}
         <div className="relative flex items-center justify-center">
           <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
-          <span className="absolute bg-white dark:bg-slate-900 px-3 text-[11px] font-black uppercase tracking-wider text-slate-400">
+          <span className="absolute bg-white dark:bg-slate-900 px-3 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {mode === "login" ? "ou com e-mail" : "ou cadastro comum com e-mail"}
           </span>
         </div>
@@ -602,7 +602,7 @@ function LoginFormContent() {
             {/* Optional Stake and Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-500 block">
+                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
                   Estaca / Ala (Opcional)
                 </label>
                 <div className="relative">
@@ -619,7 +619,7 @@ function LoginFormContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-500 block">
+                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
                   Telefone / WhatsApp (Opcional)
                 </label>
                 <div className="relative">
@@ -680,7 +680,7 @@ export default function LoginPage() {
       {/* Top Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
         <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
-          <div className="h-8 sm:h-9.5 aspect-[1/1.5] rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs shrink-0 overflow-hidden">
+          <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs overflow-hidden">
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
           <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
@@ -693,7 +693,7 @@ export default function LoginPage() {
                 2027
               </span>
             </div>
-            <span className="text-[10px] text-slate-500 font-bold block">
+            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold block">
               Edição 2027 • 05 a 10 de Fevereiro
             </span>
           </div>
@@ -716,7 +716,7 @@ export default function LoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 text-[11px] font-bold text-slate-400">
+      <footer className="text-center py-4 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
         © 2027 FSY Sessão Ribeirão Preto 2
       </footer>
     </div>

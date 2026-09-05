@@ -277,7 +277,7 @@ export function Header() {
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex h-8 sm:h-9.5 aspect-[1/1.5] items-center justify-center rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs cursor-pointer p-0.5 shrink-0 overflow-hidden"
+            className="flex w-6 h-9 sm:w-7 sm:h-10 shrink-0 items-center justify-center rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs cursor-pointer p-0.5 overflow-hidden"
             title="Templo de Salt Lake - FSY 2027"
           >
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />

@@ -42,6 +42,11 @@ export function FsyTempleMark({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      style={{
+        maxWidth: "100%",
+        maxHeight: "100%",
+        aspectRatio: "100 / 180",
+      }}
       aria-label="FSY Temple Arch Mark"
     >
       {/* Arch Background Container matching Image 1 */}
@@ -113,7 +118,7 @@ export function FsyTempleMark({
       />
 
       {/* Center Grand Spire (Tall Triangular A-Frame Spire) */}
-      <path d="M 43 76 L 48.5 38 L 51.5 38 L 57 76 Z" fill={templeBodyFill} stroke={strokeColor} strokeWidth="1.5" stroke-linejoin="round" />
+      <path d="M 43 76 L 48.5 38 L 51.5 38 L 57 76 Z" fill={templeBodyFill} stroke={strokeColor} strokeWidth="1.5" strokeLinejoin="round" />
       <line x1="50" y1="38" x2="50" y2="76" stroke={strokeColor} strokeWidth="1" />
 
       {/* Horizontal Architectural Detail Lines */}
@@ -140,7 +145,7 @@ export function FsyTempleMark({
         {/* Head */}
         <circle cx="0.8" cy="3.2" r="1.8" fill={goldFill} stroke={strokeColor} strokeWidth="0.7" />
         {/* Slender Raised Trumpet pointing 45 degrees up-right */}
-        <line x1="1.5" y1="3.8" x2="8" y2="-1.2" stroke={goldFill} strokeWidth="1.3" stroke-linecap="round" />
+        <line x1="1.5" y1="3.8" x2="8" y2="-1.2" stroke={goldFill} strokeWidth="1.3" strokeLinecap="round" />
         {/* Trumpet Horn Flare */}
         <polygon points="7.2,-2.2 9.5,-0.2 8.5,0.8" fill={goldFill} stroke={strokeColor} strokeWidth="0.5" />
       </g>

@@ -199,7 +199,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           </button>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="h-8 sm:h-9 aspect-[1/1.5] rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs shrink-0 flex items-center justify-center overflow-hidden">
+            <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
             <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
