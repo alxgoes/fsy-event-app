@@ -1,10 +1,11 @@
 import React from "react";
 import { FsyFloatingLetters, FsyFloatingLettersSvg } from "./FsyFloatingLetters";
+import { FsyCirclesLogo, FsyCirclesSvg } from "./FsyCirclesLogo";
 
-export { FsyFloatingLetters, FsyFloatingLettersSvg };
+export { FsyFloatingLetters, FsyFloatingLettersSvg, FsyCirclesLogo, FsyCirclesSvg };
 
 export interface FsyLogoProps {
-  variant?: "horizontal" | "vertical" | "temple-only" | "copy-only" | "floating-letters";
+  variant?: "horizontal" | "vertical" | "temple-only" | "copy-only" | "floating-letters" | "circles";
   colorMode?: "four-color" | "three-color" | "two-color" | "one-color";
   className?: string;
   showScripture?: boolean;
@@ -190,6 +191,10 @@ export function FsyLogo({
       gap: "gap-8",
     },
   }[size];
+
+  if (variant === "circles") {
+    return <FsyCirclesLogo size={size} className={className} />;
+  }
 
   if (variant === "floating-letters") {
     const letterSize = size === "xl" ? "xl" : size === "lg" ? "lg" : size === "md" ? "md" : "sm";

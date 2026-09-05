@@ -285,18 +285,18 @@ export function Header() {
           >
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </motion.div>
-          <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
+          <FsyFloatingLetters size="xs" className="inline-flex" />
           <div className="min-w-0">
             <div className="flex items-center gap-1 sm:gap-1.5">
-              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[120px] xs:max-w-[170px] sm:max-w-none">
-                Ribeirão Preto 2
+              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">
+                <span className="hidden sm:inline">Sessão </span>Ribeirão Preto 2
               </span>
               <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
                 2027
               </span>
             </div>
             <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 hidden sm:block">
-              Portal do Jovem
+              Edição 2027 • 05 a 10 de Fevereiro
             </p>
           </div>
         </Link>

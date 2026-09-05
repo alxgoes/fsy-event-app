@@ -149,6 +149,34 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Lock body scrolling when mobile sidebar is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
+
+  // Close sidebar on Escape key
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSidebarOpen]);
+
+  // Auto-close sidebar on route change
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
+
   const handleSignOut = async () => {
     setSigningOut(true);
     const supabase = createClient();
@@ -202,7 +230,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
-            <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
+            <FsyFloatingLetters size="xs" className="inline-flex" />
             <div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-none">
@@ -356,14 +384,50 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         </div>
       </header>
 
+      {/* Mobile Backdrop with Blur */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-md lg:hidden cursor-pointer"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar Navigation */}
+        {/* Sidebar Navigation Drawer */}
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pt-16 lg:static lg:pt-0 transition-all duration-200 ease-in-out ${
+          className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 max-w-[85vw] border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:static lg:w-64 lg:shadow-none lg:z-30 ${
             isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
-          <div className="flex h-full flex-col justify-between p-4">
+          {/* Mobile Drawer Top Header with Close Button */}
+          <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 lg:hidden bg-slate-50/80 dark:bg-slate-800/40">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-8 shrink-0 rounded-t-full rounded-b-md bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border border-slate-900/50 dark:border-slate-700 shadow-2xs flex items-center justify-center overflow-hidden">
+                <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
+              </div>
+              <FsyFloatingLetters size="xs" className="inline-flex" />
+              <span className="font-heading font-black text-xs text-slate-900 dark:text-white">
+                Painel de Gestão
+              </span>
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Fechar menu lateral"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Scrollable Container with Smooth Native Touch Scroll */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 flex flex-col justify-between gap-6 [-webkit-overflow-scrolling:touch]">
             <div className="space-y-4">
               {/* Event Context Pill in Sidebar */}
               <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#EFEFE7]/50 dark:bg-slate-800/60 p-3">
@@ -446,7 +510,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             </div>
 
             {/* Sidebar Footer */}
-            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2">
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2 mt-auto">
               <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-2">
                 <span>Sessão:</span>
                 <span className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
@@ -457,7 +521,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>

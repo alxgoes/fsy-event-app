@@ -17,6 +17,13 @@ import {
   Compass,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { ScrollIndicator, ScrollSection } from "@/components/ui/scroll-indicator";
+
+const DASHBOARD_SECTIONS: ScrollSection[] = [
+  { id: "metrics", title: "Métricas", level: 2 },
+  { id: "modules", title: "Módulos", level: 2 },
+  { id: "announcements", title: "Comunicados", level: 2 },
+];
 
 interface ExecutiveMetrics {
   totalYouth: number;
@@ -128,7 +135,13 @@ export function ExecutiveDashboard() {
   }, [loadExecutiveData]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Precision Scroll Indicator (Floating for Desktop & Large Screens) */}
+      <div className="fixed right-3 top-1/2 -translate-y-1/2 z-30 hidden xl:flex h-56 items-center pointer-events-auto">
+        <ScrollIndicator sections={DASHBOARD_SECTIONS} />
+      </div>
+
+      <div data-section-index="0" className="space-y-6">
         {/* 1. Header Banner */}
         <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -277,10 +290,11 @@ export function ExecutiveDashboard() {
             </div>
           </motion.div>
         </div>
+      </div>
 
-        {/* 3. Interactive Management Modules (Bento Action Cards) */}
-        <div>
-          <div className="mb-4">
+      {/* 3. Interactive Management Modules (Bento Action Cards) */}
+      <div data-section-index="1">
+        <div className="mb-4">
             <h2 className="font-serif text-xl font-bold tracking-tight text-slate-900 dark:text-white">
               Módulos de Gestão Rápida
             </h2>
@@ -474,7 +488,7 @@ export function ExecutiveDashboard() {
 
         {/* 4. Recent Announcements Feed */}
         {recentAnnouncements.length > 0 && (
-          <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+          <div data-section-index="2" className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-[#007DA5]" />

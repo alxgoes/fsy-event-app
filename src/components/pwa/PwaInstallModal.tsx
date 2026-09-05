@@ -14,7 +14,6 @@ import {
   Smartphone,
 } from "lucide-react";
 import { usePwa } from "./PwaContext";
-import { FsyTempleMark } from "@/components/brand/FsyLogo";
 
 export function PwaInstallModal() {
   const {
@@ -60,10 +59,15 @@ export function PwaInstallModal() {
             <X className="h-5 w-5" />
           </button>
 
-          {/* Header Badge & Temple Icon */}
+          {/* Header Badge & App Icon */}
           <div className="flex flex-col items-center text-center space-y-3 pt-1">
-            <div className="w-12 h-16 shrink-0 p-1 rounded-t-full rounded-b-xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm flex items-center justify-center overflow-hidden">
-              <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
+            <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-[#0B1528] border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm p-1.5 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/icons/icon-192.png"
+                alt="Ícone do Aplicativo FSY"
+                className="h-full w-full object-contain rounded-xl"
+              />
             </div>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase">

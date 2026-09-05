@@ -56,24 +56,24 @@ const BADGES: LetterBadge[] = [
 
 const SIZE_MAP = {
   xs: {
-    container: "gap-0.5",
-    badge: "h-5 w-5 text-[10px] rounded-md border",
+    container: "gap-1",
+    badge: "h-5 w-5 text-[11px] rounded-full border-[1.5px]",
   },
   sm: {
-    container: "gap-1",
-    badge: "h-6 w-6 text-xs rounded-lg border-[1.5px]",
+    container: "gap-1.5",
+    badge: "h-7 w-7 text-xs rounded-full border-2",
   },
   md: {
-    container: "gap-1.5",
-    badge: "h-8 w-8 text-sm rounded-xl border-2",
+    container: "gap-2",
+    badge: "h-9 w-9 text-base rounded-full border-2",
   },
   lg: {
-    container: "gap-2",
-    badge: "h-11 w-11 text-xl rounded-2xl border-2",
+    container: "gap-2.5",
+    badge: "h-12 w-12 text-2xl rounded-full border-[2.5px]",
   },
   xl: {
-    container: "gap-2.5",
-    badge: "h-16 w-16 text-3xl rounded-3xl border-[3px]",
+    container: "gap-3",
+    badge: "h-16 w-16 text-3xl rounded-full border-[3px]",
   },
 };
 
@@ -87,7 +87,7 @@ export function FsyFloatingLetters({
   return (
     <div
       className={cn(
-        "inline-flex items-center select-none font-heading font-black tracking-tight",
+        "inline-flex items-center select-none font-serif font-black tracking-tight",
         currentSize.container,
         className
       )}
@@ -97,15 +97,14 @@ export function FsyFloatingLetters({
         const badgeContent = (
           <span
             className={cn(
-              "flex items-center justify-center font-black transition-transform cursor-default",
+              "relative flex items-center justify-center font-black transition-transform cursor-default select-none shadow-[2px_2px_0px_#0F172A] dark:shadow-[2px_2px_0px_#000000]",
               currentSize.badge,
               b.bg,
               b.textColor,
-              b.borderColor,
-              b.shadowColor
+              b.borderColor
             )}
             style={{
-              fontFamily: "var(--font-heading), 'Cinzel', sans-serif",
+              fontFamily: "'Georgia', 'Times New Roman', serif",
             }}
           >
             {b.letter}
@@ -165,82 +164,59 @@ export function FsyFloatingLettersSvg({
 }) {
   return (
     <svg
-      viewBox="0 0 110 40"
+      viewBox="0 0 116 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      aria-label="FSY Floating Letters"
+      aria-label="FSY Floating Circles"
     >
-      {/* Letter F (Blue) */}
-      <g transform="translate(4, 4) rotate(-4 16 16)">
-        <rect
-          x="0"
-          y="0"
-          width="32"
-          height="32"
-          rx="9"
-          fill="#007DA5"
-          stroke="#0F172A"
-          strokeWidth="2.2"
-        />
+      {/* Circle 1: F (Blue) */}
+      <g>
+        <circle cx="21" cy="22" r="16" fill="#0F172A" />
+        <circle cx="19" cy="19.5" r="16" fill="#007DA5" stroke="#0F172A" strokeWidth="1.8" />
         <text
-          x="16"
-          y="23"
+          x="19"
+          y="25.5"
           textAnchor="middle"
           fill="#FFFFFF"
-          fontFamily="system-ui, -apple-system, sans-serif"
+          fontFamily="'Georgia', 'Times New Roman', serif"
           fontWeight="900"
-          fontSize="20"
+          fontSize="18"
         >
           F
         </text>
+        <path d="M23.5 11 q1 1 2 1 q-1 1 -1 2 q-1 -1 -2 -1 q1 -1 1 -2 z" fill="#FFFFFF" />
       </g>
 
-      {/* Letter S (Yellow) */}
-      <g transform="translate(39, 4) rotate(2 16 16)">
-        <rect
-          x="0"
-          y="0"
-          width="32"
-          height="32"
-          rx="9"
-          fill="#FFE48A"
-          stroke="#0F172A"
-          strokeWidth="2.2"
-        />
+      {/* Circle 2: S (Yellow) */}
+      <g>
+        <circle cx="58" cy="22" r="16" fill="#0F172A" />
+        <circle cx="56" cy="19.5" r="16" fill="#FFDB65" stroke="#0F172A" strokeWidth="1.8" />
         <text
-          x="16"
-          y="23"
+          x="56"
+          y="25.5"
           textAnchor="middle"
           fill="#0F172A"
-          fontFamily="system-ui, -apple-system, sans-serif"
+          fontFamily="'Georgia', 'Times New Roman', serif"
           fontWeight="900"
-          fontSize="20"
+          fontSize="18"
         >
           S
         </text>
       </g>
 
-      {/* Letter Y (Coral) */}
-      <g transform="translate(74, 4) rotate(-2 16 16)">
-        <rect
-          x="0"
-          y="0"
-          width="32"
-          height="32"
-          rx="9"
-          fill="#FC4E6D"
-          stroke="#0F172A"
-          strokeWidth="2.2"
-        />
+      {/* Circle 3: Y (Coral) */}
+      <g>
+        <circle cx="95" cy="22" r="16" fill="#0F172A" />
+        <circle cx="93" cy="19.5" r="16" fill="#FC4E6D" stroke="#0F172A" strokeWidth="1.8" />
         <text
-          x="16"
-          y="23"
+          x="93"
+          y="25.5"
           textAnchor="middle"
           fill="#FFFFFF"
-          fontFamily="system-ui, -apple-system, sans-serif"
+          fontFamily="'Georgia', 'Times New Roman', serif"
           fontWeight="900"
-          fontSize="20"
+          fontSize="18"
         >
           Y
         </text>

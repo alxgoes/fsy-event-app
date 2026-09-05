@@ -13,6 +13,14 @@ import { FeaturedPhotosSection, MediaPhoto } from "@/components/media/FeaturedPh
 import { useProfile } from "@/lib/supabase/useProfile";
 import { Users, WifiOff } from "lucide-react";
 import { DashboardGridSkeleton } from "./DashboardSkeletons";
+import { ScrollIndicator, ScrollSection } from "@/components/ui/scroll-indicator";
+
+const YOUTH_SECTIONS: ScrollSection[] = [
+  { id: "intro", title: "Início", level: 2 },
+  { id: "now", title: "Programação", level: 2 },
+  { id: "company", title: "Companhia", level: 2 },
+  { id: "photos", title: "Galeria", level: 2 },
+];
 import {
   getSchedule,
   calculateActiveAndNextEvents,
@@ -205,8 +213,13 @@ export function YouthDashboard() {
             animate="visible"
             className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-12"
           >
+            {/* Precision Scroll Indicator (Desktop) */}
+            <div className="fixed right-3 top-1/2 -translate-y-1/2 z-30 hidden xl:flex h-56 items-center pointer-events-auto">
+              <ScrollIndicator sections={YOUTH_SECTIONS} />
+            </div>
+
             {/* 1. Hero Card */}
-            <motion.div variants={itemVariants} className="md:col-span-12 lg:col-span-8">
+            <motion.div data-section-index="0" variants={itemVariants} className="md:col-span-12 lg:col-span-8">
               <HeroCard
                 userName={firstName}
                 companyName={companyName ?? "Aguardando designação"}
@@ -221,7 +234,7 @@ export function YouthDashboard() {
             </motion.div>
 
             {/* 3. Happening Now Card */}
-            <motion.div variants={itemVariants} className="md:col-span-6 lg:col-span-5">
+            <motion.div data-section-index="1" variants={itemVariants} className="md:col-span-6 lg:col-span-5">
               <HappeningNowCard
                 isPreEvent={isPreEvent}
                 daysRemaining={daysRemaining}
@@ -250,7 +263,7 @@ export function YouthDashboard() {
             </motion.div>
 
             {/* 4. My Company Card */}
-            <motion.div variants={itemVariants} className="md:col-span-6 lg:col-span-7">
+            <motion.div data-section-index="2" variants={itemVariants} className="md:col-span-6 lg:col-span-7">
               <MyCompanyCard
                 currentUserId={profile?.id || null}
                 companyName={companyName}
@@ -261,7 +274,7 @@ export function YouthDashboard() {
             </motion.div>
 
             {/* 5. Featured Drive Photos */}
-            <motion.div variants={itemVariants} className="md:col-span-12">
+            <motion.div data-section-index="3" variants={itemVariants} className="md:col-span-12">
               <FeaturedPhotosSection initialPhotos={featuredPhotos} initialLoading={false} />
             </motion.div>
 

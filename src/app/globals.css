@@ -260,3 +260,33 @@ html:not(.dark) .text-slate-800 {
 .dark .shadow-tactile-pill {
   box-shadow: 0px 3px 0px 0px rgba(15, 23, 42, 0.85);
 }
+
+/* ==========================================================================
+   Precision Scrollbar Calibration (Matching Scroll-Indicator Specs)
+   ========================================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.22);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #007DA5;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #01B6D1;
+}
