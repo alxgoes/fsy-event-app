@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -51,7 +51,6 @@ function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
 
 function LoginFormContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   // Mode: login vs register
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -77,15 +76,18 @@ function LoginFormContent() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam) {
-      setErrorMsg(decodeURIComponent(errorParam));
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const errorParam = params.get("error");
+      if (errorParam) {
+        setErrorMsg(decodeURIComponent(errorParam));
+      }
+      const modeParam = params.get("mode");
+      if (modeParam === "register") {
+        setMode("register");
+      }
     }
-    const modeParam = searchParams.get("mode");
-    if (modeParam === "register") {
-      setMode("register");
-    }
-  }, [searchParams]);
+  }, []);
 
   // Determine redirect based on role
   const handleRoleRedirect = (role?: string) => {
@@ -286,19 +288,11 @@ function LoginFormContent() {
   return (
     <div className="w-full max-w-md">
       {/* Bento Card */}
-      <motion.div
-        initial={false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5"
-      >
+      <div className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5">
         {/* Card Header with Official Temple Mark & Mode Switcher */}
         <div className="text-center space-y-2">
-          <div className="mx-auto flex flex-col items-center justify-center gap-2 pb-1">
-            <div className="w-11 h-16 shrink-0 p-1 rounded-t-full rounded-b-xl bg-[#EFEFE7] dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm flex items-center justify-center overflow-hidden">
-              <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
-            </div>
-            <FsyFloatingLetters size="sm" />
+          <div className="mx-auto flex items-center justify-center pb-1">
+            <FsyFloatingLetters size="md" />
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase tracking-wider">
@@ -669,7 +663,7 @@ function LoginFormContent() {
             </div>
           </form>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -704,15 +698,7 @@ export default function LoginPage() {
 
       {/* Main Centered Login / Register Section */}
       <main className="flex-1 flex items-center justify-center py-8">
-        <Suspense
-          fallback={
-            <div className="p-8 text-xs font-bold text-slate-500">
-              Carregando formulário de autenticação...
-            </div>
-          }
-        >
-          <LoginFormContent />
-        </Suspense>
+        <LoginFormContent />
       </main>
 
       {/* Footer */}

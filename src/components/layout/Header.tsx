@@ -288,9 +288,9 @@ export function Header() {
           <FsyFloatingLetters size="xs" className="inline-flex" />
           <div className="min-w-0">
             <div className="flex items-center gap-1 sm:gap-1.5">
-              <span className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">
+              <div className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[140px] xs:max-w-[180px] sm:max-w-none">
                 <span className="hidden sm:inline">Sessão </span>Ribeirão Preto 2
-              </span>
+              </div>
               <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
                 2027
               </span>
