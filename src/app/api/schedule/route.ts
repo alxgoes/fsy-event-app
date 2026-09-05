@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
+import { scheduleItemSchema } from "@/lib/validations/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -99,38 +100,30 @@ export async function POST(request: Request) {
       });
     }
 
-    const {
-      title,
-      start_time,
-      end_time,
-      location,
-      description,
-      category,
-      day,
-      date,
-      is_highlight,
-    } = body;
-
-    if (!title || !start_time || !location || !day) {
+    const parseResult = scheduleItemSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Título, horário de início, local e dia são obrigatórios." },
+        {
+          error: "Payload inválido para o evento da programação.",
+          details: parseResult.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
-    // Ensure date is never null to satisfy Postgres NOT NULL constraint
-    const assignedDate = date?.trim() || DAY_DEFAULT_DATES[day] || "2027-02-05";
+    const validated = parseResult.data;
+    const assignedDate = validated.date || DAY_DEFAULT_DATES[validated.day] || "2027-02-05";
 
     const payload = {
-      title: String(title).trim(),
-      start_time: String(start_time).trim(),
-      end_time: String(end_time || "--").trim(),
-      location: String(location).trim(),
-      description: description ? String(description).trim() : null,
-      category: category || "Atividade",
-      day: String(day).trim(),
+      title: validated.title,
+      start_time: validated.start_time,
+      end_time: validated.end_time,
+      location: validated.location,
+      description: validated.description || null,
+      category: validated.category,
+      day: validated.day,
       date: assignedDate,
-      is_highlight: Boolean(is_highlight),
+      is_highlight: validated.is_highlight,
       updated_at: new Date().toISOString(),
     };
 

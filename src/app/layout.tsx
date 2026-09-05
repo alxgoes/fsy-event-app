@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ProfileProvider } from "@/lib/supabase/useProfile";
 import { SeigaihaBackground } from "@/components/ui/SeigaihaBackground";
+import { PwaManager } from "@/components/pwa/PwaManager";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -30,17 +31,31 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#007DA5",
 };
 
 export const metadata: Metadata = {
   title: "FSY Sessão Ribeirão Preto 2",
   description: "Web application for FSY Sessão Ribeirão Preto 2 event",
+  applicationName: "FSY RP 2",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FSY RP 2",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -65,6 +80,7 @@ export default function RootLayout({
           <SeigaihaBackground />
           <ProfileProvider>
             {children}
+            <PwaManager />
           </ProfileProvider>
         </ThemeProvider>
       </body>

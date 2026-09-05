@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { likeAnnouncementSchema } from "@/lib/validations/schemas";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { announcement_id, user_id } = body;
-
-    if (!announcement_id || !user_id) {
+    const parseResult = likeAnnouncementSchema.safeParse(body);
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "ID do comunicado e do usuário são obrigatórios." },
+        { error: "ID do comunicado inválido." },
         { status: 400 }
       );
     }
+    const { announcement_id } = parseResult.data;
+    const user_id = body.user_id || "anonymous-user";
 
     const supabase = createAdminClient();
 

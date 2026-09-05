@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ZoomIn, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -317,15 +318,20 @@ export function MagneticCarousel({
                 position: "relative",
                 zIndex: isSelected ? 3 : 2,
                 borderRadius: 16,
-                backgroundImage: `url(${img.src})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
                 boxShadow: "0 8px 28px -4px rgba(0, 0, 0, 0.5)",
                 border: isSelected ? "2px solid #01B6D1" : "1px solid rgba(255, 255, 255, 0.18)",
               }}
             >
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <Image
+                src={img.src}
+                alt={img.alt || "Foto do evento FSY"}
+                fill
+                sizes="(max-width: 1200px) 280px, 420px"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                loading={i < 2 ? "eager" : "lazy"}
+                priority={i === 0}
+              />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-10">
                 <div className="p-2 rounded-full bg-black/50 text-white backdrop-blur-sm shadow-md">
                   <ZoomIn className="h-4 w-4" />
                 </div>
@@ -359,14 +365,18 @@ export function MagneticCarousel({
                     ? "w-[74vw] max-w-[270px] h-[270px] sm:h-[300px] shadow-[0_12px_36px_-6px_rgba(1,182,209,0.45)] border-2 border-[#01B6D1] scale-100 opacity-100"
                     : "w-[66vw] max-w-[235px] h-[250px] sm:h-[280px] border border-white/20 scale-95 opacity-70"
                 }`}
-                style={{
-                  backgroundImage: `url(${img.src})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
               >
+                <Image
+                  src={img.src}
+                  alt={img.alt || "Foto do evento FSY"}
+                  fill
+                  sizes="75vw"
+                  className="object-cover"
+                  loading={i === 0 ? "eager" : "lazy"}
+                  priority={i === 0}
+                />
                 {/* Visual Depth Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/25 p-3 flex flex-col justify-between">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/25 p-3 flex flex-col justify-between z-10">
                   <div className="flex items-center justify-between">
                     <span className="rounded-lg bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-black text-white border border-white/20 uppercase tracking-wider">
                       {i + 1} / {items.length}

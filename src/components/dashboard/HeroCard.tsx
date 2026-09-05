@@ -26,40 +26,9 @@ export function HeroCard({
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
       className="relative overflow-hidden rounded-3xl border-2 border-slate-900 bg-gradient-to-br from-[#007DA5] via-[#01B6D1] to-[#005E7C] p-6 sm:p-8 text-white shadow-brutal-md"
     >
-      {/* Ambient Lighting Focal Elements */}
-      <motion.div
-        animate={
-          shouldReduceMotion
-            ? undefined
-            : {
-                scale: [1, 1.1, 1],
-                opacity: [0.12, 0.22, 0.12],
-              }
-        }
-        transition={{
-          duration: 7,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/15 blur-2xl pointer-events-none will-change-transform"
-      />
-      <motion.div
-        animate={
-          shouldReduceMotion
-            ? undefined
-            : {
-                scale: [1, 1.14, 1],
-                opacity: [0.2, 0.35, 0.2],
-              }
-        }
-        transition={{
-          duration: 9,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1.5,
-        }}
-        className="absolute right-12 bottom-4 h-36 w-36 rounded-full bg-[#FFE48A]/30 blur-xl pointer-events-none will-change-transform"
-      />
+      {/* Ambient Lighting Focal Elements (CSS optimized for battery & 60fps) */}
+      <div className="absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/15 blur-2xl pointer-events-none" />
+      <div className="absolute right-12 bottom-4 h-36 w-36 rounded-full bg-[#FFE48A]/25 blur-xl pointer-events-none" />
       
       <div className="absolute top-4 right-6 hidden sm:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/25 text-white">

@@ -48,7 +48,13 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/acesso-negado") ||
-    pathname.startsWith("/loading-preview");
+    pathname.startsWith("/loading-preview") ||
+    pathname.startsWith("/offline") ||
+    pathname.startsWith("/icons") ||
+    pathname === "/icon.svg" ||
+    pathname === "/sw.js" ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/manifest.json";
 
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone();
@@ -75,14 +81,39 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Fetch user profile to check role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    // 3.1 Fast-path: Check role in JWT metadata (0ms latency)
+    let role: string | undefined =
+      (user.app_metadata?.role as string) ||
+      (user.user_metadata?.role as string);
 
-    const role = profile?.role;
+    // 3.2 Fast-path: Check cached session cookie
+    if (!role) {
+      const cachedRole = request.cookies.get("fsy_role")?.value;
+      if (cachedRole) {
+        role = cachedRole;
+      }
+    }
+
+    // 3.3 Fallback: Query profiles table only if metadata and cookie are absent
+    if (!role) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      role = profile?.role;
+
+      // Cache role in cookie for subsequent fast-path navigations
+      if (role) {
+        supabaseResponse.cookies.set("fsy_role", role, {
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+      }
+    }
 
     // JOVEM: blocked entirely — show access denied page
     if (!role || role === "jovem") {
@@ -151,8 +182,9 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - sw.js, manifest.webmanifest (PWA files)
      * - public assets (.svg, .png, .jpg, .webp, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

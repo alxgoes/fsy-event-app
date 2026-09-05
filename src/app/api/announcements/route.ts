@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { announcementSchema } from "@/lib/validations/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -65,22 +66,29 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, content, priority, target_company_id, category, author_id } = body;
+    const parseResult = announcementSchema.safeParse(body);
 
-    if (!title || !content) {
+    if (!parseResult.success) {
       return NextResponse.json(
-        { error: "Título e conteúdo são obrigatórios." },
+        {
+          error: "Dados do anúncio inválidos.",
+          details: parseResult.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
+    const validated = parseResult.data;
+    const author_id = body.author_id || null;
+    const target_company_id = validated.target_company_id || null;
+
     const payload = {
-      title: String(title).trim(),
-      content: String(content).trim(),
-      priority: priority || "normal",
-      target_company_id: target_company_id || null,
-      category: category || "Geral",
-      author_id: author_id || null,
+      title: validated.title,
+      content: validated.content,
+      priority: validated.priority,
+      target_company_id,
+      category: validated.category,
+      author_id,
       updated_at: new Date().toISOString(),
     };
 
