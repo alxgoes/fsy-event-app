@@ -1,76 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { WifiOff, Download } from "lucide-react";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
+import { usePwa } from "./PwaContext";
+import { PwaInstallModal } from "./PwaInstallModal";
 
 export function PwaManager() {
-  const [isOffline, setIsOffline] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    // 1. Register Service Worker
-    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => {
-          console.log("[FSY PWA] Service Worker registrado com sucesso no escopo:", reg.scope);
-        })
-        .catch((err) => {
-          console.warn("[FSY PWA] Falha ao registrar Service Worker:", err);
-        });
-    }
-
-    // 2. Offline / Online Status Listeners
-    setIsOffline(!navigator.onLine);
-
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    // 3. Android PWA Install Prompt Listener
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
-
-    // 4. Detect if already running in standalone mode (installed)
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-
-    if (isStandalone) {
-      setIsInstalled(true);
-    }
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") {
-      setInstallPrompt(null);
-    }
-  };
+  const { isOffline, isInstalled, openInstallModal } = usePwa();
 
   return (
     <>
-      {/* Offline Alert Pill */}
+      {/* 1. Offline Alert Pill */}
       {isOffline && (
         <aside
           role="status"
@@ -82,25 +22,28 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* Floating Install App Button (when available and not already standalone) */}
-      {installPrompt && !isInstalled && (
+      {/* 2. Floating Quick Install App Button on Mobile & Desktop (if not installed) */}
+      {!isInstalled && (
         <aside
           role="region"
           aria-label="Instalação do Aplicativo"
-          className="fixed bottom-20 right-4 z-40 hidden sm:flex items-center gap-2 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white p-2.5 pr-4 border-2 border-slate-900 shadow-brutal-md transition-all cursor-pointer"
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white p-2.5 pr-3.5 border-2 border-slate-900 shadow-brutal-md transition-all cursor-pointer select-none active:translate-x-[1px] active:translate-y-[1px]"
         >
           <button
             type="button"
-            onClick={handleInstallClick}
+            onClick={openInstallModal}
             className="flex items-center gap-2 text-xs font-black"
           >
             <div className="p-1 rounded-xl bg-white/20">
-              <Download className="h-4 w-4 text-white" />
+              <Download className="h-3.5 w-3.5 text-white" />
             </div>
-            <span>Instalar App FSY</span>
+            <span>Instalar App</span>
           </button>
         </aside>
       )}
+
+      {/* 3. Universal Install Modal (automatic pop-up or manual trigger) */}
+      <PwaInstallModal />
     </>
   );
 }

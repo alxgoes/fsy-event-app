@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ProfileProvider } from "@/lib/supabase/useProfile";
 import { SeigaihaBackground } from "@/components/ui/SeigaihaBackground";
+import { PwaProvider } from "@/components/pwa/PwaContext";
 import { PwaManager } from "@/components/pwa/PwaManager";
 
 const cinzel = Cinzel({
@@ -79,8 +80,10 @@ export default function RootLayout({
         >
           <SeigaihaBackground />
           <ProfileProvider>
-            {children}
-            <PwaManager />
+            <PwaProvider>
+              {children}
+              <PwaManager />
+            </PwaProvider>
           </ProfileProvider>
         </ThemeProvider>
       </body>
