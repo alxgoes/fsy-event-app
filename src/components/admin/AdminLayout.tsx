@@ -214,33 +214,33 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   }
 
   return (
-    <div className="min-h-screen bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen max-w-full overflow-x-hidden bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 sm:px-6 flex items-center justify-between transition-colors">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 sm:px-6 flex items-center justify-between transition-colors max-w-full overflow-x-clip min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             aria-label="Toggle sidebar"
           >
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
             <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
-            <FsyFloatingLetters size="xs" className="inline-flex" />
-            <div>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-none">
+            <FsyFloatingLetters size="xs" className="hidden sm:inline-flex shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[125px] xs:max-w-[170px] sm:max-w-none">
                   {currentRole === "midia"
                     ? "Painel de Mídia"
                     : currentRole === "medico"
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40 hidden xs:inline">
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40 hidden md:inline shrink-0">
                   2027
                 </span>
               </div>
@@ -249,7 +249,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         </div>
 
         {/* Top Header Right: Theme Toggle, Role Badge, User Info Dropdown */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <ThemeToggle />
 
           <Badge
@@ -399,7 +399,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-x-hidden min-w-0 max-w-full">
         {/* Sidebar Navigation Drawer */}
         <aside
           className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 max-w-[85vw] border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:static lg:w-64 lg:shadow-none lg:z-30 ${
@@ -531,8 +531,8 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         </aside>
 
         {/* Main Administrative Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-fsy-watermark transition-colors">
-          <div className="mx-auto max-w-7xl">{children}</div>
+        <main className="flex-1 min-w-0 max-w-full overflow-y-auto overflow-x-hidden p-3 sm:p-6 lg:p-8 bg-fsy-watermark transition-colors">
+          <div className="mx-auto max-w-7xl w-full min-w-0">{children}</div>
         </main>
       </div>
     </div>

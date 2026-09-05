@@ -557,58 +557,60 @@ export function MedicalDashboard() {
   const pendingAppointmentsCount = appointments.filter((a) => a.status === "agendado").length;
 
   return (
-    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="space-y-5 sm:space-y-6 text-slate-900 dark:text-slate-100 max-w-full min-w-0">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
-              <Stethoscope className="h-5 w-5" />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-w-0 max-w-full">
+        <div className="min-w-0">
+          <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+              <Stethoscope className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                   Equipe Multidisciplinar
                 </h1>
-                <Badge className="bg-emerald-600 text-white text-[10px] font-black uppercase">
+                <Badge className="bg-emerald-600 text-white text-[10px] font-black uppercase shrink-0">
                   Saúde & Inclusão
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5 leading-snug">
                 Registros médicos, vínculos de perfil e agendamentos de consultas com os participantes.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
+            <span className="flex items-center gap-1 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none w-full sm:w-auto justify-center">
               <CheckCircle2 className="h-4 w-4" /> Salvo com sucesso!
             </span>
           )}
 
-          <Button
-            onClick={loadData}
-            variant="outline"
-            size="sm"
-            className="rounded-xl border-2 border-slate-300 dark:border-slate-700 font-bold text-xs min-h-[36px]"
-          >
-            <RefreshCw className="h-3.5 w-3.5 mr-1" />
-            Atualizar
-          </Button>
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+            <Button
+              onClick={loadData}
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-2 border-slate-300 dark:border-slate-700 font-bold text-xs min-h-[36px]"
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1" />
+              Atualizar
+            </Button>
 
-          <Button
-            onClick={() => openNewAppointmentModal()}
-            className="bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
-          >
-            <Calendar className="h-4 w-4 mr-1" />
-            Marcar Atendimento
-          </Button>
+            <Button
+              onClick={() => openNewAppointmentModal()}
+              className="bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Marcar Atendimento
+            </Button>
+          </div>
 
           <Button
             onClick={openNew}
-            className="bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
+            className="w-full sm:w-auto bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm text-xs min-h-[36px]"
           >
             <Plus className="h-4 w-4 mr-1" />
             Nova Ficha Médica
@@ -630,31 +632,31 @@ export function MedicalDashboard() {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3">
+      <div className="flex items-center gap-2 sm:gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar max-w-full">
         <button
           onClick={() => setActiveTab("records")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[40px] cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[38px] sm:min-h-[40px] shrink-0 cursor-pointer ${
             activeTab === "records"
               ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
               : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
           }`}
         >
-          <FileText className="h-4 w-4" />
-          Fichas Médicas ({records.length})
+          <FileText className="h-4 w-4 shrink-0" />
+          <span>Fichas Médicas ({records.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab("appointments")}
-          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[40px] cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[38px] sm:min-h-[40px] shrink-0 cursor-pointer ${
             activeTab === "appointments"
               ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
               : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
           }`}
         >
-          <Calendar className="h-4 w-4" />
-          Agendamentos & Consultas ({appointments.length})
+          <Calendar className="h-4 w-4 shrink-0" />
+          <span>Agendamentos & Consultas ({appointments.length})</span>
           {pendingAppointmentsCount > 0 && (
-            <span className="rounded-full bg-[#FC4E6D] text-white text-xs font-black px-1.5 py-0.2">
+            <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] sm:text-xs font-black px-1.5 py-0.2">
               {pendingAppointmentsCount}
             </span>
           )}
@@ -699,21 +701,21 @@ export function MedicalDashboard() {
           </div>
 
           {/* Filter and Search Bar */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Buscar por nome, companhia, quarto, bispo ou alergia..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-sm bg-white dark:bg-slate-900"
+                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-xs sm:text-sm bg-white dark:bg-slate-900 w-full"
               />
             </div>
 
             <Button
               variant={filterAllergy ? "default" : "outline"}
               onClick={() => setFilterAllergy(!filterAllergy)}
-              className={`rounded-2xl border-2 h-11 text-xs font-black ${
+              className={`rounded-2xl border-2 h-11 text-xs font-black shrink-0 ${
                 filterAllergy
                   ? "bg-rose-600 text-white border-slate-900"
                   : "border-slate-300 dark:border-slate-700"
@@ -730,7 +732,7 @@ export function MedicalDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
+            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 sm:p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
               <FileText className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
               <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma ficha médica encontrada</p>
               <p className="text-xs max-w-sm mx-auto">
@@ -738,8 +740,9 @@ export function MedicalDashboard() {
               </p>
             </div>
           ) : (
-            <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-              <Table>
+            <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden shadow-sm max-w-full min-w-0">
+              <div className="overflow-x-auto w-full">
+                <Table className="min-w-[650px]">
                 <TableHeader>
                   <TableRow className="border-b-2 border-slate-900 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                     <TableHead className="font-black text-xs uppercase tracking-wider text-slate-900 dark:text-white pl-6">Participante</TableHead>
@@ -894,6 +897,7 @@ export function MedicalDashboard() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </div>
           )}
         </div>
@@ -905,35 +909,37 @@ export function MedicalDashboard() {
       {activeTab === "appointments" && (
         <div className="space-y-6">
           {/* Appointment Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Buscar consulta por nome do jovem, profissional ou motivo..."
                 value={appointmentSearch}
                 onChange={(e) => setAppointmentSearch(e.target.value)}
-                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-sm bg-white dark:bg-slate-900"
+                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-xs sm:text-sm bg-white dark:bg-slate-900 w-full"
               />
             </div>
 
-            <select
-              value={appointmentStatusFilter}
-              onChange={(e) => setAppointmentStatusFilter(e.target.value)}
-              className="px-4 py-2 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-900 dark:text-white"
-            >
-              <option value="all">Todos os Status</option>
-              <option value="agendado">Apenas Agendados</option>
-              <option value="realizado">Apenas Realizados</option>
-              <option value="cancelado">Cancelados</option>
-            </select>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select
+                value={appointmentStatusFilter}
+                onChange={(e) => setAppointmentStatusFilter(e.target.value)}
+                className="flex-1 sm:flex-none px-3.5 py-2 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-900 dark:text-white h-11"
+              >
+                <option value="all">Todos os Status</option>
+                <option value="agendado">Apenas Agendados</option>
+                <option value="realizado">Apenas Realizados</option>
+                <option value="cancelado">Cancelados</option>
+              </select>
 
-            <Button
-              onClick={() => openNewAppointmentModal()}
-              className="bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl border-2 border-slate-900 shadow-sm text-xs h-11 shrink-0 min-h-[36px]"
-            >
-              <Plus className="h-4 w-4 mr-1.5" />
-              Marcar Novo Horário
-            </Button>
+              <Button
+                onClick={() => openNewAppointmentModal()}
+                className="flex-1 sm:flex-none bg-[#06D6A0] hover:bg-emerald-400 text-emerald-950 font-black rounded-2xl border-2 border-slate-900 shadow-sm text-xs h-11 shrink-0 min-h-[36px]"
+              >
+                <Plus className="h-4 w-4 mr-1.5" />
+                Marcar Horário
+              </Button>
+            </div>
           </div>
 
           {/* Appointments Grid */}
