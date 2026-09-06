@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ExternalLink, Sparkles, X, Radio } from "lucide-react";
+import { Heart, ExternalLink, Sparkles, X } from "lucide-react";
 
 function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -48,7 +48,6 @@ export function InstagramFeed() {
   const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [selectedPost, setSelectedPost] = useState<InstagramPost | null>(null);
-  const [beholdConnected, setBeholdConnected] = useState(false);
   const [beholdFeedId, setBeholdFeedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -76,7 +75,6 @@ export function InstagramFeed() {
           const json = await res.json();
           if (json.data && Array.isArray(json.data) && json.data.length > 0) {
             setPosts(json.data);
-            setBeholdConnected(Boolean(json.beholdConnected));
             setBeholdFeedId(json.feedId || envFeedId || null);
 
             if (typeof window !== "undefined") {
@@ -113,46 +111,6 @@ export function InstagramFeed() {
 
   return (
     <div className="space-y-4">
-      {/* Behold Status Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2 w-2 relative">
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                beholdConnected ? "bg-emerald-400" : "bg-amber-400"
-              }`}
-            />
-            <span
-              className={`relative inline-flex rounded-full h-2 w-2 ${
-                beholdConnected ? "bg-emerald-500" : "bg-amber-500"
-              }`}
-            />
-          </span>
-
-          {beholdConnected ? (
-            <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-              <Radio className="h-3 w-3 text-emerald-600" />
-              Sincronizado em tempo real via Behold (Feed ID: {beholdFeedId})
-            </span>
-          ) : (
-            <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-              <Sparkles className="h-3 w-3 text-[#FFE48A]" />
-              Behold pronto para conexão • Feed oficial @{OFFICIAL_HANDLE}
-            </span>
-          )}
-        </div>
-
-        <a
-          href="https://behold.so"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] font-extrabold text-[#007DA5] dark:text-[#01B6D1] hover:underline"
-          title="Saiba mais sobre a integração Behold"
-        >
-          behold.so ↗
-        </a>
-      </div>
-
       {/* Loading Skeleton */}
       {loading && posts.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
