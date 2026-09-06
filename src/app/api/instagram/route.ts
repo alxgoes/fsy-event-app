@@ -90,6 +90,8 @@ interface BeholdItem {
   };
 }
 
+export const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -97,7 +99,8 @@ export async function GET(request: Request) {
     const feedId =
       queryFeedId ||
       process.env.NEXT_PUBLIC_BEHOLD_FEED_ID ||
-      process.env.BEHOLD_FEED_ID;
+      process.env.BEHOLD_FEED_ID ||
+      DEFAULT_BEHOLD_FEED_ID;
 
     // If Behold Feed ID is configured, fetch live feed from Behold (https://behold.so)
     if (feedId && feedId.trim() && feedId !== "your_behold_feed_id") {

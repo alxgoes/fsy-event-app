@@ -41,6 +41,7 @@ export interface InstagramPost {
 const STORAGE_KEY_IG = "fsy_behold_instagram_posts_v4";
 const OFFICIAL_HANDLE = "fsy_ribeiraopreto";
 const OFFICIAL_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
+const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
 
 export function InstagramFeed() {
   const [posts, setPosts] = useState<InstagramPost[]>([]);
@@ -68,8 +69,8 @@ export function InstagramFeed() {
     // 2. Fetch fresh posts from /api/instagram (which queries Behold if configured)
     async function loadFeed() {
       try {
-        const envFeedId = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID;
-        const url = envFeedId ? `/api/instagram?feedId=${envFeedId}&_t=${Date.now()}` : `/api/instagram?_t=${Date.now()}`;
+        const envFeedId = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID || DEFAULT_BEHOLD_FEED_ID;
+        const url = `/api/instagram?feedId=${envFeedId}&_t=${Date.now()}`;
         const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
