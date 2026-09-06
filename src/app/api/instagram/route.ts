@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export interface InstagramPostRecord {
+interface InstagramPostRecord {
   id: string;
   imageUrl: string;
   caption: string;
   likesCount: number;
-  commentsCount: number;
+  commentsCount?: number;
   timestamp: string;
   authorHandle: string;
   authorAvatar?: string;
@@ -17,10 +17,10 @@ export interface InstagramPostRecord {
   mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
 }
 
-export const OFFICIAL_INSTAGRAM_HANDLE = "fsy_ribeiraopreto";
-export const OFFICIAL_INSTAGRAM_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
+const OFFICIAL_INSTAGRAM_HANDLE = "fsy_ribeiraopreto";
+const OFFICIAL_INSTAGRAM_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
 
-export const DEFAULT_INSTAGRAM_POSTS: InstagramPostRecord[] = [
+const DEFAULT_INSTAGRAM_POSTS: InstagramPostRecord[] = [
   {
     id: "ig-behold-1",
     imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80",
@@ -90,7 +90,7 @@ interface BeholdItem {
   };
 }
 
-export const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
+const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
 
 export async function GET(request: Request) {
   try {
