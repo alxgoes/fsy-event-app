@@ -149,6 +149,8 @@ export default function SchedulePage() {
 
           {/* Day Switcher Tabs */}
           <div
+            role="tablist"
+            aria-label="Dias da programação oficial do FSY"
             className={`grid gap-2 mt-5 ${
               isStaff ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"
             }`}
@@ -160,8 +162,12 @@ export default function SchedulePage() {
               return (
                 <button
                   key={key}
+                  role="tab"
+                  id={`tab-${key}`}
+                  aria-selected={isSelected}
+                  aria-controls="schedule-events-panel"
                   onClick={() => setSelectedDayKey(key)}
-                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-2xl font-black text-xs transition-all duration-200 border-2 cursor-pointer ${
+                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-2xl font-black text-xs transition-all duration-200 border-2 cursor-pointer min-h-[48px] ${
                     isSelected
                       ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
                       : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"

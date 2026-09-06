@@ -1,18 +1,32 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUserAndRole } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, full_name, role, stake, phone } = body;
+    const { id, full_name, role: requestedRole, stake, phone } = body;
 
     if (!id || !full_name) {
       return NextResponse.json(
         { error: "Dados incompletos para criação de perfil." },
         { status: 400 }
       );
+    }
+
+    // Security check: self-registration is strictly role: "jovem".
+    // Only authenticated coordinators / casal diretor can provision staff roles.
+    let assignedRole = "jovem";
+    if (requestedRole && requestedRole !== "jovem") {
+      const { user, role: callerRole } = await getCurrentUserAndRole();
+      const ALLOWED_ADMINS = ["coordenador", "casal_diretor", "logistica"];
+      if (user && callerRole && ALLOWED_ADMINS.includes(callerRole)) {
+        assignedRole = requestedRole;
+      } else {
+        assignedRole = "jovem";
+      }
     }
 
     const supabase = createAdminClient();
@@ -23,7 +37,7 @@ export async function POST(request: Request) {
         {
           id,
           full_name: full_name.trim(),
-          role: role || "jovem",
+          role: assignedRole,
           stake: stake?.trim() || null,
           phone: phone?.trim() || null,
           updated_at: new Date().toISOString(),

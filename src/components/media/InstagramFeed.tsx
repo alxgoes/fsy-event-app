@@ -1,69 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, ExternalLink, Sparkles, X } from "lucide-react";
-
-export interface InstagramPost {
-  id: string;
-  imageUrl: string;
-  caption: string;
-  likesCount: number;
-  commentsCount: number;
-  timestamp: string;
-  authorHandle: string;
-  authorAvatar?: string;
-  tag: string;
-  location?: string;
-}
-
-const MOCK_INSTAGRAM_POSTS: InstagramPost[] = [
-  {
-    id: "ig-1",
-    imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80",
-    caption: "A energia da Companhia 4 no grito de guerra foi surreal! 🔥 Quem aí já decorou todas as rimas? #FSYRibeirao2 #Cia4Alma #FirmeNaFe",
-    likesCount: 184,
-    commentsCount: 29,
-    timestamp: "há 2 horas",
-    authorHandle: "fsy_ribeirao2",
-    tag: "Gincana",
-    location: "Campo de Futebol Principal",
-  },
-  {
-    id: "ig-2",
-    imageUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&auto=format&fit=crop&q=80",
-    caption: "Momento especial do Devocional ao pôr do sol. 'Olhai para Mim em todos os pensamentos' ✨🙏",
-    likesCount: 245,
-    commentsCount: 42,
-    timestamp: "há 5 horas",
-    authorHandle: "fsy_ribeirao2",
-    tag: "Espiritual",
-    location: "Bosque das Palmeiras",
-  },
-  {
-    id: "ig-3",
-    imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&auto=format&fit=crop&q=80",
-    caption: "Noite dos Talentos a todo vapor! 🎭 Muita música, esquetes engraçadas e a dança sincronizada dos consultores!",
-    likesCount: 312,
-    commentsCount: 56,
-    timestamp: "Ontem",
-    authorHandle: "fsy_ribeirao2",
-    tag: "Noite dos Talentos",
-    location: "Auditório Master",
-  },
-  {
-    id: "ig-4",
-    imageUrl: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?w=800&auto=format&fit=crop&q=80",
-    caption: "Almoço das Companhias: união, amizade e a preparação para os jogos da tarde. Quem ganha a prova da esteira?",
-    likesCount: 167,
-    commentsCount: 18,
-    timestamp: "Ontem",
-    authorHandle: "fsy_ribeirao2",
-    tag: "Companhias",
-    location: "Refeitório Central",
-  },
-];
+import { Heart, ExternalLink, Sparkles, X, Radio } from "lucide-react";
 
 function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -83,10 +24,76 @@ function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+export interface InstagramPost {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  likesCount: number;
+  commentsCount?: number;
+  timestamp: string;
+  authorHandle: string;
+  authorAvatar?: string;
+  tag?: string;
+  postUrl?: string;
+  location?: string;
+}
+
+const STORAGE_KEY_IG = "fsy_behold_instagram_posts_v4";
+const OFFICIAL_HANDLE = "fsy_ribeiraopreto";
+const OFFICIAL_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
+
 export function InstagramFeed() {
-  const [posts, setPosts] = useState<InstagramPost[]>(MOCK_INSTAGRAM_POSTS);
+  const [posts, setPosts] = useState<InstagramPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [selectedPost, setSelectedPost] = useState<InstagramPost | null>(null);
+  const [beholdConnected, setBeholdConnected] = useState(false);
+  const [beholdFeedId, setBeholdFeedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 1. Try local storage cache first for instantaneous display
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(STORAGE_KEY_IG);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPosts(parsed);
+            setLoading(false);
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Fetch fresh posts from /api/instagram (which queries Behold if configured)
+    async function loadFeed() {
+      try {
+        const envFeedId = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID;
+        const url = envFeedId ? `/api/instagram?feedId=${envFeedId}&_t=${Date.now()}` : `/api/instagram?_t=${Date.now()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            setPosts(json.data);
+            setBeholdConnected(Boolean(json.beholdConnected));
+            setBeholdFeedId(json.feedId || envFeedId || null);
+
+            if (typeof window !== "undefined") {
+              try {
+                localStorage.setItem(STORAGE_KEY_IG, JSON.stringify(json.data));
+              } catch {}
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao carregar feed do Instagram via Behold:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadFeed();
+  }, []);
 
   const toggleLike = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -105,6 +112,58 @@ export function InstagramFeed() {
 
   return (
     <div className="space-y-4">
+      {/* Behold Status Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="flex h-2 w-2 relative">
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                beholdConnected ? "bg-emerald-400" : "bg-amber-400"
+              }`}
+            />
+            <span
+              className={`relative inline-flex rounded-full h-2 w-2 ${
+                beholdConnected ? "bg-emerald-500" : "bg-amber-500"
+              }`}
+            />
+          </span>
+
+          {beholdConnected ? (
+            <span className="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+              <Radio className="h-3 w-3 text-emerald-600" />
+              Sincronizado em tempo real via Behold (Feed ID: {beholdFeedId})
+            </span>
+          ) : (
+            <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-[#FFE48A]" />
+              Behold pronto para conexão • Feed oficial @{OFFICIAL_HANDLE}
+            </span>
+          )}
+        </div>
+
+        <a
+          href="https://behold.so"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] font-extrabold text-[#007DA5] dark:text-[#01B6D1] hover:underline"
+          title="Saiba mais sobre a integração Behold"
+        >
+          behold.so ↗
+        </a>
+      </div>
+
+      {/* Loading Skeleton */}
+      {loading && posts.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse border-2 border-slate-200 dark:border-slate-700"
+            />
+          ))}
+        </div>
+      ) : null}
+
       {/* Feed Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {posts.map((post) => {
@@ -117,21 +176,22 @@ export function InstagramFeed() {
               onClick={() => setSelectedPost(post)}
               className="group relative overflow-hidden rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm cursor-pointer flex flex-col justify-between"
             >
-              {/* Image Container with overlay */}
+              {/* Image Container */}
               <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
                 <Image
                   src={post.imageUrl}
                   alt={post.caption}
                   fill
+                  unoptimized
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                 />
 
-                {/* Tag Badge */}
+                {/* Top Badge */}
                 <div className="absolute top-2.5 left-2.5">
                   <span className="rounded-lg bg-black/60 backdrop-blur-md px-2 py-0.5 text-xs font-black text-white border border-white/20 uppercase">
-                    {post.tag}
+                    FSY 2027
                   </span>
                 </div>
 
@@ -140,37 +200,44 @@ export function InstagramFeed() {
                   <p className="text-xs font-bold line-clamp-2 leading-snug drop-shadow-md">
                     {post.caption}
                   </p>
-                  <span className="text-xs font-semibold text-white/80 mt-1">
+                  <span className="text-[11px] font-semibold text-slate-300 mt-1">
                     {post.timestamp}
                   </span>
                 </div>
               </div>
 
-              {/* Bottom Card Bar */}
-              <div className="p-3 border-t-2 border-slate-900 dark:border-slate-700 flex items-center justify-between text-xs bg-white dark:bg-slate-800">
-                <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                  <span className="text-xs font-extrabold text-[#007DA5]">@{post.authorHandle}</span>
-                </div>
+              {/* Card Footer */}
+              <div className="p-3 border-t-2 border-slate-900 dark:border-slate-700 flex flex-col justify-between gap-2 flex-1">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 line-clamp-2 leading-tight">
+                  {post.caption}
+                </p>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-700/60">
                   <button
                     type="button"
-                    aria-label={`Curtir publicação de @${post.authorHandle}`}
                     onClick={(e) => toggleLike(post.id, e)}
-                    className={`flex items-center gap-1 font-bold transition-colors min-h-[36px] min-w-[36px] ${
+                    aria-label={`Curtir postagem de @${post.authorHandle}`}
+                    className={`flex items-center gap-1 font-bold text-xs transition-colors p-1 -ml-1 rounded-lg min-h-[44px] cursor-pointer ${
                       isLiked
                         ? "text-[#FC4E6D]"
                         : "text-slate-600 dark:text-slate-300 hover:text-[#FC4E6D]"
                     }`}
                   >
                     <Heart className={`h-4 w-4 ${isLiked ? "fill-[#FC4E6D]" : ""}`} />
-                    <span className="text-xs">{post.likesCount}</span>
+                    <span className="text-xs">{post.likesCount} {post.likesCount === 1 ? "curtida" : "curtidas"}</span>
                   </button>
 
-                  <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300 font-bold">
-                    <MessageCircle className="h-4 w-4" />
-                    <span className="text-xs">{post.commentsCount}</span>
-                  </div>
+                  <a
+                    href={post.postUrl || OFFICIAL_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[11px] font-bold text-slate-500 hover:text-[#007DA5] dark:hover:text-[#01B6D1] flex items-center gap-1 p-1 min-h-[44px]"
+                    aria-label="Ver no Instagram"
+                  >
+                    <span>Ver no Insta</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
               </div>
             </motion.div>
@@ -178,24 +245,34 @@ export function InstagramFeed() {
         })}
       </div>
 
-      {/* Direct Instagram Profile Link */}
-      <div className="flex items-center justify-between pt-2">
+      {/* Official Profile Link (No hashtag) */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
           <Sparkles className="h-3.5 w-3.5 text-[#FFE48A]" />
-          <span>Use a hashtag <strong>#FSYRibeirao2</strong> para aparecer no mural oficial</span>
+          <span>Acompanhe todas as atualizações e novidades no perfil oficial!</span>
         </div>
 
         <a
-          href="https://instagram.com"
+          href={OFFICIAL_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-black text-[#FC4E6D] hover:underline min-h-[36px]"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-[#FC4E6D] hover:underline min-h-[44px] cursor-pointer"
+          aria-label={`Ver perfil oficial @${OFFICIAL_HANDLE} no Instagram`}
         >
-          <InstagramIcon className="h-3.5 w-3.5" />
-          <span>Ver perfil oficial @fsy_ribeirao2</span>
-          <ExternalLink className="h-3 w-3" />
+          <InstagramIcon className="h-4 w-4" />
+          <span>Ver perfil oficial @{OFFICIAL_HANDLE}</span>
+          <ExternalLink className="h-3.5 w-3.5" />
         </a>
       </div>
+
+      {/* Behold Widget Option (if configured with Behold web component script) */}
+      {beholdFeedId && (
+        <Script
+          src="https://w.behold.so/widget.js"
+          type="module"
+          strategy="lazyOnload"
+        />
+      )}
 
       {/* Lightbox / Post Detail Modal */}
       <AnimatePresence>
@@ -208,18 +285,20 @@ export function InstagramFeed() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
           >
             <motion.div
-              initial={{ scale: 0.95, y: 10 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 10 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-2xl overflow-hidden rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 shadow-brutal-md text-slate-900 dark:text-slate-100 flex flex-col md:flex-row"
+              className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-900 dark:border-slate-700 overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
             >
               {/* Close Button */}
               <button
+                type="button"
                 onClick={() => setSelectedPost(null)}
-                className="absolute top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-black/60 text-white hover:bg-black transition-colors"
+                aria-label="Fechar modal do post"
+                className="absolute top-3 right-3 z-10 flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-2xl bg-black/60 text-white hover:bg-black transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
 
               {/* Modal Image */}
@@ -228,6 +307,7 @@ export function InstagramFeed() {
                   src={selectedPost.imageUrl}
                   alt={selectedPost.caption}
                   fill
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
@@ -242,7 +322,7 @@ export function InstagramFeed() {
                     </div>
                     <div>
                       <p className="text-xs font-extrabold text-slate-900 dark:text-white">
-                        @{selectedPost.authorHandle}
+                        @{OFFICIAL_HANDLE}
                       </p>
                       {selectedPost.location && (
                         <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
@@ -261,10 +341,12 @@ export function InstagramFeed() {
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
                   <button
+                    type="button"
                     onClick={() => toggleLike(selectedPost.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm font-black text-xs transition-all min-h-[36px] ${
+                    aria-label={`Curtir publicação de @${OFFICIAL_HANDLE}`}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm font-black text-xs transition-all min-h-[44px] cursor-pointer ${
                       likedPosts[selectedPost.id]
                         ? "bg-pink-100 text-[#FC4E6D]"
                         : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
@@ -275,13 +357,15 @@ export function InstagramFeed() {
                   </button>
 
                   <a
-                    href="https://instagram.com"
+                    href={selectedPost.postUrl || OFFICIAL_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs font-bold text-[#007DA5] hover:underline min-h-[36px]"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] text-white font-black text-xs hover:opacity-90 transition-opacity min-h-[44px]"
+                    aria-label="Abrir esta publicação no Instagram"
                   >
-                    <span>Abrir no Instagram</span>
-                    <ExternalLink className="h-3 w-3" />
+                    <InstagramIcon className="h-4 w-4" />
+                    <span>Ver no Instagram</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>
               </div>

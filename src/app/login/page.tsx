@@ -399,12 +399,13 @@ function LoginFormContent() {
         {mode === "login" && (
           <form onSubmit={handleEmailSignIn} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+              <label htmlFor="login-email" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                 E-mail cadastrado
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
+                  id="login-email"
                   type="email"
                   placeholder="exemplo@fsybrasil.com"
                   value={email}
@@ -417,7 +418,7 @@ function LoginFormContent() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-slate-700 dark:text-slate-300">
+                <label htmlFor="login-password" className="text-xs font-black text-slate-700 dark:text-slate-300">
                   Senha
                 </label>
                 <button
@@ -435,6 +436,7 @@ function LoginFormContent() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
@@ -445,6 +447,7 @@ function LoginFormContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? (
@@ -513,12 +516,13 @@ function LoginFormContent() {
           <form onSubmit={handleEmailRegister} className="space-y-3.5">
             {/* Full Name */}
             <div className="space-y-1">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+              <label htmlFor="register-fullname" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                 Nome Completo *
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
+                  id="register-fullname"
                   type="text"
                   placeholder="Seu nome completo"
                   value={fullName}
@@ -531,12 +535,13 @@ function LoginFormContent() {
 
             {/* Email */}
             <div className="space-y-1">
-              <label className="text-xs font-black text-slate-700 dark:text-slate-300 block">
+              <label htmlFor="register-email" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
                 E-mail para acesso *
               </label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
+                  id="register-email"
                   type="email"
                   placeholder="seuemail@exemplo.com"
                   value={regEmail}
@@ -547,17 +552,16 @@ function LoginFormContent() {
               </div>
             </div>
 
-
-
             {/* Passwords (2 columns) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
+                <label htmlFor="register-password" className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
                   Senha (mín. 6 dígitos) *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <Input
+                    id="register-password"
                     type={showRegPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={regPassword}
@@ -568,6 +572,7 @@ function LoginFormContent() {
                   <button
                     type="button"
                     onClick={() => setShowRegPassword(!showRegPassword)}
+                    aria-label={showRegPassword ? "Ocultar senha de cadastro" : "Exibir senha de cadastro"}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     {showRegPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
@@ -576,12 +581,13 @@ function LoginFormContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
+                <label htmlFor="register-confirm-password" className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
                   Confirmar Senha *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <Input
+                    id="register-confirm-password"
                     type={showRegPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={regConfirmPassword}
@@ -596,12 +602,13 @@ function LoginFormContent() {
             {/* Optional Stake and Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
+                <label htmlFor="register-stake" className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
                   Estaca / Ala (Opcional)
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <Input
+                    id="register-stake"
                     type="text"
                     placeholder="Ex: Ribeirão Preto Leste"
                     value={regStake}
@@ -613,12 +620,13 @@ function LoginFormContent() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
+                <label htmlFor="register-phone" className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
                   Telefone / WhatsApp (Opcional)
                 </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <Input
+                    id="register-phone"
                     type="text"
                     placeholder="(16) 99999-9999"
                     value={regPhone}

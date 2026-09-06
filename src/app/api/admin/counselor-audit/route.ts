@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUserAndRole } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,6 +24,21 @@ export interface CounselorAuditLog {
 
 export async function GET(request: Request) {
   try {
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    if (!role || !ALLOWED_ROLES.includes(role)) {
+      return NextResponse.json(
+        { error: "Acesso negado aos registros de auditoria." },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search")?.toLowerCase().trim();
     const companyId = searchParams.get("company_id");
@@ -92,11 +108,24 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const { user, role: callerRole } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    const ALLOWED_POST_ROLES = [...ALLOWED_ROLES, "consultor"];
+    if (!callerRole || !ALLOWED_POST_ROLES.includes(callerRole)) {
+      return NextResponse.json(
+        { error: "Acesso negado para registrar auditoria." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const {
-      author_id,
-      author_name,
-      author_role,
       company_id,
       company_name,
       action_type,
@@ -106,6 +135,10 @@ export async function POST(request: Request) {
       details,
     } = body;
 
+    const author_id = user.id;
+    const author_role = callerRole;
+    const author_name = body.author_name ? String(body.author_name).trim() : (user.email?.split("@")[0] || "Consultor");
+
     if (!author_name || !content) {
       return NextResponse.json(
         { error: "Nome do autor e conteúdo da alteração são obrigatórios." },
@@ -114,9 +147,9 @@ export async function POST(request: Request) {
     }
 
     const payload = {
-      author_id: author_id || null,
-      author_name: String(author_name).trim(),
-      author_role: author_role || "consultor",
+      author_id,
+      author_name,
+      author_role,
       company_id: company_id || null,
       company_name: company_name || null,
       action_type: action_type || "publicou_comunicado",
@@ -162,18 +195,25 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
-    const isAll = searchParams.get("all") === "true";
-    const userRole = searchParams.get("role");
+    const { user, role: callerRole } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
 
-    // Strictly enforce role check
-    if (userRole && !ALLOWED_ROLES.includes(userRole)) {
+    // Strictly enforce server-side role check
+    if (!callerRole || !ALLOWED_ROLES.includes(callerRole)) {
       return NextResponse.json(
         { error: "Apenas Casal Diretor, Casal Logística e Coordenadores podem excluir o histórico." },
         { status: 403 }
       );
     }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    const isAll = searchParams.get("all") === "true";
 
     const supabase = createAdminClient();
 

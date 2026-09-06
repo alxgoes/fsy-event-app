@@ -1,11 +1,29 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUserAndRole } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const ALLOWED_USER_MANAGERS = ["coordenador", "casal_diretor", "logistica"];
+
 export async function GET() {
   try {
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    if (!role || !ALLOWED_USER_MANAGERS.includes(role)) {
+      return NextResponse.json(
+        { error: "Acesso negado à gestão de usuários." },
+        { status: 403 }
+      );
+    }
+
     const supabase = createAdminClient();
 
     const [usersRes, companiesRes] = await Promise.all([
@@ -55,6 +73,21 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const { user, role: callerRole } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    if (!callerRole || !ALLOWED_USER_MANAGERS.includes(callerRole)) {
+      return NextResponse.json(
+        { error: "Acesso negado para alteração de perfis de usuário." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { id, role, company_id, stake, room, full_name } = body;
 

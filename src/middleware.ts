@@ -46,7 +46,9 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute =
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
-    pathname.startsWith("/api") ||
+    pathname.startsWith("/api/auth") ||
+    pathname === "/api/instagram" ||
+    pathname === "/api/media" ||
     pathname.startsWith("/acesso-negado") ||
     pathname.startsWith("/loading-preview") ||
     pathname.startsWith("/offline") ||
@@ -57,6 +59,12 @@ export async function middleware(request: NextRequest) {
     pathname === "/manifest.json";
 
   if (!user && !isPublicRoute) {
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Autenticação necessária." },
+        { status: 401 }
+      );
+    }
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     if (pathname !== "/") {

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentUserAndRole } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+const ALLOWED_ROLES = ["medico", "coordenador", "casal_diretor", "logistica"];
 
 interface ExtraContactsPayload {
   contact2?: { name?: string; phone?: string; relationship?: string };
@@ -35,6 +38,21 @@ function parseRecord(record: Record<string, unknown>) {
 
 export async function GET() {
   try {
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    if (!role || !ALLOWED_ROLES.includes(role)) {
+      return NextResponse.json(
+        { error: "Acesso negado aos prontuários médicos confidenciais." },
+        { status: 403 }
+      );
+    }
+
     const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("medical_records")
@@ -59,6 +77,20 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Acesso não autorizado. Sessão necessária." },
+        { status: 401 }
+      );
+    }
+
+    if (!role || !ALLOWED_ROLES.includes(role)) {
+      return NextResponse.json(
+        { error: "Acesso negado para alteração de prontuários médicos." },
+        { status: 403 }
+      );
+    }
     const body = await request.json();
     const {
       full_name,

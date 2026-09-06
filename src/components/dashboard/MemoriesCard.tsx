@@ -2,7 +2,6 @@
 
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import { InstagramFeed } from "@/components/media/InstagramFeed";
 
 function InstagramIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -40,17 +39,12 @@ export function MemoriesCard() {
               <InstagramIcon className="h-6 w-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-black uppercase tracking-wider text-[#FC4E6D] flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Instagram Oficial
-                </span>
-                <span className="rounded-full bg-pink-100 dark:bg-pink-950 px-2.5 py-0.5 text-xs font-black text-[#FC4E6D] border border-pink-200 dark:border-pink-800">
-                  #FSYRibeirao2
-                </span>
-              </div>
-              <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
-                Mural Social da Juventude ✨
+              <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                Mural do FSY no Instagram
               </h3>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                @fsy_ribeiraopreto
+              </p>
             </div>
           </div>
 
@@ -67,4 +61,3 @@ export function MemoriesCard() {
     </motion.div>
   );
 }
-

@@ -69,12 +69,12 @@ function SheetContent({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 h-8 w-8 rounded-full p-0 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="absolute top-4 right-4 min-h-[44px] min-w-[44px] rounded-full p-0 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
               />
             }
           >
             <XIcon className="h-4 w-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">Fechar</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

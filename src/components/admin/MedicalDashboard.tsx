@@ -170,8 +170,8 @@ export function MedicalDashboard() {
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
   const [apptUserId, setApptUserId] = useState<string>("");
   const [apptYouthName, setApptYouthName] = useState<string>("");
-  const [apptProfessional, setApptProfessional] = useState<string>("Dra. Camila (Médica)");
-  const [apptReason, setApptReason] = useState<string>("Acompanhamento de Alergia");
+  const [apptProfessional, setApptProfessional] = useState<string>("");
+  const [apptReason, setApptReason] = useState<string>("");
   const [apptDate, setApptDate] = useState<string>("");
   const [apptNotes, setApptNotes] = useState<string>("");
   const [savingAppt, setSavingAppt] = useState(false);
@@ -434,8 +434,8 @@ export function MedicalDashboard() {
       setApptUserId("");
       setApptYouthName("");
     }
-    setApptProfessional("Dra. Camila (Médica)");
-    setApptReason("Acompanhamento de Alergia");
+    setApptProfessional("");
+    setApptReason("");
     setApptDate("2027-02-06T14:30");
     setApptNotes("");
     setYouthSelectSearch("");
@@ -632,10 +632,18 @@ export function MedicalDashboard() {
       )}
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 sm:gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar max-w-full">
+      <div
+        role="tablist"
+        aria-label="Seções do painel médico"
+        className="flex items-center gap-2 sm:gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar max-w-full"
+      >
         <button
+          role="tab"
+          id="tab-records"
+          aria-selected={activeTab === "records"}
+          aria-controls="panel-records"
           onClick={() => setActiveTab("records")}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[38px] sm:min-h-[40px] shrink-0 cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[44px] shrink-0 cursor-pointer ${
             activeTab === "records"
               ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
               : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
@@ -646,8 +654,12 @@ export function MedicalDashboard() {
         </button>
 
         <button
+          role="tab"
+          id="tab-appointments"
+          aria-selected={activeTab === "appointments"}
+          aria-controls="panel-appointments"
           onClick={() => setActiveTab("appointments")}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[38px] sm:min-h-[40px] shrink-0 cursor-pointer ${
+          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[44px] shrink-0 cursor-pointer ${
             activeTab === "appointments"
               ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
               : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
@@ -667,7 +679,12 @@ export function MedicalDashboard() {
       {/* TAB 1: FICHAS MÉDICAS                                    */}
       {/* ======================================================== */}
       {activeTab === "records" && (
-        <div className="space-y-6">
+        <div
+          role="tabpanel"
+          id="panel-records"
+          aria-labelledby="tab-records"
+          className="space-y-6"
+        >
           {/* KPI Cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card className="p-4 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
@@ -705,6 +722,8 @@ export function MedicalDashboard() {
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
+                id="medical-records-search"
+                aria-label="Buscar fichas médicas por nome, companhia, quarto, bispo ou alergia"
                 placeholder="Buscar por nome, companhia, quarto, bispo ou alergia..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -907,12 +926,19 @@ export function MedicalDashboard() {
       {/* TAB 2: AGENDAMENTOS & CONSULTAS                          */}
       {/* ======================================================== */}
       {activeTab === "appointments" && (
-        <div className="space-y-6">
+        <div
+          role="tabpanel"
+          id="panel-appointments"
+          aria-labelledby="tab-appointments"
+          className="space-y-6"
+        >
           {/* Appointment Filters */}
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
+                id="appointments-search"
+                aria-label="Buscar consultas por nome do jovem, profissional ou motivo"
                 placeholder="Buscar consulta por nome do jovem, profissional ou motivo..."
                 value={appointmentSearch}
                 onChange={(e) => setAppointmentSearch(e.target.value)}
@@ -1163,8 +1189,8 @@ export function MedicalDashboard() {
                 <Input
                   value={apptProfessional}
                   onChange={(e) => setApptProfessional(e.target.value)}
-                  placeholder="ex: Dra. Camila (Médica) ou Dr. Lucas (Psicólogo)"
-                  className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold"
+                  placeholder="ex: Dra. Camila (Médica) ou digite outro profissional..."
+                  className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal placeholder:opacity-70"
                 />
               </div>
 
@@ -1191,7 +1217,7 @@ export function MedicalDashboard() {
                   <button
                     key={r}
                     type="button"
-                    onClick={() => setApptReason(r)}
+                    onClick={() => setApptReason(apptReason === r ? "" : r)}
                     className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-colors ${
                       apptReason === r
                         ? "bg-emerald-600 text-white border-emerald-700"
@@ -1205,8 +1231,8 @@ export function MedicalDashboard() {
               <Input
                 value={apptReason}
                 onChange={(e) => setApptReason(e.target.value)}
-                placeholder="Descreva o motivo da consulta..."
-                className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold"
+                placeholder="ex: Acompanhamento de Alergia ou digite um motivo personalizado..."
+                className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal placeholder:opacity-70"
               />
             </div>
 

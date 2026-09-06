@@ -411,10 +411,10 @@ export function CounselorAuditManager() {
         </div>
 
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
-          <span className="text-[11px] font-black uppercase text-purple-600 dark:text-purple-400 block">
+          <span className="text-[11px] font-black uppercase text-[#007DA5] dark:text-[#01B6D1] block">
             Consultores Ativos
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 mt-1">
+          <div className="font-heading text-2xl sm:text-3xl font-black text-[#007DA5] dark:text-[#01B6D1] mt-1">
             {uniqueAuthors}
           </div>
           <span className="text-[11px] font-bold text-slate-400 mt-1 block">
@@ -564,7 +564,8 @@ export function CounselorAuditManager() {
                       type="button"
                       onClick={() => setLogToDelete(log)}
                       title="Apagar este registro do histórico"
-                      className="p-1.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
+                      aria-label={`Apagar este registro de auditoria de ${log.author_name}`}
+                      className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
