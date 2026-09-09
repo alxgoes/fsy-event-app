@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback, type ReactNode } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo, type ReactNode } from 'react'
 import { motion, useSpring, useMotionValue, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { playHoverSound, playClickSound } from '@/lib/sound'
@@ -40,7 +40,7 @@ export function ScrollIndicator({
     damping: reduceMotion ? 100 : 30,
   })
 
-  const filteredSections = sections.filter((s) => s.level === undefined || s.level === 2 || s.level === 3)
+  const filteredSections = useMemo(() => sections.filter((s) => s.level === undefined || s.level === 2 || s.level === 3), [sections])
   const totalTicks = 60
 
   const updateHeight = useCallback(() => {
@@ -69,7 +69,9 @@ export function ScrollIndicator({
     const container = externalScrollRef?.current || (typeof window !== 'undefined' ? window : null)
     if (!container) return
 
-    const handleScroll = () => {
+    let frame = 0
+    const measureSections = () => {
+      frame = 0
       const targetEls = filteredSections.map((_, i) => {
         const root = externalScrollRef?.current || document
         return root.querySelector(`[data-section-index="${i}"]`) as HTMLElement | null
@@ -94,10 +96,17 @@ export function ScrollIndicator({
 
       setInternalIndex(bestIdx)
     }
+    const handleScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measureSections)
+    }
 
     const scrollTarget = externalScrollRef?.current || window
     scrollTarget.addEventListener('scroll', handleScroll, { passive: true })
-    return () => scrollTarget.removeEventListener('scroll', handleScroll)
+    handleScroll()
+    return () => {
+      cancelAnimationFrame(frame)
+      scrollTarget.removeEventListener('scroll', handleScroll)
+    }
   }, [controlledIndex, externalScrollRef, filteredSections])
 
   const handleClick = (index: number) => {
@@ -113,9 +122,9 @@ export function ScrollIndicator({
     if (sectionEl) {
       if (container) {
         const top = sectionEl.offsetTop - container.offsetTop - 16
-        container.scrollTo({ top, behavior: 'smooth' })
+        container.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' })
       } else {
-        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        sectionEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
       }
     }
   }

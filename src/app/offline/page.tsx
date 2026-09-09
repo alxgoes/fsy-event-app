@@ -24,7 +24,7 @@ export default function OfflinePage() {
             Você está Offline
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
-            Não se preocupe! O aplicativo FSY salvou a programação, sua companhia e os avisos mais recentes neste aparelho para acesso instantâneo.
+            Conecte-se para consultar atualizações e acessar os dados da sessão.
           </p>
         </div>
 
@@ -34,7 +34,7 @@ export default function OfflinePage() {
             className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-xs font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-[#005E7C] transition-all"
           >
             <Home className="h-4 w-4" />
-            <span>Abrir Programação</span>
+            <span>Voltar ao painel</span>
           </Link>
           <button
             type="button"

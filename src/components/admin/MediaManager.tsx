@@ -427,7 +427,7 @@ export function MediaManager() {
                       />
                     </div>
                     <p className="text-xs text-slate-500 mt-1">
-                      💡 Cole o link da foto com permissão &ldquo;Qualquer pessoa com o link pode ver&rdquo;.
+                      Cole o link da foto com permissão &ldquo;Qualquer pessoa com o link pode ver&rdquo;.
                     </p>
                   </div>
 

@@ -1,0 +1,79 @@
+.sidebar {
+  position: fixed;
+  inset: max(12px, env(safe-area-inset-top)) auto max(12px, env(safe-area-inset-bottom)) 12px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  border: 1px solid #e0e2e2;
+  border-radius: 24px;
+  background: #faf8f5;
+  box-shadow: 0 16px 48px -16px rgb(15 23 42 / 22%), 0 2px 8px rgb(15 23 42 / 4%);
+  transform: translateX(calc(-100% - 24px));
+  visibility: hidden;
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1), visibility 240ms;
+}
+
+.open {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1);
+}
+.scroll { scrollbar-width: thin; scrollbar-color: #c5d7da transparent; }
+
+.navLink, .portal, .signOut {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 11px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: transform 180ms ease-out, background-color 180ms, color 180ms;
+}
+
+.navLink { position: relative; isolation: isolate; color: #475569; }
+.active { color: white; }
+.activePill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: #007da5;
+  box-shadow: 0 5px 12px -4px rgb(0 125 165 / 28%);
+}
+.portal {
+  color: #005e7c;
+  background: #eef6f5;
+  border: 1px solid rgb(0 125 165 / 12%);
+  box-shadow: 0 3px 8px -5px rgb(15 23 42 / 18%);
+}
+.signOut { width: 100%; justify-content: center; color: #475569; background: #f3f2ed; cursor: pointer; }
+.signOut:disabled { opacity: .6; cursor: wait; }
+.sidebar :is(a, button):focus-visible { outline: 2px solid #007da5; outline-offset: 3px; }
+
+@media (hover: hover) {
+  .navLink:not(.active):hover { color: #005e7c; background: #edf4f3; transform: translateY(-1px); }
+  .portal:hover, .signOut:not(:disabled):hover { background: #e5eeec; transform: translateY(-1px); }
+}
+
+.navLink:active, .portal:active, .signOut:active { transform: translateY(0); }
+:global(.dark) .sidebar { background: #0f172a; border-color: #334155; box-shadow: 0 16px 40px -16px rgb(15 23 42 / 45%); }
+:global(.dark) .navLink, :global(.dark) .signOut { color: #cbd5e1; }
+:global(.dark) .active { color: white; }
+:global(.dark) .portal { color: #b0eefc; border-color: rgb(125 227 244 / 20%); background: rgb(0 125 165 / 15%); }
+:global(.dark) .signOut { background: #1e293b; }
+:global(.dark) .navLink:not(.active):hover, :global(.dark) .portal:hover, :global(.dark) .signOut:not(:disabled):hover { color: #b0eefc; background: rgb(0 125 165 / 25%); }
+:global(.dark) .sidebar :is(a, button):focus-visible { outline-color: #7de3f4; }
+
+@media (min-width: 1024px) {
+  .sidebar { inset: 80px auto 16px 16px; z-index: 30; width: 264px; transform: none; visibility: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .navLink, .portal, .signOut { transition: none; }
+  .navLink:not(.active):hover, .portal:hover, .signOut:not(:disabled):hover { transform: none; }
+}

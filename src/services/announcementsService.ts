@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { getOfflineCacheKey } from "@/services/offlineCache";
 
 export interface Announcement {
   id: string;
@@ -13,11 +14,12 @@ export interface Announcement {
   profiles?: { full_name: string; role: string } | null;
 }
 
-const STORAGE_KEY = "fsy_offline_announcements";
+
 
 export async function getAnnouncements(
   companyId?: string | null
 ): Promise<{ data: Announcement[]; fromCache: boolean }> {
+  const storageKey = await getOfflineCacheKey("announcements", companyId);
   try {
     const endpoint = companyId
       ? `/api/announcements?company_id=${encodeURIComponent(companyId)}&_t=${Date.now()}`
@@ -31,9 +33,9 @@ export async function getAnnouncements(
         ? list
         : list.filter((a) => !a.target_company_id);
 
-      if (typeof window !== "undefined") {
+      if (storageKey && typeof window !== "undefined") {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+          localStorage.setItem(storageKey, JSON.stringify(filtered));
         } catch {}
       }
       return { data: filtered, fromCache: false };
@@ -49,9 +51,9 @@ export async function getAnnouncements(
     }
     const { data: dbData } = await query.order("created_at", { ascending: false });
     if (dbData) {
-      if (typeof window !== "undefined") {
+      if (storageKey && typeof window !== "undefined") {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(dbData));
+          localStorage.setItem(storageKey, JSON.stringify(dbData));
         } catch {}
       }
       return { data: dbData as Announcement[], fromCache: false };
@@ -61,9 +63,9 @@ export async function getAnnouncements(
   }
 
   // Fallback to offline localStorage cache
-  if (typeof window !== "undefined") {
+  if (storageKey && typeof window !== "undefined") {
     try {
-      const cached = localStorage.getItem(STORAGE_KEY);
+      const cached = localStorage.getItem(storageKey);
       if (cached) {
         return { data: JSON.parse(cached) as Announcement[], fromCache: true };
       }

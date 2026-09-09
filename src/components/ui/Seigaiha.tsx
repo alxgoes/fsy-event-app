@@ -87,6 +87,9 @@ class WaveScene {
   private frameId = 0;
   private lastT = 0;
   private disposed = false;
+  private sprites: HTMLCanvasElement[] = [];
+  private spriteKey = "";
+  private pointerDirty = false;
 
   private px = -1;
   private py = -1;
@@ -153,15 +156,11 @@ class WaveScene {
   };
 
   private onMove = (e: PointerEvent) => {
+    if (!this.cfg.followPointer || this.prefersReducedMotion) return;
     this.gripTarget = 1;
-    const rect = this.container.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    this.tx = e.clientX - rect.left;
-    this.ty = e.clientY - rect.top;
-    if (this.px < 0) {
-      this.px = this.tx;
-      this.py = this.ty;
-    }
+    this.tx = e.clientX;
+    this.ty = e.clientY;
+    this.pointerDirty = true;
   };
 
   start() {
@@ -189,11 +188,14 @@ class WaveScene {
     this.canvas.width = Math.round(width * this.dpr);
     this.canvas.height = Math.round(height * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    if (this.prefersReducedMotion) this.step();
   }
 
   updateConfig(cfg: Config) {
     if (this.disposed) return;
     this.cfg = cfg;
+    this.spriteKey = "";
+    if (this.prefersReducedMotion) this.step();
   }
 
   private step() {
@@ -208,6 +210,16 @@ class WaveScene {
     const ctx = this.ctx;
     this.time += dt;
 
+    if (this.pointerDirty) {
+      const rect = this.container.getBoundingClientRect();
+      this.tx -= rect.left;
+      this.ty -= rect.top;
+      this.pointerDirty = false;
+      if (this.px < 0) {
+        this.px = this.tx;
+        this.py = this.ty;
+      }
+    }
     if (this.px >= 0) {
       const k = 1 - Math.exp(-dt * 10);
       this.px += (this.tx - this.px) * k;
@@ -243,6 +255,22 @@ class WaveScene {
         ? travel % (rowH * 2)
         : 0;
     const reach2 = S.reach * S.reach;
+    const padding = Math.ceil(S.outline * 2 + 1);
+    const spriteKey = `${this.dpr}:${R}:${S.rings}:${S.outline}:${this.cfg.colorB}:${this.cfg.colorA}:${this.cfg.colors.join(",")}`;
+    if (this.spriteKey !== spriteKey) {
+      this.sprites = palette.map((crest) => {
+        const sprite = document.createElement("canvas");
+        sprite.width = Math.ceil((R * 2 + padding * 2) * this.dpr);
+        sprite.height = Math.ceil((R + padding * 2) * this.dpr);
+        const spriteCtx = sprite.getContext("2d");
+        if (spriteCtx) {
+          spriteCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+          this.drawWave(spriteCtx, R + padding, R + padding, R, S, b, crest, 0);
+        }
+        return sprite;
+      });
+      this.spriteKey = spriteKey;
+    }
 
     for (let r = -2; r < rows; r++) {
       const y = r * rowH + driftY;
@@ -261,26 +289,36 @@ class WaveScene {
           }
         }
 
-        for (let i = S.rings; i >= 1; i--) {
-          const t = i / S.rings;
-          const band = i % 2 === 0 ? 0.15 : 0.75;
-          ctx.fillStyle = mix(
-            b,
-            crest,
-            Math.min(1, band * (0.35 + t * 0.75) + lift * 0.7),
-            1
-          );
-          ctx.beginPath();
-          ctx.arc(x, y, R * t, Math.PI, Math.PI * 2);
-          ctx.closePath();
-          ctx.fill();
-
-          if (S.outline > 0.02 && i === S.rings) {
-            ctx.strokeStyle = mix(b, crest, 0.9, 0.5);
-            ctx.lineWidth = S.outline * 2;
-            ctx.stroke();
-          }
+        if (lift > 0) {
+          this.drawWave(ctx, x, y, R, S, b, crest, lift);
+        } else {
+          // Reuse each palette motif; only pointer-lit waves need fresh paths.
+          const sprite = this.sprites[((r % palette.length) + palette.length) % palette.length];
+          ctx.drawImage(sprite, x - R - padding, y - R - padding, sprite.width / this.dpr, sprite.height / this.dpr);
         }
+      }
+    }
+  }
+
+  private drawWave(ctx: CanvasRenderingContext2D, x: number, y: number, R: number, S: ReturnType<typeof settingsFor>, b: number[], crest: number[], lift: number) {
+    for (let i = S.rings; i >= 1; i--) {
+      const t = i / S.rings;
+      const band = i % 2 === 0 ? 0.15 : 0.75;
+      ctx.fillStyle = mix(
+        b,
+        crest,
+        Math.min(1, band * (0.35 + t * 0.75) + lift * 0.7),
+        1
+      );
+      ctx.beginPath();
+      ctx.arc(x, y, R * t, Math.PI, Math.PI * 2);
+      ctx.closePath();
+      ctx.fill();
+
+      if (S.outline > 0.02 && i === S.rings) {
+        ctx.strokeStyle = mix(b, crest, 0.9, 0.5);
+        ctx.lineWidth = S.outline * 2;
+        ctx.stroke();
       }
     }
   }
@@ -404,7 +442,7 @@ export default function Seigaiha({
     <div
       ref={containerRef}
       role="img"
-      aria-label="Overlapping wave scales in the seigaiha pattern"
+      aria-label="Padrão de ondas sobrepostas do FSY"
       className={className}
       style={{
         position: "relative",

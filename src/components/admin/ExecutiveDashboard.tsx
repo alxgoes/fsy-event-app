@@ -66,10 +66,23 @@ export function ExecutiveDashboard() {
     const supabase = createClient();
 
     try {
-      // 1. Fetch profiles counts
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, role, company_id, room");
+      const [
+        { data: profiles },
+        { count: companiesCount },
+        { count: medicalCount },
+        { data: annData },
+        { count: photosCount },
+      ] = await Promise.all([
+        supabase.from("profiles").select("id, role, company_id, room"),
+        supabase.from("companies").select("*", { count: "exact", head: true }),
+        supabase.from("youth_medical_profiles").select("*", { count: "exact", head: true }),
+        supabase
+          .from("announcements")
+          .select("id, title, priority, category, created_at, content")
+          .order("created_at", { ascending: false })
+          .limit(4),
+        supabase.from("media_photos").select("*", { count: "exact", head: true }),
+      ]);
 
       let totalY = 0;
       let withComp = 0;
@@ -88,28 +101,6 @@ export function ExecutiveDashboard() {
           }
         });
       }
-
-      // 2. Fetch companies count
-      const { count: companiesCount } = await supabase
-        .from("companies")
-        .select("*", { count: "exact", head: true });
-
-      // 3. Fetch medical alerts count
-      const { count: medicalCount } = await supabase
-        .from("youth_medical_profiles")
-        .select("*", { count: "exact", head: true });
-
-      // 4. Fetch announcements
-      const { data: annData } = await supabase
-        .from("announcements")
-        .select("id, title, priority, category, created_at, content")
-        .order("created_at", { ascending: false })
-        .limit(4);
-
-      // 5. Fetch photos count
-      const { count: photosCount } = await supabase
-        .from("media_photos")
-        .select("*", { count: "exact", head: true });
 
       setMetrics({
         totalYouth: totalY,

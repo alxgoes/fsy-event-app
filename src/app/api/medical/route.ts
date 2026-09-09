@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserAndRole } from "@/lib/supabase/server";
+import { medicalRecordSchema, medicalRecordUpdateSchema } from "@/types/medical";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +93,9 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
-    const body = await request.json();
+    const parsedBody = medicalRecordSchema.safeParse(await request.json());
+    if (!parsedBody.success) return NextResponse.json({ error: "Confira os dados da ficha médica." }, { status: 400 });
+    const body = parsedBody.data;
     const {
       full_name,
       user_id,
@@ -182,7 +186,12 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const body = await request.json();
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
+    if (!role || !ALLOWED_ROLES.includes(role)) return NextResponse.json({ error: "Acesso negado às fichas médicas." }, { status: 403 });
+    const parsedBody = medicalRecordUpdateSchema.safeParse(await request.json());
+    if (!parsedBody.success) return NextResponse.json({ error: "Confira os dados da ficha médica." }, { status: 400 });
+    const body = parsedBody.data;
     const {
       id,
       contact_2_name,
@@ -203,21 +212,28 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "ID da ficha é obrigatório." }, { status: 400 });
     }
 
+    const supabase = createAdminClient();
+    const { data: existing, error: readError } = await supabase.from("medical_records")
+      .select("emergency_contact_alt_phone").eq("id", id).maybeSingle();
+    if (readError) return NextResponse.json({ error: "Não foi possível consultar a ficha médica." }, { status: 500 });
+    if (!existing) return NextResponse.json({ error: "Ficha médica não encontrada." }, { status: 404 });
+    let oldContacts: ExtraContactsPayload = {};
+    try { oldContacts = JSON.parse(existing.emergency_contact_alt_phone || "{}"); } catch { /* Legacy plain text. */ }
     const extraContacts: ExtraContactsPayload = {
       contact2: {
-        name: contact_2_name?.trim() || "",
-        phone: contact_2_phone?.trim() || "",
-        relationship: (contact_2_rel || contact_2_relationship)?.trim() || "",
+        name: contact_2_name !== undefined ? contact_2_name || "" : oldContacts.contact2?.name || "",
+        phone: contact_2_phone !== undefined ? contact_2_phone || "" : oldContacts.contact2?.phone || "",
+        relationship: contact_2_rel !== undefined || contact_2_relationship !== undefined ? contact_2_rel || contact_2_relationship || "" : oldContacts.contact2?.relationship || "",
       },
       contact3: {
-        name: contact_3_name?.trim() || "",
-        phone: contact_3_phone?.trim() || "",
-        relationship: (contact_3_rel || contact_3_relationship)?.trim() || "",
+        name: contact_3_name !== undefined ? contact_3_name || "" : oldContacts.contact3?.name || "",
+        phone: contact_3_phone !== undefined ? contact_3_phone || "" : oldContacts.contact3?.phone || "",
+        relationship: contact_3_rel !== undefined || contact_3_relationship !== undefined ? contact_3_rel || contact_3_relationship || "" : oldContacts.contact3?.relationship || "",
       },
       bishop: {
-        name: bishop_name?.trim() || "",
-        phone: bishop_phone?.trim() || "",
-        ward: bishop_ward?.trim() || "",
+        name: bishop_name !== undefined ? bishop_name || "" : oldContacts.bishop?.name || "",
+        phone: bishop_phone !== undefined ? bishop_phone || "" : oldContacts.bishop?.phone || "",
+        ward: bishop_ward !== undefined ? bishop_ward || "" : oldContacts.bishop?.ward || "",
       },
     };
 
@@ -227,7 +243,6 @@ export async function PUT(request: Request) {
       updated_at: new Date().toISOString(),
     };
 
-    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("medical_records")
       .update(updates)
@@ -248,10 +263,13 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const { user, role } = await getCurrentUserAndRole();
+    if (!user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
+    if (!role || !ALLOWED_ROLES.includes(role)) return NextResponse.json({ error: "Acesso negado às fichas médicas." }, { status: 403 });
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
-    if (!id) {
+    if (!z.string().uuid().safeParse(id).success) {
       return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
     }
 
@@ -262,6 +280,7 @@ export async function DELETE(request: Request) {
       .eq("id", id);
 
     if (error) {
+      if (error.code === "23503") return NextResponse.json({ error: "Esta ficha possui acompanhamento vinculado. Arquive o acompanhamento para preservar o histórico; a ficha não pode ser excluída." }, { status: 409 });
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

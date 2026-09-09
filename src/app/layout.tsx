@@ -35,7 +35,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "FSY Sessão Ribeirão Preto 2",
-  description: "Web application for FSY Sessão Ribeirão Preto 2 event",
+  description: "Programação, companhias e comunicados do FSY Sessão Ribeirão Preto 2.",
   applicationName: "FSY RP 2",
   appleWebApp: {
     capable: true,

@@ -7,7 +7,6 @@ import {
   FolderHeart,
   Copy,
   Check,
-  Sparkles,
   RefreshCw,
 } from "lucide-react";
 
@@ -124,7 +123,7 @@ export function MediaEmbed({
             onClick={handleCopyLink}
             aria-label="Copiar Link"
             title="Copiar Link"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-slate-900 bg-slate-50 text-slate-700 shadow-sm hover:bg-slate-100 transition-colors min-h-[36px] min-w-[36px]"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-slate-900 bg-slate-50 text-slate-700 shadow-sm hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px]"
           >
             {copied ? (
               <Check className="h-3.5 w-3.5 text-emerald-600 font-bold" />
@@ -139,7 +138,7 @@ export function MediaEmbed({
             rel="noopener noreferrer"
             whileTap={{ scale: 0.9, y: 1 }}
             title="Abrir no app original"
-            className="flex h-9 items-center gap-1.5 px-3 rounded-xl border-2 border-slate-900 bg-[#007DA5] text-white text-xs font-black shadow-sm hover:bg-[#005E7C] transition-colors min-h-[36px]"
+            className="flex h-9 items-center gap-1.5 px-3 rounded-xl border-2 border-slate-900 bg-[#007DA5] text-white text-xs font-black shadow-sm hover:bg-[#005E7C] transition-colors min-h-[44px]"
           >
             <span>Abrir</span>
             <ExternalLink className="h-3 w-3" />
@@ -172,16 +171,6 @@ export function MediaEmbed({
         />
       </div>
 
-      {/* Footer Pill */}
-      <div className="mt-3 flex items-center justify-between text-[11px] font-bold text-slate-400">
-        <div className="flex items-center gap-1">
-          <Sparkles className="h-3 w-3 text-[#FFD166]" />
-          <span>Sincronização em Nuvem Oficial</span>
-        </div>
-        <span className="text-[10px] font-mono uppercase bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-          {detectedType === "instagram" ? "Instagram Feed" : "Drive Archive"}
-        </span>
-      </div>
     </motion.div>
   );
 }

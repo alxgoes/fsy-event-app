@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export interface FsyFloatingLettersProps {
@@ -112,9 +112,13 @@ export function FsyFloatingLetters({
   className,
 }: FsyFloatingLettersProps) {
   const currentSize = SIZE_MAP[size];
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(rootRef);
+  const reduceMotion = useReducedMotion();
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "inline-flex items-center select-none",
         currentSize.container,
@@ -134,7 +138,7 @@ export function FsyFloatingLetters({
           </div>
         );
 
-        if (!animated) {
+        if (!animated || reduceMotion || !inView) {
           return (
             <div
               key={b.id}

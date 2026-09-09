@@ -46,10 +46,10 @@ export function HeroCard({
           </div>
 
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Fala aí, {userName}! ⚡
+            Olá, {userName}!
           </h1>
           <p className="mt-2 text-sm sm:text-base text-cyan-50 font-medium max-w-xl">
-            Viva cada momento desta sessão ao máximo — regozijai-vos em cada experiência!
+            Sua companhia, programação e avisos da sessão, em um só lugar.
           </p>
         </div>
 

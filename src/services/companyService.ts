@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { getOfflineCacheKey } from "@/services/offlineCache";
 
 export interface CompanyData {
   id: string;
@@ -12,7 +13,7 @@ export async function getCompany(
 ): Promise<{ data: CompanyData | null; fromCache: boolean }> {
   if (!companyId) return { data: null, fromCache: false };
 
-  const storageKey = `fsy_offline_company_${companyId}`;
+  const storageKey = await getOfflineCacheKey("company", companyId);
 
   try {
     const supabase = createClient();
@@ -23,7 +24,7 @@ export async function getCompany(
       .single();
 
     if (data && !error) {
-      if (typeof window !== "undefined") {
+      if (storageKey && typeof window !== "undefined") {
         try {
           localStorage.setItem(storageKey, JSON.stringify(data));
         } catch {}
@@ -35,7 +36,7 @@ export async function getCompany(
   }
 
   // Fallback to cache
-  if (typeof window !== "undefined") {
+  if (storageKey && typeof window !== "undefined") {
     try {
       const cached = localStorage.getItem(storageKey);
       if (cached) {

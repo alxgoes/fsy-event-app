@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Script from "next/script";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, ExternalLink, Sparkles, X } from "lucide-react";
+import { Heart, ExternalLink, X } from "lucide-react";
 
 function InstagramIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -38,7 +37,7 @@ export interface InstagramPost {
   location?: string;
 }
 
-const STORAGE_KEY_IG = "fsy_behold_instagram_posts_v4";
+const STORAGE_KEY_IG = "fsy_behold_instagram_posts_v5";
 const OFFICIAL_HANDLE = "fsy_ribeiraopreto";
 const OFFICIAL_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
 const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
@@ -48,7 +47,6 @@ export function InstagramFeed() {
   const [loading, setLoading] = useState(true);
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [selectedPost, setSelectedPost] = useState<InstagramPost | null>(null);
-  const [beholdFeedId, setBeholdFeedId] = useState<string | null>(null);
 
   useEffect(() => {
     // 1. Try local storage cache first for instantaneous display
@@ -73,9 +71,8 @@ export function InstagramFeed() {
         const res = await fetch(url);
         if (res.ok) {
           const json = await res.json();
-          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+          if (Array.isArray(json.data)) {
             setPosts(json.data);
-            setBeholdFeedId(json.feedId || envFeedId || null);
 
             if (typeof window !== "undefined") {
               try {
@@ -122,6 +119,10 @@ export function InstagramFeed() {
           ))}
         </div>
       ) : null}
+
+      {!loading && posts.length === 0 && (
+        <p className="py-4 text-sm text-muted-foreground">As publicações estão disponíveis no perfil oficial do FSY Ribeirão Preto.</p>
+      )}
 
       {/* Feed Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,8 +208,7 @@ export function InstagramFeed() {
       {/* Official Profile Link (No hashtag) */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-          <Sparkles className="h-3.5 w-3.5 text-[#FFE48A]" />
-          <span>Acompanhe todas as atualizações e novidades no perfil oficial!</span>
+          <span>Acompanhe a sessão no Instagram.</span>
         </div>
 
         <a
@@ -223,15 +223,6 @@ export function InstagramFeed() {
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
       </div>
-
-      {/* Behold Widget Option (if configured with Behold web component script) */}
-      {beholdFeedId && (
-        <Script
-          src="https://w.behold.so/widget.js"
-          type="module"
-          strategy="lazyOnload"
-        />
-      )}
 
       {/* Lightbox / Post Detail Modal */}
       <AnimatePresence>

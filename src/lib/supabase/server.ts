@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { UserRole } from "@/lib/supabase/useProfile";
+import type { UserRole } from "@/lib/supabase/useProfile";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Creates an authenticated Supabase client for Server Components,
@@ -52,22 +53,18 @@ export async function getCurrentUserAndRole(): Promise<{
       return { user: null, role: null };
     }
 
-    let role = (user.app_metadata?.role || user.user_metadata?.role) as
-      | UserRole
-      | undefined;
-
-    if (!role) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      role = profile?.role as UserRole | undefined;
-    }
+    // Resolve current permissions from the protected profile on every request.
+    // User metadata and old JWT/cookie roles must never grant privileges.
+    const { data: profile, error: profileError } = await createAdminClient()
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    const role = profileError ? null : profile?.role as UserRole | null;
 
     return {
       user: { id: user.id, email: user.email },
-      role: role || "jovem",
+      role: role || null,
     };
   } catch {
     return { user: null, role: null };

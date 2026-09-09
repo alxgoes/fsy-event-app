@@ -145,7 +145,7 @@ export function FeaturedPhotosSection({
                 </span>
               </div>
               <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5">
-                Fotos em Destaque ✨
+                Fotos em destaque
               </h3>
             </div>
           </div>
@@ -190,7 +190,7 @@ export function FeaturedPhotosSection({
 
           {/* Mobile interaction hint */}
           <p className="mt-2 text-center text-[11px] font-bold text-slate-300 md:hidden flex items-center justify-center gap-1">
-            <span>👈 Deslize para o lado · Toque para ampliar 👉</span>
+            <span>Deslize para ver as fotos · Toque para ampliar</span>
           </p>
         </div>
       </div>

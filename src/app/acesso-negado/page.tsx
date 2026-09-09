@@ -28,13 +28,13 @@ export default function AcessoNegadoPage() {
               Acesso Negado
             </h1>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-              Você não tem permissão para acessar esta área. Apenas membros da equipe de liderança têm acesso ao painel administrativo.
+              Seu perfil não tem permissão para acessar esta área da gestão.
             </p>
           </div>
 
           {/* Info box */}
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 text-left space-y-1">
-            <p>🔒 <strong>Área restrita</strong> — Painel de Gestão FSY</p>
+            <p><strong>Área restrita</strong> — Painel de Gestão FSY</p>
             <p>Se você acredita que deveria ter acesso, entre em contato com um coordenador ou com o Casal Diretor da sessão.</p>
           </div>
 

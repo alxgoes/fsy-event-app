@@ -93,7 +93,7 @@ export function PwaInstallModal() {
             </div>
             <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
               <WifiOff className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>Funciona 100% offline mesmo sem 4G/Wi-Fi</span>
+              <span>Acesse pelo celular. Atualizações e dados da sessão precisam de internet.</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
               <Smartphone className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />

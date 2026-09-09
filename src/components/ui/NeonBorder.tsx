@@ -192,8 +192,12 @@ export default function NeonBorder(props: Props) {
     let last = performance.now();
     let corner = 0;
     let stepT = 0;
+    let visible = false;
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const canAnimate = () => visible && !document.hidden && !motionPreference.matches && speed > 0;
 
     const frame = (now: number) => {
+      if (!canAnimate()) return;
       const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
       last = now;
       const p = live.current;
@@ -227,9 +231,27 @@ export default function NeonBorder(props: Props) {
 
       raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+    const syncAnimation = () => {
+      cancelAnimationFrame(raf);
+      if (canAnimate()) {
+        last = performance.now();
+        raf = requestAnimationFrame(frame);
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      syncAnimation();
+    });
+    if (rootRef.current) observer.observe(rootRef.current);
+    document.addEventListener("visibilitychange", syncAnimation);
+    motionPreference.addEventListener("change", syncAnimation);
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncAnimation);
+      motionPreference.removeEventListener("change", syncAnimation);
+    };
+  }, [speed]);
 
   const thick = Math.max(1, Math.min(10, thickness));
   // If rounded is <= 64, treat as direct pixel radius (e.g. 16 for rounded-2xl, 24 for rounded-3xl).

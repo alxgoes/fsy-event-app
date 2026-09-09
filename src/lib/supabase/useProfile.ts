@@ -33,11 +33,13 @@ export interface UseProfileReturn {
 
 const ProfileContext = createContext<UseProfileReturn | undefined>(undefined);
 
-/**
- * Shared ProfileProvider: ensures Supabase user profile is loaded once and shared
- * across the entire application, eliminating staggered loading and duplicate network calls.
- */
+/** Share one profile subscription across all consumers inside the provider. */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
+  const value = useInternalProfile(true);
+  return React.createElement(ProfileContext.Provider, { value }, children);
+}
+
+function useInternalProfile(enabled: boolean): UseProfileReturn {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,10 +48,17 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   useEffect(() => {
+    if (!enabled) return;
+
     let isMounted = true;
+    let requestVersion = 0;
+    let currentUserId: string | null = null;
+    let authTimer: ReturnType<typeof setTimeout> | undefined;
     const supabase = createClient();
 
     async function fetchProfile() {
+      const version = ++requestVersion;
+      const isCurrent = () => isMounted && version === requestVersion;
       setLoading(true);
       setError(null);
 
@@ -59,21 +68,22 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           error: userError,
         } = await supabase.auth.getUser();
 
-        if (!isMounted) return;
+        if (!isCurrent()) return;
 
         if (userError || !user) {
+          currentUserId = null;
           setProfile(null);
-          setLoading(false);
           return;
         }
 
+        currentUserId = user.id;
         const { data, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single();
 
-        if (!isMounted) return;
+        if (!isCurrent()) return;
 
         if (profileError) {
           setError("Erro ao carregar perfil.");
@@ -82,120 +92,65 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           setProfile({ ...data, email: user.email });
         }
       } catch {
-        if (isMounted) {
+        if (isCurrent()) {
+          setProfile(null);
           setError("Erro inesperado ao carregar perfil.");
         }
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isCurrent()) setLoading(false);
       }
     }
 
-    fetchProfile();
+    void fetchProfile();
 
-    // Listen to auth state changes to keep profile in sync
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
+
       if (event === "SIGNED_OUT") {
+        // Discard any profile response that arrives after logout.
+        ++requestVersion;
+        clearTimeout(authTimer);
+        currentUserId = null;
         setProfile(null);
+        setError(null);
         setLoading(false);
-      } else if (event === "SIGNED_IN" || event === "USER_UPDATED") {
-        fetchProfile();
+      } else if (
+        event === "USER_UPDATED" ||
+        (event === "SIGNED_IN" && session?.user.id !== currentUserId)
+      ) {
+        const nextUserId = session?.user.id ?? null;
+        if (nextUserId !== currentUserId) setProfile(null);
+        currentUserId = nextUserId;
+        ++requestVersion;
+        clearTimeout(authTimer);
+        setLoading(true);
+        // Auth callbacks run under the client's lock. Fetch after it is released.
+        authTimer = setTimeout(() => void fetchProfile(), 0);
       }
     });
 
     return () => {
       isMounted = false;
+      ++requestVersion;
+      clearTimeout(authTimer);
       subscription.unsubscribe();
     };
-  }, [tick]);
+  }, [enabled, tick]);
 
-  const value = useMemo(
+  return useMemo(
     () => ({ profile, loading, error, refetch }),
     [profile, loading, error, refetch]
   );
-
-  return React.createElement(ProfileContext.Provider, { value }, children);
 }
 
-function useInternalProfile(): UseProfileReturn {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [tick, setTick] = useState(0);
-
-  const refetch = useCallback(() => setTick((t) => t + 1), []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const supabase = createClient();
-
-    async function fetchProfile() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (!isMounted) return;
-
-        if (userError || !user) {
-          setError("Sessão expirada. Faça login novamente.");
-          setProfile(null);
-          return;
-        }
-
-        const { data, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (!isMounted) return;
-
-        if (profileError) {
-          setError("Erro ao carregar perfil.");
-          setProfile(null);
-          return;
-        }
-
-        setProfile({ ...data, email: user.email });
-      } catch {
-        if (isMounted) {
-          setError("Erro inesperado ao carregar perfil.");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [tick]);
-
-  return { profile, loading, error, refetch };
-}
-
-/**
- * Access the shared user profile. If rendered outside ProfileProvider,
- * automatically falls back to an isolated fetch instance.
- */
+/** Consumers outside the provider retain an independent profile subscription. */
 export function useProfile(): UseProfileReturn {
   const context = useContext(ProfileContext);
-  const fallback = useInternalProfile();
+  const fallback = useInternalProfile(context === undefined);
   return context ?? fallback;
 }
-
 /** Returns true if the role is a master admin (Casal Diretor, Coordenadores, Logística) with full access to all panels */
 export function isMasterAdmin(role: UserRole): boolean {
   return role === "casal_diretor" || role === "coordenador" || role === "logistica";

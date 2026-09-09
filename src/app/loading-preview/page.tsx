@@ -42,11 +42,11 @@ export default function LoadingPreviewPage() {
                 FSY 2027
               </span>
               <h1 className="text-xl sm:text-2xl font-black font-heading tracking-tight text-slate-900 dark:text-white">
-                Showcase & Teste do Novo Loading
+                Prévia das animações
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
-              Animação de Volute SVG com traço dinâmico e rotação contínua (versões Light #131316 e Dark #f5f5f7).
+              Ajuste e confira as animações de carregamento nos temas claro e escuro.
             </p>
           </div>
 
@@ -326,7 +326,7 @@ export default function LoadingPreviewPage() {
                 variant="tactile-dark"
                 icon={<Music2 className="h-4 w-4" />}
                 iconColor="text-[#FC4E6D]"
-                onClick={() => alert("Interação de clique com física de mola elástica (Gooey)! ✨")}
+                onClick={() => alert("Animação de toque testada.")}
               >
                 Hino e Álbum da Juventude 2027
               </GooeyButton>

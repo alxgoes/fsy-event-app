@@ -57,12 +57,12 @@ export function HappeningNowCard({
 
           {/* Title */}
           <h2 className="font-heading text-2xl sm:text-3xl font-black leading-tight text-slate-900">
-            Contagem Regressiva para o FSY 2027! ⚡
+            Contagem regressiva para o FSY 2027
           </h2>
 
           {/* Description */}
           <p className="mt-3 text-xs sm:text-sm font-semibold text-slate-900 leading-relaxed bg-white/70 p-3.5 rounded-2xl border border-slate-900/15">
-            A chegada dos jovens da <strong>Sessão Ribeirão Preto 2</strong> será no sábado, <strong>06 de Fevereiro de 2027</strong>. Prepare-se para uma semana inesquecível de espiritualidade, novas amizades e muita diversão!
+            A chegada dos jovens da <strong>Sessão Ribeirão Preto 2</strong> será no sábado, <strong>06 de Fevereiro de 2027</strong>.
           </p>
 
           {/* Time & Location Pill Row */}

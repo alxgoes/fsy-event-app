@@ -29,6 +29,7 @@ import { createClient } from "@/lib/supabase/client";
 import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { GooeyButton } from "@/components/ui/GooeyButton";
+import styles from "./AdminLayout.module.css";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -39,7 +40,6 @@ interface NavItem {
   name: string;
   href: string;
   icon: React.ElementType;
-  badge?: string;
   allowedRoles?: UserRole[];
 }
 
@@ -54,21 +54,18 @@ const navigationItems: NavItem[] = [
     name: "Auditoria dos Consultores",
     href: "/admin/counselor-audit",
     icon: ShieldAlert,
-    badge: "Liderança",
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Registros & Atendimentos",
     href: "/admin/medical",
     icon: Stethoscope,
-    badge: "Saúde & Inclusão",
     allowedRoles: ["medico", "coordenador", "casal_diretor", "logistica"],
   },
   {
     name: "Companhias do FSY",
     href: "/admin/companies",
     icon: Building2,
-    badge: "Novo",
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
@@ -93,14 +90,12 @@ const navigationItems: NavItem[] = [
     name: "Fotos & Mídia",
     href: "/admin/media",
     icon: Camera,
-    badge: "Mídia",
     allowedRoles: ["midia", "casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Gestão de Usuários",
     href: "/admin/users",
     icon: Users,
-    badge: "Admin",
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
 ];
@@ -112,6 +107,8 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const sidebarTriggerRef = useRef<HTMLButtonElement>(null);
   const { profile, loading } = useProfile();
   const shouldReduceMotion = useReducedMotion();
 
@@ -149,23 +146,60 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Lock body scrolling when mobile sidebar is open
+  // Keep keyboard focus inside the mobile drawer and restore it on close.
   useEffect(() => {
-    if (isSidebarOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isSidebarOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const drawer = sidebarRef.current;
+    const trigger = sidebarTriggerRef.current;
+    const focusFirstControl = () => {
+      drawer?.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus({ preventScroll: true });
+    };
+    const focusFrame = window.requestAnimationFrame(focusFirstControl);
+    const containFocus = (event: FocusEvent) => {
+      if (event.target instanceof Node && !drawer?.contains(event.target)) {
+        focusFirstControl();
+      }
+    };
+    const handleFocus = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const controls = drawer?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])');
+      if (!controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!drawer?.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus({ preventScroll: true });
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setIsSidebarOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    document.addEventListener("keydown", handleFocus);
+    document.addEventListener("focusin", containFocus);
     return () => {
-      document.body.style.overflow = "";
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleFocus);
+      document.removeEventListener("focusin", containFocus);
+      desktop.removeEventListener("change", closeOnDesktop);
+      if (!desktop.matches) trigger?.focus();
     };
   }, [isSidebarOpen]);
 
   // Close sidebar on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isSidebarOpen) {
+      if (e.key === "Escape") {
         setIsSidebarOpen(false);
+        setDropdownOpen(false);
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -216,12 +250,15 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   return (
     <div className="min-h-screen max-w-full overflow-x-hidden bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 sm:px-6 flex items-center justify-between transition-colors max-w-full overflow-x-clip min-w-0">
+      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 sm:px-6 flex items-center justify-between transition-colors max-w-full min-w-0">
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
           <button
+            ref={sidebarTriggerRef}
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="lg:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             aria-label="Alternar menu lateral"
+            aria-expanded={isSidebarOpen}
+            aria-controls="admin-navigation"
           >
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -274,10 +311,10 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           {/* Interactive Profile Dropdown (Mobile & Desktop) */}
           <div className="relative" ref={dropdownRef}>
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
               onClick={() => setDropdownOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 p-1.5 sm:px-2.5 sm:py-1.5 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm cursor-pointer"
+              className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 min-h-[44px] min-w-[44px] p-1.5 sm:px-2.5 sm:py-1.5 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer"
               aria-label="Menu do usuário"
             >
               {loading ? (
@@ -312,7 +349,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-md overflow-hidden z-50"
+                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden z-50"
                 >
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
@@ -340,7 +377,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#007DA5] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
+                      className="min-h-[44px] w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#007DA5] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <Compass className="h-4 w-4" />
@@ -355,7 +392,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <Link
                       href="/admin"
                       onClick={() => setDropdownOpen(false)}
-                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      className="min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
                       <Shield className="h-4 w-4 text-slate-400" />
                       <span>Painel de Gestão (Início)</span>
@@ -367,7 +404,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <button
                       onClick={handleSignOut}
                       disabled={signingOut}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-60 text-left"
+                      className="min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-60 text-left"
                     >
                       {signingOut ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -393,18 +430,21 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-md lg:hidden cursor-pointer"
+            className="fixed inset-0 z-40 bg-slate-950/40 lg:hidden cursor-pointer"
             aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 overflow-x-hidden min-w-0 max-w-full">
+      <div className="flex flex-1 min-w-0 max-w-full lg:pl-72">
         {/* Sidebar Navigation Drawer */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-80 max-w-[85vw] border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out lg:static lg:w-64 lg:shadow-none lg:z-30 ${
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }`}
+          ref={sidebarRef}
+          id="admin-navigation"
+          aria-label="Navegação da gestão"
+          role={isSidebarOpen ? "dialog" : undefined}
+          aria-modal={isSidebarOpen || undefined}
+          className={`${styles.sidebar} ${isSidebarOpen ? styles.open : ""}`}
         >
           {/* Mobile Drawer Top Header with Close Button */}
           <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 lg:hidden bg-slate-50/80 dark:bg-slate-800/40">
@@ -419,7 +459,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               aria-label="Fechar menu lateral"
             >
               <X className="h-5 w-5" />
@@ -427,43 +467,19 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           </div>
 
           {/* Scrollable Container with Smooth Native Touch Scroll */}
-          <div className="flex-1 overflow-y-auto overscroll-contain p-4 flex flex-col justify-between gap-6 [-webkit-overflow-scrolling:touch]">
+          <div className={`${styles.scroll} flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 flex flex-col justify-between gap-6`}>
             <div className="space-y-4">
-              {/* Event Context Pill in Sidebar */}
-              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-[#EFEFE7]/50 dark:bg-slate-800/60 p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Shield className="h-4 w-4 text-[#007DA5]" />
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                    FSY Ribeirão Preto 2
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {currentRole === "midia"
-                    ? "Ambiente exclusivo da Equipe de Mídia."
-                    : currentRole === "medico"
-                    ? "Ambiente exclusivo da Equipe Multidisciplinar (Saúde & Atendimentos)."
-                    : "Ambiente de coordenação, companhias, saúde, transporte e comunicados."}
-                </p>
+              <div className="px-3 pt-2 pb-1">
+                <p className="font-heading text-lg font-bold leading-tight text-slate-900 dark:text-white">FSY Ribeirão Preto 2</p>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">05–10 de fevereiro de 2027</p>
               </div>
 
-              {/* Quick Youth Portal Button in Sidebar */}
-              <GooeyButton
-                variant="primary"
-                size="sm"
-                href="/dashboard"
-                onClick={() => setIsSidebarOpen(false)}
-                icon={<Compass className="h-4 w-4" />}
-                iconColor="text-white"
-                className="w-full justify-center"
-              >
-                Ir para o Portal Jovem
-              </GooeyButton>
+              <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)} className={styles.portal}>
+                <Compass className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                <span>Portal Jovem</span>
+              </Link>
 
-              {/* Navigation Links */}
-              <nav className="space-y-1">
-                <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
-                  {currentRole === "midia" ? "Menu de Mídia" : "Menu Administrativo"}
-                </p>
+              <nav aria-label="Menu administrativo" className="space-y-1.5">
                 {visibleNav.map((item) => {
                   const isActive =
                     pathname === item.href ||
@@ -475,34 +491,20 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsSidebarOpen(false)}
-                      className={`relative z-10 flex items-center justify-between rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-black transition-all duration-200 border-2 cursor-pointer ${
-                        isActive
-                          ? "text-white border-transparent"
-                          : "border-transparent text-slate-600 dark:text-slate-300 hover:border-slate-900/30 dark:hover:border-slate-700 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
-                      }`}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`${styles.navLink} ${isActive ? styles.active : ""}`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId={shouldReduceMotion ? undefined : "adminActiveNavPill"}
-                          className="absolute inset-0 bg-[#007DA5] rounded-2xl border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill -z-10"
-                          transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                          className={styles.activePill}
+                          transition={shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 450, damping: 34 }}
                         />
                       )}
                       <div className="flex items-center gap-3 relative z-10">
-                        <Icon className={`h-4 w-4 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
+                        <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                         <span>{item.name}</span>
                       </div>
-                      {item.badge && (
-                        <span
-                          className={`relative z-10 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
-                            isActive
-                              ? "bg-emerald-500 text-white"
-                              : "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
                     </Link>
                   );
                 })}
@@ -511,17 +513,10 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
 
             {/* Sidebar Footer */}
             <div className="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-2 mt-auto">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-2">
-                <span>Sessão:</span>
-                <span className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  05-10 Fev 2027
-                </span>
-              </div>
               <button
                 onClick={handleSignOut}
                 disabled={signingOut}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                className={styles.signOut}
               >
                 <LogOut className="h-3.5 w-3.5" />
                 <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>

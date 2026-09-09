@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import {
   ShieldAlert,
   Search,
@@ -54,6 +55,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+const InclusionManager = dynamic(() => import("./InclusionManager").then(module => module.InclusionManager), {
+  loading: () => <p role="status" className="py-8 text-sm">Carregando inclusão…</p>,
+});
 
 export interface YouthMedicalProfile {
   id: string;
@@ -133,7 +138,9 @@ const COMMON_REASONS = [
 
 export function MedicalDashboard() {
   // Active Tab: Records vs Appointments
-  const [activeTab, setActiveTab] = useState<"records" | "appointments">("records");
+  const [activeTab, setActiveTab] = useState<"records" | "appointments" | "inclusion">("records");
+  const [inclusionVisited, setInclusionVisited] = useState(false);
+  const [inclusionRecord, setInclusionRecord] = useState<{ id: string; request: number } | null>(null);
 
   const [records, setRecords] = useState<YouthMedicalProfile[]>([]);
   const [appointments, setAppointments] = useState<MedicalAppointment[]>([]);
@@ -184,6 +191,7 @@ export function MedicalDashboard() {
     try {
       // 1. Fetch Medical Records
       const resMed = await fetch(`/api/medical?_t=${Date.now()}`);
+      if (!resMed.ok) throw new Error("Não foi possível consultar as fichas. Tente novamente.");
       let data: Record<string, unknown>[] = [];
       if (resMed.ok) {
         const json = await resMed.json();
@@ -266,6 +274,19 @@ export function MedicalDashboard() {
   const openView = (record: YouthMedicalProfile) => {
     setViewingRecord(record);
     setIsViewModalOpen(true);
+  };
+
+  const openInclusion = (recordId?: string) => {
+    setInclusionVisited(true);
+    setActiveTab("inclusion");
+    setIsViewModalOpen(false);
+    if (recordId) setInclusionRecord({ id: recordId, request: Date.now() });
+  };
+
+  const openMedicalFromInclusion = (recordId: string) => {
+    const record = records.find(item => item.id === recordId);
+    if (!record) { setError("Esta ficha não está disponível. Atualize as fichas e tente novamente."); return; }
+    openView(record);
   };
 
   const openEdit = (record: YouthMedicalProfile) => {
@@ -466,7 +487,7 @@ export function MedicalDashboard() {
         youth_name: apptYouthName.trim(),
         professional_name: apptProfessional.trim(),
         reason: apptReason.trim() || "Atendimento geral",
-        scheduled_at: apptDate,
+        scheduled_at: new Date(apptDate).toISOString(),
         notes: apptNotes.trim() || null,
       };
 
@@ -554,7 +575,6 @@ export function MedicalDashboard() {
   });
 
   const severeCount = records.filter((r) => r.is_severe_allergy).length;
-  const pendingAppointmentsCount = appointments.filter((a) => a.status === "agendado").length;
 
   return (
     <div className="space-y-5 sm:space-y-6 text-slate-900 dark:text-slate-100 max-w-full min-w-0">
@@ -575,13 +595,13 @@ export function MedicalDashboard() {
                 </Badge>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5 leading-snug">
-                Registros médicos, vínculos de perfil e agendamentos de consultas com os participantes.
+                Fichas médicas, atendimentos e acompanhamento de inclusão dos jovens.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+        <div className={`flex items-center gap-2 flex-wrap w-full sm:w-auto ${activeTab === "inclusion" ? "hidden" : ""}`}>
           {savedMsg && (
             <span className="flex items-center gap-1 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none w-full sm:w-auto justify-center">
               <CheckCircle2 className="h-4 w-4" /> Salvo com sucesso!
@@ -631,49 +651,30 @@ export function MedicalDashboard() {
         </div>
       )}
 
-      {/* Navigation Tabs */}
-      <div
-        role="tablist"
-        aria-label="Seções do painel médico"
-        className="flex items-center gap-2 sm:gap-3 border-b-2 border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar max-w-full"
-      >
-        <button
-          role="tab"
-          id="tab-records"
-          aria-selected={activeTab === "records"}
-          aria-controls="panel-records"
-          onClick={() => setActiveTab("records")}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[44px] shrink-0 cursor-pointer ${
-            activeTab === "records"
-              ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
-          }`}
-        >
-          <FileText className="h-4 w-4 shrink-0" />
-          <span>Fichas Médicas ({records.length})</span>
-        </button>
-
-        <button
-          role="tab"
-          id="tab-appointments"
-          aria-selected={activeTab === "appointments"}
-          aria-controls="panel-appointments"
-          onClick={() => setActiveTab("appointments")}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-black border-2 transition-all duration-200 min-h-[44px] shrink-0 cursor-pointer ${
-            activeTab === "appointments"
-              ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-              : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/30 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
-          }`}
-        >
-          <Calendar className="h-4 w-4 shrink-0" />
-          <span>Agendamentos & Consultas ({appointments.length})</span>
-          {pendingAppointmentsCount > 0 && (
-            <span className="rounded-full bg-[#FC4E6D] text-white text-[10px] sm:text-xs font-black px-1.5 py-0.2">
-              {pendingAppointmentsCount}
-            </span>
-          )}
-        </button>
+      <div role="tablist" aria-label="Seções do painel médico" className="flex flex-wrap gap-2" onKeyDown={event => {
+        const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+        if (!keys.includes(event.key)) return;
+        const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+        const index = tabs.indexOf(event.target as HTMLButtonElement);
+        if (index < 0) return;
+        event.preventDefault();
+        const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+        tabs[next].focus(); tabs[next].click();
+      }}>
+        {([
+          { id: "records", label: `Fichas médicas (${records.length})`, icon: FileText },
+          { id: "appointments", label: `Atendimentos (${appointments.length})`, icon: Calendar },
+          { id: "inclusion", label: "Inclusão", icon: UserCheck },
+        ] as const).map(tab => <button key={tab.id} role="tab" id={`tab-${tab.id}`} aria-selected={activeTab === tab.id} aria-controls={`panel-${tab.id}`} tabIndex={activeTab === tab.id ? 0 : -1}
+          onClick={() => tab.id === "inclusion" ? openInclusion() : setActiveTab(tab.id)}
+          className={`inline-flex min-h-[44px] items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-colors ${activeTab === tab.id ? "border-transparent bg-[#007DA5] text-white shadow-sm" : "border-slate-200 bg-white text-slate-700 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"}`}>
+          <tab.icon className="h-4 w-4" aria-hidden="true" />{tab.label}
+        </button>)}
       </div>
+
+      {inclusionVisited && <div role="tabpanel" id="panel-inclusion" aria-labelledby="tab-inclusion" hidden={activeTab !== "inclusion"}>
+        <InclusionManager records={records} recordsLoading={loading} requestedRecord={inclusionRecord} onOpenMedicalRecord={openMedicalFromInclusion} onMedicalRecordsChanged={loadData} />
+      </div>}
 
       {/* ======================================================== */}
       {/* TAB 1: FICHAS MÉDICAS                                    */}
@@ -1281,7 +1282,7 @@ export function MedicalDashboard() {
       </Dialog>
 
       {/* ======================================================== */}
-      {/* VIEW MODAL (👁️ Ver Ficha)                                */}
+      {/* Visualização da ficha médica */}
       {/* ======================================================== */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="sm:max-w-[620px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
@@ -1330,7 +1331,7 @@ export function MedicalDashboard() {
                   <ShieldAlert className="h-6 w-6 text-rose-600 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-xs font-black text-rose-800 dark:text-rose-200 uppercase tracking-wider">
-                      ⚠️ Atenção Médica: Alergia Severa com Risco
+                      Atenção Médica: Alergia Severa com Risco
                     </h4>
                     <p className="text-xs font-bold text-rose-700 dark:text-rose-300 mt-0.5">
                       Participante possui histórico de reações graves / risco de anafilaxia.
@@ -1473,6 +1474,10 @@ export function MedicalDashboard() {
               )}
 
               {/* Footer Actions */}
+              <Button variant="outline" className="min-h-[44px] w-full rounded-xl" onClick={() => openInclusion(viewingRecord.id)}>
+                <UserCheck className="mr-2 h-4 w-4" aria-hidden="true" />
+                Acompanhamento de inclusão
+              </Button>
               <DialogFooter className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                 <Button
                   variant="ghost"

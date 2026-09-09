@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
+const PRIVATE_BACKUP_KEY = "__APPOINTMENTS_STORAGE__";
 
 export async function GET() {
   try {
@@ -9,13 +10,14 @@ export async function GET() {
     const { data, error } = await supabase
       .from("transport_logistics")
       .select("*")
+      .neq("stake_city", PRIVATE_BACKUP_KEY)
       .order("bus_number", { ascending: true });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data ?? [] });
+    return NextResponse.json({ data: data ?? [] }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -38,6 +40,10 @@ export async function POST(request: Request) {
       status,
       notes,
     } = body;
+
+    if (String(stake_city || "").trim() === PRIVATE_BACKUP_KEY) {
+      return NextResponse.json({ error: "Identificador reservado." }, { status: 400 });
+    }
 
     if (!bus_number || !stake_city || !driver_name) {
       return NextResponse.json(
@@ -84,6 +90,10 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { id, ...updates } = body;
 
+    if (String(updates.stake_city || "").trim() === PRIVATE_BACKUP_KEY) {
+      return NextResponse.json({ error: "Identificador reservado." }, { status: 400 });
+    }
+
     if (!id) {
       return NextResponse.json({ error: "ID do ônibus é obrigatório." }, { status: 400 });
     }
@@ -95,6 +105,7 @@ export async function PUT(request: Request) {
       .from("transport_logistics")
       .update(updates)
       .eq("id", id)
+      .neq("stake_city", PRIVATE_BACKUP_KEY)
       .select()
       .single();
 
@@ -122,7 +133,8 @@ export async function DELETE(request: Request) {
     const { error } = await supabase
       .from("transport_logistics")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .neq("stake_city", PRIVATE_BACKUP_KEY);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
