@@ -314,7 +314,7 @@ export function Header() {
                     className={cn(
                       navigationMenuTriggerStyle(),
                       isHomeActive &&
-                        "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
+                        "bg-[#007DA5] text-white dark:text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
                     )}
                   >
                     Início
