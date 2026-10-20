@@ -1,10 +1,10 @@
 import React from "react";
-import { UserManager } from "@/components/admin/UserManager";
+import { AccountsManager } from "@/components/admin/AccountsManager";
 
 export const metadata = {
-  title: "Gestão de Usuários — FSY Admin",
+  title: "Contas e acessos — FSY Admin",
 };
 
 export default function AdminUsersPage() {
-  return <UserManager />;
+  return <AccountsManager />;
 }

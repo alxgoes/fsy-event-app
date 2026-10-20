@@ -2,20 +2,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-interface InstagramPostRecord {
-  id: string;
-  imageUrl: string;
-  caption: string;
-  likesCount: number;
-  commentsCount?: number;
-  timestamp: string;
-  authorHandle: string;
-  authorAvatar?: string;
-  postUrl: string;
-  location?: string;
-  visible: boolean;
-  mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
-}
+import type { InstagramPost } from "@/types/instagram";
 
 const OFFICIAL_INSTAGRAM_HANDLE = "fsy_ribeiraopreto";
 const OFFICIAL_INSTAGRAM_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
@@ -44,7 +31,9 @@ const DEFAULT_BEHOLD_FEED_ID = "KjHNorrOyv2vHpAmLE0F";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const queryFeedId = searchParams.get("feedId");
+    // Aceita apenas identificadores no formato do Behold (sem caminhos ou URLs).
+    const rawQueryFeedId = searchParams.get("feedId");
+    const queryFeedId = rawQueryFeedId && /^[A-Za-z0-9]{8,40}$/.test(rawQueryFeedId) ? rawQueryFeedId : null;
     const feedId =
       queryFeedId ||
       process.env.NEXT_PUBLIC_BEHOLD_FEED_ID ||
@@ -81,47 +70,26 @@ export async function GET(request: Request) {
           }
 
           if (items.length > 0) {
-            const mapped: InstagramPostRecord[] = items.flatMap((item, idx) => {
-              const dateStr = item.timestamp
-                ? new Date(item.timestamp).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "short",
-                  })
-                : "Recente";
-
+            const mapped: InstagramPost[] = items.flatMap((item, idx) => {
+              // Vídeos: a mediaUrl é o arquivo de vídeo; a imagem é a miniatura.
               const img =
                 item.sizes?.large?.mediaUrl ||
                 item.sizes?.medium?.mediaUrl ||
                 item.sizes?.full?.mediaUrl ||
-                item.mediaUrl ||
+                (item.mediaType === "VIDEO" ? item.thumbnailUrl : item.mediaUrl) ||
                 item.thumbnailUrl;
 
               if (!img) return [];
 
-              const caption =
-                item.prunedCaption ||
-                item.caption ||
-                "Publicação Oficial FSY Ribeirão Preto";
-
-              const realLikes =
-                typeof item.likeCount === "number"
-                  ? item.likeCount
-                  : typeof item.likesCount === "number"
-                  ? item.likesCount
-                  : 0;
-
               return {
                 id: String(item.id || `behold-${idx}`),
                 imageUrl: img,
-                caption,
-                likesCount: realLikes,
-                timestamp: dateStr,
+                // Legenda integral; prunedCaption do Behold vem cortada.
+                caption: (item.caption ?? item.prunedCaption ?? "").trim(),
+                publishedAt: item.timestamp ?? null,
                 authorHandle: profileInfo.username || OFFICIAL_INSTAGRAM_HANDLE,
-                authorAvatar: profileInfo.profilePictureUrl,
                 postUrl: item.permalink || OFFICIAL_INSTAGRAM_URL,
-                location: "FSY 2027 • Ribeirão Preto",
-                visible: true,
-                mediaType: item.mediaType,
+                mediaType: item.mediaType ?? "IMAGE",
               };
             });
 
@@ -149,10 +117,7 @@ export async function GET(request: Request) {
       handle: OFFICIAL_INSTAGRAM_HANDLE,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json(
-      { error: message, data: [], beholdConnected: false },
-      { status: 500 }
-    );
+    console.error("[api] instagram", err instanceof Error ? err.name : "");
+    return NextResponse.json({ error: "Feed indisponível no momento.", data: [], beholdConnected: false }, { status: 502 });
   }
 }

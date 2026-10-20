@@ -86,7 +86,7 @@ function loadRoute(file, { identity = { user: null, role: null }, db = createFak
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.React, esModuleInterop: true },
     }).outputText;
     vm.runInNewContext(source, {
-      exports, module, require: (name) => load(name, found), URL, URLSearchParams, console, process, Date, Math, JSON, Promise, setTimeout, clearTimeout, crypto: globalThis.crypto, TextEncoder, Response, Headers,
+      exports, module, require: (name) => load(name, found), URL, URLSearchParams, console, process, Date, Math, JSON, Promise, setTimeout, clearTimeout, crypto: globalThis.crypto, TextEncoder, Response, Headers, fetch: (...args) => globalThis.fetch(...args),
     });
     if (module.exports !== exports) Object.assign(cache[found], module.exports);
     return cache[found];

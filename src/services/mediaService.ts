@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { MediaPhoto } from "@/components/media/FeaturedPhotosSection";
+import type { MediaPhoto } from "@/types/media";
 
 const STORAGE_KEY = "fsy_offline_featured_photos";
 

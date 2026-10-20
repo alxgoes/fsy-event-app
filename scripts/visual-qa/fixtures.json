@@ -1,0 +1,375 @@
+{
+ "users": [
+  {
+   "id": "50000000-0000-4000-8000-000000000001",
+   "full_name": "Helena e Marcos Prado",
+   "email": "diretor@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000002",
+   "full_name": "Coord. Ana Ribeiro",
+   "email": "coord@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000003",
+   "full_name": "Paulo Logística",
+   "email": "logistica@fsy.test",
+   "providers": [
+    "email",
+    "google"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000004",
+   "full_name": "Irmã Camila Duarte",
+   "email": "consultora@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000005",
+   "full_name": "Lucas Almeida",
+   "email": "lucas@gmail.test",
+   "providers": [
+    "google"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000006",
+   "full_name": "Beatriz Souza",
+   "email": "bia@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": null
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000007",
+   "full_name": "Dra. Renata Lima",
+   "email": "medica@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000008",
+   "full_name": "Equipe de Mídia",
+   "email": "midia@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": "2026-09-01T12:05:00Z",
+   "last_sign_in_at": "2026-10-19T21:14:00Z"
+  },
+  {
+   "id": "50000000-0000-4000-8000-000000000009",
+   "full_name": "Gabriel Nunes",
+   "email": "gabriel@fsy.test",
+   "providers": [
+    "email"
+   ],
+   "created_at": "2026-09-01T12:00:00Z",
+   "email_confirmed_at": null,
+   "last_sign_in_at": null
+  }
+ ],
+ "tables": {
+  "profiles": [
+   {
+    "id": "50000000-0000-4000-8000-000000000001",
+    "full_name": "Helena e Marcos Prado",
+    "role": "casal_diretor",
+    "company_id": null,
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0001",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000002",
+    "full_name": "Coord. Ana Ribeiro",
+    "role": "coordenador",
+    "company_id": null,
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0002",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000003",
+    "full_name": "Paulo Logística",
+    "role": "logistica",
+    "company_id": null,
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0003",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000004",
+    "full_name": "Irmã Camila Duarte",
+    "role": "consultor",
+    "company_id": "cia-1",
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0004",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000005",
+    "full_name": "Lucas Almeida",
+    "role": "jovem",
+    "company_id": "cia-1",
+    "stake": "Estaca Ribeirão Preto Leste",
+    "room": "B-12",
+    "phone": "(16) 99999-0005",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000006",
+    "full_name": "Beatriz Souza",
+    "role": "jovem",
+    "company_id": "cia-1",
+    "stake": "Estaca Ribeirão Preto Leste",
+    "room": null,
+    "phone": "(16) 99999-0006",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000007",
+    "full_name": "Dra. Renata Lima",
+    "role": "medico",
+    "company_id": null,
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0007",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000008",
+    "full_name": "Equipe de Mídia",
+    "role": "midia",
+    "company_id": null,
+    "stake": null,
+    "room": null,
+    "phone": "(16) 99999-0008",
+    "avatar_url": "",
+    "suspended_at": null
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000009",
+    "full_name": "Gabriel Nunes",
+    "role": "jovem",
+    "company_id": "cia-2",
+    "stake": "Estaca Ribeirão Preto Leste",
+    "room": null,
+    "phone": "(16) 99999-0009",
+    "avatar_url": "",
+    "suspended_at": null
+   }
+  ],
+  "companies": [
+   {
+    "id": "cia-1",
+    "name": "Companhia 1 — Néfi",
+    "motto": "Firmes como o rochedo!",
+    "color": "#007DA5",
+    "counselors": [
+     "Irmã Camila Duarte"
+    ]
+   },
+   {
+    "id": "cia-2",
+    "name": "Companhia 2 — Alma",
+    "motto": null,
+    "color": "#93C742",
+    "counselors": []
+   }
+  ],
+  "announcements": [
+   {
+    "id": "50000000-0000-4000-8000-000000000101",
+    "title": "Atividade de serviço amanhã",
+    "content": "Queridos jovens,\n\nAmanhã teremos a atividade de serviço no período da manhã. Tragam roupas confortáveis, garrafa de água e protetor solar. Os ônibus sairão do estacionamento principal às 8h15 em ponto.\n\nLembrem-se: a pontualidade ajuda toda a companhia. Quem tiver restrição alimentar deve avisar o consultor até hoje às 21h. Veja também o link com o mapa: https://fsy.test/mapa\n\nCom carinho, Coordenação.",
+    "priority": "important",
+    "target_company_id": null,
+    "category": "Geral",
+    "author_id": "50000000-0000-4000-8000-000000000002",
+    "created_at": "2026-10-19T18:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000102",
+    "title": "Ensaio do grito da companhia",
+    "content": "Encontro às 16h no pátio coberto.",
+    "priority": "normal",
+    "target_company_id": "cia-1",
+    "category": "Companhia",
+    "author_id": "50000000-0000-4000-8000-000000000004",
+    "created_at": "2026-10-19T15:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000103",
+    "title": "Mudança de local do devocional",
+    "content": "O devocional da noite será no ginásio por causa da chuva.",
+    "priority": "urgent",
+    "target_company_id": null,
+    "category": "Programação",
+    "author_id": "50000000-0000-4000-8000-000000000001",
+    "created_at": "2026-10-20T10:00:00Z"
+   }
+  ],
+  "media_photos": [
+   {
+    "id": "50000000-0000-4000-8000-000000000201",
+    "title": "Chegada dos ônibus",
+    "drive_url": "http://127.0.0.1:54399/img/1600x1067.jpg",
+    "thumbnail_url": "http://127.0.0.1:54399/img/1600x1067.jpg",
+    "category": "Chegada",
+    "visible": true,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T10:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000202",
+    "title": "Retrato da companhia Néfi",
+    "drive_url": "http://127.0.0.1:54399/img/900x1350.jpg",
+    "thumbnail_url": "http://127.0.0.1:54399/img/900x1350.jpg",
+    "category": "Companhias",
+    "visible": true,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T11:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000203",
+    "title": "Panorama do pátio",
+    "drive_url": "http://127.0.0.1:54399/img/2400x900.jpg",
+    "thumbnail_url": "http://127.0.0.1:54399/img/2400x900.jpg",
+    "category": "Atividades",
+    "visible": true,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T12:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000204",
+    "title": "Devocional ao pôr do sol",
+    "drive_url": "http://127.0.0.1:54399/img/1200x1200.jpg",
+    "thumbnail_url": "http://127.0.0.1:54399/img/1200x1200.jpg",
+    "category": "Atividades",
+    "visible": true,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T13:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000205",
+    "title": "Foto oculta (não aprovada)",
+    "drive_url": "http://127.0.0.1:54399/img/1000x700.jpg",
+    "thumbnail_url": "http://127.0.0.1:54399/img/1000x700.jpg",
+    "category": "Bastidores",
+    "visible": false,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T14:00:00Z"
+   },
+   {
+    "id": "50000000-0000-4000-8000-000000000206",
+    "title": "Link inválido",
+    "drive_url": "https://drive.google.com/file/d/INVALIDO/view",
+    "thumbnail_url": "https://drive.google.com/thumbnail?id=INVALIDO&sz=w600",
+    "category": "Chegada",
+    "visible": true,
+    "author_id": "50000000-0000-4000-8000-000000000008",
+    "created_at": "2026-10-18T09:00:00Z"
+   }
+  ],
+  "transport_logistics": [
+   {
+    "id": "50000000-0000-4000-8000-000000000301",
+    "bus_number": "01",
+    "stake_city": "Estaca Franca",
+    "driver_name": "João Motorista",
+    "driver_phone": "(16) 98888-0001",
+    "capacity": 46,
+    "passengers_count": 38,
+    "departure_city_time": "06:00",
+    "arrival_fsy_time": "08:00",
+    "departure_fsy_time": "14:00",
+    "status": "programado",
+    "notes": null
+   }
+  ],
+  "medical_records": [
+   {
+    "id": "50000000-0000-4000-8000-000000000401",
+    "user_id": "50000000-0000-4000-8000-000000000005",
+    "full_name": "Lucas Almeida",
+    "company_id": "cia-1",
+    "room": "B-12",
+    "allergies": "Amendoim",
+    "is_severe_allergy": true,
+    "medications": "Antialérgico",
+    "emergency_contact_name": "Maria Almeida",
+    "emergency_contact_phone": "(16) 97777-0000",
+    "emergency_contact_rel": "Mãe",
+    "emergency_contact_alt_phone": "{}",
+    "dietary_restrictions": "Sem amendoim",
+    "diet_type": "restricted",
+    "blood_type": "O+",
+    "doctor_notes": null,
+    "created_at": "2026-09-10T10:00:00Z"
+   }
+  ],
+  "counselor_audit_logs": [
+   {
+    "id": "50000000-0000-4000-8000-000000000501",
+    "author_id": "50000000-0000-4000-8000-000000000004",
+    "author_name": "Irmã Camila Duarte",
+    "author_role": "consultor",
+    "company_id": "cia-1",
+    "company_name": "Companhia 1 — Néfi",
+    "action_type": "publicou_comunicado",
+    "action_label": "Novo Comunicado Publicado",
+    "title": "Ensaio do grito da companhia",
+    "content": "Encontro às 16h no pátio coberto.",
+    "details": {},
+    "created_at": "2026-10-19T15:00:00Z"
+   }
+  ],
+  "schedule_items": [],
+  "medical_appointments": [],
+  "inclusion_cases": []
+ }
+}

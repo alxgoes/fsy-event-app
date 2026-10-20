@@ -2,18 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, Variants, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Header } from "@/components/layout/Header";
 import { HeroCard } from "./HeroCard";
 import { HappeningNowCard } from "./HappeningNowCard";
 import { MyCompanyCard } from "./MyCompanyCard";
 import { MemoriesCard } from "./MemoriesCard";
 import { DailyThemeCard } from "./DailyThemeCard";
-import { FeaturedPhotosSection, MediaPhoto } from "@/components/media/FeaturedPhotosSection";
+import { PhotoGallery } from "@/components/media/PhotoGallery";
+import type { MediaPhoto } from "@/types/media";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { Users, WifiOff } from "lucide-react";
 import { DashboardGridSkeleton } from "./DashboardSkeletons";
 import { ScrollIndicator, ScrollSection } from "@/components/ui/scroll-indicator";
+import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
 
 const YOUTH_SECTIONS: ScrollSection[] = [
   { id: "intro", title: "Início", level: 2 },
@@ -33,7 +35,6 @@ import { getFeaturedPhotos } from "@/services/mediaService";
 export function YouthDashboard() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useProfile();
-  const shouldReduceMotion = useReducedMotion();
 
   const [currentEvent, setCurrentEvent] = useState<ScheduleItem | null>(null);
   const [nextEvent, setNextEvent] = useState<ScheduleItem | null>(null);
@@ -136,37 +137,6 @@ export function YouthDashboard() {
     };
   }, [profile]);
 
-  const containerVariants: Variants = {
-    hidden: { opacity: shouldReduceMotion ? 1 : 0 },
-    visible: {
-      opacity: 1,
-      transition: shouldReduceMotion
-        ? { duration: 0 }
-        : {
-            staggerChildren: 0.08,
-            delayChildren: 0.04,
-          },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: shouldReduceMotion
-      ? { opacity: 1, y: 0, scale: 1 }
-      : { y: 16, opacity: 0, scale: 0.98 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      transition: shouldReduceMotion
-        ? { duration: 0 }
-        : {
-            type: "spring",
-            stiffness: 320,
-            damping: 26,
-          },
-    },
-  };
-
   const firstName = profile?.full_name?.split(" ")[0] ?? "Olá";
   const companyName = company?.name ?? profile?.company_id ?? null;
   const roomLabel = profile?.room ?? null;
@@ -207,82 +177,83 @@ export function YouthDashboard() {
         {dataLoading ? (
           <DashboardGridSkeleton />
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-12"
-          >
+          <>
             {/* Precision Scroll Indicator (Desktop) */}
             <div className="fixed right-3 top-1/2 -translate-y-1/2 z-30 hidden xl:flex h-56 items-center pointer-events-auto">
               <ScrollIndicator sections={YOUTH_SECTIONS} />
             </div>
-
-            {/* 1. Hero Card */}
-            <motion.div data-section-index="0" variants={itemVariants} className="md:col-span-12 lg:col-span-8">
-              <HeroCard
-                userName={firstName}
-                companyName={companyName ?? "Aguardando designação"}
-                sessionDay={activeDayLabel}
-                room={roomLabel}
-              />
-            </motion.div>
-
-            {/* 2. Daily Theme Card */}
-            <motion.div variants={itemVariants} className="md:col-span-6 lg:col-span-4">
-              <DailyThemeCard />
-            </motion.div>
-
-            {/* 3. Happening Now Card */}
-            <motion.div data-section-index="1" variants={itemVariants} className="md:col-span-6 lg:col-span-5">
-              <HappeningNowCard
-                isPreEvent={isPreEvent}
-                daysRemaining={daysRemaining}
-                currentEvent={
-                  currentEvent
-                    ? {
-                        title: currentEvent.title,
-                        startTime: currentEvent.start_time,
-                        endTime: currentEvent.end_time || "--",
-                        location: currentEvent.location,
-                        description: currentEvent.description ?? "",
-                        tag: currentEvent.category,
-                      }
-                    : undefined
-                }
-                nextEvent={
-                  nextEvent
-                    ? {
-                        title: nextEvent.title,
-                        startTime: nextEvent.start_time,
-                        location: nextEvent.location,
-                      }
-                    : undefined
-                }
-              />
-            </motion.div>
-
-            {/* 4. My Company Card */}
-            <motion.div data-section-index="2" variants={itemVariants} className="md:col-span-6 lg:col-span-7">
-              <MyCompanyCard
-                currentUserId={profile?.id || null}
-                companyName={companyName}
-                counselors={company?.counselors ?? null}
-                companyMotto={company?.motto ?? null}
-                announcements={announcements}
-              />
-            </motion.div>
-
-            {/* 5. Featured Drive Photos */}
-            <motion.div data-section-index="3" variants={itemVariants} className="md:col-span-12">
-              <FeaturedPhotosSection initialPhotos={featuredPhotos} initialLoading={false} />
-            </motion.div>
-
-            {/* 6. Instagram Memories Card */}
-            <motion.div variants={itemVariants} className="md:col-span-12">
-              <MemoriesCard />
-            </motion.div>
-          </motion.div>
+            <CustomizableGrid
+              pageKey="dashboard"
+              version={1}
+              className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-12"
+              items={[
+                {
+                  id: "hero",
+                  label: "Boas-vindas",
+                  className: "md:col-span-12 lg:col-span-8",
+                  content: (
+                    <div data-section-index="0" className="h-full">
+                      <HeroCard userName={firstName} companyName={companyName ?? "Aguardando designação"} sessionDay={activeDayLabel} room={roomLabel} />
+                    </div>
+                  ),
+                },
+                { id: "theme", label: "Tema do dia", className: "md:col-span-6 lg:col-span-4", content: <DailyThemeCard /> },
+                {
+                  id: "now",
+                  label: "Acontecendo agora",
+                  className: "md:col-span-6 lg:col-span-5",
+                  content: (
+                    <div data-section-index="1" className="h-full">
+                      <HappeningNowCard
+                        isPreEvent={isPreEvent}
+                        daysRemaining={daysRemaining}
+                        currentEvent={
+                          currentEvent
+                            ? {
+                                title: currentEvent.title,
+                                startTime: currentEvent.start_time,
+                                endTime: currentEvent.end_time || "--",
+                                location: currentEvent.location,
+                                description: currentEvent.description ?? "",
+                                tag: currentEvent.category,
+                              }
+                            : undefined
+                        }
+                        nextEvent={nextEvent ? { title: nextEvent.title, startTime: nextEvent.start_time, location: nextEvent.location } : undefined}
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: "company",
+                  label: "Minha companhia",
+                  className: "md:col-span-6 lg:col-span-7",
+                  content: (
+                    <div data-section-index="2" className="h-full">
+                      <MyCompanyCard
+                        currentUserId={profile?.id || null}
+                        companyName={companyName}
+                        counselors={company?.counselors ?? null}
+                        companyMotto={company?.motto ?? null}
+                        announcements={announcements}
+                      />
+                    </div>
+                  ),
+                },
+                {
+                  id: "photos",
+                  label: "Galeria de fotos",
+                  className: "md:col-span-12",
+                  content: (
+                    <div data-section-index="3">
+                      <PhotoGallery photos={featuredPhotos} />
+                    </div>
+                  ),
+                },
+                { id: "instagram", label: "Instagram do FSY", className: "md:col-span-12", content: <MemoriesCard /> },
+              ]}
+            />
+          </>
         )}
       </main>
     </div>

@@ -8,7 +8,22 @@ Repositório: `https://github.com/alxgoes/fsy-event-app.git`. Site: `https://fsy
 
 Leia `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `docs/inclusao.md` e os contratos reais. A análise anterior está em `/Users/alexgoes/Documents/FSY/ANALISE-FSY-2026-10-20.md`; o contexto adicional, em `/Users/alexgoes/Documents/FSY/BRIEF-ORCA-FSY.md`.
 
-Executor solicitado: Claude Opus 5.5, modelo `claude-opus-5-5`, no Orca. Utilizar skills Superpowers e Impeccable quando disponíveis, respeitando os requisitos aprovados e sem repetir uma entrevista de descoberta já resolvida. A execução das etapas está autorizada; resolver escolhas reversíveis com julgamento técnico. Não declarar uma habilidade disponível sem verificá-la, nem trocar o modelo silenciosamente.
+Política de execução atualizada por instrução do usuário em 20/10/2026: distribuir trabalho entre Claude e GPT para preservar cotas compartilhadas com outros projetos. GPT 6.1 Sol (`gpt-6.1-sol`) assume a implementação principal, com esforço médio como padrão; GPT Sol (`gpt-6-sol`) pode executar tarefas pequenas bem delimitadas quando houver benefício real; GPT Astra (`gpt-6-astra`) fica reservado a uma revisão pontual de risco/arquitetura. Claude Opus 5.5 (`claude-opus-5-5`) deixa de executar continuamente e permanece ocioso após checkpoint, disponível somente para intervenções curtas justificadas. Não criar várias sessões premium simultâneas nem refazer trabalho concluído só para trocar o modelo.
+
+Utilizar skills Superpowers e Impeccable quando disponíveis para o executor, respeitando os requisitos aprovados e sem repetir uma entrevista de descoberta já resolvida. A execução das etapas está autorizada; resolver escolhas reversíveis com julgamento técnico. Não declarar uma habilidade disponível sem verificá-la, nem trocar o modelo silenciosamente. A instrução de preservar cotas prevalece sobre sugestões de grandes equipes, revisões duplicadas e ciclos abertos de polimento das skills.
+
+### Controle de consumo
+
+- Preservar o trabalho do Claude, commits e arquivos ainda não commitados; trocar o executor somente depois do checkpoint seguro. Um único agente escreve no mesmo conjunto de arquivos por vez.
+- Usar resumos curtos, diffs e contratos para transferir contexto. Não reler o repositório completo nem repetir a análise original.
+- Astra recebe somente os arquivos/diffs relevantes a uma revisão de risco, com tarefa e saída delimitadas; nenhuma implementação geral ou equipe de subagentes premium. Encerrar ao entregar os achados. Não usar esforço máximo por padrão.
+- Não reativar Opus como executor principal nem permitir que ele crie subagentes contínuos sem nova necessidade explícita.
+- Executar testes pertinentes; repetir somente após mudanças/falhas, sem builds e capturas redundantes.
+- Conferir cotas antes de iniciar lote premium e ao encerrar checkpoints importantes. Limites são da conta inteira: não atribuir aumento exclusivamente a este projeto nem garantir consumo futuro exato.
+- Não comprar créditos, consumir resets ou mudar plano/assinatura. Se a margem ficar baixa, não iniciar nova tarefa premium; registrar estado e comunicar a necessidade de ajustar o próximo lote.
+- Manter o manual funcional/design como última etapa editorial e conservar todo o escopo aprovado.
+
+Snapshot de controle desta alteração: Claude 40% usado na janela de 5 horas, 31% semanal; Codex/GPT 6% usado na janela semanal. São leituras pontuais da conta, sujeitas ao uso em outros projetos; não são orçamento exclusivo do FSY.
 
 A consulta atual ao Claude local encontrou autenticação configurada, mas `claude plugin list` não listou plugins e não foi encontrado Superpowers nos diretórios locais verificados. Conferir o perfil efetivo do terminal Orca. Se não estiver disponível, informar a limitação e prosseguir com as habilidades existentes; a ausência não impede a implementação. Não alegar uso de Superpowers sem carregá-lo.
 
