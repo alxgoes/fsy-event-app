@@ -24,7 +24,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54399
       NEXT_PUBLIC_SUPABASE_ANON_KEY: dev
       SUPABASE_SERVICE_ROLE_KEY: dev
-      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3117
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
