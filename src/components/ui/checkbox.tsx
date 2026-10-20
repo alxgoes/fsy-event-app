@@ -23,7 +23,7 @@ export function Checkbox({
       htmlFor={id}
       data-state={checked ? "checked" : "unchecked"}
       className={cn(
-        "peer relative inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] border-2 border-slate-900 dark:border-slate-600 transition-colors cursor-pointer select-none overflow-hidden focus-within:ring-2 focus-within:ring-[#007DA5]",
+        "peer relative inline-flex size-5 shrink-0 items-center justify-center rounded-md border-[1.5px] border-slate-500 dark:border-slate-400 transition-colors cursor-pointer select-none overflow-hidden focus-within:ring-4 focus-within:ring-[#007DA5]/25",
         checked
           ? "bg-[#007DA5] border-[#007DA5] text-white dark:bg-[#01B6D1] dark:border-[#01B6D1] dark:text-slate-950"
           : "bg-white dark:bg-slate-800",
@@ -40,7 +40,7 @@ export function Checkbox({
         className="sr-only"
         {...props}
       />
-      {checked && <Check className="h-3 w-3 stroke-[3.5]" />}
+      {checked && <Check className="h-3.5 w-3.5 stroke-[3.5]" aria-hidden="true" />}
     </label>
   );
 }

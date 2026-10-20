@@ -177,3 +177,37 @@ test('schedule seed with overwrite never deletes before a successful insert', as
   assert.equal(db.calls.filter((c) => c.rpc === 'admin_replace_schedule').length, 1);
   assert.ok(!JSON.stringify(res.body).includes('boom'), 'database detail leaked');
 });
+
+test('identity resolution rejects suspended profiles', async () => {
+  const profile = (extra) => ({ id: 'u1', full_name: 'Coord', role: 'coordenador', company_id: null, ...extra });
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||= 'https://example.test';
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||= 'anon';
+  const resolve = async (row) => {
+    const client = {
+      auth: { getUser: async () => ({ data: { user: { id: 'u1', email: 'c@fsy.test' } }, error: null }) },
+      from: () => ({ select() { return this; }, eq() { return this; }, single: async () => ({ data: row, error: null }) }),
+    };
+    const server = loadRoute('src/lib/supabase/server.ts', { extraModules: {
+      '@supabase/ssr': { createServerClient: () => client },
+      '@/lib/supabase/admin': { createAdminClient: () => client },
+      '@/lib/supabase/server': undefined,
+    } });
+    return server.getCurrentIdentity();
+  };
+  assert.equal((await resolve(profile({ suspended_at: null }))).role, 'coordenador');
+  assert.equal(await resolve(profile({ suspended_at: '2026-10-20T00:00:00Z' })), null);
+});
+
+test('legacy users PUT applies the account matrix', async () => {
+  const logistica = { user: { id: 'u-log' }, role: 'logistica', fullName: 'Logística' };
+  const target = { id: '123e4567-e89b-42d3-a456-426614174999', role: 'jovem', full_name: 'Alvo' };
+  const db = () => createFakeDb({ profiles: (c) => ({ data: c.single ? target : [target], error: null }) });
+  const promote = await call('src/app/api/users/route.ts', 'PUT', logistica, '/api/users', { id: target.id, role: 'casal_diretor' }, db());
+  assert.equal(promote.res.status, 403);
+  assert.equal(promote.db.calls.some((c) => c.ops.includes('update')), false);
+  const selfDb = createFakeDb({ profiles: (c) => ({ data: { id: 'u-log', role: 'logistica', full_name: 'Logística' }, error: null }) });
+  const self = await call('src/app/api/users/route.ts', 'PUT', logistica, '/api/users', { id: 'u-log', role: 'jovem' }, selfDb);
+  assert.equal(self.res.status, 409);
+  const room = await call('src/app/api/users/route.ts', 'PUT', logistica, '/api/users', { id: target.id, room: '12', role: 'jovem' }, db());
+  assert.equal(room.res.status, 200);
+});

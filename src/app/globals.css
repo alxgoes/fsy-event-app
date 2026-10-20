@@ -295,3 +295,35 @@ html:not(.dark) .text-slate-800 {
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #01B6D1;
 }
+/* ==========================================================================
+   Campos FSY: preenchimento automático e seta do select nativo
+   O navegador pinta o autofill por conta própria; aqui mantemos a superfície
+   e a cor do texto do tema em vez do amarelo/azul padrão.
+   ========================================================================== */
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill,
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill:hover,
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f172a;
+  caret-color: #0f172a;
+  box-shadow: 0 0 0 1000px #f2f9fc inset, 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: background-color 9999s ease-out 0s;
+}
+.dark :is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill,
+.dark :is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill:hover,
+.dark :is([data-slot="input"], [data-slot="textarea"], [data-slot="native-select"]):-webkit-autofill:focus {
+  -webkit-text-fill-color: #f8fafc;
+  caret-color: #f8fafc;
+  box-shadow: 0 0 0 1000px #0c2733 inset;
+}
+.fsy-select-chevron {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.875rem center;
+  background-size: 1rem;
+}
+.dark .fsy-select-chevron {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+.dark .fsy-select-chevron option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}

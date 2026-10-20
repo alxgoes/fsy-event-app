@@ -56,15 +56,17 @@ export async function getCurrentIdentity(): Promise<Identity | null> {
 
     const { data: profile, error: profileError } = await createAdminClient()
       .from("profiles")
-      .select("id, full_name, role, company_id")
+      .select("id, full_name, role, company_id, suspended_at")
       .eq("id", user.id)
       .single();
     if (profileError || !profile?.role) return null;
+    // Conta suspensa pela administração: sessões ainda válidas não autorizam nada.
+    if (profile.suspended_at) return null;
 
     return {
       user: { id: user.id, email: user.email },
       role: profile.role as UserRole,
-      profile: profile as Identity["profile"],
+      profile: { id: profile.id, full_name: profile.full_name, role: profile.role, company_id: profile.company_id },
     };
   } catch {
     return null;
@@ -94,10 +96,10 @@ export async function getCurrentUserAndRole(): Promise<{
     // User metadata and old JWT/cookie roles must never grant privileges.
     const { data: profile, error: profileError } = await createAdminClient()
       .from("profiles")
-      .select("role")
+      .select("role, suspended_at")
       .eq("id", user.id)
       .single();
-    const role = profileError ? null : profile?.role as UserRole | null;
+    const role = profileError || profile?.suspended_at ? null : profile?.role as UserRole | null;
 
     return {
       user: { id: user.id, email: user.email },

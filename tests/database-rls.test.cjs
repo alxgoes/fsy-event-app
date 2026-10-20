@@ -133,3 +133,22 @@ test('schedule replacement keeps existing rows when the new batch is invalid', a
 test('security migration can be applied twice without errors', async () => {
   await applyMigration(db, '202610200001');
 });
+
+test('suspended staff lose role-based access immediately', async () => {
+  await db.query(`UPDATE profiles SET suspended_at = now() WHERE id = $1`, [ID.coord]);
+  try {
+    const visible = await rows({ sub: ID.coord }, `SELECT id FROM profiles`);
+    assert.ok(visible.length <= 1, 'suspended coordinator still reads every profile');
+  } finally {
+    await db.query(`UPDATE profiles SET suspended_at = NULL WHERE id = $1`, [ID.coord]);
+  }
+});
+
+test('browser cannot clear its own suspension', async () => {
+  await db.query(`UPDATE profiles SET suspended_at = now() WHERE id = $1`, [ID.jovem]);
+  try {
+    denied(await attempt(db, { sub: ID.jovem }, `UPDATE profiles SET suspended_at = NULL WHERE id = $1`, [ID.jovem]), 'self unsuspend');
+  } finally {
+    await db.query(`UPDATE profiles SET suspended_at = NULL WHERE id = $1`, [ID.jovem]);
+  }
+});

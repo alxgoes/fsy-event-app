@@ -6,15 +6,18 @@
 -- ==============================================================================
 BEGIN;
 
--- 1. Funções auxiliares com search_path fixo -----------------------------------
+-- 1. Suspensão administrativa e funções auxiliares ------------------------------
+-- suspended_at preenchido = acesso suspenso; o cargo deixa de valer nas políticas.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS suspended_at timestamptz;
+
 CREATE OR REPLACE FUNCTION public.get_auth_role()
 RETURNS user_role LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
-  SELECT role FROM public.profiles WHERE id = auth.uid();
+  SELECT role FROM public.profiles WHERE id = auth.uid() AND suspended_at IS NULL;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_auth_company()
 RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $$
-  SELECT company_id FROM public.profiles WHERE id = auth.uid();
+  SELECT company_id FROM public.profiles WHERE id = auth.uid() AND suspended_at IS NULL;
 $$;
 REVOKE ALL ON FUNCTION public.get_auth_company() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_auth_company() TO authenticated, service_role;
@@ -52,6 +55,7 @@ DROP POLICY IF EXISTS profiles_counselor_read ON public.profiles;
 
 CREATE POLICY profiles_self_read ON public.profiles FOR SELECT TO authenticated
   USING (id = auth.uid());
+-- A atualização própria continua limitada pelo trigger de campos protegidos.
 CREATE POLICY profiles_staff_read ON public.profiles FOR SELECT TO authenticated
   USING (public.get_auth_role()::text IN ('coordenador', 'casal_diretor', 'logistica', 'medico'));
 CREATE POLICY profiles_counselor_read ON public.profiles FOR SELECT TO authenticated
@@ -68,9 +72,10 @@ BEGIN
     NEW.id IS DISTINCT FROM OLD.id OR
     NEW.role IS DISTINCT FROM OLD.role OR
     NEW.company_id IS DISTINCT FROM OLD.company_id OR
-    NEW.room IS DISTINCT FROM OLD.room
+    NEW.room IS DISTINCT FROM OLD.room OR
+    NEW.suspended_at IS DISTINCT FROM OLD.suspended_at
   ) THEN
-    RAISE EXCEPTION 'Alterações de cargo, companhia ou quarto exigem a administração do servidor.' USING ERRCODE = '42501';
+    RAISE EXCEPTION 'Alterações de cargo, companhia, quarto ou acesso exigem a administração do servidor.' USING ERRCODE = '42501';
   END IF;
   RETURN NEW;
 END;

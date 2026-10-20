@@ -3,26 +3,20 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Mail,
-  Lock,
-  User,
   ArrowRight,
   AlertCircle,
-  Eye,
-  EyeOff,
   CheckCircle2,
-  Phone,
-  MapPin,
   Loader2,
   UserPlus,
   LogIn,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Field, PasswordInput } from "@/components/ui/field";
+import { passwordProblem } from "@/lib/auth/password-policy";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 
@@ -49,17 +43,18 @@ function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
   );
 }
 
+type Mode = "login" | "register" | "recover";
+
 function LoginFormContent() {
   const router = useRouter();
 
   // Mode: login vs register
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<Mode>("login");
+  const [recoverEmail, setRecoverEmail] = useState("");
 
   // Login Form States
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
 
   // Register Form States
   const [fullName, setFullName] = useState("");
@@ -68,7 +63,6 @@ function LoginFormContent() {
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
   const [regStake, setRegStake] = useState("");
   const [regPhone, setRegPhone] = useState("");
-  const [showRegPassword, setShowRegPassword] = useState(false);
 
   // UI States
   const [loading, setLoading] = useState(false);
@@ -82,10 +76,10 @@ function LoginFormContent() {
       if (errorParam) {
         setErrorMsg(decodeURIComponent(errorParam));
       }
-      const modeParam = params.get("mode");
-      if (modeParam === "register") {
-        setMode("register");
-      }
+      const modeParam = params.get("mode") || params.get("modo");
+      if (modeParam === "register") setMode("register");
+      if (modeParam === "recuperar") setMode("recover");
+      if (params.get("senha") === "redefinida") setSuccessMsg("Senha alterada. Entre com a nova senha.");
     }
   }, []);
 
@@ -181,6 +175,31 @@ function LoginFormContent() {
     }
   };
 
+  const handleRecover = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\S+@\S+\.\S+$/.test(recoverEmail.trim())) {
+      setErrorMsg("Informe o e-mail usado no cadastro.");
+      return;
+    }
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const res = await fetch("/api/auth/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: recoverEmail.trim() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) setErrorMsg(json.error || "Não foi possível enviar agora. Tente novamente em instantes.");
+      else setSuccessMsg(json.message);
+    } catch {
+      setErrorMsg("Sem conexão. Verifique a internet e tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Email / Password Registration
   const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,8 +211,9 @@ function LoginFormContent() {
       setErrorMsg("Por favor, informe seu e-mail.");
       return;
     }
-    if (!regPassword || regPassword.length < 6) {
-      setErrorMsg("A senha deve conter no mínimo 6 caracteres.");
+    const problem = passwordProblem(regPassword);
+    if (problem) {
+      setErrorMsg(problem);
       return;
     }
     if (regPassword !== regConfirmPassword) {
@@ -259,393 +279,174 @@ function LoginFormContent() {
     }
   };
 
+  const switchMode = (next: Mode) => {
+    setMode(next);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  };
+
+  const isRecover = mode === "recover";
+  const heading = mode === "login" ? "Entrar no Portal" : mode === "register" ? "Criar conta" : "Recuperar acesso";
+  const subtitle =
+    mode === "login"
+      ? "Portal da Sessão Ribeirão Preto 2"
+      : mode === "register"
+        ? "Cadastro de participante. Cargos da equipe são atribuídos pela coordenação."
+        : "Enviaremos um link para criar uma nova senha do portal.";
+
   return (
     <div className="w-full max-w-md">
-      {/* Bento Card */}
-      <div className="rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-7 sm:p-9 shadow-[6px_6px_0px_0px_rgba(15,23,42,1)] dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-5">
-        {/* Card Header with Official Temple Mark & Mode Switcher */}
-        <div className="text-center space-y-2">
+      <section
+        aria-labelledby="login-heading"
+        className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.08),0_8px_10px_-6px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900 sm:p-8"
+      >
+        <div className="space-y-2 text-center">
           <div className="mx-auto flex items-center justify-center pb-1">
             <FsyFloatingLetters size="md" />
           </div>
-
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase tracking-wider">
-            <span>Acesso ao Sistema • 2027</span>
-          </div>
-
-          <h1 className="font-heading text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-            {mode === "login" ? "Entrar no Portal" : "Criar Nova Conta"}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            {mode === "login"
-              ? "Bem-vindo ao portal FSY Sessão Ribeirão Preto 2"
-              : "Cadastre-se com seus dados para acessar o evento"}
+          <p className="inline-flex items-center rounded-full bg-[#FFE48A] px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-950">
+            Acesso ao sistema · 2027
           </p>
+          <h1 id="login-heading" className="font-heading text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            {heading}
+          </h1>
+          <p className="text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
         </div>
 
-        {/* Mode Selector Tabs */}
-        <div className="flex rounded-2xl border-2 border-slate-900 dark:border-slate-700 p-1 bg-slate-100 dark:bg-slate-800">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("login");
-              setErrorMsg(null);
-              setSuccessMsg(null);
-            }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
-              mode === "login"
-                ? "bg-[#007DA5] text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            <LogIn className="h-3.5 w-3.5" />
-            Entrar
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("register");
-              setErrorMsg(null);
-              setSuccessMsg(null);
-            }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-black transition-all ${
-              mode === "register"
-                ? "bg-[#007DA5] text-white shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            }`}
-          >
-            <UserPlus className="h-3.5 w-3.5" />
-            Cadastrar-se
-          </button>
-        </div>
+        {!isRecover && (
+          <div role="tablist" aria-label="Escolha entre entrar ou criar conta" className="flex rounded-2xl bg-slate-100 p-1 dark:bg-slate-800">
+            {([
+              ["login", "Entrar", LogIn],
+              ["register", "Cadastrar-se", UserPlus],
+            ] as const).map(([value, label, Icon]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={mode === value}
+                onClick={() => switchMode(value)}
+                className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-colors ${
+                  mode === value
+                    ? "bg-[#007DA5] text-white shadow-sm dark:bg-[#01B6D1] dark:text-slate-950"
+                    : "text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Alerts */}
-        {errorMsg && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-start gap-2.5 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border-2 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-semibold"
-          >
-            <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="font-bold block">Atenção</span>
+        <div aria-live="polite" className="space-y-2">
+          {errorMsg && (
+            <div role="alert" className="flex items-start gap-2.5 rounded-xl border border-[#F4B4A8] bg-[#FDF1EE] p-3.5 text-sm text-[#7A1F12] dark:border-[#7A2E22] dark:bg-[#2A1410] dark:text-[#FFD2C8]">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{errorMsg}</span>
             </div>
-          </motion.div>
-        )}
-
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-start gap-2.5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs font-semibold"
-          >
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="font-bold block">Sucesso</span>
+          )}
+          {successMsg && (
+            <div role="status" className="flex items-start gap-2.5 rounded-xl border border-[#BFE3A0] bg-[#F2FAEA] p-3.5 text-sm text-[#2F5413] dark:border-[#3D5A22] dark:bg-[#14210B] dark:text-[#D6F0BC]">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{successMsg}</span>
             </div>
-          </motion.div>
-        )}
-
-        {/* Google Sign-In Button */}
-        <Button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl border-2 border-slate-900 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all font-black text-sm"
-        >
-          <GoogleIcon className="h-5 w-5" />
-          <span>{loading ? "Conectando ao Google..." : mode === "login" ? "Continuar com o Google" : "Cadastrar com o Google"}</span>
-        </Button>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
-          <span className="absolute bg-white dark:bg-slate-900 px-3 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            {mode === "login" ? "ou com e-mail" : "ou cadastro comum com e-mail"}
-          </span>
+          )}
         </div>
 
-        {/* ======================================================== */}
-        {/* TAB 1: LOGIN FORM                                        */}
-        {/* ======================================================== */}
+        {!isRecover && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border-slate-300 bg-white text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            >
+              <GoogleIcon className="h-5 w-5" />
+              <span>{loading ? "Conectando ao Google…" : mode === "login" ? "Continuar com o Google" : "Cadastrar com o Google"}</span>
+            </Button>
+            <div className="relative flex items-center justify-center" aria-hidden="true">
+              <div className="w-full border-t border-slate-200 dark:border-slate-700" />
+              <span className="absolute bg-white px-3 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                ou com e-mail
+              </span>
+            </div>
+          </>
+        )}
+
         {mode === "login" && (
-          <form onSubmit={handleEmailSignIn} className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="login-email" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
-                E-mail cadastrado
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="login-email"
-                  type="email"
-                  placeholder="exemplo@fsybrasil.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  className="pl-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="login-password" className="text-xs font-black text-slate-700 dark:text-slate-300">
-                  Senha
-                </label>
-                <button
-                  type="button"
-                  className="text-xs font-bold text-[#007DA5] hover:underline"
-                  onClick={() =>
-                    setErrorMsg(
-                      "Para redefinir sua senha, solicite suporte à coordenação do FSY."
-                    )
-                  }
-                >
-                  Esqueceu a senha?
-                </button>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="login-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
-                  className="pl-10 pr-10 h-11 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me Checkbox */}
-            <div className="flex items-center space-x-2 pt-1">
-              <Checkbox
-                id="remember"
-                checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked === true)}
-                className="border-slate-900 dark:border-slate-600 data-[state=checked]:bg-[#007DA5]"
-              />
-              <label
-                htmlFor="remember"
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 cursor-pointer select-none"
-              >
-                Lembrar de mim neste dispositivo
-              </label>
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-sm border-2 border-slate-900 dark:border-slate-600 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Acessando...
-                </>
-              ) : (
-                <>
-                  <span>Acessar Portal FSY</span>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+          <form onSubmit={handleEmailSignIn} className="space-y-4" noValidate>
+            <Field id="login-email" label="E-mail">
+              {(a) => (
+                <Input {...a} type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
               )}
-            </Button>
-
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("register");
-                  setErrorMsg(null);
-                }}
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#007DA5]"
-              >
-                Não tem uma conta? <span className="text-[#007DA5] dark:text-[#7DE3F4] font-black underline">Cadastre-se gratuitamente</span>
-              </button>
+            </Field>
+            <div className="space-y-1.5">
+              <Field id="login-password" label="Senha">
+                {(a) => (
+                  <PasswordInput {...a} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} />
+                )}
+              </Field>
+              <div className="flex justify-end">
+                <button type="button" onClick={() => { setRecoverEmail(email); switchMode("recover"); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-[#007DA5] underline-offset-4 hover:underline dark:text-[#7DE3F4]">
+                  Esqueci minha senha
+                </button>
+              </div>
             </div>
+            <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl text-sm font-semibold">
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+              {loading ? "Entrando…" : "Entrar no portal"}
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />}
+            </Button>
           </form>
         )}
 
-        {/* ======================================================== */}
-        {/* TAB 2: REGISTER FORM                                     */}
-        {/* ======================================================== */}
+        {mode === "recover" && (
+          <form onSubmit={handleRecover} className="space-y-4" noValidate>
+            <Field id="recover-email" label="E-mail da conta" hint="Contas criadas só com Google: o link cria uma senha do portal para o mesmo cadastro. A senha do Google não muda.">
+              {(a) => (
+                <Input {...a} type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={recoverEmail} onChange={(e) => setRecoverEmail(e.target.value)} disabled={loading} />
+              )}
+            </Field>
+            <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl text-sm font-semibold">
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <Mail className="mr-2 h-4 w-4" aria-hidden="true" />}
+              {loading ? "Enviando…" : "Enviar link de redefinição"}
+            </Button>
+            <button type="button" onClick={() => switchMode("login")} className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-slate-700 hover:text-[#007DA5] dark:text-slate-200 dark:hover:text-[#7DE3F4]">
+              Voltar para a entrada
+            </button>
+          </form>
+        )}
+
         {mode === "register" && (
-          <form onSubmit={handleEmailRegister} className="space-y-3.5">
-            {/* Full Name */}
-            <div className="space-y-1">
-              <label htmlFor="register-fullname" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
-                Nome Completo *
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="register-fullname"
-                  type="text"
-                  placeholder="Seu nome completo"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={loading}
-                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
-                />
-              </div>
+          <form onSubmit={handleEmailRegister} className="space-y-4" noValidate>
+            <Field id="register-fullname" label="Nome completo" required>
+              {(a) => <Input {...a} autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} />}
+            </Field>
+            <Field id="register-email" label="E-mail" required>
+              {(a) => <Input {...a} type="email" inputMode="email" autoComplete="email" placeholder="nome@exemplo.com" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} disabled={loading} />}
+            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field id="register-stake" label="Estaca">
+                {(a) => <Input {...a} autoComplete="off" placeholder="Ex.: Ribeirão Preto Leste" value={regStake} onChange={(e) => setRegStake(e.target.value)} disabled={loading} />}
+              </Field>
+              <Field id="register-phone" label="Celular">
+                {(a) => <Input {...a} type="tel" inputMode="tel" autoComplete="tel" placeholder="(16) 99999-0000" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} disabled={loading} />}
+              </Field>
             </div>
-
-            {/* Email */}
-            <div className="space-y-1">
-              <label htmlFor="register-email" className="text-xs font-black text-slate-700 dark:text-slate-300 block">
-                E-mail para acesso *
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  id="register-email"
-                  type="email"
-                  placeholder="seuemail@exemplo.com"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  disabled={loading}
-                  className="pl-10 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl focus-visible:ring-0 focus-visible:border-[#007DA5] text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            {/* Passwords (2 columns) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="space-y-1">
-                <label htmlFor="register-password" className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
-                  Senha (mín. 6 dígitos) *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <Input
-                    id="register-password"
-                    type={showRegPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={regPassword}
-                    onChange={(e) => setRegPassword(e.target.value)}
-                    disabled={loading}
-                    className="pl-8 pr-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegPassword(!showRegPassword)}
-                    aria-label={showRegPassword ? "Ocultar senha de cadastro" : "Exibir senha de cadastro"}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showRegPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="register-confirm-password" className="text-[11px] font-black text-slate-700 dark:text-slate-300 block">
-                  Confirmar Senha *
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <Input
-                    id="register-confirm-password"
-                    type={showRegPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={regConfirmPassword}
-                    onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    disabled={loading}
-                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Optional Stake and Phone */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="space-y-1">
-                <label htmlFor="register-stake" className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
-                  Estaca / Ala (Opcional)
-                </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <Input
-                    id="register-stake"
-                    type="text"
-                    placeholder="Ex: Ribeirão Preto Leste"
-                    value={regStake}
-                    onChange={(e) => setRegStake(e.target.value)}
-                    disabled={loading}
-                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="register-phone" className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">
-                  Telefone / WhatsApp (Opcional)
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <Input
-                    id="register-phone"
-                    type="text"
-                    placeholder="(16) 99999-9999"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    disabled={loading}
-                    className="pl-8 h-10 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Register Button */}
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 rounded-2xl bg-[#93C742] hover:bg-[#BED21E] text-slate-950 font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all mt-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Criando conta...
-                </>
-              ) : (
-                <>
-                  <span>Criar Minha Conta no FSY</span>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
+            <Field id="register-password" label="Senha" required hint="Mínimo de 8 caracteres, com letras e números.">
+              {(a) => <PasswordInput {...a} autoComplete="new-password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} disabled={loading} />}
+            </Field>
+            <Field id="register-confirm" label="Repita a senha" required>
+              {(a) => <PasswordInput {...a} autoComplete="new-password" value={regConfirmPassword} onChange={(e) => setRegConfirmPassword(e.target.value)} disabled={loading} />}
+            </Field>
+            <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl bg-[#93C742] text-sm font-semibold text-slate-950 hover:bg-[#84B53A]">
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+              {loading ? "Criando conta…" : "Criar minha conta"}
             </Button>
-
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setErrorMsg(null);
-                }}
-                className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-[#007DA5]"
-              >
-                Já possui uma conta cadastrada? <span className="text-[#007DA5] dark:text-[#7DE3F4] font-black underline">Fazer Login</span>
-              </button>
-            </div>
           </form>
         )}
-      </div>
+      </section>
     </div>
   );
 }
