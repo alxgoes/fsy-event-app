@@ -303,7 +303,7 @@ export function AnnouncementsManager() {
           placeholder="Buscar comunicado por título ou conteúdo..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-sm bg-white dark:bg-slate-900"
+          className="pl-10"
         />
       </div>
 
@@ -386,18 +386,18 @@ export function AnnouncementsManager() {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="ex: Reunião Geral no Pavilhão A às 19:30"
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs"
+                className=""
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-black uppercase text-slate-500">Conteúdo do Comunicado</label>
-              <Textarea
+              <label htmlFor="field-announcementsmanager-1" className="text-xs font-black uppercase text-slate-500">Conteúdo do Comunicado</label>
+              <Textarea id="field-announcementsmanager-1"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Escreva a mensagem que aparecerá para os jovens..."
                 rows={4}
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-medium text-xs resize-none"
+                className=""
               />
             </div>
 

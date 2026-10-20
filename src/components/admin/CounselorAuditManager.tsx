@@ -1,4 +1,5 @@
 "use client";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -168,7 +169,7 @@ export function CounselorAuditManager() {
 
     try {
       const res = await fetch(
-        `/api/admin/counselor-audit?id=${encodeURIComponent(logToDelete.id)}&role=${profile.role}`,
+        `/api/admin/counselor-audit?id=${encodeURIComponent(logToDelete.id)}`,
         {
           method: "DELETE",
         }
@@ -199,7 +200,7 @@ export function CounselorAuditManager() {
 
     try {
       const res = await fetch(
-        `/api/admin/counselor-audit?all=true&role=${profile.role}`,
+        `/api/admin/counselor-audit?all=true`,
         {
           method: "DELETE",
         }
@@ -430,19 +431,21 @@ export function CounselorAuditManager() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             type="text"
+            aria-label="Buscar registros por consultor, título ou conteúdo"
             placeholder="Buscar por nome do consultor, título ou palavras do comunicado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-2xl border-2 border-slate-900/40 dark:border-slate-700 text-xs font-bold"
+            className="pl-10"
           />
         </div>
 
         {/* Company Filter */}
         <div className="flex items-center gap-2 flex-wrap">
-          <select
+          <NativeSelect
+            aria-label="Filtrar registros por companhia"
             value={selectedCompany}
             onChange={(e) => setSelectedCompany(e.target.value)}
-            className="px-3 py-2 rounded-2xl border-2 border-slate-900/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+            className=""
           >
             <option value="all">Todas as Companhias</option>
             {companies.map((c) => (
@@ -450,18 +453,19 @@ export function CounselorAuditManager() {
                 {c.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
 
           {/* Action Type Filter */}
-          <select
+          <NativeSelect
+            aria-label="Filtrar registros por tipo de ação"
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
-            className="px-3 py-2 rounded-2xl border-2 border-slate-900/40 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+            className=""
           >
             <option value="all">Todas as Ações</option>
             <option value="publicou_comunicado">Publicações</option>
             <option value="excluiu_comunicado">Exclusões</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
 
@@ -565,7 +569,7 @@ export function CounselorAuditManager() {
                       onClick={() => setLogToDelete(log)}
                       title="Apagar este registro do histórico"
                       aria-label={`Apagar este registro de auditoria de ${log.author_name}`}
-                      className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
+                      className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

@@ -327,3 +327,9 @@ html:not(.dark) .text-slate-800 {
   background-color: #0f172a;
   color: #f8fafc;
 }
+
+/* Controles acionáveis mantêm a área de toque mínima, inclusive ícones. */
+button:not([role="switch"]), [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}

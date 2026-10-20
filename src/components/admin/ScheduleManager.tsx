@@ -1,4 +1,5 @@
 "use client";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -428,7 +429,7 @@ export function ScheduleManager() {
             placeholder="Buscar por título, local ou descrição..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-sm bg-white dark:bg-slate-900"
+            className="pl-10"
           />
         </div>
 
@@ -552,15 +553,15 @@ export function ScheduleManager() {
 
           <form onSubmit={handleSaveForm} className="space-y-4 pt-2">
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nome da Atividade / Título *</label>
-              <Input
+              <label htmlFor="field-schedulemanager-1" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Nome da Atividade / Título *</label>
+              <Input id="field-schedulemanager-1"
                 value={formTitle}
                 onChange={(e) => {
                   setFormTitle(e.target.value);
                   if (formErrors.title) setFormErrors((prev) => ({ ...prev, title: "" }));
                 }}
                 placeholder="Ex: Estudo das Escrituras"
-                className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl font-semibold"
+                className=""
               />
               {formErrors.title && (
                 <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.title}</p>
@@ -569,11 +570,11 @@ export function ScheduleManager() {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Dia do Evento *</label>
-                <select
+                <label htmlFor="field-schedulemanager-2" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Dia do Evento *</label>
+                <NativeSelect id="field-schedulemanager-2"
                   value={formDay}
                   onChange={(e) => handleDayChange(e.target.value)}
-                  className="w-full h-9 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 px-2 font-semibold"
+                  className="w-full"
                 >
                   <option value="dia0">Dia Zero (05/02 • Consultores)</option>
                   <option value="dia1">1º Dia (06/02 • Chegada Jovens)</option>
@@ -581,19 +582,19 @@ export function ScheduleManager() {
                   <option value="dia3">3º Dia (08/02)</option>
                   <option value="dia4">4º Dia (09/02)</option>
                   <option value="dia5">5º Dia (10/02)</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Início *</label>
-                <Input
+                <label htmlFor="field-schedulemanager-3" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Início *</label>
+                <Input id="field-schedulemanager-3"
                   value={formStartTime}
                   onChange={(e) => {
                     setFormStartTime(e.target.value);
                     if (formErrors.start_time) setFormErrors((prev) => ({ ...prev, start_time: "" }));
                   }}
                   placeholder="08:00"
-                  className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl font-semibold"
+                  className=""
                 />
                 {formErrors.start_time && (
                   <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.start_time}</p>
@@ -601,27 +602,27 @@ export function ScheduleManager() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Término</label>
-                <Input
+                <label htmlFor="field-schedulemanager-4" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Término</label>
+                <Input id="field-schedulemanager-4"
                   value={formEndTime}
                   onChange={(e) => setFormEndTime(e.target.value)}
                   placeholder="09:00"
-                  className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl font-semibold"
+                  className=""
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Local *</label>
-                <Input
+                <label htmlFor="field-schedulemanager-5" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Local *</label>
+                <Input id="field-schedulemanager-5"
                   value={formLocation}
                   onChange={(e) => {
                     setFormLocation(e.target.value);
                     if (formErrors.location) setFormErrors((prev) => ({ ...prev, location: "" }));
                   }}
                   placeholder="Ex: Auditório Principal"
-                  className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl font-semibold"
+                  className=""
                 />
                 {formErrors.location && (
                   <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.location}</p>
@@ -629,37 +630,37 @@ export function ScheduleManager() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Categoria</label>
-                <select
+                <label htmlFor="field-schedulemanager-6" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Categoria</label>
+                <NativeSelect id="field-schedulemanager-6"
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full h-9 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 px-2 font-semibold"
+                  className="w-full"
                 >
                   {["Atividade", "Espiritual", "Alimentação", "Show", "Baile", "Logística", "Equipe", "Geral"].map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Data do Evento (YYYY-MM-DD)</label>
-              <Input
+              <label htmlFor="field-schedulemanager-7" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Data do Evento (YYYY-MM-DD)</label>
+              <Input id="field-schedulemanager-7"
                 value={formDate}
                 onChange={(e) => setFormDate(e.target.value)}
                 type="date"
-                className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl font-semibold"
+                className=""
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Descrição Detalhada</label>
-              <Textarea
+              <label htmlFor="field-schedulemanager-8" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Descrição Detalhada</label>
+              <Textarea id="field-schedulemanager-8"
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Detalhes, vestimenta recomendada ou instruções..."
                 rows={3}
-                className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl resize-none font-medium"
+                className=""
               />
             </div>
 

@@ -102,11 +102,19 @@ export async function PATCH(request: Request, { params }: Ctx) {
     }
 
     const suspend = input.action === "suspend";
-    // Bloqueia novos logins no Auth e marca o perfil (o servidor recusa sessões ativas suspensas).
+    // Suspender: grava primeiro o bloqueio protegido pelo trigger transacional.
+    // Só então bane no Auth. Se o Auth falhar, o perfil continua bloqueado e a
+    // operação pode ser repetida. Reativar usa a ordem inversa (falha fechada).
+    if (suspend) {
+      const { error } = await db.from("profiles").update({ suspended_at: now, updated_at: now }).eq("id", params.id);
+      if (error) return serverError("accounts.suspend", error);
+    }
     const { error: banError } = await db.auth.admin.updateUserById(params.id, { ban_duration: suspend ? "876000h" : "none" });
     if (banError) return serverError("accounts.ban", banError);
-    const { error } = await db.from("profiles").update({ suspended_at: suspend ? now : null, updated_at: now }).eq("id", params.id);
-    if (error) return serverError("accounts.suspend", error);
+    if (!suspend) {
+      const { error } = await db.from("profiles").update({ suspended_at: null, updated_at: now }).eq("id", params.id);
+      if (error) return serverError("accounts.reactivate", error);
+    }
     const audited = await recordAccountEvent(db, identity, label, input.action, suspend && input.reason ? { reason: input.reason } : {});
     return json({ success: true, audited });
   } catch (err) {

@@ -126,54 +126,30 @@ export function calculateActiveAndNextEvents(
   nextEvent: ScheduleItem | null;
   activeDayLabel: string;
 } {
-  const youthItems = items.filter((i) => i.day !== "dia0");
-  const list = youthItems.length > 0 ? youthItems : items;
-
-  const eventStartDate = new Date("2027-02-06T08:00:00");
-  const eventEndDate = new Date("2027-02-10T23:59:59");
-  const isBeforeEvent = referenceDate < eventStartDate;
-  const isAfterEvent = referenceDate > eventEndDate;
-
-  const currentTime = referenceDate.toTimeString().slice(0, 5); // "HH:MM"
-  const todayIso = referenceDate.toISOString().slice(0, 10);
-
-  const dayNameMap: Record<string, string> = {
-    dia1: "1º Dia (Sábado 06/02)",
-    dia2: "2º Dia (Domingo 07/02)",
-    dia3: "3º Dia (Segunda 08/02)",
-    dia4: "4º Dia (Terça 09/02)",
-    dia5: "5º Dia (Quarta 10/02)",
+  const list = items.filter(item => item.day !== "dia0").sort((a, b) =>
+    `${a.date}T${a.start_time}`.localeCompare(`${b.date}T${b.start_time}`));
+  const eventStart = new Date("2027-02-06T08:00:00-03:00");
+  const eventEnd = new Date("2027-02-10T23:59:59-03:00");
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(referenceDate);
+  const part = (type: string) => parts.find(value => value.type === type)?.value ?? "";
+  const today = `${part("year")}-${part("month")}-${part("day")}`;
+  const now = `${part("hour")}:${part("minute")}`;
+  const labels: Record<string, string> = {
+    dia1: "1º Dia (Sábado 06/02)", dia2: "2º Dia (Domingo 07/02)",
+    dia3: "3º Dia (Segunda 08/02)", dia4: "4º Dia (Terça 09/02)", dia5: "5º Dia (Quarta 10/02)",
   };
-
-  if (!isBeforeEvent && !isAfterEvent) {
-    const todayEvents = list.filter((item) => item.date === todayIso);
-    const candidateList = todayEvents.length > 0 ? todayEvents : list;
-
-    const activeCurrent = candidateList.find(
-      (item) => item.start_time <= currentTime && item.end_time > currentTime
-    );
-    const activeNext = candidateList.find((item) => item.start_time > currentTime);
-    const fallbackCurrent = candidateList.find((i) => i.is_highlight) || candidateList[0];
-    const fallbackNext = candidateList.find((i) => i.id !== fallbackCurrent?.id) || null;
-
-    const current = activeCurrent || fallbackCurrent || null;
-    const next = activeNext || fallbackNext || null;
-    const dayKey = current?.day || "dia1";
-
-    return {
-      currentEvent: current,
-      nextEvent: next,
-      activeDayLabel: dayNameMap[dayKey] || "1º Dia (Sábado 06/02)",
-    };
-  }
-
-  // Pre or Post event default view
-  const firstEvent = list.find((i) => i.day === "dia1") || list[0] || null;
-  const secondEvent = list.find((i) => i.id !== firstEvent?.id) || null;
-
-  return {
-    currentEvent: firstEvent,
-    nextEvent: secondEvent,
-    activeDayLabel: isBeforeEvent ? "Em Breve • 06 a 10 Fev 2027" : "Edição Concluída • FSY 2027",
+  if (referenceDate < eventStart) return {
+    currentEvent: null, nextEvent: list[0] ?? null,
+    activeDayLabel: "Em Breve • 06 a 10 Fev 2027",
   };
+  if (referenceDate > eventEnd) return {
+    currentEvent: null, nextEvent: null, activeDayLabel: "Edição Concluída • FSY 2027",
+  };
+  const current = list.find(item => item.date === today && item.start_time <= now && item.end_time > now) ?? null;
+  const next = list.find(item => item.date > today || (item.date === today && item.start_time > now)) ?? null;
+  const day = list.find(item => item.date === today)?.day;
+  return { currentEvent: current, nextEvent: next, activeDayLabel: day ? labels[day] : "FSY 2027" };
 }

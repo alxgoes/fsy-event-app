@@ -1,4 +1,7 @@
 "use client";
+import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Calendar, FileText, Loader2, Plus, RefreshCw, Save, Search } from "lucide-react";
@@ -53,15 +56,15 @@ function ContactFields({ contacts }: { contacts: InclusionContacts }) {
   return <div className={styles.twoColumns}>
     <fieldset className={styles.fields}>
       <legend>Responsável</legend>
-      <label>Nome<input name="parent_name" maxLength={160} defaultValue={contacts.parent.name} autoComplete="off" /></label>
-      <label>Telefone<input name="parent_phone" type="tel" maxLength={50} defaultValue={contacts.parent.phone} autoComplete="off" /></label>
-      <label>Vínculo com o jovem<input name="parent_relationship" maxLength={100} defaultValue={contacts.parent.relationship} placeholder="Ex.: mãe, pai, responsável legal" /></label>
+      <label>Nome<Input name="parent_name" maxLength={160} defaultValue={contacts.parent.name} autoComplete="off" /></label>
+      <label>Telefone<Input name="parent_phone" type="tel" maxLength={50} defaultValue={contacts.parent.phone} autoComplete="off" /></label>
+      <label>Vínculo com o jovem<Input name="parent_relationship" maxLength={100} defaultValue={contacts.parent.relationship} placeholder="Ex.: mãe, pai, responsável legal" /></label>
     </fieldset>
     <fieldset className={styles.fields}>
       <legend>Bispo ou presidente de ramo</legend>
-      <label>Nome<input name="bishop_name" maxLength={160} defaultValue={contacts.bishop.name} autoComplete="off" /></label>
-      <label>Telefone<input name="bishop_phone" type="tel" maxLength={50} defaultValue={contacts.bishop.phone} autoComplete="off" /></label>
-      <label>Ala ou ramo<input name="bishop_ward" maxLength={160} defaultValue={contacts.bishop.ward} /></label>
+      <label>Nome<Input name="bishop_name" maxLength={160} defaultValue={contacts.bishop.name} autoComplete="off" /></label>
+      <label>Telefone<Input name="bishop_phone" type="tel" maxLength={50} defaultValue={contacts.bishop.phone} autoComplete="off" /></label>
+      <label>Ala ou ramo<Input name="bishop_ward" maxLength={160} defaultValue={contacts.bishop.ward} /></label>
     </fieldset>
   </div>;
 }
@@ -190,9 +193,9 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
           <label><input type="radio" name="source" checked={!newParticipant} onChange={() => { setNewParticipant(false); setRecordId(""); }} />Usar ficha existente</label>
           <label><input type="radio" name="source" checked={newParticipant} onChange={() => { setNewParticipant(true); setRecordId(""); }} />Cadastrar jovem sem ficha</label>
         </div>
-        {newParticipant ? <label>Nome completo do jovem<input name="full_name" required minLength={2} maxLength={160} autoComplete="off" /><span className={styles.help}>Uma ficha médica será criada, sem exigir conta de acesso.</span></label> : <label>Ficha médica<select required value={recordId} disabled={recordsLoading} onChange={event => setRecordId(event.target.value)}><option value="">{recordsLoading ? "Carregando fichas…" : "Selecione o jovem"}</option>{records.filter(record => !cases.some(item => item.medical_record_id === record.id)).map(record => <option key={record.id} value={record.id}>{record.full_name}{record.company_id ? ` · ${record.company_id}` : ""}</option>)}</select></label>}
-        <label>Necessidades e dificuldades relatadas<textarea name="needs" required maxLength={6000} rows={4} placeholder="Descreva o que o jovem e seus responsáveis relatam e o apoio que precisam avaliar." /></label>
-        <label>Apoios previstos<textarea name="support_plan" maxLength={6000} rows={3} /></label>
+        {newParticipant ? <label>Nome completo do jovem<Input name="full_name" required minLength={2} maxLength={160} autoComplete="off" /><span className={styles.help}>Uma ficha médica será criada, sem exigir conta de acesso.</span></label> : <label>Ficha médica<NativeSelect required value={recordId} disabled={recordsLoading} onChange={event => setRecordId(event.target.value)}><option value="">{recordsLoading ? "Carregando fichas…" : "Selecione o jovem"}</option>{records.filter(record => !cases.some(item => item.medical_record_id === record.id)).map(record => <option key={record.id} value={record.id}>{record.full_name}{record.company_id ? ` · ${record.company_id}` : ""}</option>)}</NativeSelect></label>}
+        <label>Necessidades e dificuldades relatadas<Textarea name="needs" required maxLength={6000} rows={4} placeholder="Descreva o que o jovem e seus responsáveis relatam e o apoio que precisam avaliar." /></label>
+        <label>Apoios previstos<Textarea name="support_plan" maxLength={6000} rows={3} /></label>
         <ContactFields key={newParticipant ? "new" : recordId} contacts={initialContacts} />
         <div className={styles.actions}><button type="button" onClick={() => { if (canLeave()) { setCreating(false); setDirty(false); } }}>Cancelar</button><button className={styles.primary} type="submit">{busy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Save aria-hidden="true" />}{busy ? "Salvando…" : "Criar acompanhamento"}</button></div>
       </fieldset>
@@ -206,9 +209,9 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
         if (detail.decision && phase !== detail.phase && !window.confirm("Reabrir o acompanhamento removerá a decisão atual. O registro anterior continuará no histórico. Deseja continuar?")) return;
         void mutate(`/${detail.id}`, { version: detail.version, needs: value(form, "needs"), support_plan: value(form, "support_plan"), contacts: contactsFromForm(form), ...(phase !== detail.phase ? { phase } : {}) }, "PATCH", "Acompanhamento atualizado.");
       }}><fieldset disabled={busy || detail.phase === "arquivado"} className={styles.fields}>
-        <label>Fase do acompanhamento<select name="phase" defaultValue={detail.phase}>{INCLUSION_PHASES.filter(phase => !["concluido", "arquivado"].includes(phase) || phase === detail.phase).map(phase => <option key={phase} value={phase}>{INCLUSION_PHASE_LABELS[phase]}</option>)}</select></label>
-        <label>Necessidades e dificuldades relatadas<textarea name="needs" required maxLength={6000} rows={4} defaultValue={detail.needs} /></label>
-        <label>Apoios previstos<textarea name="support_plan" maxLength={6000} rows={3} defaultValue={detail.support_plan} /></label>
+        <label>Fase do acompanhamento<NativeSelect name="phase" defaultValue={detail.phase}>{INCLUSION_PHASES.filter(phase => !["concluido", "arquivado"].includes(phase) || phase === detail.phase).map(phase => <option key={phase} value={phase}>{INCLUSION_PHASE_LABELS[phase]}</option>)}</NativeSelect></label>
+        <label>Necessidades e dificuldades relatadas<Textarea name="needs" required maxLength={6000} rows={4} defaultValue={detail.needs} /></label>
+        <label>Apoios previstos<Textarea name="support_plan" maxLength={6000} rows={3} defaultValue={detail.support_plan} /></label>
         <ContactFields contacts={detail.contacts} />
         <p className={styles.help}>Os contatos do responsável e do bispo são compartilhados com a ficha médica.</p>
         <div className={styles.actions}><span className={styles.help}>{dirty ? "Há alterações não salvas." : `Atualizado em ${dateTime(detail.updated_at)}`}</span><button type="submit" className={styles.primary}>{busy ? "Salvando…" : "Salvar acompanhamento"}</button></div>
@@ -224,9 +227,9 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
           void mutate(`/${detail.id}/interviews${interview === "new" ? "" : `/${interview.id}`}`, payload.data, interview === "new" ? "POST" : "PATCH", "Entrevista salva.");
         }}><fieldset disabled={busy} className={styles.fields}>
           <h4>{interview === "new" ? "Nova entrevista" : "Atualizar entrevista"}</h4>
-          <div className={styles.twoColumns}><label>Data e horário<input name="scheduled_at" type="datetime-local" required defaultValue={interview === "new" ? "" : localInputDate(interview.scheduled_at)} /></label><label>Situação<select name="status" defaultValue={interview === "new" ? "agendada" : interview.status}>{Object.entries(interviewLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label></div>
-          <label>Participantes da conversa<input name="participants" required minLength={2} maxLength={500} defaultValue={interview === "new" ? "" : interview.participants} placeholder="Jovem, responsáveis e membros da equipe presentes" /></label>
-          <label>Resumo e próximos passos<textarea name="summary" rows={4} maxLength={6000} defaultValue={interview === "new" ? "" : interview.summary} /><span className={styles.help}>Obrigatório para entrevistas realizadas.</span></label>
+          <div className={styles.twoColumns}><label>Data e horário<Input name="scheduled_at" type="datetime-local" required defaultValue={interview === "new" ? "" : localInputDate(interview.scheduled_at)} /></label><label>Situação<NativeSelect name="status" defaultValue={interview === "new" ? "agendada" : interview.status}>{Object.entries(interviewLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</NativeSelect></label></div>
+          <label>Participantes da conversa<Input name="participants" required minLength={2} maxLength={500} defaultValue={interview === "new" ? "" : interview.participants} placeholder="Jovem, responsáveis e membros da equipe presentes" /></label>
+          <label>Resumo e próximos passos<Textarea name="summary" rows={4} maxLength={6000} defaultValue={interview === "new" ? "" : interview.summary} /><span className={styles.help}>Obrigatório para entrevistas realizadas.</span></label>
           <div className={styles.actions}><button type="button" onClick={() => { if (canLeave()) { setInterview(null); setDirty(false); } }}>Cancelar</button><button type="submit" className={styles.primary}>{busy ? "Salvando…" : "Salvar entrevista"}</button></div>
         </fieldset></form>}
         {!detail.interviews.length && !interview && <p className={styles.empty}>Nenhuma entrevista registrada. Agende a primeira conversa com o jovem e seus responsáveis.</p>}
@@ -243,9 +246,9 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
         }}><fieldset disabled={busy || detail.phase === "arquivado"} className={styles.fields}>
           <h4>{detail.decision ? "Atualizar decisão da equipe" : "Registrar decisão da equipe"}</h4>
           <p>A decisão é da equipe responsável, após avaliar as entrevistas e as condições de apoio ao jovem.</p>
-          <label>Decisão<select name="decision" required defaultValue=""><option value="" disabled>Selecione a decisão da equipe</option>{INCLUSION_DECISIONS.map(key => <option key={key} value={key}>{INCLUSION_DECISION_LABELS[key]}</option>)}</select></label>
-          <label>Justificativa<textarea name="reason" rows={4} required minLength={10} maxLength={6000} /></label>
-          <label>Apoios e condições combinados<textarea name="support_plan" rows={3} maxLength={6000} defaultValue={detail.support_plan} /><span className={styles.help}>Obrigatório quando a participação depende de apoio.</span></label>
+          <label>Decisão<NativeSelect name="decision" required defaultValue=""><option value="" disabled>Selecione a decisão da equipe</option>{INCLUSION_DECISIONS.map(key => <option key={key} value={key}>{INCLUSION_DECISION_LABELS[key]}</option>)}</NativeSelect></label>
+          <label>Justificativa<Textarea name="reason" rows={4} required minLength={10} maxLength={6000} /></label>
+          <label>Apoios e condições combinados<Textarea name="support_plan" rows={3} maxLength={6000} defaultValue={detail.support_plan} /><span className={styles.help}>Obrigatório quando a participação depende de apoio.</span></label>
           <label className={styles.checkbox}><input name="confirmed_by_human" type="checkbox" required />Confirmo que esta decisão foi tomada pela equipe responsável.</label>
           <div className={styles.actions}><p className={styles.help}>A autoria, a data e a justificativa serão registradas.</p><button type="submit" className={styles.primary}>{busy ? "Registrando…" : "Registrar decisão"}</button></div>
         </fieldset></form>
@@ -253,7 +256,7 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
 
       {editor === "history" && <div><h4>Histórico do acompanhamento</h4>{!detail.history.length ? <p className={styles.empty}>O histórico aparecerá após o primeiro registro.</p> : <ol className={styles.timeline}>{detail.history.map(item => <li key={item.id}><h4>{historyLabels[item.action] || "Registro atualizado"}</h4><p>{item.actor_name || "Equipe responsável"} · {dateTime(item.created_at)}</p>{typeof item.details.reason === "string" && <p className={styles.prose}>{item.details.reason}</p>}{typeof item.details.decision === "string" && item.details.decision in INCLUSION_DECISION_LABELS && <p>{INCLUSION_DECISION_LABELS[item.details.decision as keyof typeof INCLUSION_DECISION_LABELS]}</p>}</li>)}</ol>}</div>}
     </div> : <div className={styles.panel}>
-      <div className={styles.filters}><label><span className={styles.searchLabel}><Search aria-hidden="true" />Buscar jovem</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nome do jovem" /></label><label>Fase<select value={phaseFilter} onChange={event => setPhaseFilter(event.target.value)}><option value="">Todas as fases</option>{INCLUSION_PHASES.map(phase => <option key={phase} value={phase}>{INCLUSION_PHASE_LABELS[phase]}</option>)}</select></label><button disabled={loading} onClick={() => void loadCases()}><RefreshCw aria-hidden="true" />Atualizar</button></div>
+      <div className={styles.filters}><label><span className={styles.searchLabel}><Search aria-hidden="true" />Buscar jovem</span><Input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Nome do jovem" /></label><label>Fase<NativeSelect value={phaseFilter} onChange={event => setPhaseFilter(event.target.value)}><option value="">Todas as fases</option>{INCLUSION_PHASES.map(phase => <option key={phase} value={phase}>{INCLUSION_PHASE_LABELS[phase]}</option>)}</NativeSelect></label><button disabled={loading} onClick={() => void loadCases()}><RefreshCw aria-hidden="true" />Atualizar</button></div>
       {loading ? <p role="status" className={styles.empty}>Carregando acompanhamentos…</p> : !filtered.length ? <p className={styles.empty}>{cases.length ? "Nenhum acompanhamento corresponde à busca." : error ? "Os acompanhamentos não puderam ser carregados." : "Nenhum acompanhamento iniciado. Use Novo acompanhamento para selecionar uma ficha ou cadastrar um jovem."}</p> : <ul className={styles.list}>{filtered.map(item => <li key={item.id}><button onClick={() => void openCase(item.id)}><span><strong>{item.full_name}</strong><small>Atualizado em {dateTime(item.updated_at)}</small></span><span className={styles.status}>{INCLUSION_PHASE_LABELS[item.phase]}</span></button></li>)}</ul>}
     </div>}
   </section>;

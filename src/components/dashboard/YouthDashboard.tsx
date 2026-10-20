@@ -64,12 +64,24 @@ export function YouthDashboard() {
       if (isMounted) setDataLoading(false);
     }, 2000);
 
+    let scheduleItems: ScheduleItem[] = [];
+    const updateActivity = () => {
+      if (!scheduleItems.length) return;
+      const { currentEvent, nextEvent, activeDayLabel } = calculateActiveAndNextEvents(scheduleItems);
+      setCurrentEvent(currentEvent);
+      setNextEvent(nextEvent);
+      setActiveDayLabel(activeDayLabel);
+      const remaining = new Date("2027-02-06T08:00:00-03:00").getTime() - Date.now();
+      setIsPreEvent(remaining > 0);
+      setDaysRemaining(Math.max(0, Math.ceil(remaining / 86400000)));
+    };
+    const activityTimer = setInterval(updateActivity, 60_000);
+
     async function loadAllServices() {
       if (!profile) return;
 
       const now = new Date();
-      const eventStartDate = new Date("2027-02-06T08:00:00");
-      const eventEndDate = new Date("2027-02-10T23:59:59");
+      const eventStartDate = new Date("2027-02-06T08:00:00-03:00");
       const isBeforeEvent = now < eventStartDate;
 
       if (isMounted) {
@@ -86,14 +98,13 @@ export function YouthDashboard() {
       const schedulePromise = getSchedule().then(({ data, fromCache }) => {
         if (!isMounted) return;
         if (fromCache && !navigator.onLine) setIsOfflineMode(true);
+        scheduleItems = data;
         if (data.length > 0) {
           const { currentEvent: curr, nextEvent: nxt, activeDayLabel: label } =
             calculateActiveAndNextEvents(data, now);
           setCurrentEvent(curr);
           setNextEvent(nxt);
-          if (!isBeforeEvent && now <= eventEndDate) {
-            setActiveDayLabel(label);
-          }
+          setActiveDayLabel(label);
         }
       });
 
@@ -133,6 +144,7 @@ export function YouthDashboard() {
 
     return () => {
       isMounted = false;
+      clearInterval(activityTimer);
       clearTimeout(safetyTimeout);
     };
   }, [profile]);

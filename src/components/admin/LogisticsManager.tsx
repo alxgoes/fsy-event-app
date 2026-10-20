@@ -367,7 +367,7 @@ export function LogisticsManager() {
           placeholder="Buscar por estaca, número do ônibus ou motorista..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-sm bg-white dark:bg-slate-900"
+          className="pl-10"
         />
       </div>
 
@@ -483,22 +483,22 @@ export function LogisticsManager() {
           <div className="grid gap-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Identificação do Ônibus *</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-1" className="text-[10px] font-black uppercase text-slate-500">Identificação do Ônibus *</label>
+                <Input id="field-logisticsmanager-1"
                   placeholder="Ex: Ônibus 01"
                   value={form.bus_number}
                   onChange={(e) => setForm({ ...form, bus_number: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Estaca / Região *</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-2" className="text-[10px] font-black uppercase text-slate-500">Estaca / Região *</label>
+                <Input id="field-logisticsmanager-2"
                   placeholder="Ex: Estaca São José do Rio Preto"
                   value={form.stake_city}
                   onChange={(e) => setForm({ ...form, stake_city: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
             </div>
@@ -519,77 +519,77 @@ export function LogisticsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-black uppercase text-slate-500">Nome do Motorista</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-3" className="text-xs font-black uppercase text-slate-500">Nome do Motorista</label>
+                <Input id="field-logisticsmanager-3"
                   placeholder="Nome do motorista"
                   value={form.driver_name}
                   onChange={(e) => setForm({ ...form, driver_name: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Telefone do Motorista</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-4" className="text-[10px] font-black uppercase text-slate-500">Telefone do Motorista</label>
+                <Input id="field-logisticsmanager-4"
                   placeholder="(17) 99999-9999"
                   value={form.driver_phone}
                   onChange={(e) => setForm({ ...form, driver_phone: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Capacidade Total</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-5" className="text-[10px] font-black uppercase text-slate-500">Capacidade Total</label>
+                <Input id="field-logisticsmanager-5"
                   type="number"
                   value={form.capacity}
                   onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Passageiros Confirmados</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-6" className="text-[10px] font-black uppercase text-slate-500">Passageiros Confirmados</label>
+                <Input id="field-logisticsmanager-6"
                   type="number"
                   value={form.passengers_count}
                   onChange={(e) => setForm({ ...form, passengers_count: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Previsão de Chegada</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-7" className="text-[10px] font-black uppercase text-slate-500">Previsão de Chegada</label>
+                <Input id="field-logisticsmanager-7"
                   type="time"
                   value={form.arrival_fsy_time}
                   onChange={(e) => setForm({ ...form, arrival_fsy_time: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase text-slate-500">Previsão de Retorno</label>
-                <Input
+                <label htmlFor="field-logisticsmanager-8" className="text-[10px] font-black uppercase text-slate-500">Previsão de Retorno</label>
+                <Input id="field-logisticsmanager-8"
                   type="time"
                   value={form.departure_fsy_time}
                   onChange={(e) => setForm({ ...form, departure_fsy_time: e.target.value })}
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                  className=""
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase text-slate-500">Observações / Bagageiro</label>
-              <Input
+              <label htmlFor="field-logisticsmanager-9" className="text-[10px] font-black uppercase text-slate-500">Observações / Bagageiro</label>
+              <Input id="field-logisticsmanager-9"
                 placeholder="Ex: Ar condicionado ok, parada programada em posto..."
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10"
+                className=""
               />
             </div>
           </div>

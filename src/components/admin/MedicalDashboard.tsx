@@ -1,4 +1,6 @@
 "use client";
+import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -687,26 +689,23 @@ export function MedicalDashboard() {
           className="space-y-6"
         >
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Card className="p-4 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+          <CustomizableGrid pageKey="medical-metrics" version={1} className="grid grid-cols-1 gap-4 sm:grid-cols-3" items={[{ id: "records", label: "Fichas", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-slate-500">Total de Fichas</span>
                 <FileText className="h-5 w-5 text-[#007DA5]" />
               </div>
               <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{records.length}</p>
               <p className="text-[11px] text-slate-500 font-bold mt-0.5">Participantes cadastrados</p>
-            </Card>
-
-            <Card className="p-4 rounded-3xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow-brutal-sm">
+            </Card>) },
+{ id: "allergies", label: "Alergias graves", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow-brutal-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-rose-700 dark:text-rose-300">Alergias Graves</span>
                 <ShieldAlert className="h-5 w-5 text-rose-600 animate-pulse" />
               </div>
               <p className="text-3xl font-black text-rose-700 dark:text-rose-300 mt-2">{severeCount}</p>
               <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-0.5">Atenção especial da equipe</p>
-            </Card>
-
-            <Card className="p-4 rounded-3xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow-brutal-sm">
+            </Card>) },
+{ id: "diets", label: "Dietas e restrições", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow-brutal-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-amber-700 dark:text-amber-300">Dietas / Restrições</span>
                 <HeartPulse className="h-5 w-5 text-amber-600" />
@@ -715,8 +714,7 @@ export function MedicalDashboard() {
                 {records.filter((r) => r.dietary_restrictions && r.dietary_restrictions !== "Nenhuma").length}
               </p>
               <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">Alimentação diferenciada</p>
-            </Card>
-          </div>
+            </Card>) }]} />
 
           {/* Filter and Search Bar */}
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
@@ -728,7 +726,7 @@ export function MedicalDashboard() {
                 placeholder="Buscar por nome, companhia, quarto, bispo ou alergia..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-xs sm:text-sm bg-white dark:bg-slate-900 w-full"
+                className="pl-10 w-full"
               />
             </div>
 
@@ -943,21 +941,21 @@ export function MedicalDashboard() {
                 placeholder="Buscar consulta por nome do jovem, profissional ou motivo..."
                 value={appointmentSearch}
                 onChange={(e) => setAppointmentSearch(e.target.value)}
-                className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-xs sm:text-sm bg-white dark:bg-slate-900 w-full"
+                className="pl-10 w-full"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <select
+              <NativeSelect
                 value={appointmentStatusFilter}
                 onChange={(e) => setAppointmentStatusFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-3.5 py-2 rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-900 dark:text-white h-11"
+                className="flex-1"
               >
                 <option value="all">Todos os Status</option>
                 <option value="agendado">Apenas Agendados</option>
                 <option value="realizado">Apenas Realizados</option>
                 <option value="cancelado">Cancelados</option>
-              </select>
+              </NativeSelect>
 
               <Button
                 onClick={() => openNewAppointmentModal()}
@@ -1126,7 +1124,7 @@ export function MedicalDashboard() {
                   placeholder="Pesquisar participante por nome ou quarto..."
                   value={youthSelectSearch}
                   onChange={(e) => setYouthSelectSearch(e.target.value)}
-                  className="rounded-xl border-2 border-slate-300 dark:border-slate-700 text-xs"
+                  className=""
                 />
 
                 <div className="max-h-36 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-1.5 space-y-1">
@@ -1165,17 +1163,17 @@ export function MedicalDashboard() {
 
                 {/* Manual name override option */}
                 <div className="pt-1">
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">
+                  <label htmlFor="field-medicaldashboard-1" className="block text-[11px] font-bold text-slate-500 mb-1">
                     Ou digite o nome manualmente (se o jovem não estiver registrado):
                   </label>
-                  <Input
+                  <Input id="field-medicaldashboard-1"
                     value={apptYouthName}
                     onChange={(e) => {
                       setApptYouthName(e.target.value);
                       setApptUserId("");
                     }}
                     placeholder="Nome do jovem"
-                    className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold"
+                    className=""
                   />
                 </div>
               </div>
@@ -1184,33 +1182,33 @@ export function MedicalDashboard() {
             {/* Professional & DateTime */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-black text-slate-900 dark:text-white mb-1">
+                <label htmlFor="field-medicaldashboard-2" className="block text-xs font-black text-slate-900 dark:text-white mb-1">
                   Com quem será a consulta? *
                 </label>
-                <Input
+                <Input id="field-medicaldashboard-2"
                   value={apptProfessional}
                   onChange={(e) => setApptProfessional(e.target.value)}
                   placeholder="ex: Dra. Camila (Médica) ou digite outro profissional..."
-                  className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal placeholder:opacity-70"
+                  className=""
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-900 dark:text-white mb-1">
+                <label htmlFor="field-medicaldashboard-3" className="block text-xs font-black text-slate-900 dark:text-white mb-1">
                   Data e Horário *
                 </label>
-                <Input
+                <Input id="field-medicaldashboard-3"
                   type="datetime-local"
                   value={apptDate}
                   onChange={(e) => setApptDate(e.target.value)}
-                  className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold"
+                  className=""
                 />
               </div>
             </div>
 
             {/* Motivos / Reasons */}
             <div>
-              <label className="block text-xs font-black text-slate-900 dark:text-white mb-1">
+              <label htmlFor="field-medicaldashboard-4" className="block text-xs font-black text-slate-900 dark:text-white mb-1">
                 Motivo da Consulta *
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
@@ -1229,24 +1227,24 @@ export function MedicalDashboard() {
                   </button>
                 ))}
               </div>
-              <Input
+              <Input id="field-medicaldashboard-4"
                 value={apptReason}
                 onChange={(e) => setApptReason(e.target.value)}
                 placeholder="ex: Acompanhamento de Alergia ou digite um motivo personalizado..."
-                className="rounded-xl border-2 border-slate-900 dark:border-slate-700 text-xs font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal placeholder:opacity-70"
+                className=""
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-black text-slate-900 dark:text-white mb-1">
+              <label htmlFor="field-medicaldashboard-5" className="block text-xs font-black text-slate-900 dark:text-white mb-1">
                 Observações Confidenciais (Opcional)
               </label>
-              <Input
+              <Input id="field-medicaldashboard-5"
                 value={apptNotes}
                 onChange={(e) => setApptNotes(e.target.value)}
                 placeholder="ex: Levar resultados de exame ou medicamento às 15h"
-                className="rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold"
+                className=""
               />
             </div>
 
@@ -1564,7 +1562,7 @@ export function MedicalDashboard() {
                     placeholder="Buscar jovem registrado para preenchimento automático..."
                     value={profileSearchInForm}
                     onChange={(e) => setProfileSearchInForm(e.target.value)}
-                    className="rounded-xl border border-slate-300 dark:border-slate-700 text-xs"
+                    className=""
                   />
 
                   {profileSearchInForm && (
@@ -1608,49 +1606,49 @@ export function MedicalDashboard() {
               </h3>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                  <label htmlFor="field-medicaldashboard-6" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                     Nome Completo *
                   </label>
-                  <Input
+                  <Input id="field-medicaldashboard-6"
                     value={editForm.full_name ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, full_name: e.target.value }))}
                     placeholder="Nome completo do participante"
-                    className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                    className=""
                   />
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-7" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Companhia
                     </label>
-                    <Input
+                    <Input id="field-medicaldashboard-7"
                       value={editForm.company_id ?? ""}
                       onChange={(e) => setEditForm((f) => ({ ...f, company_id: e.target.value }))}
                       placeholder="Ex: Cia-1"
-                      className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                      className=""
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-8" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Quarto
                     </label>
-                    <Input
+                    <Input id="field-medicaldashboard-8"
                       value={editForm.room ?? ""}
                       onChange={(e) => setEditForm((f) => ({ ...f, room: e.target.value }))}
                       placeholder="Ex: 204"
-                      className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                      className=""
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-9" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Tipo Sanguíneo
                     </label>
-                    <Input
+                    <Input id="field-medicaldashboard-9"
                       value={editForm.blood_type ?? ""}
                       onChange={(e) => setEditForm((f) => ({ ...f, blood_type: e.target.value }))}
                       placeholder="Ex: O+, A-"
-                      className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                      className=""
                     />
                   </div>
                 </div>
@@ -1712,29 +1710,29 @@ export function MedicalDashboard() {
               </h3>
 
               <div>
-                <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                <label htmlFor="field-medicaldashboard-10" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Restrição Alimentar
                 </label>
-                <Input
+                <Input id="field-medicaldashboard-10"
                   value={editForm.dietary_restrictions ?? ""}
                   onChange={(e) => setEditForm((f) => ({ ...f, dietary_restrictions: e.target.value }))}
                   placeholder="Ex: Vegetariano, Sem Lactose, Sem Glúten..."
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                  className=""
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                <label htmlFor="field-medicaldashboard-11" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Medicações de Uso Contínuo (separadas por vírgula)
                 </label>
-                <Input
+                <Input id="field-medicaldashboard-11"
                   value={(editForm.medications || []).join(", ")}
                   onChange={(e) => {
                     const parsed = e.target.value.split(",").map((s) => s.trim()).filter(Boolean);
                     setEditForm((f) => ({ ...f, medications: parsed }));
                   }}
                   placeholder="Ex: Insulina, Ritalina, Bombinha de Asma"
-                  className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-sm h-11"
+                  className=""
                 />
               </div>
             </section>
@@ -1755,13 +1753,13 @@ export function MedicalDashboard() {
                     value={editForm.emergency_contact_name ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, emergency_contact_name: e.target.value }))}
                     placeholder="Nome do responsável"
-                    className="sm:col-span-2 text-xs font-bold"
+                    className="sm:col-span-2"
                   />
                   <Input
                     value={editForm.emergency_contact_phone ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, emergency_contact_phone: e.target.value }))}
                     placeholder="Telefone / WhatsApp"
-                    className="text-xs font-bold"
+                    className=""
                   />
                 </div>
               </div>
@@ -1777,19 +1775,19 @@ export function MedicalDashboard() {
                     value={editForm.bishop_name ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, bishop_name: e.target.value }))}
                     placeholder="Nome do Bispo"
-                    className="text-xs font-bold"
+                    className=""
                   />
                   <Input
                     value={editForm.bishop_phone ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, bishop_phone: e.target.value }))}
                     placeholder="Telefone do Bispo"
-                    className="text-xs font-bold"
+                    className=""
                   />
                   <Input
                     value={editForm.bishop_ward ?? ""}
                     onChange={(e) => setEditForm((f) => ({ ...f, bishop_ward: e.target.value }))}
                     placeholder="Nome da Ala"
-                    className="text-xs font-bold"
+                    className=""
                   />
                 </div>
               </div>
@@ -1797,14 +1795,14 @@ export function MedicalDashboard() {
 
             {/* 5. Doctor Notes */}
             <section className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <label className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block">
+              <label htmlFor="field-medicaldashboard-12" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block">
                 Observações Clínicas da Equipe Multidisciplinar
               </label>
-              <Input
+              <Input id="field-medicaldashboard-12"
                 value={editForm.doctor_notes ?? ""}
                 onChange={(e) => setEditForm((f) => ({ ...f, doctor_notes: e.target.value }))}
                 placeholder="Histórico clínico relevante, recomendações ou cuidados..."
-                className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-11"
+                className=""
               />
             </section>
           </div>

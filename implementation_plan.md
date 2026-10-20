@@ -1,38 +1,34 @@
-# Fluidez e navegação FSY
+# Implementação FSY — posição em 20/10/2026
 
-## Continuação: inclusão e publicação no GitHub
+Plano autorizado completo: [docs/plano-implementacao-2026-10-20.md](docs/plano-implementacao-2026-10-20.md). Base preservada: `ffe14ca`, branch `feat/retomada-seguranca-ux-2026-10`. Executor GPT-6.1-Sol, esforço médio; uma revisão GPT-6-Astra, somente leitura, realizada via Orca. Nenhum executor Claude reativado.
 
-Adicionar acompanhamento de inclusão em Registros & Atendimentos, vinculado à ficha médica e sem conta de login do participante. Contratos em `src/types/inclusion.ts` precedem a UI. Persistir entrevistas, contatos, necessidades, etapas e decisão humana com histórico. Usar os perfis atuais, conforme confirmado pelo usuário. Aplicar e testar migrações no Supabase, verificar a interface e enviar o código ao repositório solicitado, incluindo as melhorias de fluidez anteriores.
+| Etapa | Estado | Resultado / limite |
+| --- | --- | --- |
+| Segurança e contratos | Implementado localmente | Guards, matriz, autoria no servidor, migrações 202610200001 e 202610200002; revisão Astra incorporada. |
+| Supabase real | Impedimento externo | Sem acesso ao painel/projeto e sem credenciais reais. Host do exemplo não resolvia no checkpoint. Não foi provada recuperação; nenhum dado real alterado. |
+| Gestão de contas e recuperação | Implementado; integração externa pendente | Lista Auth+perfil, ações conforme hierarquia, confirmação e auditoria; Resend/Redirect URLs precisam de configuração. |
+| Instagram e galeria Drive | Implementado localmente | Contrato compartilhado, legenda integral, Ver mais/menos, diálogo e original; sem curtida simulada. Galeria usa Drive como origem. |
+| Layout individual | Implementado nos grupos de cartões | Portal, administração, consultor e indicadores médicos. Ver cobertura abaixo. |
+| Campos FSY | Implementado nos módulos previstos | Input/Textarea/NativeSelect, rótulos associados e estilos de foco/autofill. Checkbox/radio e upload preservam recursos nativos. |
+| Correções funcionais | Implementado localmente | Tabela médica correta, contagem total de avisos, cargos Dia Zero, fuso São Paulo, recálculo por minuto; removida alegação de tempo real e role em query. |
+| Dependências | Diagnóstico e plano entregues | shadcn somente desenvolvimento; Next 14 ainda possui advisories. Migração principal permanece pendente em docs/dependencias-2026-10-20.md. |
+| Verificação integrada | Concluída localmente, com limites | 118 testes aprovados; lint/tipagem/build aprovados. QA em 14 telas × 2 viewports, confirmação específica aprovada. Impeccable 14/20 (70%); meta >95% pendente. |
+| Publicação/banco | Não executado | Preparação e retorno documentados; nada enviado ao GitHub/Vercel/Supabase nesta retomada. |
+| Manual funcional/design | Entregue | docs/manual-funcional-e-design.md, escrito por último a partir do comportamento verificado. |
 
-## Objetivo
+## Cobertura de personalização
 
-Melhorar a rolagem e as animações sem descaracterizar o evento. Refinar o menu de gestão como uma superfície arredondada e flutuante, com seleção azul FSY, elevação suave e controles acessíveis. Revisar textos genéricos e emojis decorativos.
+| Tela | Conteúdo que pode ser reordenado | Mantido fixo |
+| --- | --- | --- |
+| `/dashboard` | Cartões do portal, galeria e Instagram | Cabeçalho e avisos essenciais |
+| `/admin` | Indicadores e seis acessos aos módulos | Cabeçalho, atualizar, comunicados recentes |
+| `/consultor` | Indicadores; formulário e lista de comunicados | Identificação da companhia, erros e abas |
+| `/admin/medical` | Indicadores das fichas | Alertas, busca, abas, tabelas, atendimentos e inclusão |
+| `/admin/users`, `/admin/companies`, `/admin/schedule`, `/admin/announcements`, `/admin/media`, `/admin/logistics`, `/admin/counselor-audit` | Sem grupo de cartões independentes adicional: listas/tabelas/formulários operacionais permanecem na ordem de conteúdo | Navegação, filtros, formulários e registros |
+| `/schedule`, `/announcements`, login, recuperação, offline | Não reordenáveis: cronologia, avisos e fluxos de entrada | Programação oficial, prioridade e passos do formulário |
 
-## Divisão de trabalho
+A personalização não altera sequência oficial nem ordem administrativa de dados. Não foi identificado campo de ordem editorial livre nos contratos existentes. Não foi criado arraste que altere datas ou registros clínicos. Preferências são por conta, grupo/página, versão e breakpoint `all`; RLS e cache local isolam contas. Persistência em Supabase real aguarda migrações e acesso.
 
-- Interface: `AdminLayout` e CSS próprio; limpeza editorial pontual nas telas existentes.
-- Dados: evitar consultas de perfil duplicadas, preservar consistência após logout, paralelizar consultas independentes do resumo administrativo e retirar conteúdo fictício do fallback do Instagram.
-- Desempenho e QA: fundo Seigaiha, efeitos fora da tela, indicador de rolagem, mídia e ciclo de vida do PWA.
-- Integração e domínio: conferir fluxos, preservar regras de acesso, programação, identidade e alertas de saúde; validar lint, build e telas disponíveis.
+## Próxima intervenção externa necessária
 
-## Mapa funcional
-
-- `/login`: entrada, cadastro e recuperação de acesso.
-- `/dashboard`: portal jovem, companhia, programação atual, comunicados e fotos.
-- `/schedule` e `/announcements`: consulta das atividades e avisos.
-- `/consultor`: acompanhamento da companhia por consultores.
-- `/admin`: visão geral da coordenação e acesso aos módulos permitidos por perfil.
-- Gestão: auditoria de consultores, registros e atendimentos, companhias, programação, logística, comunicados, mídia e usuários.
-- PWA: instalação, recursos estáticos e programação previamente salva para situações de conectividade limitada.
-
-## Critérios de entrega
-
-1. Manter o fundo animado, marcas, cores e transições de seleção.
-2. Reduzir trabalho contínuo durante rolagem e evitar requisições duplicadas.
-3. Navegação por teclado e toque; controles do menu com ao menos 44 px e suporte a movimento reduzido.
-4. Não alterar os fatos do evento nem eliminar alertas necessários.
-5. Executar lint e build; documentar os limites dos testes autenticados e de desempenho, sem apresentar estimativas como medições reais.
-
-## Notas de domínio
-
-As skills locais contêm referências antigas a nomes de perfis e ao tema. O código, `PRODUCT.md`, `DESIGN.md` e a programação existente orientam esta entrega. A revisão não altera o tema ou as datas: o dia da equipe em 05/02 e a chegada dos jovens em 06/02 explicam os intervalos diferentes mostrados nas áreas correspondentes.
+O responsável deve identificar o projeto Supabase utilizado pela Vercel, verificar se está pausado/ativo e disponibilizar acesso ou exportação/backup preservando Auth e IDs. Depois: conferir migrações anteriores, exportar banco/Auth e aplicar 202610200001 → 202610200002. Configurar Redirect URLs de recuperação, origem pública e, se desejado, Resend. Não reconstruir um banco vazio como suposta recuperação.

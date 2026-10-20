@@ -64,3 +64,35 @@ As skills locais de backend e domínio contêm nomes de papéis e tema desatuali
 ## Entrega local
 
 As alterações da revisão inicial permaneceram locais até a solicitação seguinte de inclusão e envio ao GitHub. A entrega seguinte reúne ambos os conjuntos de alterações.
+
+# Retomada de implementação — 20/10/2026
+
+Este registro substitui as pendências correspondentes dos relatos anteriores, sem apagar seu histórico. Base preservada `ffe14ca`; execução GPT-6.1-Sol medium. Revisão única GPT-6-Astra medium pelo Orca, sandbox somente leitura e `-a never`, encerrada após os achados; sem Claude ou outros subagentes. Snapshots da conta Codex: 7% no início e 9% no checkpoint; Claude 48% da janela/32% semanal, sem reativação nesta execução. Cotas são compartilhadas e não medem custo exclusivo deste projeto. Nenhum crédito/reset comprado ou consumido voluntariamente.
+
+## Implementação efetiva
+
+- InstagramFeed consome `src/types/instagram.ts`, preserva quebras de linha e usa tokens de texto seguros nos trechos expandidos. Ver mais/menos informa `aria-expanded`; detalhe usa diálogo compartilhado, região rolável, imagem inteira e link ao original. Curtidas locais e cache do contrato antigo foram removidos. Na legenda recolhida, texto simples evita focar links ocultos pelo corte visual. Mural suavizado conforme galeria.
+- Personalização aplicada às métricas e módulos da administração, métricas e mural do consultor e indicadores médicos. O portal jovem já estava integrado. Cobertura e exclusões justificadas por cronologia/segurança estão em `implementation_plan.md`; nenhum registro clínico ou horário ganhou ordenação arbitrária.
+- Campos dos módulos administrativos, consultor e avisos migrados para os controles FSY. Mantidos recursos nativos de checkbox, radio e upload. Rótulos de formulário foram associados; os filtros da auditoria receberam nomes acessíveis. Removidos overrides de aparência que substituíam a identidade dos campos, inclusive CSS de inclusão. Botões têm mínimo de 44×44 px; âncoras pequenas remanescentes estão na auditoria.
+- Métrica de saúde consulta `medical_records`; a contagem de avisos usa `count: exact`, independente da lista recente. Dia Zero usa os cargos vigentes, incluindo `medico`. Removidos o texto enganoso de tempo real e o cargo em query na auditoria. Atividade usa `America/Sao_Paulo`, ordem cronológica, ausência real de atividade nos intervalos e atualização por minuto sem novas buscas.
+- Incorporadas as três correções confirmadas da revisão Astra: consultas de alvo falham fechadas; políticas restritivas de perfil ativo; trigger transacional da última administração. Nova migração `202610200002_account_safety.sql`, após 001. Suspensão marca o perfil antes do banimento no Auth; reativação faz o inverso. Falha parcial permanece fechada e requer repetição/conferência, pois Auth e perfil não compartilham uma única transação HTTP.
+- shadcn movido para desenvolvimento. Conferência do lockfile: nenhuma versão de pacote alterada; flags `dev` recalculadas. Audit final mantém 25 pacotes sinalizados (2 críticos/18 altos/5 moderados), incluindo ferramentas de desenvolvimento. Next 14 permanece pendente de migração; ver `docs/dependencias-2026-10-20.md`.
+
+## Validação real
+
+- `npm run lint`: sem avisos/erros. Build final também executou lint e verificação TypeScript.
+- `npm test`: **118/118 aprovados**. Cinco testes novos de segurança executam as políticas/trigger no Postgres PGlite e falhas de APIs simuladas. Três novos testes de programação cobrem virada UTC/local, intervalos e encerramento.
+- `npm run build`: aprovado, 25 páginas geradas, com URL Supabase local fictícia e chaves `dev`. A confirmação após as duas últimas correções de acessibilidade também passou. Não prova integração de produção.
+- QA em Puppeteer: 14 rotas × desktop 1365×900/celular 390×844. Nenhum overflow horizontal de documento. Filtros corrigidos confirmados em segunda passagem específica. Legenda longa, diálogo, Escape após animação, mover/salvar/recarregar/restaurar layout aprovados com dados fictícios. Arquivos JSON e cinco capturas selecionadas em `docs/evidencias-2026-10-20/`.
+- Detector Impeccable estático e DOM oficial executados, com achados preservados. **14/20 (70%) na avaliação ampliada; não atingiu >95%**. Contrastes e textos pequenos restantes foram documentados, sem alterar regras ou ignorar achados. Não houve aparelho físico, leitor de tela, zoom 200% ou validação de todos os diálogos.
+- `git diff --check`: sem erros de whitespace.
+
+## Limites de operação e retorno
+
+A consulta DNS atual de `vhbmnnpgftrrovjtvbzo.supabase.co` retornou **ENOTFOUND** e `.env.local` continua ausente. Isso não prova que o projeto foi apagado. Falta identificar o projeto real da Vercel e obter acesso ao painel/backup. Nenhuma recuperação ou migração foi executada no Supabase externo. Não houve envio de e-mails, exclusão de contas reais, push ou deploy.
+
+Antes de publicar: exportar dados/Auth, conferir o histórico de migrações, aplicar 001 → 002 em ambiente de teste e depois no projeto correto, configurar URLs Auth e variáveis da Vercel/Resend. Confirmar concorrência em conexões PostgreSQL independentes e recuperação em conta de teste. Acesso de logística a saúde/inclusão foi preservado e ainda depende da decisão de domínio registrada no plano.
+
+Para retornar, preservar o artefato anterior e o snapshot do banco/Auth. Reverter código não desfaz migrações; não reaplicar schema antigo nem revogar as proteções por SQL improvisado. Preferir correção progressiva compatível com os dados e restaurar backup apenas sob um procedimento conferido. Os servidores locais de QA e a sessão Astra foram encerrados.
+
+O manual funcional e de design foi escrito como última etapa editorial substantiva, refletindo esses resultados e limitações.

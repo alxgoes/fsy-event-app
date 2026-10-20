@@ -1,4 +1,6 @@
 "use client";
+import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -426,9 +428,7 @@ export function CounselorPanel() {
 
         {/* 2. Top Minimalist Metrics Row */}
         {profile?.company_id && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Metric 1 */}
-            <motion.div
+          <CustomizableGrid pageKey="consultor-metrics" version={1} className="grid grid-cols-1 sm:grid-cols-3 gap-4" items={[{ id: "youth", label: "Jovens", className: "", content: (<motion.div
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
@@ -446,10 +446,8 @@ export function CounselorPanel() {
               <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 {youthWithRoom} com alojamento/quarto informado
               </div>
-            </motion.div>
-
-            {/* Metric 2 */}
-            <motion.div
+            </motion.div>) },
+{ id: "announcements", label: "Avisos", className: "", content: (<motion.div
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
@@ -467,10 +465,8 @@ export function CounselorPanel() {
               <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Comunicados publicados no mural da companhia
               </div>
-            </motion.div>
-
-            {/* Metric 3 */}
-            <motion.div
+            </motion.div>) },
+{ id: "likes", label: "Interações", className: "", content: (<motion.div
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
@@ -488,8 +484,7 @@ export function CounselorPanel() {
               <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                 Interações dos jovens nos avisos da companhia
               </div>
-            </motion.div>
-          </div>
+            </motion.div>) }]} />
         )}
 
         {/* 3. Navigation Tabs with layoutId */}
@@ -537,9 +532,7 @@ export function CounselorPanel() {
 
         {/* 4. Tab 1: Announcements & Reminders */}
         {profile?.company_id && activeTab === "announcements" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Publisher Form (5 cols) */}
-            <div className="lg:col-span-5">
+          <CustomizableGrid pageKey="consultor-announcements" version={1} className="grid grid-cols-1 lg:grid-cols-12 gap-6" items={[{ id: "compose", label: "Publicar aviso", className: "lg:col-span-5", content: (<div className="lg:col-span-5">
               <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm sticky top-24">
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#007DA5] text-white shadow-sm">
@@ -557,61 +550,61 @@ export function CounselorPanel() {
 
                 <form onSubmit={handlePostAnnouncement} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label htmlFor="field-counselorpanel-1" className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       Título do Comunicado *
                     </label>
-                    <Input
+                    <Input id="field-counselorpanel-1"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="ex: Reunião da Companhia no Pátio"
-                      className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                      className=""
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label htmlFor="field-counselorpanel-2" className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       Mensagem / Instruções *
                     </label>
-                    <Textarea
+                    <Textarea id="field-counselorpanel-2"
                       rows={4}
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       placeholder="Escreva orientações de horários, pontos de encontro ou recados para seus jovens..."
-                      className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium"
+                      className=""
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label htmlFor="field-counselorpanel-3" className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Prioridade
                       </label>
-                      <select
+                      <NativeSelect id="field-counselorpanel-3"
                         value={priority}
                         onChange={(e) =>
                           setPriority(e.target.value as "normal" | "important" | "urgent")
                         }
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                        className="w-full"
                       >
                         <option value="important">Importante</option>
                         <option value="urgent">Urgente</option>
                         <option value="normal">Geral / Lembrete</option>
-                      </select>
+                      </NativeSelect>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label htmlFor="field-counselorpanel-4" className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Categoria
                       </label>
-                      <select
+                      <NativeSelect id="field-counselorpanel-4"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white"
+                        className="w-full"
                       >
                         <option value="Companhia">Companhia</option>
                         <option value="Atividades">Atividades</option>
                         <option value="Geral">Geral</option>
-                      </select>
+                      </NativeSelect>
                     </div>
                   </div>
 
@@ -647,10 +640,8 @@ export function CounselorPanel() {
                   </Button>
                 </form>
               </div>
-            </div>
-
-            {/* Announcements Feed (7 cols) */}
-            <div className="lg:col-span-7 space-y-4">
+            </div>) },
+{ id: "published", label: "Avisos publicados", className: "lg:col-span-7", content: (<div className="lg:col-span-7 space-y-4">
               <div className="flex items-center justify-between gap-2 pb-1">
                 <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
                   Comunicados Ativos da Companhia
@@ -750,8 +741,7 @@ export function CounselorPanel() {
                   })}
                 </div>
               )}
-            </div>
-          </div>
+            </div>) }]} />
         )}
 
         {/* 5. Tab 2: Youth List */}
@@ -761,13 +751,13 @@ export function CounselorPanel() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
+                <Input
                   type="text"
                   aria-label="Buscar jovem por nome, quarto ou estaca"
                   placeholder="Buscar jovem por nome, quarto ou estaca..."
                   value={youthSearch}
                   onChange={(e) => setYouthSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#007DA5]"
+                  className="w-full pl-10"
                 />
               </div>
 
@@ -930,15 +920,15 @@ export function CounselorPanel() {
 
           <form onSubmit={handleSaveMotto} className="space-y-4 pt-2">
             <div>
-              <label className="block text-xs font-black uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+              <label htmlFor="field-counselorpanel-5" className="block text-xs font-black uppercase text-slate-700 dark:text-slate-300 mb-1.5">
                 Grito de Guerra / Lema *
               </label>
-              <Textarea
+              <Textarea id="field-counselorpanel-5"
                 rows={3}
                 value={mottoText}
                 onChange={(e) => setMottoText(e.target.value)}
                 placeholder="ex: Firme na fé, sem vacilar! Companhia 1 pronta pra ganhar!"
-                className="rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium"
+                className=""
               />
             </div>
 

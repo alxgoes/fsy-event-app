@@ -1,4 +1,5 @@
 "use client";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -383,32 +384,32 @@ export function MediaManager() {
                 <form onSubmit={handleAddPhoto} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                      <label htmlFor="field-mediamanager-1" className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                         Título da Foto *
                       </label>
-                      <Input
+                      <Input id="field-mediamanager-1"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Ex: Chegada das Caravanas / Noite de Jogos"
-                        className="h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-semibold"
+                        className=""
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                      <label htmlFor="field-mediamanager-2" className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                         Categoria
                       </label>
-                      <select
+                      <NativeSelect id="field-mediamanager-2"
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full h-11 rounded-2xl text-xs bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 px-3 font-semibold"
+                        className="w-full"
                       >
                         {CATEGORIES.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </div>
                   </div>
 
@@ -423,7 +424,7 @@ export function MediaManager() {
                         value={driveUrl}
                         onChange={(e) => setDriveUrl(e.target.value)}
                         placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
-                        className="pl-10 h-11 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-semibold"
+                        className="pl-10"
                       />
                     </div>
                     <p className="text-xs text-slate-500 mt-1">

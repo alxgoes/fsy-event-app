@@ -100,11 +100,13 @@ export async function loadAllAccounts(db: Db): Promise<AccountSummary[]> {
 }
 
 export async function loadAccount(db: Db, id: string) {
-  const [{ data: authData }, { data: profile }, companies] = await Promise.all([
+  const [{ data: authData, error: authError }, { data: profile, error: profileError }, companies] = await Promise.all([
     db.auth.admin.getUserById(id),
     db.from("profiles").select(PROFILE_FIELDS).eq("id", id).maybeSingle(),
     companyNames(db),
   ]);
+  if (profileError) throw profileError;
+  if (authError) throw authError;
   const user = (authData?.user ?? null) as AuthUserLike | null;
   if (!user && !profile) return null;
   return { user, profile: (profile ?? null) as ProfileRow | null, summary: toSummary(user, profile as ProfileRow | null, companies) };

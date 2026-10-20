@@ -1,0 +1,794 @@
+[
+  {
+    "route": "/dashboard",
+    "mobile": false,
+    "findings": [
+      {
+        "selector": "p.text-\\[10px\\].font-bold",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Edição 2027 • 05 a 10 de Fevereiro\" (below 11px floor)"
+      },
+      {
+        "selector": "span.absolute.-top-1",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "3.3:1 (need 4.5:1) — text #ffffff on #fc4e6d"
+      },
+      {
+        "selector": "p.text-\\[10px\\].font-extrabold",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Casal Diretor\" (below 11px floor)"
+      },
+      {
+        "selector": "span.font-mono.text-\\[10px\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"1/4\" (below 11px floor)"
+      },
+      {
+        "selector": "div.relative.overflow-hidden",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan gradient background"
+      },
+      {
+        "selector": "div.relative.z-10 > div:nth-of-type(1) > div.inline-flex.items-center",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.1:1 (need 4.5:1) — text #ffffff on #34c5da"
+      },
+      {
+        "selector": "div.relative.z-10 > div:nth-of-type(1) > div.inline-flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "h1.font-heading.text-3xl",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.4:1 (need 3:1) — text #ffffff on #01b6d1"
+      },
+      {
+        "selector": "p.mt-2.text-sm",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.3:1 (need 4.5:1) — text #ecfeff on #01b6d1"
+      },
+      {
+        "selector": "span.text-\\[0\\.7em\\].tracking-\\[0\\.18em\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "7px functional text \"REJOICE IN\" (below 11px floor)"
+      },
+      {
+        "selector": "div.flex.flex-col:nth-of-type(2) > span:nth-of-type(1)",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "8px functional text \"20\" (below 11px floor)"
+      },
+      {
+        "selector": "div.flex.flex-col:nth-of-type(2) > span:nth-of-type(2)",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "8px functional text \"27\" (below 11px floor)"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(1)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(2)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(3)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(4)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "header.mb-5.flex > a.inline-flex.min-h-11",
+        "type": "cramped-padding",
+        "severity": "warning",
+        "detail": "0px vertical padding (need ≥4.2px for 14px text)"
+      },
+      {
+        "selector": "ul.group.flex",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.relative.z-10 > div.flex.flex-wrap > div.flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.hidden.md\\:inline-flex > div.inline-flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.my-1.sm\\:my-2",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "p.mt-3.text-xs",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-4.flex > div.flex.items-center:nth-of-type(1)",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-4.flex > div.flex.items-center:nth-of-type(2)",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-5.pt-4 > div.flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.w-full.flex",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "article.min-w-0.overflow-hidden",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "body",
+        "type": "gradient-text",
+        "severity": "warning",
+        "detail": "background-clip: text + gradient"
+      },
+      {
+        "selector": "body",
+        "type": "pulsing-dot",
+        "severity": "error",
+        "detail": "animate-pulse on tiny rounded-full element in header/nav"
+      },
+      {
+        "selector": "body",
+        "type": "pulsing-dot",
+        "severity": "warning",
+        "detail": "animate-pulse on tiny rounded-full element"
+      }
+    ]
+  },
+  {
+    "route": "/admin/counselor-audit",
+    "mobile": false,
+    "findings": [
+      {
+        "selector": "span.rounded-md.bg-\\[\\#FFE48A\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"2027\" (below 11px floor)"
+      },
+      {
+        "selector": "span.shrink-0.flex",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass > circle",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "p.text-\\[10px\\].font-bold",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Casal Diretor\" (below 11px floor)"
+      },
+      {
+        "selector": "#admin-navigation",
+        "type": "gpt-thin-border-wide-shadow",
+        "severity": "advisory",
+        "detail": "1px border + 48px shadow blur"
+      },
+      {
+        "selector": "div.flex.items-start > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "4.1:1 (need 4.5:1) — text #007da5 on #e0f2fe"
+      },
+      {
+        "selector": "p.text-xs.sm\\:text-sm",
+        "type": "line-length",
+        "severity": "warning",
+        "detail": "~86 chars/line (aim for <80)"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(1) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(3) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(4) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.flex.items-center:nth-of-type(1) > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "4.1:1 (need 4.5:1) — text #007da5 on #e0f2fe"
+      },
+      {
+        "selector": "div.flex.items-center:nth-of-type(1) > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Consultor(a)\" (below 11px floor)"
+      },
+      {
+        "selector": "span.rounded-md.bg-purple-100",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Companhia 1 — Néfi\" (below 11px floor)"
+      },
+      {
+        "selector": "span.text-\\[11px\\].font-semibold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.rounded-2xl.bg-\\[\\#FAF8F5\\]",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "body",
+        "type": "skipped-heading",
+        "severity": "warning",
+        "detail": "<h1> \"Histórico & Auditoria dos Consultores\" followed by <h4> \"Ensaio do grito da companhia\" (missing h2)"
+      },
+      {
+        "selector": "body",
+        "type": "gradient-text",
+        "severity": "warning",
+        "detail": "background-clip: text + gradient"
+      }
+    ]
+  },
+  {
+    "route": "/dashboard",
+    "mobile": true,
+    "findings": [
+      {
+        "selector": "header.sticky.top-0",
+        "type": "clipped-overflow-container",
+        "severity": "warning",
+        "detail": "header.sticky.top-0.z-40.w-full.px-2.sm:px-6.py-2.transition-all.max-w-full.overflow-x-clip clips a positioned child"
+      },
+      {
+        "selector": "span.rounded-md.bg-\\[\\#FFE48A\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"2027\" (below 11px floor)"
+      },
+      {
+        "selector": "svg.lucide.lucide-moon",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-moon > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.absolute.-top-1",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "3.3:1 (need 4.5:1) — text #ffffff on #fc4e6d"
+      },
+      {
+        "selector": "p.text-\\[10px\\].font-extrabold",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "p.text-\\[10px\\].font-extrabold",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Casal Diretor\" (below 11px floor)"
+      },
+      {
+        "selector": "span > strong",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "3.4:1 (need 4.5:1) — text #fde68a on #8f7668"
+      },
+      {
+        "selector": "span.font-mono.text-\\[10px\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"1/4\" (below 11px floor)"
+      },
+      {
+        "selector": "div.relative.overflow-hidden",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan gradient background"
+      },
+      {
+        "selector": "div.relative.z-10 > div:nth-of-type(1) > div.inline-flex.items-center",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.1:1 (need 4.5:1) — text #ffffff on #34c5da"
+      },
+      {
+        "selector": "h1.font-heading.text-3xl",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.4:1 (need 3:1) — text #ffffff on #01b6d1"
+      },
+      {
+        "selector": "p.mt-2.text-sm",
+        "type": "low-contrast",
+        "severity": "warning",
+        "detail": "2.3:1 (need 4.5:1) — text #ecfeff on #01b6d1"
+      },
+      {
+        "selector": "span.text-\\[0\\.7em\\].tracking-\\[0\\.18em\\]",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "7px functional text \"REJOICE IN\" (below 11px floor)"
+      },
+      {
+        "selector": "div.flex.flex-col:nth-of-type(2) > span:nth-of-type(1)",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "8px functional text \"20\" (below 11px floor)"
+      },
+      {
+        "selector": "div.flex.flex-col:nth-of-type(2) > span:nth-of-type(2)",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "8px functional text \"27\" (below 11px floor)"
+      },
+      {
+        "selector": "div.relative.flex > div > div.flex.items-center > span.text-xs.font-black",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(1)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(2)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(3)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-hourglass > path:nth-of-type(4)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.flex.h-11",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-camera",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-camera > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-camera > circle",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "header.mb-5.flex > a.inline-flex.min-h-11",
+        "type": "cramped-padding",
+        "severity": "warning",
+        "detail": "0px vertical padding (need ≥4.2px for 14px text)"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > button.inline-flex.min-h-11",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > a.inline-flex.min-h-11",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(1)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(2)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-2.p-3 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(3)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-4 > a.inline-flex.min-h-11",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-4 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-4 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(1)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-4 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(2)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.space-y-4 > a.inline-flex.min-h-11 > svg.lucide.lucide-external-link > path:nth-of-type(3)",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.relative.z-10 > div.flex.flex-wrap > div.flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.my-1.sm\\:my-2",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "p.mt-3.text-xs",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-4.flex > div.flex.items-center:nth-of-type(1)",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-4.flex > div.flex.items-center:nth-of-type(2)",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.mt-5.pt-4 > div.flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.w-full.flex",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "article.min-w-0.overflow-hidden",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "body",
+        "type": "gradient-text",
+        "severity": "warning",
+        "detail": "background-clip: text + gradient"
+      },
+      {
+        "selector": "body",
+        "type": "pulsing-dot",
+        "severity": "error",
+        "detail": "animate-pulse on tiny rounded-full element in header/nav"
+      },
+      {
+        "selector": "body",
+        "type": "pulsing-dot",
+        "severity": "warning",
+        "detail": "animate-pulse on tiny rounded-full element"
+      }
+    ]
+  },
+  {
+    "route": "/admin/counselor-audit",
+    "mobile": true,
+    "findings": [
+      {
+        "selector": "svg.lucide.lucide-moon",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-moon > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass > circle",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.shrink-0.flex > svg.lucide.lucide-compass > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "p.text-\\[10px\\].font-bold",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Casal Diretor\" (below 11px floor)"
+      },
+      {
+        "selector": "#admin-navigation",
+        "type": "gpt-thin-border-wide-shadow",
+        "severity": "advisory",
+        "detail": "1px border + 40px shadow blur"
+      },
+      {
+        "selector": "div.AdminLayout_activePill__xAafO",
+        "type": "dark-glow",
+        "severity": "warning",
+        "detail": "Colored box-shadow glow (#007da5) on dark background"
+      },
+      {
+        "selector": "div.flex.items-start > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.flex.items-start > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "cramped-padding",
+        "severity": "warning",
+        "detail": "2px vertical padding (need ≥4.0px for 12px text)"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(1) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(2) > span.text-\\[11px\\].font-black",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(2) > div.font-heading.text-2xl",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(3) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(4) > span.text-\\[11px\\].font-black",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(4) > div.font-heading.text-2xl",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.rounded-3xl.border-2:nth-of-type(4) > span.text-\\[11px\\].font-bold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "div.flex.items-center:nth-of-type(1) > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "div.flex.items-center:nth-of-type(1) > div:nth-of-type(2) > div.flex.items-center > span.rounded-md.bg-sky-100",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Consultor(a)\" (below 11px floor)"
+      },
+      {
+        "selector": "span.rounded-md.bg-purple-100",
+        "type": "undersized-ui-text",
+        "severity": "warning",
+        "detail": "10px functional text \"Companhia 1 — Néfi\" (below 11px floor)"
+      },
+      {
+        "selector": "svg.lucide.lucide-clock",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-clock > circle",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "svg.lucide.lucide-clock > path",
+        "type": "ai-color-palette",
+        "severity": "warning",
+        "detail": "Cyan neon text on dark background"
+      },
+      {
+        "selector": "span.text-\\[11px\\].font-semibold",
+        "type": "tiny-text",
+        "severity": "warning",
+        "detail": "11px body text"
+      },
+      {
+        "selector": "#admin-navigation > div.flex.items-center",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "div.rounded-2xl.bg-\\[\\#FAF8F5\\]",
+        "type": "nested-cards",
+        "severity": "warning",
+        "detail": "Card inside card"
+      },
+      {
+        "selector": "body",
+        "type": "skipped-heading",
+        "severity": "warning",
+        "detail": "<h1> \"Histórico & Auditoria dos Consultores\" followed by <h4> \"Ensaio do grito da companhia\" (missing h2)"
+      },
+      {
+        "selector": "body",
+        "type": "gradient-text",
+        "severity": "warning",
+        "detail": "background-clip: text + gradient"
+      }
+    ]
+  }
+]

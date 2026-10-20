@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FSY — Sessão Ribeirão Preto 2
 
-## Getting Started
+Portal do evento de 2027 para jovens, consultores, saúde, mídia, logística e direção. Preparação da equipe em 05/02; participantes de 06 a 10/02/2027. Interface em português do Brasil.
 
-First, run the development server:
+Next.js App Router, React, TypeScript, Tailwind e Supabase (Auth/Postgres/RLS). O código local desta retomada não representa publicação ou recuperação do banco real.
+
+## Desenvolvimento
+
+Node 22 ou 24 e npm. Copie `.env.example` para `.env.local` e preencha somente com as credenciais do ambiente correto; nunca versione segredos.
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variáveis: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (somente servidor), `NEXT_PUBLIC_SITE_URL`; opcionais `NEXT_PUBLIC_BEHOLD_FEED_ID`, `RESEND_API_KEY`, `EMAIL_FROM`. Sem configuração de envio, o e-mail individual fica indisponível. O host do exemplo é histórico e precisa ser confirmado pelo responsável.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verificação
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm test
+npm run build
+```
 
-## Learn More
+Os testes de banco executam migrações e RLS em PGlite com identidades fictícias. Não validam conexão, Auth ou SMTP do projeto real. `scripts/visual-qa/` contém um servidor falso de desenvolvimento; nunca o use como prova de autorização ou em produção.
 
-To learn more about Next.js, take a look at the following resources:
+## Operação e documentação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Manual funcional e design](docs/manual-funcional-e-design.md)
+- [Plano e posição atual](implementation_plan.md)
+- [Resultados reais](walkthrough.md)
+- [Plano autorizado](docs/plano-implementacao-2026-10-20.md)
+- [Dependências e migração do framework](docs/dependencias-2026-10-20.md)
+- [Inclusão](docs/inclusao.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Antes de publicar, preservar/exportar banco e Auth, confirmar o projeto externo e conferir as migrações anteriores. As novas migrações são `202610200001_security_hardening.sql` e `202610200002_account_safety.sql`, nessa ordem. Não reaplicar `schema.sql` sobre um banco migrado.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+O Next 14 possui advisories conhecidos; há um plano de atualização sem `--force`. Auditoria visual e testes locais não eliminam essa pendência nem comprovam conformidade integral. Aplicativos nativos Android/iOS estão fora desta etapa; instalação PWA usa o navegador.

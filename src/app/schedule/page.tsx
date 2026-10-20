@@ -28,7 +28,7 @@ export default function SchedulePage() {
   const { profile } = useProfile();
   const isStaff = Boolean(
     profile &&
-    ["admin", "coordenacao", "consultor", "assistente_coordenacao", "midia", "saude", "seguranca"].includes(profile.role)
+    ["casal_diretor", "coordenador", "consultor", "logistica", "midia", "medico"].includes(profile.role)
   );
 
   // Day zero is staff & counselor preparation only. Youth and general public only see Day 01 (arrival) to Day 05.
@@ -130,7 +130,7 @@ export default function SchedulePage() {
             <Calendar className="h-3.5 w-3.5 text-[#007DA5]" />
             <span>Cronograma Oficial da Sessão</span>
             {hasDbEventsForDay && (
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Sincronizado em tempo real" />
+              <span className="h-2 w-2 rounded-full bg-emerald-500" title="Programação carregada do servidor" />
             )}
           </div>
         </div>

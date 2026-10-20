@@ -1,4 +1,5 @@
 "use client";
+import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -70,15 +71,15 @@ export function ExecutiveDashboard() {
         { data: profiles },
         { count: companiesCount },
         { count: medicalCount },
-        { data: annData },
+        { data: annData, count: announcementsCount },
         { count: photosCount },
       ] = await Promise.all([
         supabase.from("profiles").select("id, role, company_id, room"),
         supabase.from("companies").select("*", { count: "exact", head: true }),
-        supabase.from("youth_medical_profiles").select("*", { count: "exact", head: true }),
+        supabase.from("medical_records").select("*", { count: "exact", head: true }),
         supabase
           .from("announcements")
-          .select("id, title, priority, category, created_at, content")
+          .select("id, title, priority, category, created_at, content", { count: "exact" })
           .order("created_at", { ascending: false })
           .limit(4),
         supabase.from("media_photos").select("*", { count: "exact", head: true }),
@@ -109,7 +110,7 @@ export function ExecutiveDashboard() {
         totalCompanies: companiesCount ?? 0,
         totalCounselors: totalCouns,
         medicalAlerts: medicalCount ?? 0,
-        totalAnnouncements: annData?.length ?? 0,
+        totalAnnouncements: announcementsCount ?? 0,
         totalPhotos: photosCount ?? 0,
       });
 
@@ -184,9 +185,7 @@ export function ExecutiveDashboard() {
         </div>
 
         {/* 2. Top Metrics (Bento Grid of 4 Minimalist Boxes) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Jovens Cadastrados */}
-          <motion.div
+        <CustomizableGrid pageKey="admin-metrics" version={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" items={[{ id: "youth", label: "Jovens", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
@@ -206,10 +205,8 @@ export function ExecutiveDashboard() {
               <span>Em companhias: <strong>{metrics.youthWithCompany}</strong></span>
               <span>Com quartos: <strong>{metrics.youthWithRoom}</strong></span>
             </div>
-          </motion.div>
-
-          {/* Card 2: Companhias & Consultores */}
-          <motion.div
+          </motion.div>) },
+{ id: "companies", label: "Companhias", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
@@ -229,10 +226,8 @@ export function ExecutiveDashboard() {
               <span>Consultores: <strong>{metrics.totalCounselors}</strong></span>
               <span>Média: <strong>{metrics.totalCompanies > 0 ? Math.round(metrics.totalYouth / metrics.totalCompanies) : 0}/cia</strong></span>
             </div>
-          </motion.div>
-
-          {/* Card 3: Atendimentos & Alergias */}
-          <motion.div
+          </motion.div>) },
+{ id: "medical", label: "Prontuários", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
@@ -254,10 +249,8 @@ export function ExecutiveDashboard() {
                 Acessar &rarr;
               </Link>
             </div>
-          </motion.div>
-
-          {/* Card 4: Registros de Mídia */}
-          <motion.div
+          </motion.div>) },
+{ id: "media", label: "Fotos", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
@@ -279,8 +272,7 @@ export function ExecutiveDashboard() {
                 Gerenciar &rarr;
               </Link>
             </div>
-          </motion.div>
-        </div>
+          </motion.div>) }]} />
       </div>
 
       {/* 3. Interactive Management Modules (Bento Action Cards) */}
@@ -294,9 +286,7 @@ export function ExecutiveDashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Module 1: Registros Médicos */}
-            <Link href="/admin/medical">
+          <CustomizableGrid pageKey="admin-modules" version={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" items={[{ id: "medical", label: "Saúde e inclusão", content: (<Link href="/admin/medical">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -323,10 +313,8 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-
-            {/* Module 2: Companhias */}
-            <Link href="/admin/companies">
+            </Link>) },
+{ id: "companies", label: "Companhias", content: (<Link href="/admin/companies">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -353,10 +341,8 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-
-            {/* Module 3: Programação Oficial */}
-            <Link href="/admin/schedule">
+            </Link>) },
+{ id: "schedule", label: "Programação", content: (<Link href="/admin/schedule">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -383,10 +369,8 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-
-            {/* Module 4: Logística & Caravanas */}
-            <Link href="/admin/logistics">
+            </Link>) },
+{ id: "logistics", label: "Logística", content: (<Link href="/admin/logistics">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -413,10 +397,8 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-
-            {/* Module 5: Comunicados Oficiais */}
-            <Link href="/admin/announcements">
+            </Link>) },
+{ id: "announcements", label: "Avisos", content: (<Link href="/admin/announcements">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -443,10 +425,8 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-
-            {/* Module 6: Fotos & Mídia em Destaque */}
-            <Link href="/admin/media">
+            </Link>) },
+{ id: "media", label: "Mídia", content: (<Link href="/admin/media">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -473,8 +453,7 @@ export function ExecutiveDashboard() {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
-            </Link>
-          </div>
+            </Link>) }]} />
         </div>
 
         {/* 4. Recent Announcements Feed */}

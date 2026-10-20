@@ -1,0 +1,61 @@
+[
+  {
+    "route": "/dashboard",
+    "mobile": false,
+    "url": "/dashboard",
+    "title": "Olá, Helena!",
+    "overflow": false,
+    "unlabeled": [],
+    "smallTargets": 2
+  },
+  {
+    "route": "/admin/counselor-audit",
+    "mobile": false,
+    "url": "/admin/counselor-audit",
+    "title": "Histórico & Auditoria dos Consultores",
+    "overflow": false,
+    "unlabeled": [],
+    "smallTargets": 1
+  },
+  {
+    "route": "/dashboard",
+    "mobile": true,
+    "url": "/dashboard",
+    "title": "Olá, Helena!",
+    "overflow": false,
+    "unlabeled": [],
+    "smallTargets": 1
+  },
+  {
+    "route": "/admin/counselor-audit",
+    "mobile": true,
+    "url": "/admin/counselor-audit",
+    "title": "Histórico & Auditoria dos Consultores",
+    "overflow": false,
+    "unlabeled": [],
+    "smallTargets": 0
+  },
+  {
+    "instagramExpanded": "true"
+  },
+  {
+    "instagramDialog": {
+      "hasEnd": true,
+      "contain": true,
+      "region": true
+    }
+  },
+  {
+    "dialogClosed": true
+  },
+  {
+    "layout": {
+      "handleCount": 6,
+      "moved": true,
+      "persistedAfterReload": true
+    }
+  },
+  {
+    "layoutRestored": true
+  }
+]
