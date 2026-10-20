@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useProfile, isMasterAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
-import { CounselorAuditLog } from "@/app/api/admin/counselor-audit/route";
+import type { CounselorAuditLog } from "@/types/audit";
 
 interface CompanyOption {
   id: string;

@@ -1,6 +1,10 @@
 -- ==============================================================================
 -- FSY Sessão Ribeirão Preto 2 - Supabase Database Schema & RBAC Configuration
 -- ==============================================================================
+-- ATENÇÃO: baseline histórico. Use SOMENTE em banco vazio, seguido de todas as
+-- migrações em supabase/migrations (em ordem). Nunca reaplique este arquivo num
+-- banco já migrado: ele recria políticas antigas e amplas (curtidas, perfis,
+-- consultas médicas) que as migrações removeram. Ver docs/manual-funcional-e-design.md.
 
 -- 1. Create User Role Enum
 DO $$ BEGIN

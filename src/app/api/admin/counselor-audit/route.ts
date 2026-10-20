@@ -1,26 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserAndRole } from "@/lib/supabase/server";
+import { requireIdentity, json, serverError } from "@/lib/auth/guard";
+import type { CounselorAuditLog } from "@/types/audit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const ALLOWED_ROLES = ["casal_diretor", "coordenador", "logistica"];
-
-export interface CounselorAuditLog {
-  id: string;
-  author_id: string | null;
-  author_name: string;
-  author_role: string;
-  company_id: string | null;
-  company_name: string | null;
-  action_type: string;
-  action_label: string;
-  title: string | null;
-  content: string;
-  details: Record<string, unknown> | null;
-  created_at: string;
-}
 
 export async function GET(request: Request) {
   try {
@@ -107,89 +94,34 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireIdentity("counselorPanel");
+  if (auth.response) return auth.response;
+  const { identity } = auth;
   try {
-    const { user, role: callerRole } = await getCurrentUserAndRole();
-    if (!user) {
-      return NextResponse.json(
-        { error: "Acesso não autorizado. Sessão necessária." },
-        { status: 401 }
-      );
-    }
-
-    const ALLOWED_POST_ROLES = [...ALLOWED_ROLES, "consultor"];
-    if (!callerRole || !ALLOWED_POST_ROLES.includes(callerRole)) {
-      return NextResponse.json(
-        { error: "Acesso negado para registrar auditoria." },
-        { status: 403 }
-      );
-    }
-
     const body = await request.json();
-    const {
-      company_id,
-      company_name,
-      action_type,
-      action_label,
-      title,
-      content,
-      details,
-    } = body;
+    const content = typeof body?.content === "string" ? body.content.trim() : "";
+    if (!content) return json({ error: "Informe o conteúdo da alteração." }, 400);
 
-    const author_id = user.id;
-    const author_role = callerRole;
-    const author_name = body.author_name ? String(body.author_name).trim() : (user.email?.split("@")[0] || "Consultor");
-
-    if (!author_name || !content) {
-      return NextResponse.json(
-        { error: "Nome do autor e conteúdo da alteração são obrigatórios." },
-        { status: 400 }
-      );
-    }
-
+    // Consultores registram apenas na própria companhia; autoria vem do perfil.
+    const companyId = identity.role === "consultor" ? identity.profile.company_id : body.company_id || null;
     const payload = {
-      author_id,
-      author_name,
-      author_role,
-      company_id: company_id || null,
-      company_name: company_name || null,
-      action_type: action_type || "publicou_comunicado",
-      action_label: action_label || "Novo Comunicado Publicado",
-      title: title ? String(title).trim() : null,
-      content: String(content).trim(),
-      details: details || {},
-      created_at: new Date().toISOString(),
+      author_id: identity.user.id,
+      author_name: identity.profile.full_name,
+      author_role: identity.role,
+      company_id: companyId,
+      company_name: typeof body.company_name === "string" ? body.company_name.slice(0, 120) : null,
+      action_type: typeof body.action_type === "string" ? body.action_type.slice(0, 60) : "publicou_comunicado",
+      action_label: typeof body.action_label === "string" ? body.action_label.slice(0, 120) : "Novo Comunicado Publicado",
+      title: body.title ? String(body.title).trim().slice(0, 200) : null,
+      content: content.slice(0, 6000),
+      details: body.details && typeof body.details === "object" ? body.details : {},
     };
 
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("counselor_audit_logs")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) {
-      // If table doesn't exist yet, return soft success with error info
-      if (
-        error.code === "42P01" ||
-        error.code === "PGRST204" ||
-        error.code === "PGRST205" ||
-        error.message?.toLowerCase().includes("schema cache") ||
-        error.message?.toLowerCase().includes("could not find the table") ||
-        error.message?.includes("does not exist")
-      ) {
-        return NextResponse.json({
-          success: true,
-          data: payload,
-          warning: "Audit log table not yet migrated in Supabase.",
-        });
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { data, error } = await createAdminClient().from("counselor_audit_logs").insert(payload).select().single();
+    if (error) return serverError("audit.post", error);
+    return json({ success: true, data });
+  } catch (err) {
+    return serverError("audit.post", err);
   }
 }
 

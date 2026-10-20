@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireIdentity, json, serverError, pick } from "@/lib/auth/guard";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { scheduleItemSchema } from "@/lib/validations/schemas";
 
@@ -15,7 +15,11 @@ const DAY_DEFAULT_DATES: Record<string, string> = {
   dia5: "2027-02-10",
 };
 
+const SCHEDULE_FIELDS = ["title", "start_time", "end_time", "location", "description", "category", "day", "date", "is_highlight"] as const;
+
 export async function GET(request: Request) {
+  const auth = await requireIdentity();
+  if (auth.response) return auth.response;
   try {
     const { searchParams } = new URL(request.url);
     const day = searchParams.get("day");
@@ -31,18 +35,17 @@ export async function GET(request: Request) {
       .order("day", { ascending: true })
       .order("start_time", { ascending: true });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return serverError("schedule", error);
 
-    return NextResponse.json({ data: data ?? [] });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ data: data ?? [] });
+  } catch (err) {
+    return serverError("schedule", err);
   }
 }
 
 export async function POST(request: Request) {
+  const auth = await requireIdentity("scheduleManagers");
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
 
@@ -79,35 +82,29 @@ export async function POST(request: Request) {
         }
       }
 
-      // If already populated, we can replace or append
-      if (body.overwrite) {
-        await supabase.from("schedule_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      }
+      // A substituição roda numa transação: se a inserção falhar, nada é apagado.
+      const { data: inserted, error: insertErr } = body.overwrite
+        ? await supabase.rpc("admin_replace_schedule", { p_items: itemsToInsert })
+        : await supabase.from("schedule_items").insert(itemsToInsert).select();
 
-      const { data: inserted, error: insertErr } = await supabase
-        .from("schedule_items")
-        .insert(itemsToInsert)
-        .select();
+      if (insertErr) return serverError("schedule.seed", insertErr);
+      const insertedCount = Array.isArray(inserted) ? inserted.length : typeof inserted === "number" ? inserted : itemsToInsert.length;
 
-      if (insertErr) {
-        return NextResponse.json({ error: insertErr.message }, { status: 500 });
-      }
-
-      return NextResponse.json({
+      return json({
         success: true,
-        message: `${inserted?.length ?? itemsToInsert.length} eventos sincronizados com sucesso!`,
-        count: inserted?.length ?? itemsToInsert.length,
+        message: `${insertedCount} eventos sincronizados.`,
+        count: insertedCount,
       });
     }
 
     const parseResult = scheduleItemSchema.safeParse(body);
     if (!parseResult.success) {
-      return NextResponse.json(
+      return json(
         {
-          error: "Payload inválido para o evento da programação.",
+          error: parseResult.error.issues[0]?.message || "Dados inválidos para o evento da programação.",
           details: parseResult.error.flatten().fieldErrors,
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -134,28 +131,34 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return serverError("schedule", error);
 
-    return NextResponse.json({ success: true, data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ success: true, data });
+  } catch (err) {
+    return serverError("schedule", err);
   }
 }
 
 export async function PUT(request: Request) {
+  const auth = await requireIdentity("scheduleManagers");
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
-    const { id, ...updates } = body;
+    const id = body?.id;
+    const provided = pick(body ?? {}, SCHEDULE_FIELDS);
+    const parsedUpdate = scheduleItemSchema.partial().safeParse(provided);
+    if (!parsedUpdate.success) {
+      return json({ error: parsedUpdate.error.issues[0]?.message || "Dados inválidos." }, 400);
+    }
+    // Somente campos enviados: defaults do schema não podem sobrescrever dados existentes.
+    const updates: Record<string, unknown> = pick(parsedUpdate.data, Object.keys(provided));
 
     if (!id) {
-      return NextResponse.json({ error: "ID do evento é obrigatório." }, { status: 400 });
+      return json({ error: "ID do evento é obrigatório." }, 400);
     }
 
     // If date is missing or empty, ensure a valid date is assigned
-    if (updates.day && (!updates.date || !updates.date.trim())) {
+    if (typeof updates.day === "string" && !updates.date) {
       updates.date = DAY_DEFAULT_DATES[updates.day] || "2027-02-05";
     }
 
@@ -169,24 +172,23 @@ export async function PUT(request: Request) {
       .select()
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return serverError("schedule", error);
 
-    return NextResponse.json({ success: true, data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ success: true, data });
+  } catch (err) {
+    return serverError("schedule", err);
   }
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireIdentity("scheduleManagers");
+  if (auth.response) return auth.response;
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+      return json({ error: "ID é obrigatório." }, 400);
     }
 
     const supabase = createAdminClient();
@@ -195,13 +197,10 @@ export async function DELETE(request: Request) {
       .delete()
       .eq("id", id);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    if (error) return serverError("schedule", error);
 
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ success: true });
+  } catch (err) {
+    return serverError("schedule", err);
   }
 }

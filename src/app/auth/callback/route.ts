@@ -1,11 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { homePathForRole, isRole, safeInternalPath } from "@/lib/auth/permissions";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/dashboard";
+  const next = searchParams.get("next");
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
@@ -44,35 +45,26 @@ export async function GET(request: Request) {
       await supabase.auth.exchangeCodeForSession(code);
 
     if (!exchangeError && data?.user) {
-      let targetPath = next;
-      try {
+      // Fluxos com destino explícito (ex.: redefinição de senha) usam apenas caminhos internos.
+      let targetPath = next ? safeInternalPath(next) : "/dashboard";
+      if (!next) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", data.user.id)
-          .single();
-
-        const role = profile?.role;
-        if (
-          role === "medico" ||
-          role === "logistica" ||
-          role === "coordenador" ||
-          role === "casal_diretor"
-        ) {
-          targetPath = "/admin/medical";
-        } else {
-          targetPath = "/dashboard";
-        }
-      } catch {
-        targetPath = "/dashboard";
+          .maybeSingle();
+        targetPath = homePathForRole(isRole(profile?.role) ? profile.role : null);
       }
 
       return NextResponse.redirect(`${origin}${targetPath}`);
     }
 
     if (exchangeError) {
+      const expired = next && safeInternalPath(next) === "/redefinir-senha";
       return NextResponse.redirect(
-        `${origin}/login?error=${encodeURIComponent(exchangeError.message)}`
+        expired
+          ? `${origin}/redefinir-senha?erro=link`
+          : `${origin}/login?error=${encodeURIComponent("Não foi possível concluir o acesso. Tente entrar novamente.")}`
       );
     }
   }

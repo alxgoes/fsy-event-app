@@ -1,7 +1,32 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isSameOriginRequest } from "@/lib/security/origin";
+
+const PUBLIC_PREFIXES = ["/login", "/auth", "/acesso-negado", "/offline", "/icons", "/redefinir-senha"];
+const PUBLIC_EXACT = new Set([
+  "/api/auth/recover",
+  "/api/instagram",
+  "/icon.svg",
+  "/sw.js",
+  "/manifest.webmanifest",
+  "/manifest.json",
+]);
+
+function isPublicPath(pathname: string) {
+  if (process.env.NODE_ENV !== "production" && pathname.startsWith("/loading-preview")) return true;
+  return PUBLIC_EXACT.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
 
 export async function middleware(request: NextRequest) {
+  // Mutações de API só a partir do próprio site (defesa contra requisições forjadas).
+  if (
+    request.nextUrl.pathname.startsWith("/api") &&
+    !["GET", "HEAD", "OPTIONS"].includes(request.method) &&
+    !isSameOriginRequest(request)
+  ) {
+    return NextResponse.json({ error: "Origem não permitida." }, { status: 403 });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -9,8 +34,13 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Sem configuração não há como validar sessão: falha fechada fora das rotas públicas.
   if (!supabaseUrl || !supabaseAnonKey) {
-    return supabaseResponse;
+    if (isPublicPath(request.nextUrl.pathname)) return supabaseResponse;
+    return NextResponse.json(
+      { error: "Serviço temporariamente indisponível: configuração de autenticação ausente." },
+      { status: 503 }
+    );
   }
 
   const supabase = createServerClient(
@@ -42,21 +72,8 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // 1. Unauthenticated users: Protect all internal pages (/, /dashboard, /admin, /schedule, /announcements)
-  const isPublicRoute =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api/auth") ||
-    pathname === "/api/instagram" ||
-    pathname === "/api/media" ||
-    pathname.startsWith("/acesso-negado") ||
-    pathname.startsWith("/loading-preview") ||
-    pathname.startsWith("/offline") ||
-    pathname.startsWith("/icons") ||
-    pathname === "/icon.svg" ||
-    pathname === "/sw.js" ||
-    pathname === "/manifest.webmanifest" ||
-    pathname === "/manifest.json";
+  // 1. Unauthenticated users: protect every internal page and API.
+  const isPublicRoute = isPublicPath(pathname);
 
   if (!user && !isPublicRoute) {
     if (pathname.startsWith("/api")) {

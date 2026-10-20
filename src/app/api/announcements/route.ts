@@ -1,271 +1,203 @@
-import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { announcementSchema } from "@/lib/validations/schemas";
+import { requireIdentity, json, serverError, pick } from "@/lib/auth/guard";
+import { hasRole } from "@/lib/auth/permissions";
+import type { Identity } from "@/lib/supabase/server";
+import { announcementSchema, announcementUpdateSchema, baseCategory } from "@/types/announcements";
 
 export const dynamic = "force-dynamic";
 
+const SELECT = "id, title, content, priority, target_company_id, category, created_at, author_id, profiles(full_name, role)";
+const COMPANY_ID = /^[\w-]{1,64}$/;
+
+/** Gestores leem tudo; consultores, a própria companhia; demais, a própria companhia e avisos gerais. */
+function canManageAll(identity: Identity) {
+  return hasRole(identity.role, "announcementManagers");
+}
+
+function canTouch(identity: Identity, targetCompanyId: string | null) {
+  if (canManageAll(identity)) return true;
+  return identity.role === "consultor" && !!targetCompanyId && targetCompanyId === identity.profile.company_id;
+}
+
 export async function GET(request: Request) {
+  const auth = await requireIdentity();
+  if (auth.response) return auth.response;
+  const { identity } = auth;
   try {
-    const { searchParams } = new URL(request.url);
-    const companyId = searchParams.get("company_id");
-
+    const requested = new URL(request.url).searchParams.get("company_id");
     const supabase = createAdminClient();
-    let query = supabase
-      .from("announcements")
-      .select("id, title, content, priority, target_company_id, category, created_at, author_id, profiles(full_name, role)")
-      .order("created_at", { ascending: false });
+    let query = supabase.from("announcements").select(SELECT).order("created_at", { ascending: false });
 
-    if (companyId) {
-      query = query.or(`target_company_id.eq.${companyId},target_company_id.is.null`);
+    const ownCompany = identity.profile.company_id;
+    const scope = canManageAll(identity) ? requested : ownCompany;
+    if (scope && COMPANY_ID.test(scope)) {
+      query = query.or(`target_company_id.eq.${scope},target_company_id.is.null`);
+    } else if (!canManageAll(identity) || (requested && !COMPANY_ID.test(requested))) {
+      query = query.is("target_company_id", null);
     }
 
     const { data, error } = await query;
+    if (error) return serverError("announcements.get", error);
+    const rows = data ?? [];
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const ids = rows.map((row) => row.id);
+    const likes = new Map<string, { count: number; mine: boolean }>();
+    if (ids.length > 0) {
+      const { data: likeRows, error: likeError } = await supabase
+        .from("announcement_likes")
+        .select("announcement_id, user_id")
+        .in("announcement_id", ids);
+      if (likeError) console.error("[api] announcements.likes", likeError.code ?? "");
+      for (const like of likeRows ?? []) {
+        const entry = likes.get(like.announcement_id) ?? { count: 0, mine: false };
+        entry.count += 1;
+        if (like.user_id === identity.user.id) entry.mine = true;
+        likes.set(like.announcement_id, entry);
+      }
     }
 
-    const parsed = (data ?? []).map((item) => {
-      const rawCategory = item.category || "Geral";
-      let baseCategory = rawCategory;
-      let likedBy: string[] = [];
-
-      if (rawCategory.includes("__LIKES__")) {
-        const parts = rawCategory.split("__LIKES__");
-        baseCategory = parts[0] || "Geral";
-        try {
-          likedBy = JSON.parse(parts[1]) || [];
-          if (!Array.isArray(likedBy)) likedBy = [];
-        } catch {
-          likedBy = [];
-        }
-      }
-
-      return {
-        ...item,
-        category: baseCategory,
-        liked_by: likedBy,
-        likes_count: likedBy.length,
-      };
+    return json({
+      data: rows.map((row) => {
+        const like = likes.get(row.id) ?? { count: 0, mine: false };
+        return {
+          ...row,
+          category: baseCategory(row.category),
+          likes_count: like.count,
+          liked_by_me: like.mine,
+          liked_by: like.mine ? [identity.user.id] : [],
+        };
+      }),
     });
-
-    return NextResponse.json(
-      { data: parsed },
-      {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        },
-      }
-    );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (err) {
+    return serverError("announcements.get", err);
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const parseResult = announcementSchema.safeParse(body);
+async function recordAudit(
+  supabase: ReturnType<typeof createAdminClient>,
+  identity: Identity,
+  entry: { company_id: string | null; action_type: string; action_label: string; title: string; content: string; details: Record<string, unknown> }
+) {
+  let companyName: string | null = null;
+  if (entry.company_id) {
+    const { data: comp } = await supabase.from("companies").select("name").eq("id", entry.company_id).single();
+    companyName = comp?.name ?? null;
+  }
+  const { error } = await supabase.from("counselor_audit_logs").insert({
+    author_id: identity.user.id,
+    author_name: identity.profile.full_name,
+    author_role: identity.role,
+    company_name: companyName,
+    ...entry,
+  });
+  if (error) console.error("[api] announcements.audit", error.code ?? "");
+  return !error;
+}
 
-    if (!parseResult.success) {
-      return NextResponse.json(
-        {
-          error: "Dados do anúncio inválidos.",
-          details: parseResult.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      );
+export async function POST(request: Request) {
+  const auth = await requireIdentity("announcementAuthors");
+  if (auth.response) return auth.response;
+  const { identity } = auth;
+  try {
+    const parsed = announcementSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return json({ error: parsed.error.issues[0]?.message || "Dados do comunicado inválidos." }, 400);
+    }
+    const input = parsed.data;
+    const target = input.target_company_id || null;
+    if (!canTouch(identity, target)) {
+      return json({ error: "Você só pode publicar comunicados para a sua companhia." }, 403);
     }
 
-    const validated = parseResult.data;
-    const author_id = body.author_id || null;
-    const target_company_id = validated.target_company_id || null;
-
     const payload = {
-      title: validated.title,
-      content: validated.content,
-      priority: validated.priority,
-      target_company_id,
-      category: validated.category,
-      author_id,
+      title: input.title,
+      content: input.content,
+      priority: input.priority,
+      category: input.category,
+      target_company_id: target,
+      author_id: identity.user.id,
       updated_at: new Date().toISOString(),
     };
 
     const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("announcements")
-      .insert(payload)
-      .select("*, profiles(full_name, role)")
-      .single();
+    const { data, error } = await supabase.from("announcements").insert(payload).select(SELECT).single();
+    if (error) return serverError("announcements.post", error);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const audited = await recordAudit(supabase, identity, {
+      company_id: target,
+      action_type: "publicou_comunicado",
+      action_label: "Novo Comunicado Publicado",
+      title: payload.title,
+      content: payload.content,
+      details: { priority: payload.priority, category: payload.category, target_company_id: target },
+    });
 
-    // Automatically record in counselor audit logs
-    try {
-      let authorName = "Autor Desconhecido";
-      let authorRole = "consultor";
-      let companyName: string | null = null;
-
-      if (author_id) {
-        const { data: authorProfile } = await supabase
-          .from("profiles")
-          .select("full_name, role, company_id")
-          .eq("id", author_id)
-          .single();
-
-        if (authorProfile) {
-          authorName = authorProfile.full_name || authorName;
-          authorRole = authorProfile.role || authorRole;
-        }
-      }
-
-      if (target_company_id) {
-        const { data: comp } = await supabase
-          .from("companies")
-          .select("name")
-          .eq("id", target_company_id)
-          .single();
-        if (comp) companyName = comp.name;
-      }
-
-      await supabase.from("counselor_audit_logs").insert({
-        author_id: author_id || null,
-        author_name: authorName,
-        author_role: authorRole,
-        company_id: target_company_id || null,
-        company_name: companyName,
-        action_type: "publicou_comunicado",
-        action_label: "Novo Comunicado Publicado",
-        title: payload.title,
-        content: payload.content,
-        details: {
-          priority: payload.priority,
-          category: payload.category,
-          target_company_id: payload.target_company_id,
-        },
-        created_at: new Date().toISOString(),
-      });
-    } catch (auditErr) {
-      console.error("Non-fatal: Failed to write counselor audit log on post:", auditErr);
-    }
-
-    return NextResponse.json({ success: true, data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ success: true, data, audited });
+  } catch (err) {
+    return serverError("announcements.post", err);
   }
 }
 
 export async function PUT(request: Request) {
+  const auth = await requireIdentity("announcementManagers");
+  if (auth.response) return auth.response;
   try {
-    const body = await request.json();
-    const { id, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "ID do comunicado é obrigatório." }, { status: 400 });
-    }
-
+    const parsed = announcementUpdateSchema.safeParse(await request.json());
+    if (!parsed.success) return json({ error: parsed.error.issues[0]?.message || "Dados inválidos." }, 400);
+    const updates = pick(parsed.data, ["title", "content", "priority", "category", "target_company_id"]);
     updates.updated_at = new Date().toISOString();
 
-    const supabase = createAdminClient();
-    const { data, error } = await supabase
+    const { data, error } = await createAdminClient()
       .from("announcements")
       .update(updates)
-      .eq("id", id)
-      .select()
+      .eq("id", parsed.data.id)
+      .select(SELECT)
       .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error) return serverError("announcements.put", error);
+    return json({ success: true, data });
+  } catch (err) {
+    return serverError("announcements.put", err);
   }
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireIdentity("announcementAuthors");
+  if (auth.response) return auth.response;
+  const { identity } = auth;
   try {
-    const { searchParams } = new URL(request.url);
-    let id = searchParams.get("id");
-
-    if (!id) {
-      try {
-        const body = await request.json();
-        id = body.id;
-      } catch {
-        // query param is fine
-      }
-    }
-
-    if (!id) {
-      return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
-    }
+    const id = new URL(request.url).searchParams.get("id");
+    if (!id) return json({ error: "ID é obrigatório." }, 400);
 
     const supabase = createAdminClient();
-
-    // Fetch existing announcement first so we preserve what was deleted in the audit log
-    const { data: existing } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from("announcements")
-      .select("*, profiles(full_name, role)")
+      .select("id, title, content, priority, category, target_company_id, author_id")
       .eq("id", id)
       .single();
-
-    const { error } = await supabase
-      .from("announcements")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (readError || !existing) return json({ error: "Comunicado não encontrado." }, 404);
+    if (!canTouch(identity, existing.target_company_id)) {
+      return json({ error: "Você só pode remover comunicados da sua companhia." }, 403);
     }
 
-    // Record deletion in counselor audit logs
-    if (existing) {
-      try {
-        let compName: string | null = null;
-        if (existing.target_company_id) {
-          const { data: comp } = await supabase
-            .from("companies")
-            .select("name")
-            .eq("id", existing.target_company_id)
-            .single();
-          if (comp) compName = comp.name;
-        }
+    const { error } = await supabase.from("announcements").delete().eq("id", id);
+    if (error) return serverError("announcements.delete", error);
 
-        const authorName = existing.profiles?.full_name || "Consultor(a)";
-        const authorRole = existing.profiles?.role || "consultor";
+    const audited = await recordAudit(supabase, identity, {
+      company_id: existing.target_company_id,
+      action_type: "excluiu_comunicado",
+      action_label: "Comunicado Removido",
+      title: existing.title,
+      content: existing.content,
+      details: {
+        deleted_announcement_id: id,
+        original_author_id: existing.author_id,
+        original_priority: existing.priority,
+        original_category: baseCategory(existing.category),
+      },
+    });
 
-        await supabase.from("counselor_audit_logs").insert({
-          author_id: existing.author_id || null,
-          author_name: authorName,
-          author_role: authorRole,
-          company_id: existing.target_company_id || null,
-          company_name: compName,
-          action_type: "excluiu_comunicado",
-          action_label: "Comunicado Removido",
-          title: existing.title,
-          content: existing.content,
-          details: {
-            deleted_announcement_id: id,
-            original_priority: existing.priority,
-            original_category: existing.category,
-          },
-          created_at: new Date().toISOString(),
-        });
-      } catch (auditErr) {
-        console.error("Non-fatal: Failed to write counselor audit log on delete:", auditErr);
-      }
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return json({ success: true, audited });
+  } catch (err) {
+    return serverError("announcements.delete", err);
   }
 }

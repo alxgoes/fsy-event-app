@@ -12,7 +12,7 @@ function load(file, modules) {
 function fixture(role, profileError = null, user = { id: 'alice', user_metadata: { role: 'coordenador' }, app_metadata: { role: 'coordenador' } }) {
   let reads = 0;
   const client = { auth: { getUser: async () => ({ data: { user } }) }, from: () => ({ select() { return this; }, eq(column, value) { assert.equal(column, 'id'); assert.equal(value, 'alice'); return this; }, single: async () => { reads++; return { data: role ? { role } : null, error: profileError }; } }) };
-  const common = { '@supabase/ssr': { createServerClient: () => client }, '@/lib/supabase/admin': { createAdminClient: () => client }, 'next/headers': { cookies: () => ({ getAll: () => [] }) } };
+  const common = { 'server-only': {}, '@supabase/ssr': { createServerClient: () => client }, '@/lib/supabase/admin': { createAdminClient: () => client }, 'next/headers': { cookies: () => ({ getAll: () => [] }) } };
   return { client, common, reads: () => reads };
 }
 
@@ -36,9 +36,9 @@ test('anonymous server calls never query profiles', async () => {
 });
 test('admin middleware ignores forged role cookie and metadata', async () => {
   const f = fixture('jovem');
-  const modules = { ...f.common, 'next/server': { NextResponse: { next: () => ({ cookies: { set() {} }, type: 'next' }), redirect: url => ({ pathname: url.pathname }), json: () => ({}) } } };
+  const modules = { ...f.common, '@/lib/security/origin': { isSameOriginRequest: () => true }, 'next/server': { NextResponse: { next: () => ({ cookies: { set() {} }, type: 'next' }), redirect: url => ({ pathname: url.pathname }), json: () => ({}) } } };
   const { middleware } = load('src/middleware.ts', modules);
-  const request = { cookies: { getAll: () => [], get: () => ({ value: 'coordenador' }) }, nextUrl: { pathname: '/admin/medical', clone: () => ({ pathname: '', searchParams: new URLSearchParams() }) } };
+  const request = { method: 'GET', cookies: { getAll: () => [], get: () => ({ value: 'coordenador' }) }, nextUrl: { pathname: '/admin/medical', clone: () => ({ pathname: '', searchParams: new URLSearchParams() }) } };
   assert.equal((await middleware(request)).pathname, '/acesso-negado');
   assert.equal(f.reads(), 1);
 });

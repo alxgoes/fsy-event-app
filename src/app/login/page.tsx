@@ -155,20 +155,11 @@ function LoginFormContent() {
       });
 
       if (error) {
-        // Check if demo email pattern was used
-        if (email.includes("medico") || email.includes("doutor")) {
-          handleRoleRedirect("medico");
-          return;
-        }
-        if (email.includes("admin") || email.includes("coordenador") || email.includes("diretor") || email.includes("logistica")) {
-          handleRoleRedirect("coordenador");
-          return;
-        }
-        if (email.includes("consultor")) {
-          handleRoleRedirect("consultor");
-          return;
-        }
-        setErrorMsg(error.message);
+        setErrorMsg(
+          error.message.toLowerCase().includes("email not confirmed")
+            ? "Confirme seu e-mail pelo link que enviamos antes de entrar."
+            : "E-mail ou senha incorretos. Confira os dados ou use “Esqueci minha senha”."
+        );
         setLoading(false);
         return;
       }
@@ -225,7 +216,6 @@ function LoginFormContent() {
           data: {
             full_name: fullName.trim(),
             name: fullName.trim(),
-            role: "jovem",
             stake: regStake.trim() || null,
             phone: regPhone.trim() || null,
           },
@@ -236,45 +226,29 @@ function LoginFormContent() {
         throw new Error(error.message);
       }
 
+      if (data?.user && data.session) {
+        // O perfil é criado pelo banco com cargo "jovem"; aqui só complementamos os dados da própria conta.
+        await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: fullName.trim(),
+            stake: regStake.trim() || null,
+            phone: regPhone.trim() || null,
+          }),
+        }).catch(() => undefined);
+        setSuccessMsg("Conta criada. Redirecionando...");
+        setTimeout(() => handleRoleRedirect("jovem"), 800);
+        return;
+      }
+
       if (data?.user) {
-        // 2. Ensure profile record is saved in public.profiles table
-        try {
-          await fetch("/api/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: data.user.id,
-              email: regEmail.trim(),
-              full_name: fullName.trim(),
-              role: "jovem",
-              stake: regStake.trim() || null,
-              phone: regPhone.trim() || null,
-            }),
-          });
-        } catch {
-          // Ignore if trigger handled it
-        }
-
-        // 3. Attempt immediate sign-in to establish active session
-        const { error: loginErr } = await supabase.auth.signInWithPassword({
-          email: regEmail.trim(),
-          password: regPassword,
-        });
-
-        if (!loginErr) {
-          setSuccessMsg("Conta criada com sucesso! Redirecionando...");
-          setTimeout(() => {
-            handleRoleRedirect("jovem");
-          }, 1000);
-          return;
-        } else {
-          // If confirmation was required
-          setSuccessMsg("Conta cadastrada com sucesso! Você já pode fazer login.");
-          setEmail(regEmail.trim());
-          setMode("login");
-          setLoading(false);
-          return;
-        }
+        // Projeto com confirmação de e-mail: não há sessão até a pessoa abrir o link.
+        setSuccessMsg("Conta criada. Enviamos um link de confirmação para o seu e-mail; abra-o para entrar.");
+        setEmail(regEmail.trim());
+        setMode("login");
+        setLoading(false);
+        return;
       }
     } catch (err: unknown) {
       const message =

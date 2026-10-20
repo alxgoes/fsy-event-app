@@ -1,60 +1,40 @@
-import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCurrentUserAndRole } from "@/lib/supabase/server";
+import { requireIdentity, json, serverError } from "@/lib/auth/guard";
 
 export const dynamic = "force-dynamic";
 
+const clean = (value: unknown, max: number) =>
+  typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+
+/**
+ * Complementa o próprio perfil após o cadastro. O perfil é criado pelo trigger
+ * do banco com cargo "jovem"; esta rota nunca altera cargo nem outro usuário.
+ */
 export async function POST(request: Request) {
+  const auth = await requireIdentity();
+  if (auth.response) return auth.response;
   try {
     const body = await request.json();
-    const { id, full_name, role: requestedRole, stake, phone } = body;
-
-    if (!id || !full_name) {
-      return NextResponse.json(
-        { error: "Dados incompletos para criação de perfil." },
-        { status: 400 }
-      );
+    const fullName = clean(body?.full_name, 160);
+    if (!fullName || fullName.length < 2) {
+      return json({ error: "Informe seu nome completo." }, 400);
     }
 
-    // Security check: self-registration is strictly role: "jovem".
-    // Only authenticated coordinators / casal diretor can provision staff roles.
-    let assignedRole = "jovem";
-    if (requestedRole && requestedRole !== "jovem") {
-      const { user, role: callerRole } = await getCurrentUserAndRole();
-      const ALLOWED_ADMINS = ["coordenador", "casal_diretor", "logistica"];
-      if (user && callerRole && ALLOWED_ADMINS.includes(callerRole)) {
-        assignedRole = requestedRole;
-      } else {
-        assignedRole = "jovem";
-      }
-    }
-
-    const supabase = createAdminClient();
-
-    const { data, error } = await supabase
+    const { data, error } = await createAdminClient()
       .from("profiles")
-      .upsert(
-        {
-          id,
-          full_name: full_name.trim(),
-          role: assignedRole,
-          stake: stake?.trim() || null,
-          phone: phone?.trim() || null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "id" }
-      )
-      .select()
+      .update({
+        full_name: fullName,
+        stake: clean(body?.stake, 120),
+        phone: clean(body?.phone, 40),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", auth.identity.user.id)
+      .select("id, full_name, role, stake, phone")
       .single();
 
-    if (error) {
-      console.error("Error upserting profile in /api/auth/register:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, profile: data });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error) return serverError("register.update", error);
+    return json({ success: true, profile: data });
+  } catch (err) {
+    return serverError("register", err);
   }
 }

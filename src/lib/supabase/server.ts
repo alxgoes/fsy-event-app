@@ -1,3 +1,4 @@
+import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { UserRole } from "@/lib/supabase/useProfile";
@@ -32,6 +33,42 @@ export async function createAuthenticatedServerClient() {
       },
     },
   });
+}
+
+export interface Identity {
+  user: { id: string; email?: string };
+  role: UserRole;
+  profile: { id: string; full_name: string; role: UserRole; company_id: string | null };
+}
+
+/**
+ * Resolves the session user and the protected profile row in one place.
+ * Returns null without a valid session, a profile, or when access is suspended.
+ */
+export async function getCurrentIdentity(): Promise<Identity | null> {
+  try {
+    const supabase = await createAuthenticatedServerClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+    if (error || !user) return null;
+
+    const { data: profile, error: profileError } = await createAdminClient()
+      .from("profiles")
+      .select("id, full_name, role, company_id")
+      .eq("id", user.id)
+      .single();
+    if (profileError || !profile?.role) return null;
+
+    return {
+      user: { id: user.id, email: user.email },
+      role: profile.role as UserRole,
+      profile: profile as Identity["profile"],
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**

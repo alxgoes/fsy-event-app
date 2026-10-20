@@ -22,19 +22,7 @@ export const scheduleItemSchema = z.object({
   is_highlight: z.boolean().default(false),
 });
 
-/** Schema for creating an announcement */
-export const announcementSchema = z.object({
-  title: z.string().trim().min(2, "Título deve ter pelo menos 2 caracteres").max(150, "Título muito longo"),
-  content: z.string().trim().min(2, "Conteúdo deve ter pelo menos 2 caracteres").max(5000),
-  priority: z.enum(["baixa", "normal", "alta", "urgente"]).default("normal"),
-  category: z.string().trim().default("Geral"),
-  target_company_id: z.string().uuid().nullable().optional(),
-});
-
-/** Schema for liking an announcement */
-export const likeAnnouncementSchema = z.object({
-  announcement_id: z.string().uuid("ID de anúncio inválido"),
-});
+export { announcementSchema, likeAnnouncementSchema } from "@/types/announcements";
 
 /** Schema for company updates */
 export const companySchema = z.object({
