@@ -72,7 +72,7 @@ export default function RootLayout({
     >
       <body
         suppressHydrationWarning
-        className="min-h-screen font-sans antialiased bg-transparent selection:bg-[#FFE48A] selection:text-slate-900"
+        className="isolate min-h-screen font-sans antialiased bg-background selection:bg-[#FFE48A] selection:text-slate-900"
       >
         <ThemeProvider
           attribute="class"

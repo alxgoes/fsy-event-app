@@ -114,15 +114,12 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
 
 function Tile({ photo, onOpen, buttonRef }: { photo: GalleryPhoto; onOpen: () => void; buttonRef: (el: HTMLButtonElement | null) => void }) {
   const [state, setState] = useState<"loading" | "ok" | "error">(photo.sources ? "loading" : "error");
-  const labelId = React.useId();
   return (
     <button
       ref={buttonRef}
       type="button"
       onClick={onOpen}
       disabled={!photo.sources}
-      aria-labelledby={state === "error" ? `${labelId}-error ${labelId}-title` : `${labelId}-title`}
-      aria-describedby={`${labelId}-action`}
       className="group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/35 disabled:cursor-not-allowed dark:bg-slate-800"
     >
       {photo.sources && state !== "error" && (
@@ -140,14 +137,14 @@ function Tile({ photo, onOpen, buttonRef }: { photo: GalleryPhoto; onOpen: () =>
       )}
       {state === "loading" && <span className="absolute inset-0 animate-pulse bg-slate-200 motion-reduce:animate-none dark:bg-slate-700" aria-hidden="true" />}
       {state === "error" && (
-        <span id={`${labelId}-error`} className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-3 text-center text-xs font-semibold text-slate-700 dark:text-slate-200">
+        <span className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-3 text-center text-xs font-semibold text-slate-700 dark:text-slate-200">
           <ImageOff className="h-5 w-5" aria-hidden="true" /> Imagem indisponível
         </span>
       )}
       <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/75 to-transparent px-3 pb-2 pt-8 text-xs font-semibold text-white">
-        <span id={`${labelId}-title`} className="line-clamp-2">{photo.title}</span>
+        <span className="line-clamp-2">{photo.title}</span>
       </span>
-      <span id={`${labelId}-action`} className="sr-only">{photo.sources ? "Abrir foto ampliada" : "Link de foto indisponível"}</span>
+      <span className="sr-only">{photo.sources ? "Abrir foto ampliada" : "Link de foto indisponível"}</span>
     </button>
   );
 }
