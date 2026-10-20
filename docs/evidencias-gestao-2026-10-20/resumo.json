@@ -1,0 +1,174 @@
+{
+  "code": "38ff96b6234761c64b98d44b231f5eefaf7390bd",
+  "ci": "https://github.com/alxgoes/fsy-event-app/actions/runs/39497300627",
+  "unit_tests": 144,
+  "visual_cases": 56,
+  "axe_violations": 0,
+  "published": {
+    "site": "https://fsy-event-app.vercel.app",
+    "at": "2026-10-20T21:11:52.519Z",
+    "passed": 26,
+    "total": 26,
+    "checks": [
+      {
+        "path": "/login",
+        "status": 200,
+        "ok": true,
+        "theme": true
+      },
+      {
+        "path": "/manifest.webmanifest",
+        "status": 200,
+        "ok": true,
+        "display": "standalone",
+        "start_url": "/dashboard",
+        "theme": true
+      },
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "ok": true,
+        "cacheVersion3": true
+      },
+      {
+        "path": "/offline",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "path": "/redefinir-senha",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "path": "/icon.svg",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "path": "/",
+        "status": 307,
+        "ok": true,
+        "location": "/login"
+      },
+      {
+        "path": "/dashboard",
+        "status": 307,
+        "ok": true,
+        "location": "/login?redirect=%2Fdashboard"
+      },
+      {
+        "path": "/admin",
+        "status": 307,
+        "ok": true,
+        "location": "/login?redirect=%2Fadmin"
+      },
+      {
+        "path": "/consultor",
+        "status": 307,
+        "ok": true,
+        "location": "/login?redirect=%2Fconsultor"
+      },
+      {
+        "path": "/schedule",
+        "status": 307,
+        "ok": true,
+        "location": "/login?redirect=%2Fschedule"
+      },
+      {
+        "path": "/announcements",
+        "status": 307,
+        "ok": true,
+        "location": "/login?redirect=%2Fannouncements"
+      },
+      {
+        "path": "/api/media",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/users",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/admin/accounts",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/companies",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/announcements",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/schedule",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/logistics",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/medical",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/medical/appointments",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/inclusion",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/admin/counselor-audit",
+        "status": 401,
+        "ok": true
+      },
+      {
+        "path": "/api/media",
+        "status": 403,
+        "ok": true,
+        "crossOriginBlocked": true
+      },
+      {
+        "path": "/api/auth/recover",
+        "status": 400,
+        "ok": true,
+        "invalidEmailRejected": true
+      },
+      {
+        "path": "/api/instagram",
+        "status": 200,
+        "ok": true,
+        "connected": true,
+        "source": "behold",
+        "posts": 6
+      }
+    ]
+  },
+  "authenticated_ui": {
+    "role": "logistica",
+    "accounts": 6,
+    "disabled_manage_buttons": 0,
+    "role_options": 7,
+    "company_selector": true,
+    "profile_mutations_performed": 0
+  },
+  "migration004": {
+    "applied": true,
+    "counts_preserved": true
+  },
+  "ios": "paused_before_native_code"
+}
