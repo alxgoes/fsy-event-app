@@ -277,7 +277,7 @@ export function CompanyManager() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-sm"
+            className="fsy-panel rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-sm"
           >
             <CheckCircle2 className="h-5 w-5 text-emerald-800 dark:text-emerald-300 shrink-0" />
             <span>Companhia e consultores salvos no banco de dados com sucesso!</span>
@@ -375,7 +375,7 @@ export function CompanyManager() {
               key={comp.id}
               whileHover={{ y: -3 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md flex flex-col justify-between"
+              className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md flex flex-col justify-between"
             >
               <div>
                 {/* Color Pill & Actions */}

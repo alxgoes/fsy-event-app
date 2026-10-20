@@ -347,7 +347,7 @@ export function MediaManager() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-xs sm:text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm"
+          className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-xs sm:text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm"
         >
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -439,7 +439,7 @@ export function MediaManager() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 flex items-center gap-3 shadow-inner"
+                      className="fsy-panel p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 flex items-center gap-3 shadow-inner"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -526,7 +526,7 @@ export function MediaManager() {
                 layoutId={shouldReduceMotion ? undefined : `photo-card-${photo.id}`}
                 whileHover={shouldReduceMotion ? undefined : { y: -3, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 380, damping: 24 }}
-                className="group relative rounded-3xl border-2 border-slate-900/10 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-tactile-pill hover:border-slate-900/40 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+                className="fsy-panel group relative rounded-3xl border-2 border-slate-900/10 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-tactile-pill hover:border-slate-900/40 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
               >
                 {/* Image Container with Quick Lightbox Expand */}
                 <button

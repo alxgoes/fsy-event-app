@@ -669,7 +669,7 @@ export function ScheduleManager() {
             {/* Interactive "Marcar como Destaque" Toggle */}
             <div
               onClick={() => setFormIsHighlight(!formIsHighlight)}
-              className={`flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+              className={`fsy-panel flex items-center justify-between p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
                 formIsHighlight
                   ? "bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-600 shadow-sm"
                   : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-slate-300"

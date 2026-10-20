@@ -510,7 +510,7 @@ export function CounselorAuditManager() {
               <motion.div
                 key={log.id}
                 whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-                className={`rounded-3xl border-2 p-5 bg-white dark:bg-slate-900 shadow-sm transition-all ${
+                className={`fsy-panel rounded-3xl border-2 p-5 bg-white dark:bg-slate-900 shadow-sm transition-all ${
                   isDelete
                     ? "border-red-300 dark:border-red-900/60 bg-red-50/30 dark:bg-red-950/20"
                     : "border-slate-900 dark:border-slate-700"

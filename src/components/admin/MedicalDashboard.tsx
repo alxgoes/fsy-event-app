@@ -993,7 +993,7 @@ export function MedicalDashboard() {
                 return (
                   <div
                     key={appt.id}
-                    className={`rounded-3xl border-2 p-5 shadow-sm flex flex-col justify-between transition-all ${
+                    className={`fsy-panel rounded-3xl border-2 p-5 shadow-sm flex flex-col justify-between transition-all ${
                       isRealizado
                         ? "border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20"
                         : isCancelado

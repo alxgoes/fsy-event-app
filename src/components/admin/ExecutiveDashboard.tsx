@@ -190,7 +190,7 @@ export function ExecutiveDashboard() {
         <CustomizableGrid pageKey="admin-metrics" version={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" items={[{ id: "youth", label: "Jovens", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -211,7 +211,7 @@ export function ExecutiveDashboard() {
 { id: "companies", label: "Companhias", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -232,7 +232,7 @@ export function ExecutiveDashboard() {
 { id: "medical", label: "Prontuários", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -255,7 +255,7 @@ export function ExecutiveDashboard() {
 { id: "media", label: "Fotos", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
+            className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
               <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -292,7 +292,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -320,7 +320,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -348,7 +348,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -376,7 +376,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -404,7 +404,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
@@ -432,7 +432,7 @@ export function ExecutiveDashboard() {
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">

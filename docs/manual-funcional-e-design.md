@@ -2,7 +2,7 @@
 
 Versão publicada e verificada em 20/10/2026. Preparação da equipe em **05/02/2027**; participantes de **06 a 10/02/2027**. Tema exato definido pelo usuário: **Alegra-se em Cristo**, Filipenses 4:4. Este é o portal da sessão Ribeirão Preto 2, sem representar um portal institucional global.
 
-O portal está publicado em https://fsy-event-app.vercel.app, com o código 16b9a54 enviado à main e Production Ready na Vercel. Supabase está Healthy e as migrações 001–003 foram aplicadas/verificadas, com contagens preservadas. A CI da main aprovou 145 testes, compilação e 56 combinações visuais; 26 verificações HTTP passaram no site publicado. Envio de e-mail ainda depende de serviço, e OAuth Google permanece em Teste. A avaliação Impeccable é 17/20 (85%), abaixo da meta >95%. Consulte a seção 13 antes da operação.
+O portal está publicado em https://fsy-event-app.vercel.app. A publicação inicial validada foi 16b9a54; a revisão de gestão desta mesma data substitui a hierarquia anterior pela equivalência de administradores descrita na seção 2. Consulte a main e a última execução de Validar FSY para a revisão executável vigente. Supabase está Healthy e as migrações 001–003 foram aplicadas/verificadas, com contagens preservadas. A CI da main aprovou 145 testes, compilação e 56 combinações visuais; 26 verificações HTTP passaram no site publicado. Envio de e-mail ainda depende de serviço, e OAuth Google permanece em Teste. A avaliação Impeccable é 17/20 (85%), abaixo da meta >95%. Consulte a seção 13 antes da operação.
 
 ## Índice
 
@@ -38,15 +38,15 @@ A fonte executável é `src/lib/auth/permissions.ts`. A interface apresenta os c
 | `consultor` | `/consultor` | Companhia atribuída, jovens vinculados e comunicados da companhia |
 | `midia` | `/admin/media` | Gestão de fotos e mídia |
 | `medico` | `/admin/medical` | Saúde, atendimentos e inclusão |
-| `logistica` | `/admin` | Gestão operacional, companhias, programação, avisos, mídia, auditoria e contas de cargos inferiores |
-| `coordenador` | `/admin` | Gestão dos módulos e contas inferiores; ações sensíveis conforme a matriz |
+| `logistica` | `/admin` | Gestão geral, com a mesma autoridade de coordenação e direção |
+| `coordenador` | `/admin` | Gestão geral, com a mesma autoridade de logística e direção |
 | `casal_diretor` | `/admin` | Gestão geral, sujeita às proteções de própria conta e última administração |
 
-Saúde/inclusão preservam o acesso de `medico`, `logistica`, `coordenador` e `casal_diretor`. A permanência do acesso da logística ainda exige a decisão de domínio registrada no plano; não foi ampliada nesta retomada.
+Saúde/inclusão preservam o acesso de `medico`, `logistica`, `coordenador` e `casal_diretor`. O responsável confirmou que logística, coordenação e direção têm a mesma autoridade dentro da plataforma. As APIs revalidam a identidade; políticas de leitura direta mais restritas não são substituídas por permissões abertas.
 
-Na gestão de contas, a hierarquia é casal diretor → coordenador → logística → demais cargos. Coordenador e logística gerenciam cargos inferiores. O casal diretor pode gerenciar os demais alvos, respeitando as proteções. Suspender, excluir ou definir uma senha administrativa exige `coordenador` ou `casal_diretor` e autorização sobre o alvo. Logística não executa essas ações sensíveis.
+Por definição expressa do responsável pelo evento, **Logística, Coordenação e Casal Diretor têm a mesma autoridade administrativa**. Os três podem editar perfis, atribuir qualquer cargo, designar companhia/quarto e executar as ações de gestão de contas. Não existe hierarquia entre eles. Participantes, consultores, mídia e equipe médica não recebem gestão geral de contas por essa mudança. As proteções contra autoexclusão, autosuspensão, alteração do próprio cargo e remoção da última administração habilitada continuam iguais para os três.
 
-Não é permitido alterar o próprio cargo, suspender/excluir a própria conta ou redefinir a própria senha pela ação administrativa. A última conta administrativa habilitada, considerando coordenação e casal diretor, é protegida também no banco. Jovens não escolhem cargo, companhia ou quarto pelo cadastro público. E-mail e metadados fornecidos pelo usuário não conferem privilégios.
+Não é permitido alterar o próprio cargo, suspender/excluir a própria conta ou redefinir a própria senha pela ação administrativa. A última conta administrativa habilitada, considerando logística, coordenação e casal diretor, é protegida também no banco. Jovens não escolhem cargo, companhia ou quarto pelo cadastro público. E-mail e metadados fornecidos pelo usuário não conferem privilégios.
 
 ## 3. Entrada, cadastro e recuperação
 
@@ -112,20 +112,20 @@ A lista combina dados do Supabase Auth e perfis do portal, com paginação/filtr
 As ações oferecidas dependem do cargo e do alvo:
 
 - **Editar dados e vínculos:** valida campos e companhia. Autoria é registrada no servidor.
-- **Alterar cargo:** aplica hierarquia e protege a última administração habilitada.
+- **Alterar cargo:** gestores podem atribuir qualquer cargo a outra conta; protege a última administração habilitada.
 - **Suspender/reativar:** suspensão bloqueia o perfil antes do banimento no Auth; reativação libera o perfil depois do Auth. Se uma etapa falhar, o resultado pode permanecer bloqueado; conferir/repetir a ação. Não há uma transação HTTP única entre os dois serviços.
 - **Excluir:** exige confirmação do alvo e recusa vínculos que precisam permanecer, como inclusão, histórico, atendimentos ou fotos. Use suspensão quando for necessário preservar registros. Não há lixeira/recuperação prometida para exclusão física.
 - **Recuperação de senha:** envia pelo Auth ao e-mail da conta, conforme configuração e permissões.
-- **Definir nova senha do portal:** somente direção/coordenação autorizada; a senha anterior não é lida. A nova senha não é devolvida nem registrada na auditoria. Para a própria conta, use recuperação.
+- **Definir nova senha do portal:** direção, coordenação ou logística; a senha anterior não é lida. A nova senha não é devolvida nem registrada na auditoria. Para a própria conta, use recuperação.
 - **E-mail individual:** selecionar destinatário, escrever assunto e mensagem, revisar e confirmar. O backend usa Resend quando configurado; a resposta significa **aceito para envio**, sem comprovar entrega na caixa postal.
 
 **Sem `RESEND_API_KEY` e `EMAIL_FROM`, o envio individual fica indisponível.** Não há provedor SMTP/transacional confirmado pelo usuário nem entrega em produção comprovada. A trilha administrativa registra ator, alvo, ação, data e detalhes limitados. Não contém senhas nem o corpo integral da mensagem. Se a gravação da auditoria falhar depois de uma ação, o retorno indica seu estado; a equipe deve conferir o resultado, sem presumir que repetir uma exclusão é inofensivo.
 
-Falha ao consultar o perfil de um alvo interrompe a operação: não é tratada como prova de cargo inferior. Os testes de recuperação/envio/remoção usam mocks e identidades fictícias. Não foram enviados e-mails ou excluídas contas reais para validar a entrega.
+Falha ao consultar o perfil de um alvo interrompe a operação: não libera uma operação sem conhecer o perfil do alvo. Os testes de recuperação/envio/remoção usam mocks e identidades fictícias. Não foram enviados e-mails ou excluídas contas reais para validar a entrega.
 
 ## 6. Personalização dos cartões
 
-Escolha **Personalizar layout** no grupo disponível. Fora desse modo, a página mantém clique, seleção e rolagem normais.
+Use o pequeno botão com ícone de grade no canto direito do grupo, identificado por **Personalizar layout** ao passar o mouse ou usar tecnologia assistiva. Ele mantém alvo de toque 44×44 px, sem texto ou barra larga em repouso. Fora desse modo, a página mantém clique, seleção e rolagem normais.
 
 1. Use a alça para arrastar com mouse/toque.
 2. Alternativamente, use **Subir/Descer** ou, na alça, Enter e as setas conforme o rótulo.
@@ -195,7 +195,7 @@ Cache não é autorização; as políticas restritivas de perfil ativo foram apl
 | Pergaminho | `#F5EFCA` |
 | Texto / secundário | `#0F172A` / `#64748B`, com variantes escuras |
 
-Cinzel e Cormorant Garamond atendem títulos/destaques; Inter atende interface e leitura. O padrão Seigaiha e as marcas FSY são elementos específicos deste evento. As superfícies novas de galeria/campos usam bordas suaves; cartões anteriores preservam elementos táteis da identidade.
+Cinzel e Cormorant Garamond atendem títulos/destaques; Inter atende interface e leitura. O padrão Seigaiha e as marcas FSY são elementos específicos deste evento. Galeria e campos mantêm suas superfícies próprias. Os blocos de gestão, cartões de indicadores, módulos, menu lateral e botões usam a mesma profundidade tátil da identidade FSY: borda estruturada, sombra deslocada, estado pressionado e foco visível. Os tokens --fsy-depth-border, --fsy-depth-ink, --fsy-depth-panel-shadow e --fsy-depth-button-shadow centralizam claro/escuro; fsy-panel e o escopo fsy-admin aplicam o padrão sem modificar conteúdo ou autorização.
 
 A constante de identidade é `src/lib/event/identity.ts`; marca, cartões, login/rodapé, carregamento, metadados e PWA usam **Alegra-se em Cristo**. Lemas das companhias e horários foram preservados. A citação de Filipenses no cartão continua como escritura, distinta do texto do tema.
 
@@ -222,7 +222,7 @@ Contratos precedem integração de frontend/backend. Referências principais:
 - `src/types/accounts.ts`: resumo, ações, estados e validação de contas.
 - `src/types/instagram.ts`, `src/types/media.ts`: publicações e fotos.
 - `src/types/inclusion.ts`: acompanhamento e regras de entrada.
-- `src/lib/auth/permissions.ts`: grupos, hierarquia e destinos.
+- `src/lib/auth/permissions.ts`: grupos, equivalência administrativa e destinos.
 - `src/lib/layout/order.ts`: normalização e movimento da ordem visual.
 
 | Dados | Armazenamento |
@@ -266,12 +266,13 @@ A sequência aplicada e confirmada remotamente foi:
 2. `202610200001_security_hardening.sql`.
 3. `202610200002_account_safety.sql`.
 4. `202610200003_remote_policy_cleanup.sql`.
+5. `202610200004_equivalent_administrators.sql`: alinha a proteção da última administração aos três cargos equivalentes, sem mudar cadastros nem remover RLS.
 
 O bundle 001–003 foi comparado por hash e aplicado em transação única pelo root. Resultado confirmado: contagens anteriores iguais, três tabelas novas, 15 políticas `active_profile_required`, nove políticas sensíveis exatas e `unexpected_grants = 0`. A limpeza remove políticas permissivas extras por tabela e recria a allowlist; não depende de nomes históricos/truncados. Não executa seed/reset/DELETE de registros.
 
 O teste remoto com role authenticated e claims de um jovem leu só o próprio perfil (1), agenda 82, companhias 4, fotos 4, zero eventos administrativos e não tinha UPDATE em medical_records/schedule_items. Nenhum registro foi alterado pelo teste. Isso comprova esses casos e não toda combinação de cargo/fluxo. Consulte [Segurança RLS recuperada](seguranca-rls-recuperada.md).
 
-Leitura direta de prontuários fica com médico/coordenação/direção; transporte com logística/coordenação/direção, sem o marcador de armazenamento de atendimentos; avisos globais/própria companhia, ou todos para gestão; auditoria só gestão. Escritas nessas quatro tabelas passam pelo servidor autorizado. service_role é exclusivo do servidor. A matriz de acesso das APIs, inclusive a decisão de domínio sobre logística em saúde/inclusão, continua separada.
+Leitura direta de prontuários fica com médico/coordenação/direção; transporte com logística/coordenação/direção, sem o marcador de armazenamento de atendimentos; avisos globais/própria companhia, ou todos para gestão; auditoria só gestão. Escritas nessas quatro tabelas passam pelo servidor autorizado. service_role é exclusivo do servidor. A matriz de acesso das APIs, incluindo a equivalência dos três cargos de gestão, continua separada da leitura direta pelo navegador.
 
 No Auth, preservar URLs válidas de `/redefinir-senha`, `/auth/confirm` e callback Google. Um template com `token_hash` pode usar `/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha` na origem correta. Nunca registrar tokens. SMTP custom OFF e provedor não definido significam que recuperação/envio de produção ainda não foram validados.
 
@@ -308,7 +309,7 @@ Guardar artefato anterior e snapshot privado para retorno. `d1055c7` preserva a 
 
 **Site publicado:** Vercel confirmou Production Ready, fonte main/16b9a54, e as **26/26 verificações HTTP** passaram. Login, manifesto com tema correto, cache PWA v3, página offline, recuperação e ícone responderam; páginas privadas redirecionaram ao login. Onze APIs privadas recusaram acesso anônimo com 401; mutação de origem externa recebeu 403; e-mail inválido foi recusado antes de envio. Instagram respondeu pelo Behold com seis publicações.
 
-**Sessão autenticada:** a sessão Google já existente abriu o portal como Logística, sem alteração de cargo. A área de contas carregou seis cadastros, sem erro, com quatro controles de gerenciamento bloqueados pela hierarquia. Uma preferência da própria conta foi salva, persistiu após recarregar e foi restaurada pelo comando Restaurar padrão; a ordem padrão foi reconferida após novo carregamento. Uma foto real do Drive carregou inteira (object-contain) e o diálogo fechou com Escape. Não foram editados/excluídos cadastros de participantes, alteradas senhas ou enviados e-mails como teste.
+**Sessão autenticada da publicação inicial 16b9a54:** a sessão Google já existente abriu o portal como Logística, sem alteração de cargo. A área de contas carregou seis cadastros, sem erro, com quatro controles de gerenciamento bloqueados pela hierarquia. Uma preferência da própria conta foi salva, persistiu após recarregar e foi restaurada pelo comando Restaurar padrão; a ordem padrão foi reconferida após novo carregamento. Uma foto real do Drive carregou inteira (object-contain) e o diálogo fechou com Escape. Não foram editados/excluídos cadastros de participantes, alteradas senhas ou enviados e-mails como teste.
 
 As [evidências finais](evidencias-publicacao-2026-10-20/) preservam JSON bruto comprimido e capturas exclusivamente de dados fictícios, além da síntese publicada sem dados pessoais. As [evidências iniciais Next 16](evidencias-next16-2026-10-20/) e [anteriores](evidencias-2026-10-20/) permanecem como histórico. Não há snapshot privado de banco/Auth no Git. A revisão Astra foi única e somente leitura; nenhum novo agente foi iniciado no fechamento.
 
@@ -316,6 +317,16 @@ As [evidências finais](evidencias-publicacao-2026-10-20/) preservam JSON bruto 
 
 **Pendências operacionais:** o usuário informou que ainda não possui serviço de envio. SMTP customizado está OFF e não há Resend configurado; o envio individual permanece indisponível e recuperação/entrega de e-mail não foram validadas em produção. Nome e logo Google foram salvos, mas OAuth permanece em Teste e requer lançamento geral antes do uso amplo pelos participantes. Nenhum domínio pago foi contratado.
 
-**Limites adicionais:** leitor de tela, aparelhos e instalação/atualização PWA físicos, todos os cargos/diálogos e carga PostgreSQL entre conexões independentes não foram testados. A permissão histórica da logística nas APIs de saúde/inclusão requer decisão de domínio. A fila de leituras é por aba, sem promessa de economia financeira em produção. Aplicativos nativos Android/iOS continuam uma etapa futura.
+**Limites adicionais:** leitor de tela, aparelhos e instalação/atualização PWA físicos, todos os cargos/diálogos e carga PostgreSQL entre conexões independentes não foram testados. O acesso da logística nas APIs de gestão foi confirmado pelo responsável; a leitura direta permanece limitada conforme a política de cada tabela. A fila de leituras é por aba, sem promessa de economia financeira em produção. Aplicativos nativos Android/iOS continuam uma etapa futura. O usuário pausou o iOS antes de o Claude criar código nativo; nenhum Xcode/SDK foi instalado.
 
 Este manual foi a **última etapa editorial substantiva** da entrega. O código, a recuperação do banco, as proteções aplicadas e a publicação estão confirmados nos limites acima; e-mail, lançamento geral OAuth e a meta de qualidade máxima permanecem explicitamente pendentes.
+
+## 14. Revisão de gestão e pausa do iOS — 20/10/2026
+
+Solicitação adicional do responsável: os três cargos de gestão têm as mesmas permissões; painéis, lateral e botões devem compartilhar a profundidade visual do FSY; o controle de layout deve ser discreto. A implementação mantém autenticação, verificação de origem, auditoria, validações e proteção dos registros vinculados. Nenhuma conta foi promovida ou alterada como teste.
+
+A migração 004 foi aplicada e confirmou logistics_in_guard=true, Auth/perfis 6/6, companhias 4, agenda 82 e fotos 4, sem alteração de registros. A revisão 53f337c passou na [CI 39496314057](https://github.com/alxgoes/fsy-event-app/actions/runs/39496314057), inclusive teste visual de Logística com todos os botões de gerenciamento habilitados e sete opções de cargo na conta de direção. Os testes também preservam bloqueio de não gestores, conta própria e última administração ativa. A confirmação visual usa fixtures, sem enviar e-mails ou trocar senhas reais.
+
+Após a primeira inspeção, o mesmo padrão de profundidade foi aplicado também aos cartões com wrappers de animação e classes condicionais, e o foco ganhou contorno explícito. Build e verificação visual permanecem obrigatórios na CI para qualquer publicação. A nota histórica 17/20 não é recalculada automaticamente por esta revisão.
+
+O iOS está pausado por solicitação humana. Claude foi interrompido ainda na leitura; não foram criados fontes iOS nem instalados Xcode, SDKs ou simuladores. O planejamento privado foi preservado fora do repositório. O web app continua independente dessa etapa.

@@ -390,3 +390,8 @@ button:not([role="switch"]), [role="button"] {
   .fsy-admin button, .fsy-panel button { transition: none; }
   .fsy-admin button:active, .fsy-panel button:active { transform: none; }
 }
+.fsy-admin :is(button, .fsy-action-link):focus-visible,
+.fsy-panel button:focus-visible {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 4px;
+}
