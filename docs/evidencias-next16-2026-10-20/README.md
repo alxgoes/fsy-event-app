@@ -13,3 +13,7 @@
 Não há artefato de confirmação final local: por instrução do usuário, `.github/workflows/validar.yml` executará build, QA e `scripts/visual-qa/assert.cjs` após push pelo root, sem aguardar a CI neste executor. A CI usa Chrome no Ubuntu (`--no-sandbox` só quando CI), sem segredos reais e sem Supabase externo, com artefatos por 7 dias. Esse gate não equivale a nota Impeccable 20/20.
 
 Nenhum backup privado de banco/Auth está nesta pasta ou no Git. O snapshot remoto permanece fora do repositório e não é pg_dump/Storage completo.
+
+## Confirmação posterior
+
+A execução final na nuvem foi concluída pelo coordenador, sem novo build pesado no Mac: [CI da main aprovada](https://github.com/alxgoes/fsy-event-app/actions/runs/39492496466). As evidências finais e a verificação publicada estão em [evidencias-publicacao-2026-10-20](../evidencias-publicacao-2026-10-20/). Os parágrafos anteriores preservam o estado do handoff antes dessa confirmação.

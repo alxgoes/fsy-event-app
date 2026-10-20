@@ -1,3 +1,34 @@
+# Confirmação final de qualidade — 20/10/2026
+
+A versão executável `16b9a54` passou na [CI 39491681275](https://github.com/alxgoes/fsy-event-app/actions/runs/39491681275): lint, tipos, **145/145 testes**, zero vulnerabilidades nas dependências de produção, build e o gate visual sem exceções/ignores novos. Evidências brutas e capturas com dados fictícios: [evidencias-publicacao-2026-10-20](evidencias-publicacao-2026-10-20/).
+
+**Integridade: aprovada na cobertura revisada.** O tema exato **Alegra-se em Cristo**, a identidade FSY, os contratos de cargos e a programação foram preservados. Fotos, campos e cartões respondem ao uso do evento; não há curtidas fictícias no feed. Cartões, ciano e tipografia da marca foram avaliados em contexto, sem retirar achados do detector para elevar a nota.
+
+| Dimensão | Nota / 4 | Evidência e limite |
+| --- | --- | --- |
+| Acessibilidade | 3 | 56 casos axe sem violações; teclado, Escape, foco, nomes e alvos passaram. Há resultados incomplete sobre superfícies complexas e estados não cobertos; não equivale a WCAG AA integralmente certificada. |
+| Desempenho | 3 | Dedupe, TTL, cancelamento, fila limitada, carregamento progressivo e ondas otimizadas; sem medição de FPS/aparelho físico ou carga real de produção. |
+| Temas | 3 | Alternância real de ida/volta e ambos os temas passaram; fundo explícito acompanha o token. Ainda há cores literais de marca fora do sistema central de tokens. |
+| Responsividade | 4 | Na cobertura de 390/1365 px, nenhum overflow de documento, campo sem nome ou alvo abaixo de 44 px; seis ampliações 200% em 390/768 px passaram. Não é uma promessa sobre todo navegador existente. |
+| Integridade | 4 | Tema e linguagem próprios, dados reais separados das fixtures, regras no servidor e personalização por conta; avisos do detector preservados e interpretados abaixo. |
+| **Total** | **17/20 — 85%** | **Boa qualidade na escala da skill. A meta >95% não foi demonstrada; exigiria 20/20.** |
+
+## Confirmações e achados remanescentes
+
+- **Resolvidos e confirmados:** rótulo acessível de foto indisponível, contraste da navegação ativa e dos textos flutuantes escuros, hierarquia de títulos, filtro Espiritual sem cobertura de texto e diálogo administrativo de fotos com título, Escape e retorno de foco. O detector final não registrou os tipos anteriores de contraste insuficiente, salto de títulos ou oclusão de texto.
+- **Interações:** legenda expandida e final integral no diálogo, imagem inteira, região rolável, fechamento, mover/salvar/recarregar/restaurar cartões e alternância dos temas passaram. Não houve erro JS registrado.
+- **P2 — Tokens:** cores literais documentadas da marca continuam em componentes. Consolidar gradualmente em tokens sem alterar contraste ou identidade. Isso impede nota máxima de temas.
+- **P2 — Leitura longa:** o detector aponta linhas extensas em textos de apoio da programação; não houve transbordamento, mas limitar a medida pode melhorar a leitura em desktop.
+- **P2 — Cobertura manual/desempenho:** leitor de tela, aparelhos físicos, todos os diálogos/cargos e carga concorrente real permanecem sem validação. A simulação de requests não comprova economia financeira nem tempo de resposta em produção.
+
+O detector DOM final guardou 56 estados e avisos repetidos por viewport/tema. `gradient-text` no body não corresponde a texto com gradiente pintado; a cor ciano e Inter são decisões da identidade existente. Os 12 avisos de tipografia pequena pertencem à marca gráfica, repetida em texto maior. Padding vertical zero em âncoras flex não significa alvo menor: o gate de geometria confirmou 44 px. Sombras táteis, cartões aninhados, glow, linhas longas e recortes de containers continuam no JSON para avaliação contextual; não se somam como falhas independentes de usuário. Não houve criação de ignores.
+
+Este relatório substitui o estado “CI pendente” dos registros históricos abaixo. A comprovação da publicação e os limites operacionais estão no manual final. E-mail de produção, lançamento geral do Google e instalação física não são cobertos pelo gate.
+
+---
+
+# Histórico da passagem complementar (antes da confirmação final)
+
 # Auditoria complementar — Next 16 e acessibilidade
 
 ## Resultado e limite da entrega corrente

@@ -1,0 +1,652 @@
+{
+  "commit": "16b9a54cc43959aa67f61067a74e4c10fb9cc7f7",
+  "ci": "https://github.com/alxgoes/fsy-event-app/actions/runs/39491681275",
+  "data": "fixtures_only",
+  "axe_cases": 56,
+  "axe_violations": 0,
+  "document_overflow": 0,
+  "unlabeled": 0,
+  "small_targets": 0,
+  "extra_cases": [
+    {
+      "route": "/login",
+      "mobile": false,
+      "dark": false,
+      "url": "/login",
+      "title": "Entrar no Portal",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/dashboard",
+      "mobile": false,
+      "dark": false,
+      "url": "/dashboard",
+      "title": "Olá, Helena!",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/schedule",
+      "mobile": false,
+      "dark": false,
+      "url": "/schedule",
+      "title": "Programação do Evento",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/announcements",
+      "mobile": false,
+      "dark": false,
+      "url": "/announcements",
+      "title": "Mural da sua Companhia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/consultor",
+      "mobile": false,
+      "dark": false,
+      "url": "/consultor",
+      "title": "Companhia 1 — Néfi",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin",
+      "title": "Visão Geral da Sessão",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/users",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/users",
+      "title": "Contas e acessos",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/medical",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/medical",
+      "title": "Equipe Multidisciplinar",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/companies",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/companies",
+      "title": "Gestão de Companhias do FSY",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/logistics",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/logistics",
+      "title": "Logística de Transporte & Ônibus",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/schedule",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/schedule",
+      "title": "Gestão do Cronograma Oficial",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/announcements",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/announcements",
+      "title": "Comunicados & Transmissões Oficiais",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/media",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/media",
+      "title": "Gestão de Fotos & Mídia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/counselor-audit",
+      "mobile": false,
+      "dark": false,
+      "url": "/admin/counselor-audit",
+      "title": "Histórico & Auditoria dos Consultores",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/login",
+      "mobile": false,
+      "dark": true,
+      "url": "/login",
+      "title": "Entrar no Portal",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/dashboard",
+      "mobile": false,
+      "dark": true,
+      "url": "/dashboard",
+      "title": "Olá, Helena!",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/schedule",
+      "mobile": false,
+      "dark": true,
+      "url": "/schedule",
+      "title": "Programação do Evento",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/announcements",
+      "mobile": false,
+      "dark": true,
+      "url": "/announcements",
+      "title": "Mural da sua Companhia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/consultor",
+      "mobile": false,
+      "dark": true,
+      "url": "/consultor",
+      "title": "Companhia 1 — Néfi",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin",
+      "title": "Visão Geral da Sessão",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/users",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/users",
+      "title": "Contas e acessos",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/medical",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/medical",
+      "title": "Equipe Multidisciplinar",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/companies",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/companies",
+      "title": "Gestão de Companhias do FSY",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/logistics",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/logistics",
+      "title": "Logística de Transporte & Ônibus",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/schedule",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/schedule",
+      "title": "Gestão do Cronograma Oficial",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/announcements",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/announcements",
+      "title": "Comunicados & Transmissões Oficiais",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/media",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/media",
+      "title": "Gestão de Fotos & Mídia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/counselor-audit",
+      "mobile": false,
+      "dark": true,
+      "url": "/admin/counselor-audit",
+      "title": "Histórico & Auditoria dos Consultores",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/login",
+      "mobile": true,
+      "dark": false,
+      "url": "/login",
+      "title": "Entrar no Portal",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/dashboard",
+      "mobile": true,
+      "dark": false,
+      "url": "/dashboard",
+      "title": "Olá, Helena!",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/schedule",
+      "mobile": true,
+      "dark": false,
+      "url": "/schedule",
+      "title": "Programação do Evento",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/announcements",
+      "mobile": true,
+      "dark": false,
+      "url": "/announcements",
+      "title": "Mural da sua Companhia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/consultor",
+      "mobile": true,
+      "dark": false,
+      "url": "/consultor",
+      "title": "Companhia 1 — Néfi",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin",
+      "title": "Visão Geral da Sessão",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/users",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/users",
+      "title": "Contas e acessos",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/medical",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/medical",
+      "title": "Equipe Multidisciplinar",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/companies",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/companies",
+      "title": "Gestão de Companhias do FSY",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/logistics",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/logistics",
+      "title": "Logística de Transporte & Ônibus",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/schedule",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/schedule",
+      "title": "Gestão do Cronograma Oficial",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/announcements",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/announcements",
+      "title": "Comunicados & Transmissões Oficiais",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/media",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/media",
+      "title": "Gestão de Fotos & Mídia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/counselor-audit",
+      "mobile": true,
+      "dark": false,
+      "url": "/admin/counselor-audit",
+      "title": "Histórico & Auditoria dos Consultores",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/login",
+      "mobile": true,
+      "dark": true,
+      "url": "/login",
+      "title": "Entrar no Portal",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/dashboard",
+      "mobile": true,
+      "dark": true,
+      "url": "/dashboard",
+      "title": "Olá, Helena!",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/schedule",
+      "mobile": true,
+      "dark": true,
+      "url": "/schedule",
+      "title": "Programação do Evento",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/announcements",
+      "mobile": true,
+      "dark": true,
+      "url": "/announcements",
+      "title": "Mural da sua Companhia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/consultor",
+      "mobile": true,
+      "dark": true,
+      "url": "/consultor",
+      "title": "Companhia 1 — Néfi",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin",
+      "title": "Visão Geral da Sessão",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/users",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/users",
+      "title": "Contas e acessos",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/medical",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/medical",
+      "title": "Equipe Multidisciplinar",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/companies",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/companies",
+      "title": "Gestão de Companhias do FSY",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/logistics",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/logistics",
+      "title": "Logística de Transporte & Ônibus",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/schedule",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/schedule",
+      "title": "Gestão do Cronograma Oficial",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/announcements",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/announcements",
+      "title": "Comunicados & Transmissões Oficiais",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/media",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/media",
+      "title": "Gestão de Fotos & Mídia",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "route": "/admin/counselor-audit",
+      "mobile": true,
+      "dark": true,
+      "url": "/admin/counselor-audit",
+      "title": "Histórico & Auditoria dos Consultores",
+      "overflow": false,
+      "unlabeled": [],
+      "smallTargets": []
+    },
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/dashboard",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/schedule",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/admin/users",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/dashboard",
+      "overflow": false,
+      "bodyWidth": 390
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/schedule",
+      "overflow": false,
+      "bodyWidth": 390
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/admin/users",
+      "overflow": false,
+      "bodyWidth": 390
+    },
+    {
+      "instagramExpanded": "true"
+    },
+    {
+      "instagramDialog": {
+        "hasEnd": true,
+        "contain": true,
+        "region": true
+      }
+    },
+    {
+      "dialogClosed": true
+    },
+    {
+      "layout": {
+        "handleCount": 6,
+        "moved": true,
+        "persistedAfterReload": true
+      }
+    },
+    {
+      "layoutRestored": true
+    },
+    {
+      "themeToggleRoundTrip": true
+    },
+    {
+      "adminMediaDialog": {
+        "named": true,
+        "hasVisibilityAction": true,
+        "closed": true,
+        "focusRestored": true
+      }
+    },
+    {
+      "runtimeErrors": []
+    }
+  ],
+  "note": "Axe incompletes and raw DOM warnings preserved in full gzip evidence. This is not WCAG certification or Impeccable 20/20."
+}

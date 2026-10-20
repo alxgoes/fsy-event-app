@@ -47,7 +47,7 @@ O teste remoto com `SET LOCAL ROLE authenticated` e claims de um jovem real leu 
 
 O coordenador preservou snapshot JSON **privado, fora do Git**, com Auth users/identities e 12 tabelas públicas, além da inspeção de esquema/políticas/funções/grants/constraints. Esse snapshot **não é pg_dump nem backup completo de Storage**. Não versionar esse conteúdo.
 
-Este executor não operou o Supabase. O código publicado ainda é anterior até push/implantação e confirmação pelo root. A sequência operacional de referência é:
+O coordenador concluiu a aplicação remota e publicou o código 16b9a54 na main. A Vercel confirmou Production Ready; a CI da main 39492496466 passou. As 26 verificações públicas passaram, incluindo 401 em APIs privadas sem sessão, 403 para mutação de origem externa e Instagram conectado. Na sessão existente, contas e galeria carregaram; a ordem individual foi salva, conferida após recarregar e restaurada. A sequência operacional para futuras alterações é:
 
 - preservar backup/exportação de banco e Auth e conferir histórico/esquema real;
 - validar compatibilidade das APIs publicadas com escritas somente servidor e aplicar a cadeia necessária na ordem correta;
@@ -59,4 +59,4 @@ Não restaurar políticas permissivas antigas para contornar uma incompatibilida
 
 ## E-mail e implantação
 
-Redirect URLs Supabase foram conferidas pelo coordenador para produção/** e `/auth/callback`. SMTP customizado permanece OFF; o serviço de envio ainda depende de definição/configuração. Sem `RESEND_API_KEY` e `EMAIL_FROM`, a composição/envio individual do portal fica indisponível. Não houve envio real nem validação de entrega. OAuth Google permanece em Teste. O usuário autorizou push/implantação; o root executará essas etapas depois do commit e QA locais, com checagem pós-deploy.
+Redirect URLs Supabase foram conferidas pelo coordenador para produção/** e `/auth/callback`. SMTP customizado permanece OFF; o serviço de envio ainda depende de definição/configuração. Sem `RESEND_API_KEY` e `EMAIL_FROM`, a composição/envio individual do portal fica indisponível. Não houve envio real nem validação de entrega. OAuth Google permanece em Teste. O push e a implantação foram concluídos; evidências sem dados pessoais em docs/evidencias-publicacao-2026-10-20/. O usuário informou que ainda não possui serviço de envio. Não contratar nem ativar envio em massa sem a configuração correspondente.
