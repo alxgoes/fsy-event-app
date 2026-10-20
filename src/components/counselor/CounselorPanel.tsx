@@ -418,9 +418,9 @@ export function CounselorPanel() {
         {!profile?.company_id && !loadingData && (
           <div className="rounded-3xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 p-6 text-center space-y-2 shadow-sm">
             <AlertTriangle className="h-8 w-8 mx-auto text-amber-800 dark:text-amber-300" />
-            <h3 className="font-serif text-lg font-bold text-amber-900 dark:text-amber-200">
+            <h2 className="font-serif text-lg font-bold text-amber-900 dark:text-amber-200">
               Aguardando Designação de Companhia
-            </h3>
+            </h2>
             <p className="text-xs text-amber-800 dark:text-amber-300 max-w-md mx-auto">
               Seu perfil é de consultor, mas a coordenação ainda não vinculou seu usuário a uma companhia.
               Assim que for designado, você poderá publicar comunicados e acompanhar seus jovens aqui.
@@ -541,9 +541,9 @@ export function CounselorPanel() {
                     <Send className="h-4 w-4" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                    <h2 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
                       Publicar para a Companhia
-                    </h3>
+                    </h2>
                     <p className="text-xs text-slate-600 dark:text-slate-300">
                       Aparecerá imediatamente no portal dos seus jovens
                     </p>
@@ -645,9 +645,9 @@ export function CounselorPanel() {
             </div>) },
 { id: "published", label: "Avisos publicados", className: "lg:col-span-7", content: (<div className="lg:col-span-7 space-y-4">
               <div className="flex items-center justify-between gap-2 pb-1">
-                <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
+                <h2 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
                   Comunicados Ativos da Companhia
-                </h3>
+                </h2>
                 <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                   {announcements.length} publicado(s)
                 </span>
@@ -710,9 +710,9 @@ export function CounselorPanel() {
                               </span>
                             </div>
 
-                            <h4 className="font-serif text-base font-bold text-slate-900 dark:text-white">
+                            <h3 className="font-serif text-base font-bold text-slate-900 dark:text-white">
                               {item.title}
-                            </h4>
+                            </h3>
                             <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-line leading-relaxed">
                               {item.content}
                             </p>
@@ -803,9 +803,9 @@ export function CounselorPanel() {
                             {initial}
                           </div>
                           <div className="min-w-0">
-                            <h4 className="font-serif text-sm font-bold text-slate-900 dark:text-white truncate">
+                            <h2 className="font-serif text-sm font-bold text-slate-900 dark:text-white truncate">
                               {youth.full_name}
-                            </h4>
+                            </h2>
                             <p className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">
                               {youth.stake || "Estaca não informada"}
                             </p>

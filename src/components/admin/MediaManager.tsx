@@ -371,10 +371,10 @@ export function MediaManager() {
             <ShakeBox shakeTrigger={shakeCount}>
               <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <h3 className="font-heading font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <h2 className="font-heading font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
                     Cadastrar Nova Foto Oficial do Google Drive
-                  </h3>
+                  </h2>
                   <button
                     onClick={() => setShowForm(false)}
                     className="p-1 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
@@ -529,7 +529,8 @@ export function MediaManager() {
                 className="group relative rounded-3xl border-2 border-slate-900/10 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-tactile-pill hover:border-slate-900/40 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
               >
                 {/* Image Container with Quick Lightbox Expand */}
-                <div
+                <button
+                  type="button"
                   onClick={() => setLightboxPhoto(photo)}
                   className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden border-b-2 border-slate-900/10 dark:border-slate-800 cursor-zoom-in flex items-center justify-center"
                 >
@@ -567,14 +568,14 @@ export function MediaManager() {
                       Expandir
                     </span>
                   </div>
-                </div>
+                </button>
 
                 {/* Card Content & Action Buttons */}
                 <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
                   <div>
-                    <h4 className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
+                    <h2 className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
                       {photo.title}
-                    </h4>
+                    </h2>
                     <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
                       {new Date(photo.created_at).toLocaleDateString("pt-BR")}
                     </p>
@@ -637,39 +638,27 @@ export function MediaManager() {
         </motion.div>
       )}
 
-      {/* Lightbox Modal (Transitions.dev P4 + P7 Card Resize & Smooth Modal) */}
-      <AnimatePresence>
+      {/* A mesma base de diálogo dos formulários protege foco e Escape na foto. */}
+      <Dialog open={!!lightboxPhoto} onOpenChange={(open) => !open && setLightboxPhoto(null)}>
         {lightboxPhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
-            onClick={() => setLightboxPhoto(null)}
-          >
-            <motion.div
-              initial={shouldReduceMotion ? { scale: 1 } : { scale: 0.92, y: 12 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={shouldReduceMotion ? { scale: 1 } : { scale: 0.92, y: 12 }}
-              transition={{ type: "spring", stiffness: 450, damping: 28 }}
-              className="relative max-w-4xl w-full rounded-3xl bg-slate-900 border-2 border-slate-700 shadow-2xl overflow-hidden text-white"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <DialogContent showCloseButton={false} className="w-[calc(100%-2rem)] max-w-4xl sm:max-w-4xl gap-0 rounded-3xl bg-slate-900 border-2 border-slate-700 p-0 overflow-hidden text-white">
+            <DialogDescription className="sr-only">Foto ampliada com opções de publicação da equipe de mídia.</DialogDescription>
               {/* Top Bar of Modal */}
               <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/70">
                 <div className="flex items-center gap-2.5">
                   <span className="rounded-full bg-[#007DA5] text-white text-xs font-black px-3 py-1">
                     {lightboxPhoto.category}
                   </span>
-                  <h3 className="font-heading font-black text-sm sm:text-base truncate max-w-[280px] sm:max-w-md">
+                  <DialogTitle className="font-heading font-black text-sm sm:text-base truncate max-w-[280px] sm:max-w-md">
                     {lightboxPhoto.title}
-                  </h3>
+                  </DialogTitle>
                 </div>
 
                 <button
+                  type="button"
+                  aria-label="Fechar foto ampliada"
                   onClick={() => setLightboxPhoto(null)}
-                  className="p-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="min-h-11 min-w-11 flex items-center justify-center rounded-full text-white bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -711,6 +700,7 @@ export function MediaManager() {
                   <GooeyButton
                     variant="outline"
                     size="sm"
+                    className="text-white border-slate-600 hover:bg-slate-800"
                     onClick={() => toggleVisible(lightboxPhoto.id, lightboxPhoto.visible)}
                     icon={lightboxPhoto.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                     iconColor={lightboxPhoto.visible ? "text-emerald-400" : "text-amber-400"}
@@ -729,10 +719,9 @@ export function MediaManager() {
                   </GooeyButton>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+          </DialogContent>
         )}
-      </AnimatePresence>
+      </Dialog>
 
       {/* CONFIRM DELETE MODAL */}
       <Dialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>

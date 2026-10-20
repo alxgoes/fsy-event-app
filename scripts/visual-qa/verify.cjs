@@ -99,6 +99,19 @@ await page.evaluate(()=>[...document.querySelectorAll('button[aria-label="Altern
 await page.waitForFunction(before=>document.documentElement.classList.contains('dark')!==before,{},before);
 }
 report.push({themeToggleRoundTrip:await page.evaluate(before=>document.documentElement.classList.contains('dark')===before,themeBefore)});
+await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('1'),domain:'127.0.0.1',path:'/'});
+await page.goto('http://127.0.0.1:3117/admin/media',{waitUntil:'networkidle2'});
+await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(e=>e.textContent.includes('Expandir')));
+let mediaTrigger;
+for(const button of await page.$$('button')){if((await button.evaluate(e=>e.textContent)).includes('Expandir')){mediaTrigger=button;break;}}
+await mediaTrigger.click();
+await page.waitForSelector('[role="dialog"]');
+const adminMediaDialog=await page.$eval('[role="dialog"]',e=>({named:!!e.getAttribute('aria-labelledby'),hasVisibilityAction:/Visível|Oculta/.test(e.textContent)}));
+await page.keyboard.press('Escape');
+await page.waitForFunction(()=>!document.querySelector('[role="dialog"]'));
+adminMediaDialog.closed=true;
+adminMediaDialog.focusRestored=await mediaTrigger.evaluate(e=>document.activeElement===e);
+report.push({adminMediaDialog});
 report.push({runtimeErrors});
 fs.writeFileSync(output('fsy-impeccable-dom.json'),JSON.stringify(detectorReports,null,2));
 fs.writeFileSync(output('fsy-visual-report.json'),JSON.stringify(report,null,2));

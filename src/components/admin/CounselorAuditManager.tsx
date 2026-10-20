@@ -320,9 +320,9 @@ export function CounselorAuditManager() {
               <div className="flex items-start gap-3">
                 <Database className="h-6 w-6 text-amber-800 dark:text-amber-300 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-heading text-sm sm:text-base font-black text-amber-950 dark:text-amber-200">
+                  <h2 className="font-heading text-sm sm:text-base font-black text-amber-950 dark:text-amber-200">
                     Ativação da Tabela no Supabase
-                  </h4>
+                  </h2>
                   <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 max-w-xl leading-relaxed">
                     Para habilitar o salvamento automático e a persistência das alterações dos consultores,
                     basta executar o script SQL no <strong>SQL Editor</strong> do painel Supabase. Leva menos de 10 segundos!
@@ -479,9 +479,9 @@ export function CounselorAuditManager() {
       ) : logs.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
           <ShieldAlert className="h-10 w-10 mx-auto text-slate-600 dark:text-slate-300 mb-3" />
-          <h3 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
+          <h2 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
             Nenhum registro encontrado no histórico
-          </h3>
+          </h2>
           <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-md mx-auto">
             Assim que os consultores publicarem avisos ou fizerem alterações em suas companhias, todas as
             ações serão registradas automaticamente aqui com nome, conteúdo e carimbo de data/hora.
@@ -581,9 +581,9 @@ export function CounselorAuditManager() {
                 {/* Content Box ("o que essa pessoa colocou") */}
                 <div className="mt-3.5">
                   {log.title && (
-                    <h4 className="font-heading text-sm sm:text-base font-black text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
+                    <h2 className="font-heading text-sm sm:text-base font-black text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
                       <span>{log.title}</span>
-                    </h4>
+                    </h2>
                   )}
 
                   <div className="rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 p-4 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed shadow-inner">

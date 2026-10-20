@@ -365,9 +365,9 @@ export default function AnnouncementsPage() {
         ) : filteredAnnouncements.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
             <Pin className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-            <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
+            <h2 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
               Nenhum comunicado encontrado
-            </h3>
+            </h2>
             <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-sm mx-auto">
               {searchQuery
                 ? "Nenhum resultado para os termos pesquisados."
@@ -441,9 +441,9 @@ export default function AnnouncementsPage() {
                     </div>
 
                     {/* Announcement Title & Content */}
-                    <h3 className="font-heading text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight mb-2">
+                    <h2 className="font-heading text-lg sm:text-xl font-black text-slate-900 dark:text-white leading-tight mb-2">
                       {item.title}
-                    </h3>
+                    </h2>
 
                     <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
                       {item.content}

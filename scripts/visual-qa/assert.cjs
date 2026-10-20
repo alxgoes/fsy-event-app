@@ -24,6 +24,7 @@ assert.ok(report.some((item) => item.dialogClosed === true), 'Fechamento do post
 assert.ok(report.some((item) => item.layout?.handleCount > 1 && item.layout.moved && item.layout.persistedAfterReload), 'Reordenação e persistência do layout não confirmadas.');
 assert.ok(report.some((item) => item.layoutRestored === true), 'Restauração do layout não confirmada.');
 assert.ok(report.some((item) => item.themeToggleRoundTrip === true), 'Alternância de tema não confirmada.');
+assert.ok(report.some((item) => item.adminMediaDialog?.named && item.adminMediaDialog.hasVisibilityAction && item.adminMediaDialog.closed && item.adminMediaDialog.focusRestored), 'Diálogo administrativo, Escape e retorno de foco não confirmados.');
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exitCode = 1;

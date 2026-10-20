@@ -440,7 +440,7 @@ export function ScheduleManager() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
+              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
                   : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
