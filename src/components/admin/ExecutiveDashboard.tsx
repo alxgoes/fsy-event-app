@@ -137,7 +137,7 @@ export function ExecutiveDashboard() {
 
       <div data-section-index="0" className="space-y-6">
         {/* 1. Header Banner */}
-        <div className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#007DA5] text-white shadow-sm shrink-0">
@@ -460,7 +460,7 @@ export function ExecutiveDashboard() {
 
         {/* 4. Recent Announcements Feed */}
         {recentAnnouncements.length > 0 && (
-          <div data-section-index="2" className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+          <div data-section-index="2" className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -477,7 +477,7 @@ export function ExecutiveDashboard() {
               {recentAnnouncements.map((ann) => (
                 <div
                   key={ann.id}
-                  className="rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 p-4 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between"
+                  className="fsy-panel rounded-2xl bg-[#FAF8F5] dark:bg-slate-800/70 p-4 border border-slate-200/60 dark:border-slate-700/60 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1.5">

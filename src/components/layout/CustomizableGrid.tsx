@@ -181,7 +181,7 @@ export function CustomizableGrid({ pageKey, version, items, className, toolbarCl
 
   return (
     <div>
-      <div className={cn("mb-3 flex flex-wrap items-center justify-end gap-2", toolbarClassName)}>
+      <div className={cn("relative z-10 flex flex-wrap items-center justify-end gap-2", editing || status ? "mb-3" : "mb-2 h-7", toolbarClassName)}>
         {status && !editing && (
           <p role="status" className={cn("mr-auto text-sm", status.kind === "ok" ? "text-[#2F5413] dark:text-[#CDEBA9]" : "text-[#6B4A00] dark:text-[#FFE48A]")}>
             {status.text}
@@ -191,9 +191,11 @@ export function CustomizableGrid({ pageKey, version, items, className, toolbarCl
           <button
             type="button"
             onClick={start}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white/90 px-4 text-sm font-semibold text-slate-800 backdrop-blur hover:border-slate-400 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:border-slate-600 dark:bg-slate-900/90 dark:text-slate-100 dark:hover:bg-slate-900"
+            aria-label="Personalizar layout"
+            title="Personalizar layout"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm hover:border-[#007DA5] hover:text-[#005E7C] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
           >
-            <LayoutGrid className="h-4 w-4" aria-hidden="true" /> Personalizar layout
+            <LayoutGrid className="h-4 w-4" aria-hidden="true" />
           </button>
         )}
       </div>

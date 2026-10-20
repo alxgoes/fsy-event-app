@@ -8,7 +8,7 @@ import { accountPasswordSchema } from "@/types/accounts";
 export const dynamic = "force-dynamic";
 
 /**
- * Define uma nova senha do portal para outra conta (direção apenas).
+ * Define uma nova senha do portal para outra conta (direção, coordenação ou logística).
  * A senha atual nunca é lida; a nova não é registrada nem devolvida.
  */
 export async function POST(request: Request, { params: paramsPromise }: { params: Promise<{ id: string }> }) {

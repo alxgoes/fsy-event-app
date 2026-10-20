@@ -96,7 +96,7 @@ export async function PUT(request: Request) {
       }
       if (ADMIN_ROLES.includes(targetRole) && !ADMIN_ROLES.includes(role)) {
         const { count } = await supabase.from("profiles").select("id", { count: "exact", head: true }).in("role", ADMIN_ROLES).is("suspended_at", null);
-        if ((count ?? 0) <= 1) return json({ error: "Esta é a última conta de direção habilitada." }, 409);
+        if ((count ?? 0) <= 1) return json({ error: "Esta é a última conta administrativa habilitada." }, 409);
       }
     }
 

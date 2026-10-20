@@ -18,7 +18,6 @@ export function isRole(value: unknown): value is Role {
   return typeof value === "string" && (USER_ROLES as readonly string[]).includes(value);
 }
 
-const DIRECTORS: Role[] = ["coordenador", "casal_diretor"];
 const MASTER: Role[] = ["coordenador", "casal_diretor", "logistica"];
 
 /** Papéis que operam cada módulo. Saúde/inclusão preservam o acesso atual da logística (pendente de confirmação). */
@@ -33,8 +32,8 @@ export const ROLE_GROUPS = {
   medicalStaff: ["medico", ...MASTER] as Role[],
   auditReaders: MASTER,
   counselorPanel: ["consultor", ...MASTER] as Role[],
-  /** Ações destrutivas ou sensíveis de conta exigem direção. */
-  accountGuardians: DIRECTORS,
+  /** Os três cargos de gestão têm a mesma autoridade administrativa. */
+  accountGuardians: MASTER,
 } satisfies Record<string, Role[]>;
 
 export type RoleGroup = keyof typeof ROLE_GROUPS;
@@ -43,30 +42,15 @@ export function hasRole(role: Role | null | undefined, group: RoleGroup): boolea
   return !!role && ROLE_GROUPS[group].includes(role);
 }
 
-/** Hierarquia para a gestão de contas. Maior número = maior autoridade. */
-const RANK: Record<Role, number> = {
-  jovem: 1,
-  consultor: 1,
-  midia: 1,
-  medico: 1,
-  logistica: 2,
-  coordenador: 3,
-  casal_diretor: 4,
-};
-
-/** Papéis que contam como administração habilitada para a proteção do último administrador. */
-export const ADMIN_ROLES: Role[] = DIRECTORS;
+/** Administração equivalente; também protegida contra remover a última conta habilitada. */
+export const ADMIN_ROLES: Role[] = MASTER;
 
 export function canManageAccount(actor: Role | null | undefined, target: Role): boolean {
-  if (!actor || !hasRole(actor, "userManagers")) return false;
-  if (actor === "casal_diretor") return true;
-  return RANK[target] < RANK[actor];
+  return isRole(target) && hasRole(actor, "userManagers");
 }
 
 export function canAssignRole(actor: Role | null | undefined, target: Role, next: Role): boolean {
-  if (!canManageAccount(actor, target)) return false;
-  if (actor === "casal_diretor") return true;
-  return RANK[next] < RANK[actor!];
+  return canManageAccount(actor, target) && isRole(next);
 }
 
 export type AccountAction = "edit" | "role" | "suspend" | "delete" | "recovery_email" | "set_password" | "email";

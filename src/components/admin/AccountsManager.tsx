@@ -159,7 +159,7 @@ export function AccountsManager() {
       </div>
 
       {error && (
-        <div role="alert" className="flex items-start gap-2 rounded-2xl border border-[#F4B4A8] bg-[#FDF1EE] px-4 py-3 text-sm text-[#7A1F12] dark:border-[#7A2E22] dark:bg-[#2A1410] dark:text-[#FFD2C8]">
+        <div role="alert" className="fsy-panel flex items-start gap-2 rounded-2xl border border-[#F4B4A8] bg-[#FDF1EE] px-4 py-3 text-sm text-[#7A1F12] dark:border-[#7A2E22] dark:bg-[#2A1410] dark:text-[#FFD2C8]">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> {error}
         </div>
       )}
@@ -175,7 +175,7 @@ export function AccountsManager() {
       ) : (
         <ul className="grid gap-3" aria-busy={loading}>
           {result?.data.map((account) => (
-            <li key={account.id} className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <li key={account.id} className="fsy-panel rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -281,7 +281,7 @@ function AccountDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:max-w-2xl sm:p-6">
+      <DialogContent className="fsy-panel max-h-[90dvh] overflow-y-auto rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:max-w-2xl sm:p-6">
         <DialogHeader>
           <DialogTitle className="pr-10 font-heading text-xl font-bold text-slate-900 dark:text-white">{account.full_name}</DialogTitle>
           <DialogDescription className="text-sm text-slate-700 dark:text-slate-300">

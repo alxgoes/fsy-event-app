@@ -25,6 +25,7 @@ assert.ok(report.some((item) => item.layout?.handleCount > 1 && item.layout.move
 assert.ok(report.some((item) => item.layoutRestored === true), 'Restauração do layout não confirmada.');
 assert.ok(report.some((item) => item.themeToggleRoundTrip === true), 'Alternância de tema não confirmada.');
 assert.ok(report.some((item) => item.adminMediaDialog?.named && item.adminMediaDialog.hasVisibilityAction && item.adminMediaDialog.closed && item.adminMediaDialog.focusRestored), 'Diálogo administrativo, Escape e retorno de foco não confirmados.');
+assert.ok(report.some(item => item.adminRoleAccess?.allManageEnabled && item.adminRoleAccess.allRoleOptions), 'Gestão equivalente de cargos para Logística não confirmada.');
 if (failures.length) {
   console.error(failures.join('\n'));
   process.exitCode = 1;

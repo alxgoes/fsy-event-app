@@ -4,25 +4,17 @@ const { loadRoute } = require('./helpers/route-harness.cjs');
 
 const p = loadRoute('src/lib/auth/permissions.ts');
 
-test('logistics manages participants but not coordinators or directors', () => {
-  assert.equal(p.canManageAccount('logistica', 'jovem'), true);
-  assert.equal(p.canManageAccount('logistica', 'coordenador'), false);
-  assert.equal(p.canManageAccount('logistica', 'logistica'), false);
-  assert.equal(p.canAssignRole('logistica', 'jovem', 'coordenador'), false);
-  assert.equal(p.canAssignRole('logistica', 'jovem', 'consultor'), true);
-});
-
-test('coordinators cannot promote anyone to their own level or above', () => {
-  assert.equal(p.canAssignRole('coordenador', 'jovem', 'coordenador'), false);
-  assert.equal(p.canAssignRole('coordenador', 'jovem', 'logistica'), true);
-  assert.equal(p.canManageAccount('coordenador', 'casal_diretor'), false);
-});
-
-test('only directors suspend, delete or set passwords', () => {
-  assert.equal(p.canPerformAccountAction('logistica', 'jovem', 'suspend'), false);
-  assert.equal(p.canPerformAccountAction('logistica', 'jovem', 'recovery_email'), true);
-  assert.equal(p.canPerformAccountAction('coordenador', 'jovem', 'delete'), true);
-  assert.equal(p.canPerformAccountAction('casal_diretor', 'casal_diretor', 'set_password'), true);
+test('direction, coordination and logistics have equivalent authority over every role', () => {
+  for (const actor of ['logistica', 'coordenador', 'casal_diretor']) {
+    for (const target of p.USER_ROLES) {
+      assert.equal(p.canManageAccount(actor, target), true, `${actor} → ${target}`);
+      for (const next of p.USER_ROLES) assert.equal(p.canAssignRole(actor, target, next), true, `${actor}: ${target} → ${next}`);
+      for (const action of ['edit','role','suspend','delete','set_password','recovery_email','email']) {
+        assert.equal(p.canPerformAccountAction(actor, target, action), true, `${actor} ${action} ${target}`);
+      }
+    }
+    assert.ok(p.ADMIN_ROLES.includes(actor));
+  }
 });
 
 test('non-managers never manage accounts', () => {

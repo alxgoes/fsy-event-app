@@ -235,7 +235,7 @@ export function CounselorAuditManager() {
 
   if (!isAuthorized) {
     return (
-      <div className="rounded-3xl border-2 border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-8 text-center max-w-xl mx-auto my-12">
+      <div className="fsy-panel rounded-3xl border-2 border-red-300 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-8 text-center max-w-xl mx-auto my-12">
         <ShieldAlert className="h-12 w-12 text-red-600 mx-auto mb-3" />
         <h2 className="font-serif text-2xl font-bold text-red-950 dark:text-red-200">
           Acesso Restrito à Liderança
@@ -257,7 +257,7 @@ export function CounselorAuditManager() {
   return (
     <div className="space-y-6">
       {/* 1. Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+      <div className="fsy-panel relative overflow-hidden rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FC4E6D] via-[#D45311] to-[#FFB81C] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm shrink-0">
@@ -315,7 +315,7 @@ export function CounselorAuditManager() {
 
         {/* Setup Banner when table is pending in Supabase */}
         {tablePending && (
-          <div className="mt-4 p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-sm">
+          <div className="fsy-panel mt-4 p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <Database className="h-6 w-6 text-amber-800 dark:text-amber-300 dark:text-amber-400 shrink-0 mt-0.5" />
@@ -361,14 +361,14 @@ export function CounselorAuditManager() {
 
         {/* Feedback Alerts */}
         {!tablePending && error && (
-          <div className="mt-4 p-3 rounded-2xl bg-red-50 dark:bg-red-950/50 border-2 border-red-300 dark:border-red-900 text-xs font-bold text-red-600 dark:text-red-300 flex items-center gap-2">
+          <div className="fsy-panel mt-4 p-3 rounded-2xl bg-red-50 dark:bg-red-950/50 border-2 border-red-300 dark:border-red-900 text-xs font-bold text-red-600 dark:text-red-300 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mt-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-300 dark:border-emerald-900 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+          <div className="fsy-panel mt-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-300 dark:border-emerald-900 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-800 dark:text-emerald-300" />
             <span>{successMessage}</span>
           </div>
@@ -377,7 +377,7 @@ export function CounselorAuditManager() {
 
       {/* 2. Metrics Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
           <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400 block">
             Total de Registros
           </span>
@@ -389,7 +389,7 @@ export function CounselorAuditManager() {
           </span>
         </div>
 
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
           <span className="text-xs font-black uppercase text-[#005E7C] dark:text-cyan-400 block">
             Comunicados Enviados
           </span>
@@ -401,7 +401,7 @@ export function CounselorAuditManager() {
           </span>
         </div>
 
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
           <span className="text-xs font-black uppercase text-red-600 dark:text-red-400 block">
             Avisos Excluídos
           </span>
@@ -413,7 +413,7 @@ export function CounselorAuditManager() {
           </span>
         </div>
 
-        <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
           <span className="text-xs font-black uppercase text-[#005E7C] dark:text-[#01B6D1] block">
             Consultores Ativos
           </span>
@@ -427,7 +427,7 @@ export function CounselorAuditManager() {
       </div>
 
       {/* 3. Toolbar: Search and Filters */}
-      <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
@@ -477,7 +477,7 @@ export function CounselorAuditManager() {
           <Loader2 className="h-10 w-10 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : logs.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
+        <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
           <ShieldAlert className="h-10 w-10 mx-auto text-slate-600 dark:text-slate-300 mb-3" />
           <h2 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
             Nenhum registro encontrado no histórico
@@ -586,7 +586,7 @@ export function CounselorAuditManager() {
                     </h2>
                   )}
 
-                  <div className="rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 p-4 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed shadow-inner">
+                  <div className="fsy-panel rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 p-4 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-pre-line leading-relaxed shadow-inner">
                     {log.content}
                   </div>
                 </div>
@@ -626,7 +626,7 @@ export function CounselorAuditManager() {
 
       {/* Modal 1: Delete Single Log Confirmation */}
       <Dialog open={!!logToDelete} onOpenChange={(open) => !open && setLogToDelete(null)}>
-        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-black text-red-600 dark:text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
@@ -672,7 +672,7 @@ export function CounselorAuditManager() {
 
       {/* Modal 2: Wipe All Logs Confirmation */}
       <Dialog open={isWipingAll} onOpenChange={(open) => !open && setIsWipingAll(false)}>
-        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-red-600 bg-white dark:bg-slate-900 shadow-2xl">
+        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border-2 border-red-600 bg-white dark:bg-slate-900 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-black text-red-600 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />

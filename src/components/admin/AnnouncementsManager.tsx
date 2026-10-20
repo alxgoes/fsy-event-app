@@ -244,7 +244,7 @@ export function AnnouncementsManager() {
       </div>
 
       {error && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between">
+        <div className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
@@ -315,7 +315,7 @@ export function AnnouncementsManager() {
           <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+        <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
           <Megaphone className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhum comunicado encontrado</p>
           <p className="text-xs max-w-sm mx-auto">Clique em &quot;Emitir Novo Comunicado&quot; para criar o primeiro.</p>
@@ -369,7 +369,7 @@ export function AnnouncementsManager() {
 
       {/* Create Announcement Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 shadow-xl">
+        <DialogContent className="fsy-panel max-w-lg rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Megaphone className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -452,7 +452,7 @@ export function AnnouncementsManager() {
 
       {/* CONFIRM DELETE MODAL */}
       <Dialog open={!!announcementToDelete} onOpenChange={(open) => !open && setAnnouncementToDelete(null)}>
-        <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
+        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Comunicado?

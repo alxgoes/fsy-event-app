@@ -644,7 +644,7 @@ export function MedicalDashboard() {
 
       {/* Error Banner */}
       {error && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-brutal-sm">
+        <div className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-brutal-sm">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
@@ -752,7 +752,7 @@ export function MedicalDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 sm:p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+            <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 sm:p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
               <FileText className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
               <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma ficha médica encontrada</p>
               <p className="text-xs max-w-sm mx-auto">
@@ -975,7 +975,7 @@ export function MedicalDashboard() {
               <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
             </div>
           ) : filteredAppointments.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+            <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
               <Calendar className="h-10 w-10 mx-auto opacity-30 text-emerald-500" />
               <p className="font-heading text-base font-black text-slate-700 dark:text-slate-300">
                 Nenhum atendimento agendado
@@ -1041,7 +1041,7 @@ export function MedicalDashboard() {
                       </div>
 
                       {/* Reason */}
-                      <div className="mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
+                      <div className="fsy-panel mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
                         <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 block mb-0.5">
                           Motivo da Consulta
                         </span>
@@ -1103,7 +1103,7 @@ export function MedicalDashboard() {
       {/* MODAL: MARCAR ATENDIMENTO / CONSULTA                     */}
       {/* ======================================================== */}
       <Dialog open={isAppointmentModalOpen} onOpenChange={setIsAppointmentModalOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="fsy-panel sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="h-5 w-5 text-[#06D6A0]" />
@@ -1285,7 +1285,7 @@ export function MedicalDashboard() {
       {/* Visualização da ficha médica */}
       {/* ======================================================== */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="sm:max-w-[620px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="fsy-panel sm:max-w-[620px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
           {viewingRecord && (
             <div className="space-y-4">
               <DialogHeader>
@@ -1327,7 +1327,7 @@ export function MedicalDashboard() {
 
               {/* Severe Allergy Alert Banner */}
               {viewingRecord.is_severe_allergy && (
-                <div className="rounded-2xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/50 p-4 flex items-center gap-3">
+                <div className="fsy-panel rounded-2xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/50 p-4 flex items-center gap-3">
                   <ShieldAlert className="h-6 w-6 text-rose-800 dark:text-rose-300 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-xs font-black text-rose-800 dark:text-rose-200 uppercase tracking-wider">
@@ -1343,7 +1343,7 @@ export function MedicalDashboard() {
               {/* Detail Blocks */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Allergies Block */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+                <div className="fsy-panel p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs font-black uppercase text-amber-800 dark:text-amber-300 dark:text-amber-400">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Alergias</span>
@@ -1362,7 +1362,7 @@ export function MedicalDashboard() {
                 </div>
 
                 {/* Dietary Block */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+                <div className="fsy-panel p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs font-black uppercase text-emerald-800 dark:text-emerald-300 dark:text-emerald-400">
                     <HeartPulse className="h-4 w-4" />
                     <span>Restrição Alimentar</span>
@@ -1374,7 +1374,7 @@ export function MedicalDashboard() {
               </div>
 
               {/* Continuous Medications */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
+              <div className="fsy-panel p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-black uppercase text-blue-600 dark:text-blue-400">
                   <Pill className="h-4 w-4" />
                   <span>Medicações de Uso Contínuo</span>
@@ -1393,7 +1393,7 @@ export function MedicalDashboard() {
               </div>
 
               {/* Emergency Contacts */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+              <div className="fsy-panel p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                 <div className="flex items-center gap-1.5 text-xs font-black uppercase text-purple-600 dark:text-purple-400">
                   <PhoneCall className="h-4 w-4" />
                   <span>Contatos de Emergência & Responsáveis</span>
@@ -1444,7 +1444,7 @@ export function MedicalDashboard() {
 
               {/* Bishop Section */}
               {viewingRecord.bishop_name && (
-                <div className="p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/30 border-2 border-purple-200 dark:border-purple-800/60 space-y-2">
+                <div className="fsy-panel p-4 rounded-2xl bg-purple-50/50 dark:bg-purple-950/30 border-2 border-purple-200 dark:border-purple-800/60 space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-black uppercase text-purple-700 dark:text-purple-300">
                     <Church className="h-4 w-4" />
                     <span>Liderança Eclesiástica — Bispo da Ala</span>
@@ -1528,7 +1528,7 @@ export function MedicalDashboard() {
 
           <div className="p-6 space-y-6">
             {/* OPTIONAL PROFILE LINK SECTION */}
-            <div className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-4 space-y-3">
+            <div className="fsy-panel rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <UserCheck className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -1746,7 +1746,7 @@ export function MedicalDashboard() {
               </h3>
 
               {/* Contact 1 */}
-              <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-2">
+              <div className="fsy-panel p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-2">
                 <span className="text-xs font-black uppercase text-purple-700 dark:text-purple-300">
                   Contato 1 (Principal)
                 </span>
@@ -1767,7 +1767,7 @@ export function MedicalDashboard() {
               </div>
 
               {/* Bishop */}
-              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+              <div className="fsy-panel p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
                 <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1">
                   <Church className="h-3.5 w-3.5 text-purple-600" />
                   Bispo da Ala
@@ -1845,7 +1845,7 @@ export function MedicalDashboard() {
         open={!!recordToDelete}
         onOpenChange={(open) => !open && setRecordToDelete(null)}
       >
-        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-black text-rose-800 dark:text-rose-300 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />

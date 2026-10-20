@@ -21,6 +21,18 @@ test('last enabled administrator is protected on role change, suspension and Aut
     assert.equal((await db.query('SELECT role FROM profiles WHERE id = $1', [actor])).rows[0].role, 'casal_diretor');
   }
 });
+test('the sole enabled logistics account is protected as an administrator', async () => {
+  await db.query(`UPDATE profiles SET role = 'logistica' WHERE id = $1`, [actor]);
+  try {
+    for (const sql of [
+      `UPDATE profiles SET role = 'jovem' WHERE id = '${actor}'`,
+      `UPDATE profiles SET suspended_at = now() WHERE id = '${actor}'`,
+      `DELETE FROM auth.users WHERE id = '${actor}'`,
+    ]) await assert.rejects(() => db.exec(sql), /preservar uma conta administrativa/);
+  } finally {
+    await db.query(`UPDATE profiles SET role = 'casal_diretor' WHERE id = $1`, [actor]);
+  }
+});
 test('administrator trigger serializes removals and allows one of two admins to step down', async () => {
   await db.query(`UPDATE profiles SET role = 'coordenador' WHERE id = $1`, [target]);
   await db.query(`UPDATE profiles SET role = 'jovem' WHERE id = $1`, [target]);

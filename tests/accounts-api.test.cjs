@@ -83,17 +83,18 @@ test('account list is denied to participants and counselors', async () => {
   }
 });
 
-test('logistics cannot promote a participant to coordinator', async () => {
+test('logistics can promote a participant to coordinator', async () => {
   const w = world({ actor: U(3) });
   const res = await w.load(ONE).PATCH(request(`/api/admin/accounts/${U(4)}`, { method: 'PATCH', body: { action: 'role', role: 'coordenador' } }), ctx(U(4)));
-  assert.equal(res.status, 403);
-  assert.equal(w.list.find((p) => p.id === U(4)).role, 'jovem');
+  assert.equal(res.status, 200);
+  assert.equal(w.list.find((p) => p.id === U(4)).role, 'coordenador');
 });
 
-test('coordinator cannot edit the director account', async () => {
+test('coordinator can edit the director account', async () => {
   const w = world({ actor: U(2) });
   const res = await w.load(ONE).PATCH(request(`/api/admin/accounts/${U(1)}`, { method: 'PATCH', body: { action: 'edit', full_name: 'Xavier' } }), ctx(U(1)));
-  assert.equal(res.status, 403);
+  assert.equal(res.status, 200);
+  assert.equal(w.list.find(p => p.id === U(1)).full_name, 'Xavier');
 });
 
 test('role change is recorded with the server identity as author', async () => {
@@ -111,6 +112,7 @@ test('the last enabled administrator cannot be demoted, suspended or deleted', a
   const w = world({ actor: U(1) });
   // A conta da diretora (operadora) não conta como habilitada; a coordenação é a única restante.
   w.list.find((p) => p.id === U(1)).suspended_at = '2026-10-01T00:00:00Z';
+  w.list.find((p) => p.id === U(3)).suspended_at = '2026-10-01T00:00:00Z';
   const route = w.load(ONE);
   const demote = await route.PATCH(request(`/api/admin/accounts/${U(2)}`, { method: 'PATCH', body: { action: 'role', role: 'jovem' } }), ctx(U(2)));
   assert.equal(demote.status, 409);
@@ -140,12 +142,12 @@ test('suspension bans in Auth, marks the profile and is reversible', async () =>
   assert.equal(w.list.find((p) => p.id === U(5)).suspended_at, null);
 });
 
-test('logistics cannot suspend or delete accounts', async () => {
+test('logistics can suspend and delete accounts with the same safeguards', async () => {
   const w = world({ actor: U(3) });
   const route = w.load(ONE);
-  assert.equal((await route.PATCH(request(`/api/admin/accounts/${U(5)}`, { method: 'PATCH', body: { action: 'suspend' } }), ctx(U(5)))).status, 403);
-  assert.equal((await route.DELETE(request(`/api/admin/accounts/${U(5)}`, { method: 'DELETE', body: { confirm: 'autor@fsy.test' } }), ctx(U(5)))).status, 403);
-  assert.equal(w.adminCalls.length, 0);
+  assert.equal((await route.PATCH(request(`/api/admin/accounts/${U(5)}`, { method: 'PATCH', body: { action: 'suspend' } }), ctx(U(5)))).status, 200);
+  assert.equal((await route.DELETE(request(`/api/admin/accounts/${U(5)}`, { method: 'DELETE', body: { confirm: 'autor@fsy.test' } }), ctx(U(5)))).status, 200);
+  assert.equal(w.adminCalls.length, 2);
 });
 
 test('deletion requires the exact target e-mail as confirmation', async () => {
@@ -180,10 +182,10 @@ test('recovery e-mail goes to the account address, even for Google accounts, and
   assert.equal(w.events[0].action, 'recovery_email');
 });
 
-test('administrative password reset is directors-only and never echoes or logs the password', async () => {
-  const denied = world({ actor: U(3) });
+test('administrative password reset allows logistics but not participants and never logs secrets', async () => {
+  const denied = world({ actor: U(4) });
   assert.equal((await denied.load(PASSWORD).POST(request(`/api/admin/accounts/${U(5)}/password`, { method: 'POST', body: { password: 'NovaSenha123' } }), ctx(U(5)))).status, 403);
-  const w = world({ actor: U(2) });
+  const w = world({ actor: U(3) });
   const res = await w.load(PASSWORD).POST(request(`/api/admin/accounts/${U(5)}/password`, { method: 'POST', body: { password: 'NovaSenha123' } }), ctx(U(5)));
   assert.equal(res.status, 200);
   assert.equal(w.adminCalls[0].attrs.password, 'NovaSenha123');

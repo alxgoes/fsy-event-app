@@ -250,7 +250,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   }
 
   return (
-    <div className="min-h-screen max-w-full overflow-x-hidden bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
+    <div className="fsy-admin min-h-screen max-w-full overflow-x-hidden bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 sm:px-6 flex items-center justify-between transition-colors max-w-full min-w-0">
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">

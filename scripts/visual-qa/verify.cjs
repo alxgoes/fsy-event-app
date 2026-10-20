@@ -78,14 +78,14 @@ const trigger=await page.$('button[aria-label^="Ampliar publicação"]');if(trig
 const before=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
 const customize=await page.$('button');
 const buttons=await page.$$('button');
-for(const b of buttons){if((await b.evaluate(e=>e.textContent)).includes('Personalizar layout')){await b.click();break;}}
+for(const b of buttons){if((await b.evaluate(e=>e.getAttribute('aria-label') || e.textContent)).includes('Personalizar layout')){await b.click();break;}}
 const handles=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
 const down=await page.$('[data-control=down]:not([disabled])');if(down)await down.click();
 const afterMove=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
 for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Salvar layout')){await b.click();break;}}
 await new Promise(r=>setTimeout(r,500));
 await page.reload({waitUntil:'networkidle2'});
-for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Personalizar layout')){await b.click();break;}}
+for(const b of await page.$$('button')){if((await b.evaluate(e=>e.getAttribute('aria-label') || e.textContent)).includes('Personalizar layout')){await b.click();break;}}
 const reloaded=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
 report.push({layout:{handleCount:handles.length,moved:handles[0]!==afterMove[0],persistedAfterReload:reloaded[0]===afterMove[0]}});
 for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Restaurar padrão')){await b.click();break;}}
@@ -99,6 +99,20 @@ await page.evaluate(()=>[...document.querySelectorAll('button[aria-label="Altern
 await page.waitForFunction(before=>document.documentElement.classList.contains('dark')!==before,{},before);
 }
 report.push({themeToggleRoundTrip:await page.evaluate(before=>document.documentElement.classList.contains('dark')===before,themeBefore)});
+// Logística tem a mesma autoridade de direção/coordenação; só inspeciona, sem gravar contas.
+await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('3'),domain:'127.0.0.1',path:'/'});
+await page.goto('http://127.0.0.1:3117/admin/users',{waitUntil:'networkidle2'});
+await page.waitForSelector('button[aria-label^="Gerenciar conta de"]');
+const allManageEnabled=await page.$$eval('button[aria-label^="Gerenciar conta de"]',es=>es.length>0&&es.every(e=>!e.disabled));
+const directorName=require('./fixtures.json').tables.profiles.find(p=>p.role==='casal_diretor').full_name;
+for(const button of await page.$$('button[aria-label^="Gerenciar conta de"]')) {
+  if(await button.evaluate((e,name)=>e.getAttribute('aria-label')===`Gerenciar conta de ${name}`,directorName)){await button.click();break;}
+}
+await page.waitForSelector('#acc-role');
+const allRoleOptions=await page.$$eval('#acc-role option',es=>es.length===7);
+report.push({adminRoleAccess:{allManageEnabled,allRoleOptions}});
+await page.keyboard.press('Escape');
+await page.waitForFunction(()=>!document.querySelector('[role="dialog"]'));
 await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('1'),domain:'127.0.0.1',path:'/'});
 await page.goto('http://127.0.0.1:3117/admin/media',{waitUntil:'networkidle2'});
 await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(e=>e.textContent.includes('Expandir')));

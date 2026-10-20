@@ -355,3 +355,38 @@ button:not([role="switch"]), [role="button"] {
   outline: 3px solid var(--fsy-link);
   outline-offset: 3px;
 }
+
+/* Profundidade tátil compartilhada com os cartões FSY do portal. */
+:root {
+  --fsy-depth-border: #0f172a;
+  --fsy-depth-ink: #0f172a;
+  --fsy-depth-panel-shadow: 5px 5px 0 var(--fsy-depth-ink);
+  --fsy-depth-button-shadow: 3px 3px 0 var(--fsy-depth-ink);
+}
+.dark {
+  --fsy-depth-border: #64748b;
+  --fsy-depth-ink: #020617;
+}
+.fsy-panel,
+.fsy-admin [data-slot="card"] {
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--fsy-depth-border);
+  box-shadow: var(--fsy-depth-panel-shadow);
+}
+.fsy-admin button:not([role="checkbox"]):not([role="switch"]):not([role="radio"]),
+.fsy-panel button:not([role="checkbox"]):not([role="switch"]):not([role="radio"]) {
+  border: 2px solid var(--fsy-depth-border);
+  box-shadow: var(--fsy-depth-button-shadow);
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: 160ms;
+}
+.fsy-admin button:enabled:active,
+.fsy-panel button:enabled:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--fsy-depth-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fsy-admin button, .fsy-panel button { transition: none; }
+  .fsy-admin button:active, .fsy-panel button:active { transform: none; }
+}

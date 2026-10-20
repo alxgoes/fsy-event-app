@@ -203,8 +203,8 @@ test('legacy users PUT applies the account matrix', async () => {
   const target = { id: '123e4567-e89b-42d3-a456-426614174999', role: 'jovem', full_name: 'Alvo' };
   const db = () => createFakeDb({ profiles: (c) => ({ data: c.single ? target : [target], error: null }) });
   const promote = await call('src/app/api/users/route.ts', 'PUT', logistica, '/api/users', { id: target.id, role: 'casal_diretor' }, db());
-  assert.equal(promote.res.status, 403);
-  assert.equal(promote.db.calls.some((c) => c.ops.includes('update')), false);
+  assert.equal(promote.res.status, 200);
+  assert.equal(promote.db.calls.some((c) => c.ops.includes('update')), true);
   const selfDb = createFakeDb({ profiles: (c) => ({ data: { id: 'u-log', role: 'logistica', full_name: 'Logística' }, error: null }) });
   const self = await call('src/app/api/users/route.ts', 'PUT', logistica, '/api/users', { id: 'u-log', role: 'jovem' }, selfDb);
   assert.equal(self.res.status, 409);

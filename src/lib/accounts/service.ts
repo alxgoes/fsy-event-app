@@ -141,7 +141,7 @@ export function mayAct(actor: Identity, targetRole: Role, action: AccountActionN
   return canPerformAccountAction(actor.role, targetRole, ACTION_PERMISSION[action]);
 }
 
-/** Quantas contas de direção/coordenação seguem habilitadas. */
+/** Quantas contas de gestão (direção, coordenação e logística) seguem habilitadas. */
 export async function countEnabledAdmins(db: Db) {
   const { count, error } = await db
     .from("profiles")

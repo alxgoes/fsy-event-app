@@ -369,7 +369,7 @@ export function MediaManager() {
             transition={{ type: "spring", stiffness: 400, damping: 26 }}
           >
             <ShakeBox shakeTrigger={shakeCount}>
-              <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
+              <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                   <h2 className="font-heading font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -504,7 +504,7 @@ export function MediaManager() {
           <p className="text-xs font-bold tracking-wide">Carregando acervo de mídia...</p>
         </div>
       ) : filteredPhotos.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2 backdrop-blur-sm">
+        <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2 backdrop-blur-sm">
           <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-heading font-black text-base text-slate-700 dark:text-slate-300">
             Nenhuma foto encontrada nesta categoria
@@ -641,7 +641,7 @@ export function MediaManager() {
       {/* A mesma base de diálogo dos formulários protege foco e Escape na foto. */}
       <Dialog open={!!lightboxPhoto} onOpenChange={(open) => !open && setLightboxPhoto(null)}>
         {lightboxPhoto && (
-          <DialogContent showCloseButton={false} className="w-[calc(100%-2rem)] max-w-4xl sm:max-w-4xl gap-0 rounded-3xl bg-slate-900 border-2 border-slate-700 p-0 overflow-hidden text-white">
+          <DialogContent showCloseButton={false} className="fsy-panel w-[calc(100%-2rem)] max-w-4xl sm:max-w-4xl gap-0 rounded-3xl bg-slate-900 border-2 border-slate-700 p-0 overflow-hidden text-white">
             <DialogDescription className="sr-only">Foto ampliada com opções de publicação da equipe de mídia.</DialogDescription>
               {/* Top Bar of Modal */}
               <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/70">
@@ -725,7 +725,7 @@ export function MediaManager() {
 
       {/* CONFIRM DELETE MODAL */}
       <Dialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
-        <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 shadow-2xl">
+        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Foto do Mural?

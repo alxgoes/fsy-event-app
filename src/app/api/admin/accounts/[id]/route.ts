@@ -16,7 +16,7 @@ import { accountDeleteSchema, accountPatchSchema } from "@/types/accounts";
 export const dynamic = "force-dynamic";
 
 const uuid = z.string().uuid();
-const LAST_ADMIN = "Esta é a última conta de direção habilitada. Habilite outra antes de continuar.";
+const LAST_ADMIN = "Esta é a última conta administrativa habilitada. Habilite outra antes de continuar.";
 const SELF = "Você não pode alterar o próprio cargo, suspender ou excluir a própria conta.";
 
 type Ctx = { params: Promise<{ id: string }> };

@@ -287,7 +287,7 @@ export function CompanyManager() {
 
       {/* Error Banner */}
       {error && (
-        <div className="rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm">
+        <div className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
@@ -300,7 +300,7 @@ export function CompanyManager() {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Total de Companhias
           </span>
@@ -312,7 +312,7 @@ export function CompanyManager() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Consultores Designados
           </span>
@@ -324,7 +324,7 @@ export function CompanyManager() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+        <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
           <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Jovens Alocados
           </span>
@@ -357,7 +357,7 @@ export function CompanyManager() {
           <p className="text-sm font-bold">Carregando companhias...</p>
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
+        <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
           <Building2 className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
           <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
             Nenhuma companhia encontrada
@@ -462,7 +462,7 @@ export function CompanyManager() {
 
       {/* Create / Edit Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <DialogContent className="fsy-panel sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Building2 className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -648,7 +648,7 @@ export function CompanyManager() {
         open={!!companyToDelete}
         onOpenChange={(open) => !open && setCompanyToDelete(null)}
       >
-        <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-black text-red-600 dark:text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
