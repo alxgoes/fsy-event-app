@@ -48,7 +48,7 @@ test('failed target profile lookup cannot redefine a higher account password or 
     fake.auth.admin.deleteUser = async () => { calls.push('delete'); return { error: null }; };
     const file = action === 'password' ? 'src/app/api/admin/accounts/[id]/password/route.ts' : 'src/app/api/admin/accounts/[id]/route.ts';
     const route = loadRoute(file, { db: fake, identity: { user: { id: actor }, role: 'coordenador' } });
-    const result = await route[action === 'password' ? 'POST' : 'DELETE'](request('/api/admin/accounts/'+target, { method: action === 'password' ? 'POST' : 'DELETE', body: action === 'password' ? { password: 'TesteSeguro123!', confirm: true } : { confirm: 'diretor@fsy.test' } }), { params: { id: target } });
+    const result = await route[action === 'password' ? 'POST' : 'DELETE'](request('/api/admin/accounts/'+target, { method: action === 'password' ? 'POST' : 'DELETE', body: action === 'password' ? { password: 'TesteSeguro123!', confirm: true } : { confirm: 'diretor@fsy.test' } }), { params: Promise.resolve({ id: target }) });
     assert.equal(result.status, 500);
     assert.deepEqual(calls, []);
   }
@@ -61,7 +61,7 @@ test('suspension never calls Auth if the profile guard refuses the operation', a
   fake.auth.admin.getUserById = async () => ({ data: { user: { id: target } }, error: null });
   fake.auth.admin.updateUserById = async () => { authCalls++; return { error: null }; };
   const route = loadRoute('src/app/api/admin/accounts/[id]/route.ts', { db: fake, identity: { user: { id: actor }, role: 'casal_diretor' } });
-  const result = await route.PATCH(request('/api/admin/accounts/'+target, { method: 'PATCH', body: { action: 'suspend' } }), { params: { id: target } });
+  const result = await route.PATCH(request('/api/admin/accounts/'+target, { method: 'PATCH', body: { action: 'suspend' } }), { params: Promise.resolve({ id: target }) });
   assert.equal(result.status, 500);
   assert.equal(authCalls, 0);
 });

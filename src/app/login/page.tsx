@@ -1,4 +1,7 @@
 "use client";
+import { EVENT_THEME } from "@/lib/event/identity";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -74,12 +77,12 @@ function LoginFormContent() {
       const params = new URLSearchParams(window.location.search);
       const errorParam = params.get("error");
       if (errorParam) {
-        setErrorMsg(decodeURIComponent(errorParam));
+        startTransition(() => { setErrorMsg(decodeURIComponent(errorParam)); });
       }
       const modeParam = params.get("mode") || params.get("modo");
-      if (modeParam === "register") setMode("register");
-      if (modeParam === "recuperar") setMode("recover");
-      if (params.get("senha") === "redefinida") setSuccessMsg("Senha alterada. Entre com a nova senha.");
+      if (modeParam === "register") startTransition(() => { setMode("register"); });
+      if (modeParam === "recuperar") startTransition(() => { setMode("recover"); });
+      if (params.get("senha") === "redefinida") startTransition(() => { setSuccessMsg("Senha alterada. Entre com a nova senha."); });
     }
   }, []);
 
@@ -305,7 +308,7 @@ function LoginFormContent() {
             <FsyFloatingLetters size="md" />
           </div>
           <p className="inline-flex items-center rounded-full bg-[#FFE48A] px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-950">
-            Acesso ao sistema · 2027
+            {EVENT_THEME} · 2027
           </p>
           <h1 id="login-heading" className="font-heading text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
             {heading}
@@ -327,7 +330,7 @@ function LoginFormContent() {
                 onClick={() => switchMode(value)}
                 className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold transition-colors ${
                   mode === value
-                    ? "bg-[#007DA5] text-white shadow-sm dark:bg-[#01B6D1] dark:text-slate-950"
+                    ? "bg-[#007DA5] text-white shadow-sm dark:bg-[#01B6D1] dark:text-slate-950 dark:text-slate-950"
                     : "text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
                 }`}
               >
@@ -388,7 +391,7 @@ function LoginFormContent() {
                 )}
               </Field>
               <div className="flex justify-end">
-                <button type="button" onClick={() => { setRecoverEmail(email); switchMode("recover"); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-[#007DA5] underline-offset-4 hover:underline dark:text-[#7DE3F4]">
+                <button type="button" onClick={() => { setRecoverEmail(email); switchMode("recover"); }} className="inline-flex min-h-11 items-center text-sm font-semibold text-[#005E7C] dark:text-[#7DE3F4] underline-offset-4 hover:underline">
                   Esqueci minha senha
                 </button>
               </div>
@@ -412,7 +415,7 @@ function LoginFormContent() {
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> : <Mail className="mr-2 h-4 w-4" aria-hidden="true" />}
               {loading ? "Enviando…" : "Enviar link de redefinição"}
             </Button>
-            <button type="button" onClick={() => switchMode("login")} className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-slate-700 hover:text-[#007DA5] dark:text-slate-200 dark:hover:text-[#7DE3F4]">
+            <button type="button" onClick={() => switchMode("login")} className="flex min-h-11 w-full items-center justify-center text-sm font-semibold text-slate-700 hover:text-[#005E7C] dark:text-slate-200 dark:hover:text-[#7DE3F4]">
               Voltar para a entrada
             </button>
           </form>
@@ -456,7 +459,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-fsy-watermark text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-6 transition-colors duration-200">
       {/* Top Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+        <Link href="/" className="fsy-action-link flex items-center gap-2.5 sm:gap-3 group">
           <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs overflow-hidden">
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
@@ -466,11 +469,11 @@ export default function LoginPage() {
               <span className="font-heading font-black text-xs sm:text-sm tracking-tight block text-slate-900 dark:text-white">
                 Sessão Ribeirão Preto 2
               </span>
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.2 text-xs font-black uppercase text-amber-950 border border-amber-500/40">
                 2027
               </span>
             </div>
-            <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold block">
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-bold block">
               Edição 2027 • 05 a 10 de Fevereiro
             </span>
           </div>
@@ -485,8 +488,8 @@ export default function LoginPage() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-        © 2027 FSY Sessão Ribeirão Preto 2
+      <footer className="text-center py-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
+        © 2027 FSY Sessão Ribeirão Preto 2 · {EVENT_THEME}
       </footer>
     </div>
   );

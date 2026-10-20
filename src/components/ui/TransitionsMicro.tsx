@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -57,17 +59,18 @@ export function ShakeBox({
   className?: string;
 }) {
   const [shaking, setShaking] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    if (shakeTrigger > 0) {
-      setShaking(true);
+    if (shakeTrigger > 0 && !reduceMotion) {
+      startTransition(() => { setShaking(true); });
       const timer = setTimeout(() => setShaking(false), 290);
       return () => clearTimeout(timer);
     }
-  }, [shakeTrigger]);
+  }, [shakeTrigger, reduceMotion]);
 
   return (
-    <div className={`${shaking ? "animate-shake" : ""} ${className}`}>
+    <div className={`${shaking && !reduceMotion ? "animate-shake" : ""} ${className}`}>
       {children}
     </div>
   );

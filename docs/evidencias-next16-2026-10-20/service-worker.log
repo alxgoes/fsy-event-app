@@ -1,0 +1,12 @@
+✔ private API and React payload requests bypass persistent cache (89.71264ms)
+✔ authenticated HTML is fetched without being persisted (12.569556ms)
+✔ activation removes old FSY cache but preserves unrelated caches (2.800518ms)
+✔ navigation without network has an honest offline fallback (9.715491ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 434.925213

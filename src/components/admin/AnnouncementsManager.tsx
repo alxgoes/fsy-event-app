@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -110,7 +112,7 @@ export function AnnouncementsManager() {
   }, []);
 
   useEffect(() => {
-    loadAnnouncements();
+    startTransition(() => { loadAnnouncements(); });
   }, [loadAnnouncements]);
 
   const handleCreate = async () => {
@@ -198,7 +200,7 @@ export function AnnouncementsManager() {
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 animate-pulse";
+        return "bg-rose-50 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800 motion-safe:animate-pulse";
       case "important":
         return "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800";
       default:
@@ -219,7 +221,7 @@ export function AnnouncementsManager() {
               Supabase Live
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Envie alertas para todos os participantes ou companhias específicas em tempo real.
           </p>
         </div>
@@ -255,33 +257,33 @@ export function AnnouncementsManager() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
-            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Comunicados Ativos
             </CardTitle>
-            <Megaphone className="h-4 w-4 text-[#007DA5]" />
+            <Megaphone className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-slate-900 dark:text-white">{announcements.length}</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Salvos no banco</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 font-semibold">Salvos no banco</p>
           </CardContent>
         </Card>
         <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
-            <CardTitle className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+            <CardTitle className="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 dark:text-rose-400">
               Alertas Urgentes
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-rose-500" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
-            <div className="text-3xl font-black text-rose-600 dark:text-rose-400">
+            <div className="text-3xl font-black text-rose-800 dark:text-rose-300 dark:text-rose-400">
               {announcements.filter((a) => a.priority === "urgent").length}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Exibidos com destaque</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 font-semibold">Exibidos com destaque</p>
           </CardContent>
         </Card>
         <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
-            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Globais
             </CardTitle>
             <Radio className="h-4 w-4 text-[#06D6A0]" />
@@ -290,14 +292,14 @@ export function AnnouncementsManager() {
             <div className="text-3xl font-black text-slate-900 dark:text-white">
               {announcements.filter((a) => !a.target_company_id).length}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Para todos os jovens</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 font-semibold">Para todos os jovens</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
         <Input
           aria-label="Buscar comunicado por título ou conteúdo"
           placeholder="Buscar comunicado por título ou conteúdo..."
@@ -310,11 +312,11 @@ export function AnnouncementsManager() {
       {/* Announcements List */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Megaphone className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+          <Megaphone className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhum comunicado encontrado</p>
           <p className="text-xs max-w-sm mx-auto">Clique em &quot;Emitir Novo Comunicado&quot; para criar o primeiro.</p>
         </div>
@@ -327,11 +329,11 @@ export function AnnouncementsManager() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-black text-sm text-slate-900 dark:text-white">{announcement.title}</span>
-                      <Badge variant="outline" className={`text-[10px] font-black px-2 py-0.5 ${getPriorityBadge(announcement.priority)}`}>
+                      <Badge variant="outline" className={`text-xs font-black px-2 py-0.5 ${getPriorityBadge(announcement.priority)}`}>
                         {PRIORITY_LABELS[announcement.priority] ?? announcement.priority}
                       </Badge>
                     </div>
-                    <p className="text-xs font-semibold text-slate-500">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-300">
                       {new Date(announcement.created_at).toLocaleString("pt-BR")}
                     </p>
                   </div>
@@ -340,7 +342,7 @@ export function AnnouncementsManager() {
                     disabled={deleting === announcement.id}
                     title="Excluir comunicado"
                     aria-label={`Excluir comunicado: ${announcement.title}`}
-                    className="text-rose-600/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
+                    className="text-rose-800 dark:text-rose-300/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -350,12 +352,12 @@ export function AnnouncementsManager() {
                   {announcement.content}
                 </p>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <span className="flex items-center gap-1 font-semibold">
-                    <Users className="h-3.5 w-3.5 text-[#007DA5]" />
+                    <Users className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                     {announcement.target_company_id ? `Companhia: ${announcement.target_company_id}` : "Todos os Jovens (Global)"}
                   </span>
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                     {announcement.category}
                   </span>
                 </div>
@@ -370,17 +372,17 @@ export function AnnouncementsManager() {
         <DialogContent className="max-w-lg rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Megaphone className="h-5 w-5 text-[#007DA5]" />
+              <Megaphone className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
               Novo Comunicado Oficial
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300">
               O comunicado será transmitido instantaneamente com notificação sonora/visual no topo do app.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
             <div className="space-y-1">
-              <label className="text-xs font-black uppercase text-slate-500">Título do Alerta</label>
+              <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Título do Alerta</label>
               <Input
                 aria-label="Título do comunicado"
                 value={newTitle}
@@ -391,7 +393,7 @@ export function AnnouncementsManager() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="field-announcementsmanager-1" className="text-xs font-black uppercase text-slate-500">Conteúdo do Comunicado</label>
+              <label htmlFor="field-announcementsmanager-1" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Conteúdo do Comunicado</label>
               <Textarea id="field-announcementsmanager-1"
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
@@ -403,7 +405,7 @@ export function AnnouncementsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-black uppercase text-slate-500">Prioridade</label>
+                <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Prioridade</label>
                 <Select value={newPriority} onValueChange={(val) => val && setNewPriority(val)}>
                   <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10">
                     <SelectValue />
@@ -417,7 +419,7 @@ export function AnnouncementsManager() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-black uppercase text-slate-500">Categoria</label>
+                <label className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Categoria</label>
                 <Select value={newCategory} onValueChange={(val) => val && setNewCategory(val)}>
                   <SelectTrigger className="border-2 border-slate-200 dark:border-slate-700 rounded-xl font-semibold text-xs h-10">
                     <SelectValue />
@@ -452,10 +454,10 @@ export function AnnouncementsManager() {
       <Dialog open={!!announcementToDelete} onOpenChange={(open) => !open && setAnnouncementToDelete(null)}>
         <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-600">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Comunicado?
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
               Tem certeza que deseja remover <strong className="text-slate-900 dark:text-white">&ldquo;{announcementToDelete?.title}&rdquo;</strong> do sistema?
             </DialogDescription>
           </DialogHeader>

@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -59,7 +61,7 @@ export function MyCompanyCard({
       const count = a.likes_count ?? (a.liked_by ? a.liked_by.length : 0);
       nextState[a.id] = { count, isLiked };
     });
-    setLikesState(nextState);
+    startTransition(() => { setLikesState(nextState); });
   }, [announcements, currentUserId]);
 
   const toggleLike = async (announcementId: string) => {
@@ -114,7 +116,7 @@ export function MyCompanyCard({
       >
         <div className="flex flex-col items-center justify-center h-full text-center gap-3 py-8">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700">
-            <Users className="h-7 w-7 text-slate-400" />
+            <Users className="h-7 w-7 text-slate-600 dark:text-slate-300" />
           </div>
           <div>
             <h3 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
@@ -139,7 +141,7 @@ export function MyCompanyCard({
         {/* Card Header */}
         <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FC4E6D] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FC4E6D] text-slate-950 border-2 border-slate-900 dark:border-slate-700 shadow-sm">
               <Users className="h-6 w-6" />
             </div>
             <div>
@@ -179,7 +181,7 @@ export function MyCompanyCard({
 
         {/* Announcements List */}
         {announcements.length === 0 ? (
-          <div className="text-center py-6 text-slate-500 dark:text-slate-400">
+          <div className="text-center py-6 text-slate-500 dark:text-slate-300 dark:text-slate-400">
             <Pin className="h-8 w-8 mx-auto mb-2 opacity-40" />
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Nenhum aviso ainda</p>
           </div>
@@ -211,12 +213,12 @@ export function MyCompanyCard({
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {isUrgent && (
-                        <span className="flex items-center gap-1 rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-black uppercase text-white">
+                        <span className="flex items-center gap-1 rounded-md bg-red-700 px-1.5 py-0.5 text-xs font-black uppercase text-white">
                           <Pin className="h-2.5 w-2.5" /> Urgente
                         </span>
                       )}
                       {isImportant && (
-                        <span className="flex items-center gap-1 rounded-md bg-[#FC4E6D] px-1.5 py-0.5 text-xs font-black uppercase text-white">
+                        <span className="flex items-center gap-1 rounded-md bg-[#FC4E6D] px-1.5 py-0.5 text-xs font-black uppercase text-slate-950">
                           <Pin className="h-2.5 w-2.5" /> Importante
                         </span>
                       )}
@@ -249,7 +251,7 @@ export function MyCompanyCard({
                       transition={{ type: "spring", stiffness: 450, damping: 25 }}
                       className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-2.5 py-1 border transition-colors cursor-pointer min-h-[36px] ${
                         info.isLiked
-                          ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
+                          ? "text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
                           : "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                       }`}
                       title={info.isLiked ? "Descurtir" : "Curtir comunicado"}

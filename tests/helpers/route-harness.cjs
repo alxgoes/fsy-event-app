@@ -58,7 +58,7 @@ function loadRoute(file, { identity = { user: null, role: null }, db = createFak
     zod: require('zod'),
     'server-only': {},
     'next/server': { NextResponse: { json: jsonResponse, redirect: (url) => ({ status: 307, headers: { location: String(url) } }) } },
-    'next/headers': { cookies: () => ({ getAll: () => [], set() {} }), headers: () => new Map() },
+    'next/headers': { cookies: async () => ({ getAll: () => [], set() {} }), headers: async () => new Map() },
     '@/lib/supabase/server': {
       getCurrentUserAndRole: async () => ({ user: identity.user, role: identity.role }),
       getCurrentIdentity: async () => identity.user ? { user: identity.user, role: identity.role, profile: identity.profile ?? { id: identity.user.id, full_name: identity.fullName ?? 'Pessoa Teste', role: identity.role, company_id: identity.companyId ?? null } } : null,
@@ -83,11 +83,12 @@ function loadRoute(file, { identity = { user: null, role: null }, db = createFak
     const module = { exports };
     cache[found] = exports;
     const source = ts.transpileModule(fs.readFileSync(found, 'utf8'), {
+      fileName: found,
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.React, esModuleInterop: true },
     }).outputText;
     vm.runInNewContext(source, {
-      exports, module, require: (name) => load(name, found), URL, URLSearchParams, console, process, Date, Math, JSON, Promise, setTimeout, clearTimeout, crypto: globalThis.crypto, TextEncoder, Response, Headers, fetch: (...args) => globalThis.fetch(...args),
-    });
+      exports, module, require: (name) => load(name, found), URL, URLSearchParams, console, process, Date, Math, JSON, Promise, setTimeout, clearTimeout, crypto: globalThis.crypto, TextEncoder, Response, Headers, AbortController, fetch: (...args) => globalThis.fetch(...args),
+    }, { filename: found });
     if (module.exports !== exports) Object.assign(cache[found], module.exports);
     return cache[found];
   };

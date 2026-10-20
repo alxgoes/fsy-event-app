@@ -42,7 +42,7 @@ export function MemoriesCard() {
               <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 Mural do FSY no Instagram
               </h3>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
                 @fsy_ribeiraopreto
               </p>
             </div>

@@ -20,6 +20,13 @@ Cada agente possui um domínio estrito de atuação para evitar conflitos de có
 
 ## 2. Regras de Ouro da Convivência Multi-Agente
 
+### Recursos da máquina — Mac com 8 GB de RAM
+- Executar apenas uma tarefa pesada de cada vez em todo o projeto: build, testes com PGlite ou QA de navegador. Não iniciar outro agente para executar verificações em paralelo.
+- Usar `npm test`, que limita a concorrência a um arquivo por vez. Ao selecionar arquivos diretamente, preservar `node --test --test-concurrency=1`.
+- Preservar o limite de um worker do Next em `next.config.mjs`. Não aumentar paralelismo para acelerar uma verificação local.
+- Se houver lentidão/pressão de memória, interromper as verificações, registrar o checkpoint e deixar os agentes ociosos. Não reiniciar automaticamente o trabalho interrompido nem declarar build interrompido como aprovado.
+- Não encerrar processos de outros projetos ou aplicativos do usuário para liberar recursos.
+
 ### Regra 1: Abordagem "Contract-First" (Tipagem Prévia)
 - Nenhuma funcionalidade que envolva Frontend e Backend deve ser iniciada sem que os tipos e contratos estejam definidos em `src/types/`.
 - O agente de Backend define os schemas (ex: Zod / TypeScript) e interfaces primeiro. O agente de Frontend consome essas interfaces sem presumir estruturas arbitrárias.

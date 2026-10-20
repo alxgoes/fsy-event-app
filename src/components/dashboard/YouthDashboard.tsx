@@ -58,6 +58,7 @@ export function YouthDashboard() {
     if (!profile) return;
 
     let isMounted = true;
+    const controller = new AbortController();
 
     // Safety timeout: never hang loading skeletons for more than 2 seconds
     const safetyTimeout = setTimeout(() => {
@@ -95,7 +96,7 @@ export function YouthDashboard() {
       }
 
       // 1. Fetch Schedule via Service
-      const schedulePromise = getSchedule().then(({ data, fromCache }) => {
+      const schedulePromise = getSchedule(undefined, controller.signal).then(({ data, fromCache }) => {
         if (!isMounted) return;
         if (fromCache && !navigator.onLine) setIsOfflineMode(true);
         scheduleItems = data;
@@ -110,20 +111,20 @@ export function YouthDashboard() {
 
       // 2. Fetch Company via Service
       const companyPromise = profile.company_id
-        ? getCompany(profile.company_id).then(({ data }) => {
+        ? getCompany(profile.company_id, controller.signal).then(({ data }) => {
             if (isMounted && data) setCompany(data);
           })
         : Promise.resolve();
 
       // 3. Fetch Announcements via Service
-      const announcementsPromise = getAnnouncements(profile.company_id).then(
+      const announcementsPromise = getAnnouncements(profile.company_id, controller.signal).then(
         ({ data }) => {
           if (isMounted) setAnnouncements(data);
         }
       );
 
       // 4. Fetch Media via Service
-      const mediaPromise = getFeaturedPhotos().then(({ data }) => {
+      const mediaPromise = getFeaturedPhotos(controller.signal).then(({ data }) => {
         if (isMounted) setFeaturedPhotos(data);
       });
 
@@ -144,6 +145,7 @@ export function YouthDashboard() {
 
     return () => {
       isMounted = false;
+      controller.abort();
       clearInterval(activityTimer);
       clearTimeout(safetyTimeout);
     };
@@ -174,9 +176,9 @@ export function YouthDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border-2 border-amber-300 dark:border-amber-700 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-brutal-sm"
+            className="flex items-center gap-3 rounded-2xl bg-amber-50 dark:bg-amber-950 border-2 border-amber-300 dark:border-amber-700 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-brutal-sm"
           >
-            <Users className="h-4 w-4 text-amber-600 shrink-0" />
+            <Users className="h-4 w-4 text-amber-800 dark:text-amber-300 shrink-0" />
             <span>
               <strong>Companhia não designada:</strong> Sua companhia será designada pela equipe na abertura do FSY 2027.
             </span>

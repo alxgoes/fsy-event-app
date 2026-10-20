@@ -1,3 +1,4 @@
+import { EVENT_THEME_LEAD, EVENT_THEME_FOCUS, EVENT_SCRIPTURE, EVENT_THEME } from "@/lib/event/identity";
 import React from "react";
 import { FsyTempleMark } from "./FsyLogo";
 
@@ -7,12 +8,12 @@ export interface StickerProps {
 }
 
 /**
- * 1. Pink Oval Sticker ("REJOICE IN CHRIST")
+ * 1. Pink Oval Sticker ("Alegra-se em Cristo")
  * Hex #FC4E6D / #FDA192 with dark text
  */
 export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "px-3 py-1.5 text-[10px]",
+    sm: "px-3 py-1.5 text-xs",
     md: "px-5 py-2 text-xs",
     lg: "px-7 py-3 text-sm",
   };
@@ -21,8 +22,8 @@ export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
       className={`inline-flex flex-col items-center justify-center rounded-full bg-[#FDA192] text-slate-950 font-serif border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
     >
-      <span className="text-[0.7em] tracking-[0.2em] uppercase font-bold">REJOICE IN</span>
-      <span className="text-[1.15em] tracking-[0.1em] uppercase font-bold leading-tight">CHRIST</span>
+      <span className="text-[0.7em] tracking-[0.2em] uppercase font-bold">{EVENT_THEME_LEAD}</span>
+      <span className="text-[1.15em] tracking-[0.1em] uppercase font-bold leading-tight">{EVENT_THEME_FOCUS}</span>
     </div>
   );
 }
@@ -50,8 +51,8 @@ export function OrangeArchSticker({ className = "", size = "md" }: StickerProps)
  */
 export function GreenStampSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "w-14 h-14 p-1.5 text-[10px]",
-    md: "w-20 h-20 p-2 text-[10px]",
+    sm: "w-14 h-14 p-1.5 text-xs",
+    md: "w-20 h-20 p-2 text-xs",
     lg: "w-28 h-28 p-3 text-xs",
   };
   return (
@@ -77,9 +78,9 @@ export function GreenStampSticker({ className = "", size = "md" }: StickerProps)
  */
 export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "w-16 p-2 text-[10px]",
-    md: "w-24 p-3 text-[10px]",
-    lg: "w-32 p-4 text-[11px]",
+    sm: "w-16 p-2 text-xs",
+    md: "w-24 p-3 text-xs",
+    lg: "w-32 p-4 text-xs",
   };
   return (
     <div
@@ -89,38 +90,38 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
       <div className="h-10 w-auto mb-1">
         <FsyTempleMark colorMode="four-color" className="h-full w-auto mx-auto" />
       </div>
-      <span className="text-[0.75em] tracking-[0.15em] uppercase font-bold text-slate-950">REJOICE IN</span>
-      <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold text-slate-950 leading-tight">CHRIST</span>
-      <span className="text-[0.65em] tracking-[0.2em] uppercase font-medium text-slate-900 mt-0.5">PHILIPPIANS 4:4</span>
+      <span className="text-[0.75em] tracking-[0.15em] uppercase font-bold text-slate-950">{EVENT_THEME_LEAD}</span>
+      <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold text-slate-950 leading-tight">{EVENT_THEME_FOCUS}</span>
+      <span className="text-[0.65em] tracking-[0.2em] uppercase font-medium text-slate-900 mt-0.5">{EVENT_SCRIPTURE}</span>
     </div>
   );
 }
 
 /**
- * 5. Light Blue Pennant ("REJOICE - 4:4" on Blue 5 #B0EEFC)
+ * 5. Light Blue Pennant ("Alegra-se em Cristo — 4:4" on Blue 5 #B0EEFC)
  */
 export function BluePennantSticker({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center px-4 py-1.5 bg-[#B0EEFC] text-slate-950 border-2 border-slate-900 shadow-sm select-none font-serif ${className}`}
+      className={`inline-flex items-center pl-4 pr-12 py-1.5 bg-[#B0EEFC] text-slate-950 border-2 border-slate-900 shadow-sm select-none font-serif ${className}`}
       style={{
         clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
-        minWidth: "120px",
+        minWidth: "260px",
         fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif",
       }}
     >
-      <span className="text-xs font-bold tracking-widest pl-1">REJOICE</span>
-      <span className="text-[10px] font-normal tracking-wider ml-1.5">4:4</span>
+      <span className="text-xs font-bold tracking-widest pl-1">{EVENT_THEME}</span>
+      <span className="text-xs font-normal tracking-wider ml-1.5">4:4</span>
     </div>
   );
 }
 
 /**
- * 6. Yellow Capsule Sticker ("REJOICE IN CHRIST 20 27" on Sunshine #FFE48A / Parchment)
+ * 6. Yellow Capsule Sticker ("Alegra-se em Cristo 20 27" on Sunshine #FFE48A / Parchment)
  */
 export function YellowCapsuleSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "px-3 py-1 text-[10px]",
+    sm: "px-3 py-1 text-xs",
     md: "px-4 py-1.5 text-xs",
     lg: "px-6 py-2.5 text-sm",
   };
@@ -130,8 +131,8 @@ export function YellowCapsuleSticker({ className = "", size = "md" }: StickerPro
       style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
     >
       <div className="flex flex-col text-left">
-        <span className="text-[0.7em] tracking-[0.18em] uppercase font-bold leading-none">REJOICE IN</span>
-        <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold leading-tight">CHRIST</span>
+        <span className="text-[0.7em] tracking-[0.18em] uppercase font-bold leading-none">{EVENT_THEME_LEAD}</span>
+        <span className="text-[1.1em] tracking-[0.08em] uppercase font-bold leading-tight">{EVENT_THEME_FOCUS}</span>
       </div>
       <div className="flex flex-col text-right font-sans font-black text-[0.8em] leading-tight border-l border-slate-900/30 pl-2">
         <span>20</span>
@@ -146,7 +147,7 @@ export function YellowCapsuleSticker({ className = "", size = "md" }: StickerPro
  */
 export function OrangeCircleSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {
-    sm: "h-12 w-12 text-[10px]",
+    sm: "h-12 w-12 text-xs",
     md: "h-16 w-16 text-xs",
     lg: "h-24 w-24 text-base",
   };

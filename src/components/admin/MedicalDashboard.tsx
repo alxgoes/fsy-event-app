@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
 import { NativeSelect } from "@/components/ui/native-select";
 
@@ -270,7 +272,7 @@ export function MedicalDashboard() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    startTransition(() => { loadData(); });
   }, [loadData]);
 
   const openView = (record: YouthMedicalProfile) => {
@@ -584,7 +586,7 @@ export function MedicalDashboard() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-w-0 max-w-full">
         <div className="min-w-0">
           <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white font-black border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-700 text-white font-black border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm">
               <Stethoscope className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0 flex-1">
@@ -592,11 +594,11 @@ export function MedicalDashboard() {
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                   Equipe Multidisciplinar
                 </h1>
-                <Badge className="bg-emerald-600 text-white text-[10px] font-black uppercase shrink-0">
+                <Badge className="bg-emerald-700 text-white text-xs font-black uppercase shrink-0">
                   Saúde & Inclusão
                 </Badge>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5 leading-snug">
+              <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 font-bold mt-0.5 leading-snug">
                 Fichas médicas, atendimentos e acompanhamento de inclusão dos jovens.
               </p>
             </div>
@@ -691,35 +693,35 @@ export function MedicalDashboard() {
           {/* KPI Cards */}
           <CustomizableGrid pageKey="medical-metrics" version={1} className="grid grid-cols-1 gap-4 sm:grid-cols-3" items={[{ id: "records", label: "Fichas", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase text-slate-500">Total de Fichas</span>
-                <FileText className="h-5 w-5 text-[#007DA5]" />
+                <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Total de Fichas</span>
+                <FileText className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
               </div>
               <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{records.length}</p>
-              <p className="text-[11px] text-slate-500 font-bold mt-0.5">Participantes cadastrados</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300 font-bold mt-0.5">Participantes cadastrados</p>
             </Card>) },
 { id: "allergies", label: "Alergias graves", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow-brutal-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-rose-700 dark:text-rose-300">Alergias Graves</span>
-                <ShieldAlert className="h-5 w-5 text-rose-600 animate-pulse" />
+                <ShieldAlert className="h-5 w-5 text-rose-800 dark:text-rose-300 animate-pulse" />
               </div>
               <p className="text-3xl font-black text-rose-700 dark:text-rose-300 mt-2">{severeCount}</p>
-              <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-0.5">Atenção especial da equipe</p>
+              <p className="text-xs text-rose-800 dark:text-rose-300 dark:text-rose-400 font-bold mt-0.5">Atenção especial da equipe</p>
             </Card>) },
 { id: "diets", label: "Dietas e restrições", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow-brutal-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-amber-700 dark:text-amber-300">Dietas / Restrições</span>
-                <HeartPulse className="h-5 w-5 text-amber-600" />
+                <HeartPulse className="h-5 w-5 text-amber-800 dark:text-amber-300" />
               </div>
               <p className="text-3xl font-black text-amber-700 dark:text-amber-300 mt-2">
                 {records.filter((r) => r.dietary_restrictions && r.dietary_restrictions !== "Nenhuma").length}
               </p>
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">Alimentação diferenciada</p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 dark:text-amber-400 font-bold mt-0.5">Alimentação diferenciada</p>
             </Card>) }]} />
 
           {/* Filter and Search Bar */}
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
               <Input
                 id="medical-records-search"
                 aria-label="Buscar fichas médicas por nome, companhia, quarto, bispo ou alergia"
@@ -747,11 +749,11 @@ export function MedicalDashboard() {
           {/* Medical Records Table */}
           {loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 sm:p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-              <FileText className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-8 sm:p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+              <FileText className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
               <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma ficha médica encontrada</p>
               <p className="text-xs max-w-sm mx-auto">
                 Clique em &ldquo;Nova Ficha Médica&rdquo; para cadastrar os registros da sua equipe.
@@ -790,7 +792,7 @@ export function MedicalDashboard() {
                             <p className="text-slate-900 dark:text-white font-black leading-tight flex items-center gap-1.5">
                               {record.full_name}
                               {record.user_id && (
-                                <span className="text-[10px] bg-sky-100 text-[#007DA5] dark:bg-sky-950 dark:text-cyan-300 px-1.5 py-0.2 rounded font-black">
+                                <span className="text-xs bg-sky-100 text-[#005E7C] dark:bg-sky-950 dark:text-cyan-300 px-1.5 py-0.2 rounded font-black">
                                    Conta Vinculada
                                 </span>
                               )}
@@ -806,11 +808,11 @@ export function MedicalDashboard() {
 
                       <TableCell className="cursor-pointer" onClick={() => openView(record)}>
                         <div className="space-y-0.5">
-                          <span className="inline-flex items-center rounded-md bg-sky-50 dark:bg-sky-950 px-2 py-0.5 text-xs font-bold text-[#007DA5]">
+                          <span className="inline-flex items-center rounded-md bg-sky-50 dark:bg-sky-950 px-2 py-0.5 text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                             {record.company_id || "Sem Cia"}
                           </span>
                           {record.room && (
-                            <p className="text-xs font-bold text-slate-500">Qto: {record.room}</p>
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Qto: {record.room}</p>
                           )}
                         </div>
                       </TableCell>
@@ -824,7 +826,7 @@ export function MedicalDashboard() {
                             </Badge>
                           </div>
                         ) : record.allergies.length === 0 ? (
-                          <span className="text-xs font-bold text-slate-400">Nenhuma alergia</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Nenhuma alergia</span>
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {record.allergies.slice(0, 2).map((a) => (
@@ -833,7 +835,7 @@ export function MedicalDashboard() {
                               </Badge>
                             ))}
                             {record.allergies.length > 2 && (
-                              <Badge variant="outline" className="text-xs font-bold text-slate-500">
+                              <Badge variant="outline" className="text-xs font-bold text-slate-500 dark:text-slate-300">
                                 +{record.allergies.length - 2}
                               </Badge>
                             )}
@@ -845,12 +847,12 @@ export function MedicalDashboard() {
                         {record.emergency_contact_name && record.emergency_contact_name !== "Não informado" ? (
                           <div>
                             <p className="text-xs font-bold text-slate-900 dark:text-white">{record.emergency_contact_name}</p>
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                              <PhoneCall className="h-3 w-3 text-[#007DA5]" /> {record.emergency_contact_phone}
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 flex items-center gap-1">
+                              <PhoneCall className="h-3 w-3 text-[#005E7C] dark:text-[#7DE3F4]" /> {record.emergency_contact_phone}
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs font-bold text-slate-400">—</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">—</span>
                         )}
                       </TableCell>
 
@@ -866,7 +868,7 @@ export function MedicalDashboard() {
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs font-bold text-slate-400">—</span>
+                          <span className="text-xs font-bold text-slate-600 dark:text-slate-300">—</span>
                         )}
                       </TableCell>
 
@@ -877,7 +879,7 @@ export function MedicalDashboard() {
                             size="sm"
                             onClick={() => openNewAppointmentModal({ id: record.user_id || undefined, name: record.full_name })}
                             title="Marcar Horário / Consulta"
-                            className="h-8 px-2 text-xs font-bold text-[#06D6A0] hover:text-emerald-600 min-h-[36px]"
+                            className="h-8 px-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 hover:text-emerald-900 min-h-[36px]"
                           >
                             <Calendar className="h-3.5 w-3.5 mr-1" /> Consulta
                           </Button>
@@ -905,7 +907,7 @@ export function MedicalDashboard() {
                             onClick={() => setRecordToDelete(record)}
                             disabled={deleting === record.id}
                             title="Excluir Ficha Médica"
-                            className="h-8 px-2 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                            className="h-8 px-2 text-xs text-rose-800 dark:text-rose-300 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -934,7 +936,7 @@ export function MedicalDashboard() {
           {/* Appointment Filters */}
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 max-w-full min-w-0">
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
               <Input
                 id="appointments-search"
                 aria-label="Buscar consultas por nome do jovem, profissional ou motivo"
@@ -970,10 +972,10 @@ export function MedicalDashboard() {
           {/* Appointments Grid */}
           {loading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
             </div>
           ) : filteredAppointments.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center text-slate-400 space-y-2">
+            <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
               <Calendar className="h-10 w-10 mx-auto opacity-30 text-emerald-500" />
               <p className="font-heading text-base font-black text-slate-700 dark:text-slate-300">
                 Nenhum atendimento agendado
@@ -1014,8 +1016,8 @@ export function MedicalDashboard() {
                           {appt.status.toUpperCase()}
                         </span>
 
-                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
-                          <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-300">
+                          <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                           <span>
                             {new Date(appt.scheduled_at).toLocaleDateString("pt-BR", {
                               day: "2-digit",
@@ -1040,14 +1042,14 @@ export function MedicalDashboard() {
 
                       {/* Reason */}
                       <div className="mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs">
-                        <span className="text-[10px] font-black uppercase text-slate-400 block mb-0.5">
+                        <span className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 block mb-0.5">
                           Motivo da Consulta
                         </span>
                         <p className="font-bold text-slate-800 dark:text-slate-200">
                           {appt.reason}
                         </p>
                         {appt.notes && (
-                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 italic">
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 italic">
                             Obs: {appt.notes}
                           </p>
                         )}
@@ -1062,7 +1064,7 @@ export function MedicalDashboard() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleUpdateAppointmentStatus(appt.id, "realizado")}
-                            className="h-8 text-[11px] font-black text-emerald-600 border-emerald-300 hover:bg-emerald-50 rounded-xl"
+                            className="h-8 text-xs font-black text-emerald-800 dark:text-emerald-300 border-emerald-300 hover:bg-emerald-50 rounded-xl"
                           >
                             <Check className="h-3.5 w-3.5 mr-1" /> Realizado
                           </Button>
@@ -1072,7 +1074,7 @@ export function MedicalDashboard() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleUpdateAppointmentStatus(appt.id, "cancelado")}
-                            className="h-8 text-[11px] font-bold text-slate-500 hover:text-slate-700 rounded-xl"
+                            className="h-8 text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-slate-700 rounded-xl"
                           >
                             Cancelar
                           </Button>
@@ -1083,7 +1085,7 @@ export function MedicalDashboard() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDeleteAppointment(appt.id)}
-                        className="h-8 px-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl"
+                        className="h-8 px-2 text-rose-800 dark:text-rose-300 hover:text-rose-700 hover:bg-rose-50 rounded-xl"
                         title="Excluir Agendamento"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -1107,7 +1109,7 @@ export function MedicalDashboard() {
               <Calendar className="h-5 w-5 text-[#06D6A0]" />
               Marcar Horário com Jovem
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Selecione um jovem dentre os usuários registrados no evento ou digite o nome para salvar o agendamento no banco de dados.
             </DialogDescription>
           </DialogHeader>
@@ -1153,7 +1155,7 @@ export function MedicalDashboard() {
                           }`}
                         >
                           <span>{p.full_name}</span>
-                          <span className="text-[10px] opacity-80">
+                          <span className="text-xs opacity-80">
                             {p.company_id || "Sem Cia"} {p.room ? `• Qto ${p.room}` : ""}
                           </span>
                         </button>
@@ -1163,7 +1165,7 @@ export function MedicalDashboard() {
 
                 {/* Manual name override option */}
                 <div className="pt-1">
-                  <label htmlFor="field-medicaldashboard-1" className="block text-[11px] font-bold text-slate-500 mb-1">
+                  <label htmlFor="field-medicaldashboard-1" className="block text-xs font-bold text-slate-500 dark:text-slate-300 mb-1">
                     Ou digite o nome manualmente (se o jovem não estiver registrado):
                   </label>
                   <Input id="field-medicaldashboard-1"
@@ -1217,9 +1219,9 @@ export function MedicalDashboard() {
                     key={r}
                     type="button"
                     onClick={() => setApptReason(apptReason === r ? "" : r)}
-                    className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-colors ${
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-colors ${
                       apptReason === r
-                        ? "bg-emerald-600 text-white border-emerald-700"
+                        ? "bg-emerald-700 text-white border-emerald-700"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
                     }`}
                   >
@@ -1298,7 +1300,7 @@ export function MedicalDashboard() {
                       </DialogTitle>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {viewingRecord.company_id && (
-                          <Badge variant="outline" className="text-xs font-bold bg-sky-50 dark:bg-sky-950 text-[#007DA5] dark:text-cyan-300">
+                          <Badge variant="outline" className="text-xs font-bold bg-sky-50 dark:bg-sky-950 text-[#005E7C] dark:text-cyan-300">
                             {viewingRecord.company_id}
                           </Badge>
                         )}
@@ -1308,7 +1310,7 @@ export function MedicalDashboard() {
                           </Badge>
                         )}
                         {viewingRecord.user_id && (
-                          <Badge className="text-xs font-black bg-sky-100 dark:bg-sky-950 text-[#007DA5] border border-sky-300">
+                          <Badge className="text-xs font-black bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4] border border-sky-300">
                             Conta Vinculada
                           </Badge>
                         )}
@@ -1326,7 +1328,7 @@ export function MedicalDashboard() {
               {/* Severe Allergy Alert Banner */}
               {viewingRecord.is_severe_allergy && (
                 <div className="rounded-2xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/50 p-4 flex items-center gap-3">
-                  <ShieldAlert className="h-6 w-6 text-rose-600 flex-shrink-0 animate-pulse" />
+                  <ShieldAlert className="h-6 w-6 text-rose-800 dark:text-rose-300 flex-shrink-0 animate-pulse" />
                   <div>
                     <h4 className="text-xs font-black text-rose-800 dark:text-rose-200 uppercase tracking-wider">
                       Atenção Médica: Alergia Severa com Risco
@@ -1342,7 +1344,7 @@ export function MedicalDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Allergies Block */}
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-black uppercase text-amber-600 dark:text-amber-400">
+                  <div className="flex items-center gap-1.5 text-xs font-black uppercase text-amber-800 dark:text-amber-300 dark:text-amber-400">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Alergias</span>
                   </div>
@@ -1355,13 +1357,13 @@ export function MedicalDashboard() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs font-bold text-slate-500">Nenhuma alergia relatada</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Nenhuma alergia relatada</p>
                   )}
                 </div>
 
                 {/* Dietary Block */}
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-black uppercase text-emerald-600 dark:text-emerald-400">
+                  <div className="flex items-center gap-1.5 text-xs font-black uppercase text-emerald-800 dark:text-emerald-300 dark:text-emerald-400">
                     <HeartPulse className="h-4 w-4" />
                     <span>Restrição Alimentar</span>
                   </div>
@@ -1386,7 +1388,7 @@ export function MedicalDashboard() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs font-bold text-slate-500">Nenhuma medicação contínua cadastrada</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Nenhuma medicação contínua cadastrada</p>
                 )}
               </div>
 
@@ -1399,7 +1401,7 @@ export function MedicalDashboard() {
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                   <div>
-                    <span className="text-[10px] font-black uppercase text-purple-600 bg-purple-50 dark:bg-purple-950 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-black uppercase text-purple-600 bg-purple-50 dark:bg-purple-950 px-1.5 py-0.5 rounded">
                       1. Principal ({viewingRecord.emergency_contact_relationship || "Responsável"})
                     </span>
                     <p className="text-sm font-black text-slate-900 dark:text-white mt-1">
@@ -1409,7 +1411,7 @@ export function MedicalDashboard() {
                   {viewingRecord.emergency_contact_phone && (
                     <a
                       href={`tel:${viewingRecord.emergency_contact_phone.replace(/\D/g, "")}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 transition-colors shadow-sm self-start sm:self-auto"
+                      className="fsy-action-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-700 text-white font-black text-xs hover:bg-emerald-700 transition-colors shadow-sm self-start sm:self-auto"
                     >
                       <PhoneCall className="h-3.5 w-3.5" />
                       Ligar: {viewingRecord.emergency_contact_phone}
@@ -1420,7 +1422,7 @@ export function MedicalDashboard() {
                 {viewingRecord.contact_2_name && (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 dark:bg-blue-950 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-black uppercase text-blue-600 bg-blue-50 dark:bg-blue-950 px-1.5 py-0.5 rounded">
                         2. Secundário ({viewingRecord.contact_2_relationship || "Contato Adicional"})
                       </span>
                       <p className="text-sm font-black text-slate-900 dark:text-white mt-1">
@@ -1430,7 +1432,7 @@ export function MedicalDashboard() {
                     {viewingRecord.contact_2_phone && (
                       <a
                         href={`tel:${viewingRecord.contact_2_phone.replace(/\D/g, "")}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white font-black text-xs hover:bg-blue-700 transition-colors shadow-sm self-start sm:self-auto"
+                        className="fsy-action-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white font-black text-xs hover:bg-blue-700 transition-colors shadow-sm self-start sm:self-auto"
                       >
                         <PhoneCall className="h-3.5 w-3.5" />
                         Ligar: {viewingRecord.contact_2_phone}
@@ -1453,7 +1455,7 @@ export function MedicalDashboard() {
                         {viewingRecord.bishop_name}
                       </p>
                       {viewingRecord.bishop_ward && (
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
                           Ala / Ramo: {viewingRecord.bishop_ward}
                         </p>
                       )}
@@ -1461,7 +1463,7 @@ export function MedicalDashboard() {
                     {viewingRecord.bishop_phone && (
                       <a
                         href={`tel:${viewingRecord.bishop_phone.replace(/\D/g, "")}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-700 text-white font-black text-xs hover:bg-purple-800 transition-colors shadow-sm self-start sm:self-auto"
+                        className="fsy-action-link inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-700 text-white font-black text-xs hover:bg-purple-800 transition-colors shadow-sm self-start sm:self-auto"
                       >
                         <PhoneCall className="h-3.5 w-3.5" />
                         Ligar: {viewingRecord.bishop_phone}
@@ -1481,7 +1483,7 @@ export function MedicalDashboard() {
                   variant="ghost"
                   onClick={() => setRecordToDelete(viewingRecord)}
                   disabled={deleting === viewingRecord.id}
-                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-bold text-xs"
+                  className="text-rose-800 dark:text-rose-300 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-bold text-xs"
                 >
                   <Trash2 className="h-3.5 w-3.5 mr-1" />
                   Excluir Ficha
@@ -1518,7 +1520,7 @@ export function MedicalDashboard() {
               <SheetTitle className="text-xl font-black text-slate-900 dark:text-white">
                 {isNewSheet ? "Cadastrar Nova Ficha Médica" : `Editar: ${editForm.full_name || "Participante"}`}
               </SheetTitle>
-              <SheetDescription className="text-xs text-slate-500 font-semibold">
+              <SheetDescription className="text-xs text-slate-500 dark:text-slate-300 font-semibold">
                 Preencha os dados médicos e de contato do jovem. Você pode vincular a uma conta cadastrada ou salvar de forma avulsa.
               </SheetDescription>
             </SheetHeader>
@@ -1529,12 +1531,12 @@ export function MedicalDashboard() {
             <div className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/70 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-[#007DA5]" />
+                  <UserCheck className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                   <span className="text-xs font-black uppercase text-slate-900 dark:text-white">
                     Vincular a Usuário Registrado (Opcional)
                   </span>
                 </div>
-                <Badge variant="outline" className="text-xs font-bold text-slate-500">
+                <Badge variant="outline" className="text-xs font-bold text-slate-500 dark:text-slate-300">
                   Não Obrigatório
                 </Badge>
               </div>
@@ -1542,7 +1544,7 @@ export function MedicalDashboard() {
               {editForm.user_id ? (
                 <div className="flex items-center justify-between p-3 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-[#007DA5]" />
+                    <CheckCircle2 className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                     <span className="text-xs font-black text-slate-900 dark:text-white">
                       Vinculado a: <strong>{editForm.full_name}</strong>
                     </span>
@@ -1551,7 +1553,7 @@ export function MedicalDashboard() {
                     size="sm"
                     variant="ghost"
                     onClick={handleUnlinkProfile}
-                    className="h-7 px-2 text-xs font-bold text-rose-600 hover:bg-rose-50"
+                    className="h-7 px-2 text-xs font-bold text-rose-800 dark:text-rose-300 hover:bg-rose-50"
                   >
                     <X className="h-3 w-3 mr-1" /> Desvincular
                   </Button>
@@ -1585,14 +1587,14 @@ export function MedicalDashboard() {
                             className="w-full flex items-center justify-between p-2 rounded-lg text-left text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           >
                             <span className="font-bold">{p.full_name}</span>
-                            <span className="text-[10px] text-slate-500 font-semibold">
+                            <span className="text-xs text-slate-500 dark:text-slate-300 font-semibold">
                               {p.company_id || "Sem Cia"} {p.room ? `• Qto ${p.room}` : ""}
                             </span>
                           </button>
                         ))}
                     </div>
                   )}
-                  <p className="text-[10px] text-slate-500 font-semibold">
+                  <p className="text-xs text-slate-500 dark:text-slate-300 font-semibold">
                     Caso o jovem ainda não possua conta no site, basta preencher o nome no campo abaixo normalmente.
                   </p>
                 </div>
@@ -1601,12 +1603,12 @@ export function MedicalDashboard() {
 
             {/* 1. Identification */}
             <section className="space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
                 1. Identificação do Participante
               </h3>
               <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <label htmlFor="field-medicaldashboard-6" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                  <label htmlFor="field-medicaldashboard-6" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                     Nome Completo *
                   </label>
                   <Input id="field-medicaldashboard-6"
@@ -1619,7 +1621,7 @@ export function MedicalDashboard() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label htmlFor="field-medicaldashboard-7" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-7" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Companhia
                     </label>
                     <Input id="field-medicaldashboard-7"
@@ -1630,7 +1632,7 @@ export function MedicalDashboard() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="field-medicaldashboard-8" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-8" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Quarto
                     </label>
                     <Input id="field-medicaldashboard-8"
@@ -1641,7 +1643,7 @@ export function MedicalDashboard() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="field-medicaldashboard-9" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                    <label htmlFor="field-medicaldashboard-9" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                       Tipo Sanguíneo
                     </label>
                     <Input id="field-medicaldashboard-9"
@@ -1657,7 +1659,7 @@ export function MedicalDashboard() {
 
             {/* 2. Allergies */}
             <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
                 2. Alergias e Gravidade
               </h3>
 
@@ -1667,7 +1669,7 @@ export function MedicalDashboard() {
                   id="is_severe"
                   checked={Boolean(editForm.is_severe_allergy)}
                   onChange={(e) => setEditForm((f) => ({ ...f, is_severe_allergy: e.target.checked }))}
-                  className="h-4 w-4 rounded border-rose-400 text-rose-600 focus:ring-rose-500"
+                  className="h-4 w-4 rounded border-rose-400 text-rose-800 dark:text-rose-300 focus:ring-rose-500"
                 />
                 <label htmlFor="is_severe" className="text-xs font-black text-rose-900 dark:text-rose-200 cursor-pointer">
                   Alergia Grave / Risco de Anafilaxia (Alerta Vermelho)
@@ -1705,12 +1707,12 @@ export function MedicalDashboard() {
 
             {/* 3. Dietary & Medications */}
             <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
                 3. Restrições e Medicamentos
               </h3>
 
               <div>
-                <label htmlFor="field-medicaldashboard-10" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                <label htmlFor="field-medicaldashboard-10" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Restrição Alimentar
                 </label>
                 <Input id="field-medicaldashboard-10"
@@ -1722,7 +1724,7 @@ export function MedicalDashboard() {
               </div>
 
               <div>
-                <label htmlFor="field-medicaldashboard-11" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
+                <label htmlFor="field-medicaldashboard-11" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block mb-1">
                   Medicações de Uso Contínuo (separadas por vírgula)
                 </label>
                 <Input id="field-medicaldashboard-11"
@@ -1739,13 +1741,13 @@ export function MedicalDashboard() {
 
             {/* 4. Emergency Contacts */}
             <section className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
                 4. Contatos de Emergência
               </h3>
 
               {/* Contact 1 */}
               <div className="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-2">
-                <span className="text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                <span className="text-xs font-black uppercase text-purple-700 dark:text-purple-300">
                   Contato 1 (Principal)
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -1766,7 +1768,7 @@ export function MedicalDashboard() {
 
               {/* Bishop */}
               <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-                <span className="text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <span className="text-xs font-black uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1">
                   <Church className="h-3.5 w-3.5 text-purple-600" />
                   Bispo da Ala
                 </span>
@@ -1795,7 +1797,7 @@ export function MedicalDashboard() {
 
             {/* 5. Doctor Notes */}
             <section className="space-y-2 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <label htmlFor="field-medicaldashboard-12" className="text-[11px] font-black uppercase text-slate-600 dark:text-slate-400 block">
+              <label htmlFor="field-medicaldashboard-12" className="text-xs font-black uppercase text-slate-600 dark:text-slate-400 block">
                 Observações Clínicas da Equipe Multidisciplinar
               </label>
               <Input id="field-medicaldashboard-12"
@@ -1845,7 +1847,7 @@ export function MedicalDashboard() {
       >
         <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
-            <DialogTitle className="font-heading text-lg font-black text-rose-600 flex items-center gap-2">
+            <DialogTitle className="font-heading text-lg font-black text-rose-800 dark:text-rose-300 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Excluir Ficha Médica
             </DialogTitle>

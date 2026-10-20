@@ -1,40 +1,41 @@
 import { createClient } from "@/lib/supabase/client";
 import type { MediaPhoto } from "@/types/media";
+import { allowsDirectFallback, cachedRequest, fetchJson, sessionScope } from "@/lib/requests/client";
 
 const STORAGE_KEY = "fsy_offline_featured_photos";
+const PHOTOS_TTL_MS = 60_000;
 
-export async function getFeaturedPhotos(): Promise<{ data: MediaPhoto[]; fromCache: boolean }> {
+export async function getFeaturedPhotos(signal?: AbortSignal): Promise<{ data: MediaPhoto[]; fromCache: boolean }> {
   try {
-    const res = await fetch(`/api/media?_t=${Date.now()}`, { cache: "no-store" });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data && Array.isArray(json.data)) {
-        const visible = (json.data as MediaPhoto[]).filter((p) => p.visible);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(visible));
-          } catch {}
-        }
-        return { data: visible, fromCache: false };
-      }
-    }
-
-    // Direct Supabase fallback
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("media_photos")
-      .select("*")
-      .eq("visible", true)
-      .order("created_at", { ascending: false });
-
-    if (data && data.length > 0) {
-      if (typeof window !== "undefined") {
+    const scope = await sessionScope();
+    const data = await cachedRequest(
+      `media:${scope}:featured`,
+      async (signal) => {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch {}
-      }
-      return { data: data as MediaPhoto[], fromCache: false };
+          const json = await fetchJson<{ data?: MediaPhoto[] }>("/api/media", signal);
+          if (!Array.isArray(json.data)) throw new Error("Resposta inválida de /api/media");
+          return json.data.filter((p) => p.visible);
+        } catch (error) {
+          if (!allowsDirectFallback(error)) throw error;
+          const { data: dbData, error: dbError } = await createClient()
+            .from("media_photos")
+            .select("*")
+            .eq("visible", true)
+            .order("created_at", { ascending: false })
+            .abortSignal(signal);
+          if (dbError || !dbData?.length) throw dbError ?? error;
+          return dbData as MediaPhoto[];
+        }
+      },
+      { ttlMs: PHOTOS_TTL_MS, signal }
+    );
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch {}
     }
+    return { data, fromCache: false };
   } catch {}
 
   // Fallback to cache

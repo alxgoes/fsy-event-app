@@ -67,7 +67,7 @@ export default function LoadingPreviewPage() {
           {/* Controls Card */}
           <div className="md:col-span-4 rounded-3xl bg-white/90 dark:bg-slate-900/90 border-2 border-slate-900/10 dark:border-slate-800 p-6 shadow-md backdrop-blur-md space-y-5">
             <h2 className="font-heading text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[#007DA5]" />
+              <Sparkles className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
               Controles Interativos
             </h2>
 
@@ -75,7 +75,7 @@ export default function LoadingPreviewPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-bold">
                 <span>Tamanho do Ícone</span>
-                <span className="text-[#007DA5] font-black">{size}px</span>
+                <span className="text-[#005E7C] dark:text-[#7DE3F4] font-black">{size}px</span>
               </div>
               <input
                 type="range"
@@ -86,7 +86,7 @@ export default function LoadingPreviewPage() {
                 onChange={(e) => setSize(Number(e.target.value))}
                 className="w-full cursor-pointer accent-[#007DA5]"
               />
-              <div className="flex justify-between text-[10px] text-slate-400">
+              <div className="flex justify-between text-xs text-slate-600 dark:text-slate-300">
                 <span>24px (inline)</span>
                 <span>64px (médio)</span>
                 <span>96px (destaque)</span>
@@ -98,7 +98,7 @@ export default function LoadingPreviewPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-bold">
                 <span>Taxa de Velocidade (--rate)</span>
-                <span className="text-[#007DA5] font-black">{rate}x</span>
+                <span className="text-[#005E7C] dark:text-[#7DE3F4] font-black">{rate}x</span>
               </div>
               <div className="grid grid-cols-4 gap-1.5">
                 {[0.5, 0.8, 1, 1.5].map((r) => (
@@ -127,7 +127,7 @@ export default function LoadingPreviewPage() {
                   onClick={() => setVariant("default")}
                   className={`py-2 px-3 rounded-xl text-xs font-black border transition-all ${
                     variant === "default"
-                      ? "border-[#007DA5] bg-[#007DA5]/10 text-[#007DA5]"
+                      ? "border-[#007DA5] bg-[#007DA5]/10 text-[#005E7C] dark:text-[#7DE3F4]"
                       : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
@@ -137,7 +137,7 @@ export default function LoadingPreviewPage() {
                   onClick={() => setVariant("brand")}
                   className={`py-2 px-3 rounded-xl text-xs font-black border transition-all ${
                     variant === "brand"
-                      ? "border-[#007DA5] bg-[#007DA5]/10 text-[#007DA5]"
+                      ? "border-[#007DA5] bg-[#007DA5]/10 text-[#005E7C] dark:text-[#7DE3F4]"
                       : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
@@ -147,7 +147,7 @@ export default function LoadingPreviewPage() {
                   onClick={() => setVariant("gold")}
                   className={`py-2 px-3 rounded-xl text-xs font-black border transition-all ${
                     variant === "gold"
-                      ? "border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      ? "border-amber-500 bg-amber-500/10 text-amber-800 dark:text-amber-300 dark:text-amber-400"
                       : "border-slate-200 dark:border-slate-800"
                   }`}
                 >
@@ -174,7 +174,7 @@ export default function LoadingPreviewPage() {
                 <h3 className="font-heading text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
                   Visualização do LoadingScreen Integrado
                 </h3>
-                <span className="text-[11px] font-bold text-slate-500">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-300">
                   Responsivo & Acessível
                 </span>
               </div>
@@ -247,7 +247,7 @@ export default function LoadingPreviewPage() {
             className="rounded-3xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-500/40 p-6 shadow-xl space-y-4"
           >
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="h-6 w-6 text-emerald-800 dark:text-emerald-300 dark:text-emerald-400" />
               <div>
                 <h3 className="font-heading text-lg font-black text-emerald-950 dark:text-emerald-200">
                   Ready Check Concluído com Sucesso!
@@ -260,10 +260,10 @@ export default function LoadingPreviewPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 shadow-sm flex items-center gap-3">
-                <Users className="h-5 w-5 text-[#007DA5]" />
+                <Users className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
                 <div>
                   <p className="text-xs font-black text-slate-900 dark:text-white">Companhia</p>
-                  <p className="text-xs font-bold text-slate-500">100% Sincronizada</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-300">100% Sincronizada</p>
                 </div>
               </div>
 
@@ -271,7 +271,7 @@ export default function LoadingPreviewPage() {
                 <Calendar className="h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs font-black text-slate-900 dark:text-white">Cronograma</p>
-                  <p className="text-xs font-bold text-slate-500">Pronto para Exibição</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Pronto para Exibição</p>
                 </div>
               </div>
 
@@ -279,7 +279,7 @@ export default function LoadingPreviewPage() {
                 <Shield className="h-5 w-5 text-pink-500" />
                 <div>
                   <p className="text-xs font-black text-slate-900 dark:text-white">Permissões</p>
-                  <p className="text-xs font-bold text-slate-500">Validadas no Contexto</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-300">Validadas no Contexto</p>
                 </div>
               </div>
             </div>
@@ -293,14 +293,14 @@ export default function LoadingPreviewPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-[#007DA5]/10 text-[#007DA5] dark:text-cyan-400 border border-[#007DA5]/20 px-2.5 py-0.5 text-xs font-black uppercase">
+                <span className="rounded-full bg-[#007DA5]/10 text-[#005E7C] dark:text-cyan-400 border border-[#007DA5]/20 px-2.5 py-0.5 text-xs font-black uppercase">
                   Liquid Gooey + Neo-Brutal
                 </span>
                 <h2 className="text-lg sm:text-xl font-black font-heading tracking-tight text-slate-900 dark:text-white">
                   Botões Cápsula Táteis & Transições Líquidas
                 </h2>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium mt-1">
                 Mescla do estilo do site (cápsula da foto em anexo) com as físicas elásticas de Liquid Gooey e micro-transições do Transitions.dev.
               </p>
             </div>
@@ -318,7 +318,7 @@ export default function LoadingPreviewPage() {
 
           {/* 1. Exact button from user's attached photo */}
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
               1. Botão Exato da Foto Enviada (Fundo Escuro, Borda Sólida, Sombra Tátil & Ícone Neon)
             </p>
             <div className="p-6 rounded-2xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-center gap-4">
@@ -335,7 +335,7 @@ export default function LoadingPreviewPage() {
 
           {/* 2. Palette Variants respecting FSY 2027 */}
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
               2. Variantes de Cores Oficiais FSY 2027
             </p>
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3">
@@ -370,7 +370,7 @@ export default function LoadingPreviewPage() {
                 variant="outline"
                 size="sm"
                 icon={<FolderOpen className="h-3.5 w-3.5" />}
-                iconColor="text-[#007DA5]"
+                iconColor="text-[#005E7C] dark:text-[#7DE3F4]"
               >
                 Contorno Tátil
               </GooeyButton>
@@ -388,7 +388,7 @@ export default function LoadingPreviewPage() {
 
           {/* 3. Liquid Gooey Pill Tabs (P13 Transitions.dev) */}
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
               3. Barra de Abas Líquida (GooeyPillTabs — P13 do Transitions.dev com Borracha Elástica)
             </p>
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3">
@@ -404,7 +404,7 @@ export default function LoadingPreviewPage() {
                 onChange={(tab) => setActiveTab(tab)}
                 variant="brand"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
                 Aba selecionada no momento: <strong className="text-slate-900 dark:text-white">{activeTab}</strong>. Note como o indicador desliza com amortecimento de mola líquida.
               </p>
             </div>
@@ -412,7 +412,7 @@ export default function LoadingPreviewPage() {
 
           {/* 4. Micro-transitions: P10 (Success Check) & P12 (Shake on Error) */}
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
               4. Micro-transições do Transitions.dev (P10 Success Check & P12 Error Shake)
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -441,7 +441,7 @@ export default function LoadingPreviewPage() {
                   {testSuccess ? (
                     <SuccessCheck label="Foto publicada e sincronizada!" />
                   ) : (
-                    <span className="text-xs text-slate-400">Clique no botão abaixo para simular o sucesso.</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-300">Clique no botão abaixo para simular o sucesso.</span>
                   )}
                 </div>
                 <GooeyButton

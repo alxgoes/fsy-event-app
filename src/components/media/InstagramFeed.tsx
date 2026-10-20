@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useEffect, useId, useState } from "react";
 import Image from "next/image";
@@ -9,12 +11,12 @@ import type { InstagramPost } from "@/types/instagram";
 
 const OFFICIAL_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
 const DEFAULT_FEED = "KjHNorrOyv2vHpAmLE0F";
-const controlClass = "inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-[#007DA5] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30 dark:text-[#7DE3F4]";
+const controlClass = "inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-[#005E7C] dark:text-[#7DE3F4] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30 dark:text-[#7DE3F4]";
 
 function Caption({ text }: { text: string }) {
   return <>{tokenizeCaption(text).map((token, index) => token.type === "text"
     ? <React.Fragment key={index}>{token.value}</React.Fragment>
-    : <a key={index} href={token.href} target="_blank" rel="noopener noreferrer" className="text-[#007DA5] underline underline-offset-4 focus-visible:outline focus-visible:outline-2 dark:text-[#7DE3F4]">{token.value}</a>)}</>;
+    : <a key={index} href={token.href} target="_blank" rel="noopener noreferrer" className="text-[#005E7C] dark:text-[#7DE3F4] underline underline-offset-4 focus-visible:outline focus-visible:outline-2">{token.value}</a>)}</>;
 }
 
 function PostImage({ post, full = false }: { post: InstagramPost; full?: boolean }) {
@@ -59,8 +61,8 @@ export function InstagramFeed() {
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true);
-    setFailed(false);
+    startTransition(() => { setLoading(true); });
+    startTransition(() => { setFailed(false); });
     async function load() {
       try {
         const feed = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID || DEFAULT_FEED;
@@ -68,14 +70,14 @@ export function InstagramFeed() {
         if (!response.ok) throw new Error("Feed indisponível");
         const json = await response.json();
         if (!Array.isArray(json.data)) throw new Error("Resposta inválida");
-        setPosts(json.data);
+        startTransition(() => { setPosts(json.data); });
       } catch {
-        if (!controller.signal.aborted) setFailed(true);
+        if (!controller.signal.aborted) startTransition(() => { setFailed(true); });
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) startTransition(() => { setLoading(false); });
       }
     }
-    void load();
+    startTransition(() => { void load(); });
     return () => controller.abort();
   }, [attempt]);
   return <div className="space-y-4" aria-busy={loading}>

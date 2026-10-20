@@ -19,10 +19,10 @@ const VOLUTE_PATH =
 const VARIANT_COLORS: Record<NonNullable<VoluteLoaderProps["variant"]>, string> = {
   // Exact user specification: Light (#131316) / Dark (#f5f5f7)
   default: "text-[#131316] dark:text-[#f5f5f7]",
-  brand: "text-[#007DA5] dark:text-[#01B6D1]",
+  brand: "text-[#005E7C] dark:text-[#01B6D1]",
   gold: "text-[#C49B28] dark:text-[#FFE48A]",
   white: "text-white",
-  subtle: "text-slate-500 dark:text-slate-400",
+  subtle: "text-slate-500 dark:text-slate-300 dark:text-slate-400",
 };
 
 export function VoluteLoader({

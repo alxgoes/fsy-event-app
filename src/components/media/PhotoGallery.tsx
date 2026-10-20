@@ -1,5 +1,6 @@
 "use client";
 
+
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Camera, ChevronLeft, ChevronRight, ExternalLink, ImageOff, X } from "lucide-react";
@@ -29,7 +30,6 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
   const filtered = category === "todas" ? items : items.filter((p) => (p.category || "Geral") === category);
   const shown = filtered.slice(0, visible);
 
-  useEffect(() => setVisible(PAGE_SIZE), [category]);
 
   const close = useCallback(() => {
     const index = open;
@@ -41,7 +41,7 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
     <section aria-labelledby="gallery-title" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-900 sm:p-7">
       <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E6F4F9] text-[#007DA5] dark:bg-[#01B6D1]/15 dark:text-[#7DE3F4]">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E6F4F9] text-[#005E7C] dark:bg-[#01B6D1] dark:text-slate-950">
             <Camera className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
@@ -55,7 +55,7 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
           href={DRIVE_FOLDER_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 self-start rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 sm:self-auto"
+          className="fsy-action-link inline-flex min-h-11 items-center gap-2 self-start rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 sm:self-auto"
         >
           Pasta no Google Drive <ExternalLink className="h-4 w-4" aria-hidden="true" />
           <span className="sr-only">(abre em nova aba)</span>
@@ -69,7 +69,7 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
               key={value}
               type="button"
               aria-pressed={category === value}
-              onClick={() => setCategory(value)}
+              onClick={() => { setCategory(value); setVisible(PAGE_SIZE); }}
               className={cn(
                 "min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25",
                 category === value
@@ -106,7 +106,7 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
       )}
 
       {open !== null && filtered[open] && (
-        <Lightbox photos={filtered} index={open} onIndex={setOpen} onClose={close} />
+        <Lightbox key={filtered[open].id} photos={filtered} index={open} onIndex={setOpen} onClose={close} />
       )}
     </section>
   );
@@ -120,7 +120,7 @@ function Tile({ photo, onOpen, buttonRef }: { photo: GalleryPhoto; onOpen: () =>
       type="button"
       onClick={onOpen}
       disabled={!photo.sources}
-      aria-label={photo.sources ? `Ampliar foto: ${photo.title}` : `Foto indisponível: ${photo.title}`}
+      aria-label={state === "error" ? `Imagem indisponível: ${photo.title}. Tentar ampliar foto` : `Ampliar foto: ${photo.title}`}
       className="group relative block aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/35 disabled:cursor-not-allowed dark:bg-slate-800"
     >
       {photo.sources && state !== "error" && (
@@ -159,7 +159,6 @@ function Lightbox({ photos, index, onIndex, onClose }: { photos: GalleryPhoto[];
 
   const go = useCallback((delta: number) => onIndex((index + delta + count) % count), [index, count, onIndex]);
 
-  useEffect(() => setFailed(false), [index]);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -209,7 +208,7 @@ function Lightbox({ photos, index, onIndex, onClose }: { photos: GalleryPhoto[];
           href={photo.sources.original}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7DE3F4]/50"
+          className="fsy-action-link inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#7DE3F4]/50"
         >
           <ExternalLink className="h-4 w-4" aria-hidden="true" /> <span className="hidden sm:inline">Abrir no Drive</span>
           <span className="sr-only sm:hidden">Abrir no Google Drive</span>

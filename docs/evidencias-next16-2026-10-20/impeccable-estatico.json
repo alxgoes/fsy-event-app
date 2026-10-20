@@ -1,0 +1,164 @@
+[
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/app/globals.css",
+    "line": 316,
+    "snippet": "Undocumented color #0c2733 is outside DESIGN.md colors",
+    "ignoreValue": "#0c2733"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/AdminLayout.module.css",
+    "line": 10,
+    "snippet": "Undocumented color #e0e2e2 is outside DESIGN.md colors",
+    "ignoreValue": "#e0e2e2",
+    "importedBy": [
+      "AdminLayout.tsx"
+    ]
+  },
+  {
+    "antipattern": "gray-on-color",
+    "name": "Gray text on colored background",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/CounselorAuditManager.tsx",
+    "line": 574,
+    "snippet": "text-slate-600 on bg-red-50"
+  },
+  {
+    "antipattern": "gray-on-color",
+    "name": "Gray text on colored background",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/CounselorAuditManager.tsx",
+    "line": 574,
+    "snippet": "text-slate-300 on bg-red-50"
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/InclusionManager.module.css",
+    "line": 9,
+    "snippet": "Undocumented color #e0e2e2 is outside DESIGN.md colors",
+    "ignoreValue": "#e0e2e2",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/InclusionManager.module.css",
+    "line": 28,
+    "snippet": "Undocumented color #e0e2e2 is outside DESIGN.md colors",
+    "ignoreValue": "#e0e2e2",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/InclusionManager.module.css",
+    "line": 32,
+    "snippet": "Undocumented color #9a3412 is outside DESIGN.md colors",
+    "ignoreValue": "#9a3412",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/InclusionManager.module.css",
+    "line": 37,
+    "snippet": "Undocumented color #e0e2e2 is outside DESIGN.md colors",
+    "ignoreValue": "#e0e2e2",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/InclusionManager.module.css",
+    "line": 46,
+    "snippet": "Undocumented color #e0e2e2 is outside DESIGN.md colors",
+    "ignoreValue": "#e0e2e2",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "gray-on-color",
+    "name": "Gray text on colored background",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/MedicalDashboard.tsx",
+    "line": 674,
+    "snippet": "text-slate-700 on bg-sky-50",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "gray-on-color",
+    "name": "Gray text on colored background",
+    "description": "Gray text looks washed out on colored backgrounds. Use a darker shade of the background color instead, or white/near-white for contrast.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/components/admin/MedicalDashboard.tsx",
+    "line": 674,
+    "snippet": "text-slate-200 on bg-sky-50",
+    "importedBy": [
+      "InclusionManager.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/lib/email/send.ts",
+    "line": 28,
+    "snippet": "font-family:Inter"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "/Users/alexgoes/Documents/FSY/fsy-event-app/src/lib/email/send.ts",
+    "line": 28,
+    "snippet": "font-size: 15px is off the DESIGN.md type ramp",
+    "ignoreValue": "15px"
+  }
+]

@@ -19,10 +19,11 @@ const uuid = z.string().uuid();
 const LAST_ADMIN = "Esta é a última conta de direção habilitada. Habilite outra antes de continuar.";
 const SELF = "Você não pode alterar o próprio cargo, suspender ou excluir a própria conta.";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** Histórico administrativo da conta (sem senhas nem conteúdo de mensagens). */
-export async function GET(_request: Request, { params }: Ctx) {
+export async function GET(_request: Request, { params: paramsPromise }: Ctx) {
+  const params = await paramsPromise;
   const auth = await requireIdentity("userManagers");
   if (auth.response) return auth.response;
   if (!uuid.safeParse(params.id).success) return json({ error: "Conta inválida." }, 400);
@@ -36,7 +37,8 @@ export async function GET(_request: Request, { params }: Ctx) {
   return json({ data: data ?? [] });
 }
 
-export async function PATCH(request: Request, { params }: Ctx) {
+export async function PATCH(request: Request, { params: paramsPromise }: Ctx) {
+  const params = await paramsPromise;
   const auth = await requireIdentity("userManagers");
   if (auth.response) return auth.response;
   const { identity } = auth;
@@ -122,7 +124,8 @@ export async function PATCH(request: Request, { params }: Ctx) {
   }
 }
 
-export async function DELETE(request: Request, { params }: Ctx) {
+export async function DELETE(request: Request, { params: paramsPromise }: Ctx) {
+  const params = await paramsPromise;
   const auth = await requireIdentity("userManagers");
   if (auth.response) return auth.response;
   const { identity } = auth;

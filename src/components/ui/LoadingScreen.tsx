@@ -1,5 +1,6 @@
 "use client";
 
+import { EVENT_THEME } from "@/lib/event/identity";
 import React from "react";
 import { motion } from "framer-motion";
 import { VoluteLoader } from "./VoluteLoader";
@@ -66,8 +67,8 @@ export function LoadingScreen({
           <div className="h-4 w-3 shrink-0 flex items-center justify-center">
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
-          <span className="font-heading font-black text-[11px] tracking-wider text-slate-800 dark:text-slate-200 uppercase">
-            FSY 2027 • Rejoice in Christ
+          <span className="font-heading font-black text-xs tracking-wider text-slate-800 dark:text-slate-200 uppercase">
+            FSY 2027 • {EVENT_THEME}
           </span>
         </div>
 
@@ -87,7 +88,7 @@ export function LoadingScreen({
             {message}
           </p>
           {submessage && (
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
               {submessage}
             </p>
           )}

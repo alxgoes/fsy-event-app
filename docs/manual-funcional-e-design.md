@@ -1,8 +1,8 @@
 # Manual funcional e de design — FSY Sessão Ribeirão Preto 2
 
-Versão local verificada em 20/10/2026. Preparação da equipe em **05/02/2027**; participantes de **06 a 10/02/2027**. Tema: **Regozijai-vos em Cristo / Rejoice in Christ**, Filipenses 4:4. Este é o portal da sessão Ribeirão Preto 2, sem representar um portal institucional global.
+Versão local verificada em 20/10/2026. Preparação da equipe em **05/02/2027**; participantes de **06 a 10/02/2027**. Tema exato definido pelo usuário: **Alegra-se em Cristo**, Filipenses 4:4. Este é o portal da sessão Ribeirão Preto 2, sem representar um portal institucional global.
 
-O manual descreve o código entregue. A conexão real com Supabase, migrações externas, configuração de e-mail e publicação continuam pendentes. A auditoria ampliada ficou em **14/20 (70%)**, abaixo da meta acima de 95%. Consulte a seção 13 antes de preparar a operação do evento.
+O manual descreve a entrega local atual e diferencia os resultados remotos confirmados pelo coordenador. Supabase está Healthy e as migrações 001–003 foram aplicadas/verificadas, com contagens preservadas. O root ainda fará push, implantação e checagem publicada. Envio de e-mail não foi validado; a confirmação visual final será feita pela CI. Não há nota Impeccable 20/20 demonstrada. Consulte a seção 13 antes da operação.
 
 ## Índice
 
@@ -54,7 +54,7 @@ Não é permitido alterar o próprio cargo, suspender/excluir a própria conta o
 
 Em `/login`, escolha entrar, cadastrar-se ou recuperar acesso. O cadastro usa Supabase Auth e cria perfil com cargo inicial `jovem`; informações como nome, estaca e telefone complementam o cadastro. Se o projeto exigir confirmação de e-mail, a pessoa precisa seguir o link enviado pelo Auth antes de entrar.
 
-O botão de Google depende de o provedor e seus redirecionamentos estarem configurados no projeto. O fluxo preserva a identidade mantida pelo Supabase. Não existe entrada de demonstração que conceda acesso administrativo.
+O coordenador salvou o nome **FSY Sessão Ribeirão Preto 2** e o logo `public/icons/icon-512.png` no projeto Google `gen-lang-client-0100438624`. OAuth permanece em **Teste**, pendente lançamento geral; não foi comprado domínio. O botão de Google depende de o provedor e seus redirecionamentos estarem configurados no projeto. O fluxo preserva a identidade mantida pelo Supabase. Não existe entrada de demonstração que conceda acesso administrativo.
 
 ### Esqueci minha senha
 
@@ -64,7 +64,7 @@ O botão de Google depende de o provedor e seus redirecionamentos estarem config
 4. Abra o link válido recebido e defina a nova senha em `/redefinir-senha`.
 5. Retorne à entrada conforme a orientação da tela. Link inválido/expirado exige novo pedido.
 
-A validade e os requisitos adicionais de senha dependem da configuração do Supabase; a aplicação valida sua política local e exibe os erros suportados. O processo aceita o retorno de recuperação do Auth e a confirmação por `token_hash` em `/auth/confirm`. As Redirect URLs precisam ser configuradas antes do uso externo.
+A validade e os requisitos adicionais de senha dependem da configuração do Supabase; a aplicação valida sua política local e exibe os erros suportados. O processo aceita o retorno de recuperação do Auth e a confirmação por `token_hash` em `/auth/confirm`. O coordenador conferiu as Redirect URLs de produção/** e `/auth/callback`; os fluxos completos de recuperação ainda exigem uma conta controlada e serviço de envio definido. SMTP customizado permanece OFF. Não houve envio real nesta validação.
 
 Em conta Google, a recuperação pode criar uma senha **do portal** para o mesmo cadastro, conforme os recursos do Auth. Não altera nem recupera a senha do Google. A integração desse caso precisa ser validada em conta de teste no projeto real.
 
@@ -119,7 +119,7 @@ As ações oferecidas dependem do cargo e do alvo:
 - **Definir nova senha do portal:** somente direção/coordenação autorizada; a senha anterior não é lida. A nova senha não é devolvida nem registrada na auditoria. Para a própria conta, use recuperação.
 - **E-mail individual:** selecionar destinatário, escrever assunto e mensagem, revisar e confirmar. O backend usa Resend quando configurado; a resposta significa **aceito para envio**, sem comprovar entrega na caixa postal.
 
-A trilha administrativa registra ator, alvo, ação, data e detalhes limitados. Não contém senhas nem o corpo integral da mensagem. Se a gravação da auditoria falhar depois de uma ação, o retorno indica seu estado; a equipe deve conferir o resultado, sem presumir que repetir uma exclusão é inofensivo.
+**Sem `RESEND_API_KEY` e `EMAIL_FROM`, o envio individual fica indisponível.** Não há provedor SMTP/transacional confirmado pelo usuário nem entrega em produção comprovada. A trilha administrativa registra ator, alvo, ação, data e detalhes limitados. Não contém senhas nem o corpo integral da mensagem. Se a gravação da auditoria falhar depois de uma ação, o retorno indica seu estado; a equipe deve conferir o resultado, sem presumir que repetir uma exclusão é inofensivo.
 
 Falha ao consultar o perfil de um alvo interrompe a operação: não é tratada como prova de cargo inferior. Os testes de recuperação/envio/remoção usam mocks e identidades fictícias. Não foram enviados e-mails ou excluídas contas reais para validar a entrega.
 
@@ -170,7 +170,13 @@ A disponibilidade do convite depende do navegador, HTTPS e critérios de instala
 
 A PWA não é um aplicativo nativo Android/iOS. Atualizações e dados da sessão precisam de conexão. O service worker mantém uma estratégia restrita de recursos públicos e fallback offline; APIs privadas e respostas autenticadas não são persistidas por ele. Serviços podem manter cópias locais específicas, como programação; avisos/companhia usam isolamento por conta. Saúde e inclusão exigem rede e não têm modo clínico offline prometido.
 
-Ao sair ou trocar de conta, não use um cache antigo como prova de acesso atual. Suspensão precisa das novas políticas para bloquear também consultas diretas com um JWT ainda válido.
+A fila/cache de leitura é por aba: no máximo 4 tarefas simultâneas, 24 em espera, timeout de 12 segundos contando a fila e até 50 entradas. Agenda, companhia e fotos usam TTL de 60 segundos; avisos, 20 segundos. Chamadas iguais em voo compartilham busca; contas diferentes têm chaves distintas. Troca de conta limpa/aborta o cache em memória; curtidas invalidam avisos. Login, escritas clínicas e urgências não entram nessa fila.
+
+O efeito do painel jovem passa um `AbortController` aos quatro serviços e cancela no cleanup. API 401/403, rede, timeout ou cancelamento não disparam uma segunda consulta direta ao banco; só resposta 5xx permite esse fallback, ainda sob RLS. O armazenamento offline existente mantém os limites próprios. Saúde/inclusão não recebem cache clínico por essa camada.
+
+O service worker usa **`fsy-pwa-v3`**: na ativação, remove apenas caches FSY anteriores e preserva caches alheios. Isso renova a página offline/ícones e os recursos públicos após a atualização; uma tela já aberta pode precisar ser recarregada. APIs privadas, HTML autenticado e payloads React não são guardados pelo service worker. Não foi comprovada a atualização de uma instalação física.
+
+Cache não é autorização; as políticas restritivas de perfil ativo foram aplicadas pelo coordenador. O navegador não mantém fila global entre todos os participantes e não há promessa de redução financeira medida em produção. Veja [Requisições e custos](requisicoes-e-custos.md).
 
 ## 9. Sistema visual e acessibilidade
 
@@ -191,7 +197,9 @@ Ao sair ou trocar de conta, não use um cache antigo como prova de acesso atual.
 
 Cinzel e Cormorant Garamond atendem títulos/destaques; Inter atende interface e leitura. O padrão Seigaiha e as marcas FSY são elementos específicos deste evento. As superfícies novas de galeria/campos usam bordas suaves; cartões anteriores preservam elementos táteis da identidade.
 
-Paleta de marca não garante contraste por si só. Branco sobre rosa/ciano em alguns componentes existentes continua pendente de correção. Não reutilize essas combinações como se já tivessem aprovação WCAG.
+A constante de identidade é `src/lib/event/identity.ts`; marca, cartões, login/rodapé, carregamento, metadados e PWA usam **Alegra-se em Cristo**. Lemas das companhias e horários foram preservados. A citação de Filipenses no cartão continua como escritura, distinta do texto do tema.
+
+Paleta não garante contraste: a saudação usa branco sobre `--fsy-hero` #005e7c (7,26:1), o contador rosa usa grafite (5,48:1) e urgência usa branco/vermelho escuro (6,47:1). `--fsy-link` adapta a ação ao tema; o fundo escuro foi atenuado e avisos importantes usam superfície estável. IDs de companhia escolhem preto/branco pela luminância da cor configurada. Essas medidas não substituem QA sobre superfícies com imagem/canvas.
 
 ### Campos e estados
 
@@ -199,7 +207,7 @@ Paleta de marca não garante contraste por si só. Branco sobre rosa/ciano em al
 
 Rótulo, dica e erro devem permanecer associados ao controle. Checkbox, radio, seleção de arquivos e listas nativas mantêm comportamento do sistema; sua aparência aberta pode variar por navegador/OS. Não se promete controle visual total dessas superfícies.
 
-Novos controles de layout oferecem teclado, foco e anúncio de posição. Diálogos devem ter título, Escape, fechamento e foco previsíveis. Movimento reduzido é respeitado pelos componentes que usam essa preferência; o aviso offline não pula continuamente. Alguns textos pequenos, links operacionais e contrastes anteriores ainda constam na auditoria.
+Novos controles de layout oferecem teclado, foco e anúncio de posição. Diálogos devem ter título, Escape, fechamento e foco previsíveis. Movimento reduzido é respeitado pelos componentes que usam essa preferência; o aviso offline não pula continuamente. Textos funcionais de 9–11 px foram ampliados a 12 px; marca gráfica pode conter tipografia menor, repetida em texto maior no portal. Links operacionais têm alvo mínimo 44×44 e foco; links dentro de parágrafos permanecem inline. As abas da agenda oferecem setas, Home/End e painel associado. Achados remanescentes e a confirmação ainda pendente constam na auditoria.
 
 ### Padrões reutilizáveis
 
@@ -207,7 +215,7 @@ Reutilize controles de formulário, contratos TypeScript, guard de servidor, JSO
 
 ## 10. Arquitetura, contratos e dados
 
-Next.js App Router com React 18/TypeScript e Tailwind. Componentes em `src/components`; rotas e APIs em `src/app`; serviços de consulta em `src/services`; autenticação, layout e integração em `src/lib`. Framer Motion atende interações existentes. Componentes de diálogo usam Base UI.
+Next.js **16.4.2** App Router com **React/React DOM 19.3.1**, TypeScript e Tailwind. Cookies e parâmetros dinâmicos usam o contrato assíncrono; `src/proxy.ts` substitui middleware preservando os guards. ESLint 9/flat config oficial executa separado do build; regras novas não foram desativadas. Componentes em `src/components`; rotas e APIs em `src/app`; serviços de consulta em `src/services`; autenticação, layout e integração em `src/lib`. Framer Motion atende interações existentes. Componentes de diálogo usam Base UI.
 
 Contratos precedem integração de frontend/backend. Referências principais:
 
@@ -231,62 +239,77 @@ Contratos precedem integração de frontend/backend. Referências principais:
 | Auditoria | `counselor_audit_logs`, `admin_account_events` |
 | Ordem individual | `user_layout_preferences` |
 
-O middleware protege rotas e verifica origem das mutações; as APIs também autorizam operação/objeto e derivam autoria confiável. Clientes administrativos são exclusivos do servidor. RLS/grants limitam consultas diretas. Parte da escrita de conteúdo é reservada ao backend; preferências individuais seguem sua política própria.
+O Proxy protege rotas e verifica origem das mutações; as APIs também autorizam operação/objeto e derivam autoria confiável. Clientes administrativos são exclusivos do servidor. RLS/grants limitam consultas diretas. Parte da escrita de conteúdo é reservada ao backend; preferências individuais seguem sua política própria.
 
-O limitador local de requisições é por instância de processo; não equivale a um limitador distribuído em todos os nós serverless. O Supabase Auth também aplica suas configurações de proteção. Não há afirmação de segurança absoluta ou integração real comprovada só por testes locais.
+A proteção de abuso de rotas é local à instância; não equivale a um limitador distribuído em todos os nós serverless. A camada de leituras `src/lib/requests` é por aba e não compartilha cache no servidor entre usuários. O Supabase Auth também aplica suas configurações de proteção. Não há afirmação de segurança absoluta ou integração real comprovada só por testes locais.
 
-## 11. Configuração e migrações
+## 11. Configuração, dados preservados e políticas
 
-Use Node 22 ou 24 e npm. Copie `.env.example` para `.env.local`, preenchendo o projeto correto. Não versione chaves.
+Use Node 22 ou 24 e npm. Copie `.env.example` para `.env.local`, preenchendo o projeto correto. Nunca versione chaves, exports de participantes ou identidades do Auth.
 
 | Variável | Uso |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave pública para o cliente sob RLS |
 | `SUPABASE_SERVICE_ROLE_KEY` | Somente servidor; operações administrativas |
-| `NEXT_PUBLIC_SITE_URL` | Origem pública dos links enviados |
-| `NEXT_PUBLIC_BEHOLD_FEED_ID` / `BEHOLD_FEED_ID` | Feed de Instagram configurado |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Envio individual transacional; sem configuração fica indisponível |
+| `NEXT_PUBLIC_SITE_URL` | Origem pública dos links |
+| `NEXT_PUBLIC_BEHOLD_FEED_ID` / `BEHOLD_FEED_ID` | Feed de Instagram |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Envio individual transacional; indisponível sem configuração |
 
-No Supabase Auth, incluir URLs válidas de `/redefinir-senha` e `/auth/confirm` do domínio publicado; conferir callback do Google e template de recuperação. Um template com `token_hash` pode usar `/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha`, com a origem correta. Não colocar tokens em relatórios/logs.
+O Supabase `vhbmnnpgftrrovjtvbzo` estava pausado e foi retomado pelo coordenador. O painel confirmou restauração e Healthy. A inspeção verificou Auth 6, perfis 6, companhias 4, agenda 82, fotos 4 e avisos 0; `/api/media` publicado respondeu 200. Nenhum dado foi recriado.
 
-Preservar/exportar banco **e Auth** antes de alterações. Conferir histórico real antes de aplicar:
+O coordenador preservou fora do Git um **snapshot JSON privado** de 12 tabelas públicas, `auth.users` e `auth.identities`, além da inspeção de schema/políticas/funções/grants/constraints. Isso **não é pg_dump nem backup completo de Storage**. Sua localização e conteúdo privado não devem entrar em commits/artefatos de CI.
 
-1. Migrações anteriores de inclusão/atendimentos de setembro de 2026.
+A sequência aplicada e confirmada remotamente foi:
+
+1. Histórico anterior de inclusão/atendimentos, conferido pelo coordenador.
 2. `202610200001_security_hardening.sql`.
 3. `202610200002_account_safety.sql`.
+4. `202610200003_remote_policy_cleanup.sql`.
 
-A segunda migração de outubro acrescenta políticas restritivas de perfil ativo e proteção transacional da última administração. Não reaplicar `schema.sql` sobre um ambiente migrado nem usar seed/reset para supor recuperação de dados.
+O bundle 001–003 foi comparado por hash e aplicado em transação única pelo root. Resultado confirmado: contagens anteriores iguais, três tabelas novas, 15 políticas `active_profile_required`, nove políticas sensíveis exatas e `unexpected_grants = 0`. A limpeza remove políticas permissivas extras por tabela e recria a allowlist; não depende de nomes históricos/truncados. Não executa seed/reset/DELETE de registros.
 
-O host histórico do exemplo `vhbmnnpgftrrovjtvbzo.supabase.co` retornou **ENOTFOUND** nesta execução e não há `.env.local`. Falta acesso ao painel/projeto real usado pela Vercel para distinguir pausa, troca ou indisponibilidade. Não foi provada exclusão do projeto nem restaurado banco real.
+O teste remoto com role authenticated e claims de um jovem leu só o próprio perfil (1), agenda 82, companhias 4, fotos 4, zero eventos administrativos e não tinha UPDATE em medical_records/schedule_items. Nenhum registro foi alterado pelo teste. Isso comprova esses casos e não toda combinação de cargo/fluxo. Consulte [Segurança RLS recuperada](seguranca-rls-recuperada.md).
 
-## 12. Manutenção, publicação e retorno
+Leitura direta de prontuários fica com médico/coordenação/direção; transporte com logística/coordenação/direção, sem o marcador de armazenamento de atendimentos; avisos globais/própria companhia, ou todos para gestão; auditoria só gestão. Escritas nessas quatro tabelas passam pelo servidor autorizado. service_role é exclusivo do servidor. A matriz de acesso das APIs, inclusive a decisão de domínio sobre logística em saúde/inclusão, continua separada.
+
+No Auth, preservar URLs válidas de `/redefinir-senha`, `/auth/confirm` e callback Google. Um template com `token_hash` pode usar `/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/redefinir-senha` na origem correta. Nunca registrar tokens. SMTP custom OFF e provedor não definido significam que recuperação/envio de produção ainda não foram validados.
+
+## 12. Manutenção, CI, publicação e retorno
 
 ```bash
 npm ci
 npm run lint
+npm run typecheck
 npm test
+npm audit --omit=dev
 npm run build
 ```
 
-A suíte usa mocks de API e PostgreSQL PGlite para migrações/RLS reais em banco local. Não toca nos participantes. Um build com variáveis fictícias prova compilação, não autenticação/SMTP do ambiente externo.
+Em Mac de 8 GB, execute **uma tarefa pesada por vez**. `npm test` usa `--test-concurrency=1`; o Next usa `experimental.cpus: 1`. Não aumente paralelismo para acelerar. Se houver pressão real de recursos, interrompa e registre checkpoint; não encerre apps ou processos de outros projetos.
 
-Para QA visual, há fixtures e servidor falso em `scripts/visual-qa/`. `verify.cjs` requer Puppeteer, que pode estar em scratchpad indicado por `FSY_PUPPETEER_MODULE`; o build de QA deve usar URL `http://127.0.0.1:54399` e chaves `dev`. O script reserva 3117/54399 e recusa portas ocupadas. A variável `FSY_QA_OUTPUT_DIR` escolhe o destino das evidências. O servidor falso não implementa RLS: não substitui os testes de banco.
+A suíte usa mocks de API e PostgreSQL PGlite para migrações/RLS locais, sem participantes reais. Build com variáveis fictícias prova compilação/tipos, não Auth/SMTP de produção. O build usa Webpack suportado; não há migração adicional de bundler.
 
-Antes de produção: identificar o projeto, obter backup/exportação, aplicar e validar migrações em teste, configurar origens/serviços e testar recuperação numa conta controlada. Confirmar políticas, papéis, suspensão com JWT existente e concorrência entre conexões independentes. Envios de e-mail precisam de conteúdo/destinatário escolhidos para o teste; exclusões reais não são necessárias.
+`.github/workflows/validar.yml` usa Node 22, npm ci, lint, tipos, testes seriais, audit de produção, build e QA/assert. `scripts/visual-qa/verify.cjs` usa Puppeteer/axe, reserva 3117/54399 e recusa portas ocupadas. O Supabase é falso/local e requisições ao Supabase externo são abortadas pelo runner. As imagens/identidades são fixtures. `FSY_PUPPETEER_MODULE`, `FSY_AXE_MODULE` e `FSY_QA_OUTPUT_DIR` configuram as ferramentas e o destino. Chrome usa `--no-sandbox` apenas em CI; localmente mantém o padrão.
 
-O Next 14.2.35 tem advisories conhecidos. shadcn está apenas em desenvolvimento, sem troca das versões travadas nesta alteração. O plano de migração do framework está em [Dependências](dependencias-2026-10-20.md); não foi executado `npm audit fix --force`. Não publicar presumindo que a remoção de ferramentas de produção corrigiu o framework.
+O gate `assert.cjs` exige 56 casos axe, nenhum ignore, nenhum overflow/campo sem nome/alvo operacional abaixo de 44 px/erro JS e confirma legenda, diálogo, layout e alternância de tema. Há seis casos com fonte 200%. A CI guarda artefatos por sete dias. A confirmação final foi delegada ao GitHub por instrução do usuário, sem outro build/QA local ou espera por CI neste executor.
 
-Guardar artefato anterior e snapshot de banco/Auth para retorno. Reverter código não desfaz migrações. Não restaurar políticas permissivas antigas por improviso; preferir correção progressiva compatível com os dados. Recuperação de backup exige procedimento próprio e preservação de identidades/vínculos.
+Next 16.4.2 substitui a linha 14 sem suporte. A consulta final retornou **zero vulnerabilidades de produção e zero críticas no conjunto completo**; restam 13 avisos (11 altos, dois moderados) na cadeia de desenvolvimento. Não houve force, override de peers ou migração às cegas de ferramentas adicionais. Veja [Dependências](dependencias-2026-10-20.md). Isso é uma leitura pontual, não garantia futura.
+
+O usuário autorizou push e implantação. **O root executará push para main, deploy e checagem publicada após o commit local**; até essa confirmação, o remoto ainda tem código anterior. O executor deste lote não fez push/deploy nem outras migrações. Conferir após implantação: rotas, Auth/Google, mídia, políticas e atualização PWA. Recuperação/envio exigem serviço definido e conta controlada; não enviar e-mails a participantes ou excluir contas reais como teste.
+
+Guardar artefato anterior e snapshot privado para retorno. `d1055c7` preserva a base anterior no Git, sem recomendar recolocar um framework vulnerável em produção. Reverter código não desfaz banco; conferir compatibilidade e preferir correção progressiva. Não reaplicar schema antigo nem restaurar políticas permissivas para contornar falhas. Uma restauração completa exige procedimento próprio além do snapshot JSON disponível.
 
 ## 13. Evidências, limitações e pendências
 
-Resultado local: **118 testes aprovados**, lint/tipagem/build aprovados; 25 páginas geradas no build. QA em 14 telas nos dois tamanhos, sem overflow horizontal de documento, seguido de confirmação das duas telas corrigidas. Foram verificados legenda integral, detalhe com imagem inteira, região rolável, Escape após animação e mover/salvar/recarregar/restaurar layout com identidades fictícias.
+**Checks locais efetivamente aprovados:** lint sem erros/avisos; typecheck independente; **145/145 testes globais seriais** após integração de tema/requisições/RLS, antes das últimas correções visuais; **4/4 testes PWA** após o bump v3; **build final Next 16 com um worker**, incluindo tipos e geração de 24 páginas estáticas/rotas e Proxy. O último build já tinha concluído quando o root tentou interromper seu PID: não foi morto nem conta como build interrompido.
 
-As evidências e capturas selecionadas estão em [evidencias-2026-10-20](evidencias-2026-10-20/). A revisão única de risco foi feita com GPT-6-Astra somente leitura; seus três achados confirmados receberam correções e testes locais pelo executor GPT-6.1-Sol.
+A primeira passagem visual executou 56 casos nos dois tamanhos/temas, mais seis ampliações de fonte 200%, sem overflow de documento ou campos sem nome. Legenda integral, imagem inteira, região rolável, Escape após animação e mover/salvar/recarregar/restaurar layout passaram com fixtures. Essa coleta encontrou problemas corrigidos depois: contraste, nomes acessíveis, abas, foco e alvo Início. A coleta escura mudava só a classe CSS; a confirmação corrigida usa next-themes real e está pendente na CI.
 
-A auditoria [Impeccable](auditoria-impeccable-2026-10-20.md) executou detectores estático e DOM e registrou **14/20 (70%)**. Essa é uma avaliação técnica, não uma nota automática de certificação. Permanecem contrastes de textos/selos, metadados pequenos e alguns alvos compactos. A meta **acima de 95% exige 20/20 e não foi atingida**. Achados brutos, falsos positivos e medições durante transição de tema foram diferenciados; nenhuma regra foi alterada para melhorar a nota.
+Evidências atuais: [evidencias-next16-2026-10-20](evidencias-next16-2026-10-20/), com logs, auditorias npm, detectores brutos comprimidos, resumo e capturas iniciais. As [evidências anteriores](evidencias-2026-10-20/) ficam preservadas. A revisão Astra única foi feita anteriormente em modo somente leitura; não foi repetida. Nenhum novo agente/modelo foi iniciado neste fechamento.
 
-Pendências principais: Supabase real e migrações externas; atualização do Next para linha suportada; correções de contraste/legibilidade; configuração e validação de recuperação/e-mail; decisão sobre logística em saúde/inclusão. Não houve teste em aparelho físico, leitor de tela, zoom 200%, todos os diálogos/cargos nem concorrência PostgreSQL com múltiplas conexões reais.
+**Impeccable:** a última nota concluída foi **14/20 (70%)** no lote anterior. O código atual recebeu correções, mas **não há nova nota final demonstrada**; não inventar 20/20 nem inferir nota por passar no axe/CI. A meta acima de 95% exige 20/20 e continua sem comprovação. A [auditoria atual](auditoria-impeccable-2026-10-20.md) avalia as cinco dimensões, registra achados e limitações sem novos ignores.
 
-Nada foi enviado ao GitHub, publicado na Vercel ou aplicado ao Supabase externo nesta retomada. Não houve e-mail enviado ou exclusão de conta real como teste. O próximo executor deve ler [checkpoint GPT](checkpoint-sol-2026-10-20.md) e [resultados](../walkthrough.md), preservando o trabalho e sem repetir a análise completa.
+Pendências específicas: confirmação QA/CI e inspeção publicada pelo root; lançamento geral do OAuth Google; definição do serviço e validação de recuperação/envio de e-mail; leitura com tecnologia assistiva, aparelho/PWA físicos e diálogos/cargos fora das fixtures; concorrência PostgreSQL entre conexões independentes e decisão de domínio de logística em saúde/inclusão. O detector também registrou salto de títulos e possível oclusão no filtro “Espiritual” de `/admin/schedule`, que exigem revisão contextual. Não considerar esses pontos resolvidos por média ou por RLS habilitada.
+
+Nenhum e-mail foi enviado nem conta real excluída como teste. Este manual foi a **última etapa editorial substantiva** do lote. A entrega local para o root não significa que o projeto já foi publicado ou que o e-mail de produção funciona.

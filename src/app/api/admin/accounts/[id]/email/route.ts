@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 const perActor = createRateLimiter({ limit: 20, windowMs: 60 * 60 * 1000 });
 
 /** Mensagem individual para o e-mail cadastrado da conta. O destinatário nunca vem do corpo. */
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = await paramsPromise;
   const auth = await requireIdentity("userManagers");
   if (auth.response) return auth.response;
   if (!z.string().uuid().safeParse(params.id).success) return json({ error: "Conta inválida." }, 400);

@@ -8,7 +8,7 @@ function worker() {
   const scope = {
     URL, Response, Promise,
     self: { location: { origin: 'https://fsy.test' }, addEventListener: (name, fn) => handlers[name] = fn, skipWaiting() {}, clients: { claim() {} } },
-    caches: { keys: async () => ['fsy-pwa-v1', 'fsy-pwa-v2', 'other-app'], delete: async key => deleted.push(key), open: async () => ({ match: async () => undefined, put: async request => stored.push(request.url), add: async () => undefined }) },
+    caches: { keys: async () => ['fsy-pwa-v1', 'fsy-pwa-v2', 'fsy-pwa-v3', 'other-app'], delete: async key => deleted.push(key), open: async () => ({ match: async () => undefined, put: async request => stored.push(request.url), add: async () => undefined }) },
     fetch: async () => new Response('asset'),
   };
   vm.createContext(scope);
@@ -38,7 +38,7 @@ test('activation removes old FSY cache but preserves unrelated caches', async ()
   let activation;
   handlers.activate({ waitUntil(promise) { activation = promise; } });
   await activation;
-  assert.deepEqual(deleted, ['fsy-pwa-v1']);
+  assert.deepEqual(deleted, ['fsy-pwa-v1', 'fsy-pwa-v2']);
 });
 
 test('navigation without network has an honest offline fallback', async () => {

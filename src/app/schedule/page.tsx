@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -42,7 +44,7 @@ export default function SchedulePage() {
 
   useEffect(() => {
     if (!isStaff && selectedDayKey === "dia0") {
-      setSelectedDayKey("dia1");
+      startTransition(() => { setSelectedDayKey("dia1"); });
     }
   }, [isStaff, selectedDayKey]);
   const currentDayMeta = OFFICIAL_FSY_SCHEDULE[selectedDayKey] || OFFICIAL_FSY_SCHEDULE["dia1"];
@@ -120,14 +122,14 @@ export default function SchedulePage() {
         <div className="flex items-center justify-between">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 rounded-xl shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            className="fsy-action-link inline-flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 rounded-xl shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar ao Início
           </Link>
 
           <div className="flex items-center gap-2 text-xs font-black text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
-            <Calendar className="h-3.5 w-3.5 text-[#007DA5]" />
+            <Calendar className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
             <span>Cronograma Oficial da Sessão</span>
             {hasDbEventsForDay && (
               <span className="h-2 w-2 rounded-full bg-emerald-500" title="Programação carregada do servidor" />
@@ -151,6 +153,14 @@ export default function SchedulePage() {
           <div
             role="tablist"
             aria-label="Dias da programação oficial do FSY"
+            onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const index = dayKeys.indexOf(selectedDayKey);
+              const next = event.key === "Home" ? 0 : event.key === "End" ? dayKeys.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + dayKeys.length) % dayKeys.length;
+              setSelectedDayKey(dayKeys[next]);
+              document.getElementById(`tab-${dayKeys[next]}`)?.focus();
+            }}
             className={`grid gap-2 mt-5 ${
               isStaff ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"
             }`}
@@ -165,18 +175,19 @@ export default function SchedulePage() {
                   role="tab"
                   id={`tab-${key}`}
                   aria-selected={isSelected}
+                  tabIndex={isSelected ? 0 : -1}
                   aria-controls="schedule-events-panel"
                   onClick={() => setSelectedDayKey(key)}
                   className={`relative flex flex-col items-center justify-center p-2.5 rounded-2xl font-black text-xs transition-all duration-200 border-2 cursor-pointer min-h-[48px] ${
                     isSelected
                       ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
                   }`}
                 >
                   <span className="text-xs font-bold">{day.name}</span>
-                  <span className="text-[10px] opacity-80 font-semibold">{count} ativ.</span>
+                  <span className="text-xs font-semibold">{count} ativ.</span>
                   {key === "dia0" && (
-                    <span className="text-[10px] font-black tracking-wider uppercase text-amber-950 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1.5 py-0.5 rounded mt-0.5 border border-amber-400">
+                    <span className="text-xs font-black tracking-wider uppercase text-amber-950 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1.5 py-0.5 rounded mt-0.5 border border-amber-400">
                       Consultores
                     </span>
                   )}
@@ -202,7 +213,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Timeline Events List */}
-        <div className="relative pl-6 md:pl-8 before:absolute before:left-3 md:before:left-4 before:top-2 before:bottom-2 before:w-1 before:bg-slate-200 dark:before:bg-slate-800 space-y-4">
+        <div id="schedule-events-panel" role="tabpanel" aria-labelledby={`tab-${selectedDayKey}`} tabIndex={0} className="relative pl-6 md:pl-8 before:absolute before:left-3 md:before:left-4 before:top-2 before:bottom-2 before:w-1 before:bg-slate-200 dark:before:bg-slate-800 space-y-4">
           {eventsToRender.map((event, index) => (
             <motion.div
               key={event.id}
@@ -242,7 +253,7 @@ export default function SchedulePage() {
 
                       <Badge
                         variant="outline"
-                        className="text-[11px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
+                        className="text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
                       >
                         {event.category}
                       </Badge>
@@ -250,7 +261,7 @@ export default function SchedulePage() {
                       {event.roleBadge && (
                         <Badge
                           variant="secondary"
-                          className="text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white dark:bg-slate-700"
+                          className="text-xs font-black uppercase tracking-wider bg-slate-900 text-white dark:bg-slate-700"
                         >
                           {event.roleBadge}
                         </Badge>

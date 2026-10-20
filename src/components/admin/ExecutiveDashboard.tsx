@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -123,7 +125,7 @@ export function ExecutiveDashboard() {
   }, []);
 
   useEffect(() => {
-    loadExecutiveData();
+    startTransition(() => { loadExecutiveData(); });
   }, [loadExecutiveData]);
 
   return (
@@ -143,10 +145,10 @@ export function ExecutiveDashboard() {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black uppercase text-[#007DA5] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
+                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black uppercase text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
                     Coordenação Geral
                   </span>
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                     Sessão Ribeirão Preto 2
                   </span>
                 </div>
@@ -166,11 +168,11 @@ export function ExecutiveDashboard() {
                 disabled={loading}
                 className="inline-flex items-center gap-2 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 px-3.5 py-2.5 text-xs font-black text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[#007DA5]" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[#005E7C] dark:text-[#7DE3F4]" : ""}`} />
                 <span>Atualizar Dados</span>
               </button>
 
-              <Link href="/dashboard">
+              <Link className="fsy-action-link" href="/dashboard">
                 <motion.div
                   whileHover={shouldReduceMotion ? undefined : { y: -2 }}
                   whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
@@ -191,17 +193,17 @@ export function ExecutiveDashboard() {
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Jovens Registrados
               </span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#007DA5] dark:text-[#7DE3F4]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4]">
                 <Users className="h-4 w-4" />
               </div>
             </div>
             <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
               {metrics.totalYouth}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Em companhias: <strong>{metrics.youthWithCompany}</strong></span>
               <span>Com quartos: <strong>{metrics.youthWithRoom}</strong></span>
             </div>
@@ -212,7 +214,7 @@ export function ExecutiveDashboard() {
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Companhias Ativas
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400">
@@ -222,7 +224,7 @@ export function ExecutiveDashboard() {
             <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
               {metrics.totalCompanies}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Consultores: <strong>{metrics.totalCounselors}</strong></span>
               <span>Média: <strong>{metrics.totalCompanies > 0 ? Math.round(metrics.totalYouth / metrics.totalCompanies) : 0}/cia</strong></span>
             </div>
@@ -233,7 +235,7 @@ export function ExecutiveDashboard() {
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Prontuários de Saúde
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
@@ -243,9 +245,9 @@ export function ExecutiveDashboard() {
             <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
               {metrics.medicalAlerts}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold">Acompanhamento Ativo</span>
-              <Link href="/admin/medical" className="font-bold text-[#007DA5] hover:underline">
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 font-bold">Acompanhamento Ativo</span>
+              <Link href="/admin/medical" className="fsy-action-link font-bold text-[#005E7C] dark:text-[#7DE3F4] hover:underline">
                 Acessar &rarr;
               </Link>
             </div>
@@ -256,7 +258,7 @@ export function ExecutiveDashboard() {
             className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Fotos em Destaque
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-950 text-[#FC4E6D]">
@@ -266,9 +268,9 @@ export function ExecutiveDashboard() {
             <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
               {metrics.totalPhotos}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Drive & Murais</span>
-              <Link href="/admin/media" className="font-bold text-[#007DA5] hover:underline">
+              <Link href="/admin/media" className="fsy-action-link font-bold text-[#005E7C] dark:text-[#7DE3F4] hover:underline">
                 Gerenciar &rarr;
               </Link>
             </div>
@@ -281,12 +283,12 @@ export function ExecutiveDashboard() {
             <h2 className="font-serif text-xl font-bold tracking-tight text-slate-900 dark:text-white">
               Módulos de Gestão Rápida
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-300">
               Acesso direto às operações estratégicas da conferência FSY 2027.
             </p>
           </div>
 
-          <CustomizableGrid pageKey="admin-modules" version={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" items={[{ id: "medical", label: "Saúde e inclusão", content: (<Link href="/admin/medical">
+          <CustomizableGrid pageKey="admin-modules" version={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" items={[{ id: "medical", label: "Saúde e inclusão", content: (<Link className="fsy-action-link" href="/admin/medical">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -294,10 +296,10 @@ export function ExecutiveDashboard() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 border border-emerald-200 dark:border-emerald-800">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                       <Stethoscope className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black px-2 py-0.5">
                       Saúde & Inclusão
                     </span>
                   </div>
@@ -308,13 +310,13 @@ export function ExecutiveDashboard() {
                     Alergias severas, celíacos, medicações controladas e agendamentos de consulta médica.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
             </Link>) },
-{ id: "companies", label: "Companhias", content: (<Link href="/admin/companies">
+{ id: "companies", label: "Companhias", content: (<Link className="fsy-action-link" href="/admin/companies">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -325,7 +327,7 @@ export function ExecutiveDashboard() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200 dark:border-amber-800">
                       <Building2 className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-black px-2 py-0.5">
                       {metrics.totalCompanies} Companhias
                     </span>
                   </div>
@@ -336,13 +338,13 @@ export function ExecutiveDashboard() {
                     Estandartes, atribuição de jovens e vinculação dos casais de consultores.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
             </Link>) },
-{ id: "schedule", label: "Programação", content: (<Link href="/admin/schedule">
+{ id: "schedule", label: "Programação", content: (<Link className="fsy-action-link" href="/admin/schedule">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -350,10 +352,10 @@ export function ExecutiveDashboard() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#007DA5] border border-sky-200 dark:border-sky-800">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
                       <Calendar className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 text-[#007DA5] dark:text-[#7DE3F4] text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4] text-xs font-black px-2 py-0.5">
                       5 Dias
                     </span>
                   </div>
@@ -364,13 +366,13 @@ export function ExecutiveDashboard() {
                     Horários, locais, devocionais, gincanas, bailes e atividades diárias.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
             </Link>) },
-{ id: "logistics", label: "Logística", content: (<Link href="/admin/logistics">
+{ id: "logistics", label: "Logística", content: (<Link className="fsy-action-link" href="/admin/logistics">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -381,7 +383,7 @@ export function ExecutiveDashboard() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 border border-purple-200 dark:border-purple-800">
                       <Truck className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-black px-2 py-0.5">
                       Transporte
                     </span>
                   </div>
@@ -392,13 +394,13 @@ export function ExecutiveDashboard() {
                     Ônibus por estaca, horários de chegada, líderes de caravana e alojamentos.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
             </Link>) },
-{ id: "announcements", label: "Avisos", content: (<Link href="/admin/announcements">
+{ id: "announcements", label: "Avisos", content: (<Link className="fsy-action-link" href="/admin/announcements">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -409,7 +411,7 @@ export function ExecutiveDashboard() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-[#FC4E6D] border border-rose-200 dark:border-rose-800">
                       <Megaphone className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 text-xs font-black px-2 py-0.5">
                       Mural Geral
                     </span>
                   </div>
@@ -420,13 +422,13 @@ export function ExecutiveDashboard() {
                     Emissão de avisos urgentes ou direcionados para jovens e companhias.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </motion.div>
             </Link>) },
-{ id: "media", label: "Mídia", content: (<Link href="/admin/media">
+{ id: "media", label: "Mídia", content: (<Link className="fsy-action-link" href="/admin/media">
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { y: -3 }}
                 transition={{ type: "spring", stiffness: 350, damping: 25 }}
@@ -437,7 +439,7 @@ export function ExecutiveDashboard() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-50 dark:bg-pink-950/60 text-[#FC4E6D] border border-pink-200 dark:border-pink-800">
                       <Camera className="h-5 w-5" />
                     </div>
-                    <span className="rounded-full bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300 text-[10px] font-black px-2 py-0.5">
+                    <span className="rounded-full bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300 text-xs font-black px-2 py-0.5">
                       Destaques do Drive
                     </span>
                   </div>
@@ -448,7 +450,7 @@ export function ExecutiveDashboard() {
                     Cadastrar e gerenciar fotos do Drive que aparecem nas caixas de destaque do portal.
                   </p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#007DA5]">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
                   <span>Abrir módulo</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
@@ -461,12 +463,12 @@ export function ExecutiveDashboard() {
           <div data-section-index="2" className="rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Megaphone className="h-4 w-4 text-[#007DA5]" />
+                <Megaphone className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                 <h3 className="font-serif text-base font-bold text-slate-900 dark:text-white">
                   Últimos Comunicados Publicados
                 </h3>
               </div>
-              <Link href="/admin/announcements" className="text-xs font-bold text-[#007DA5] hover:underline">
+              <Link href="/admin/announcements" className="fsy-action-link text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4] hover:underline">
                 Ver todos &rarr;
               </Link>
             </div>
@@ -479,16 +481,16 @@ export function ExecutiveDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                      <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-md ${
                         ann.priority === "urgent"
-                          ? "bg-red-500 text-white"
+                          ? "bg-red-700 text-white"
                           : ann.priority === "important"
-                          ? "bg-[#FC4E6D] text-white"
+                          ? "bg-[#FC4E6D] text-slate-950"
                           : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                       }`}>
                         {ann.priority === "urgent" ? "Urgente" : ann.priority === "important" ? "Importante" : "Geral"}
                       </span>
-                      <span className="text-[11px] font-medium text-slate-400">
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                         {new Date(ann.created_at).toLocaleDateString("pt-BR")}
                       </span>
                     </div>

@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -142,7 +144,7 @@ export function ScheduleManager() {
   }, []);
 
   useEffect(() => {
-    loadSchedule();
+    startTransition(() => { loadSchedule(); });
   }, [loadSchedule]);
 
   const handleOpenCreateModal = () => {
@@ -350,7 +352,7 @@ export function ScheduleManager() {
               FSY 2027 Live
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium">
             05 a 10 de Fevereiro de 2027 — Todas as alterações refletem em tempo real no portal dos jovens.
           </p>
         </div>
@@ -379,7 +381,7 @@ export function ScheduleManager() {
             onClick={loadSchedule}
             loading={loading}
             icon={<RefreshCw className="h-3.5 w-3.5" />}
-            iconColor="text-emerald-600 dark:text-emerald-400"
+            iconColor="text-emerald-800 dark:text-emerald-300 dark:text-emerald-400"
           >
             Atualizar
           </GooeyButton>
@@ -423,7 +425,7 @@ export function ScheduleManager() {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
           <Input
             aria-label="Buscar por título, local ou descrição"
             placeholder="Buscar por título, local ou descrição..."
@@ -441,7 +443,7 @@ export function ScheduleManager() {
               className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#007DA5] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
+                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
               }`}
             >
               {cat === "all" ? "Todas Categorias" : cat}
@@ -453,11 +455,11 @@ export function ScheduleManager() {
       {/* Schedule Items List */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+          <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma atividade encontrada</p>
           <p className="text-xs max-w-sm mx-auto">
             Clique no botão &ldquo;Adicionar Evento&rdquo; ou &ldquo;Sincronizar Oficial (82)&rdquo; para carregar a grade completa.
@@ -476,11 +478,11 @@ export function ScheduleManager() {
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-black text-slate-900 dark:text-white">
-                      <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
+                      <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                       {item.start_time} {item.end_time && item.end_time !== "--" ? `— ${item.end_time}` : ""}
                     </span>
 
-                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-black uppercase text-slate-500">
+                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-black uppercase text-slate-500 dark:text-slate-300">
                       {item.day.toUpperCase()}
                     </span>
 
@@ -501,7 +503,7 @@ export function ScheduleManager() {
                     <h3 className="font-black text-base text-slate-900 dark:text-white">
                       {item.title}
                     </h3>
-                    <p className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
                       <MapPin className="h-3.5 w-3.5 text-rose-500 shrink-0" />
                       {item.location}
                     </p>
@@ -528,7 +530,7 @@ export function ScheduleManager() {
                     variant="outline"
                     size="sm"
                     onClick={() => setItemToDelete(item)}
-                    className="h-8 px-3 text-xs font-bold rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                    className="h-8 px-3 text-xs font-bold rounded-xl border-rose-200 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/50"
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
                   </Button>
@@ -546,7 +548,7 @@ export function ScheduleManager() {
             <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">
               {editingItem ? "Editar Atividade no Cronograma" : "Nova Atividade no Cronograma"}
             </DialogTitle>
-            <DialogDescription className="text-slate-500 dark:text-slate-400 text-xs">
+            <DialogDescription className="text-slate-500 dark:text-slate-300 dark:text-slate-400 text-xs">
               Salvo imediatamente no Supabase e refletido para todos os jovens.
             </DialogDescription>
           </DialogHeader>
@@ -564,7 +566,7 @@ export function ScheduleManager() {
                 className=""
               />
               {formErrors.title && (
-                <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.title}</p>
+                <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold">{formErrors.title}</p>
               )}
             </div>
 
@@ -597,7 +599,7 @@ export function ScheduleManager() {
                   className=""
                 />
                 {formErrors.start_time && (
-                  <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.start_time}</p>
+                  <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold">{formErrors.start_time}</p>
                 )}
               </div>
 
@@ -625,7 +627,7 @@ export function ScheduleManager() {
                   className=""
                 />
                 {formErrors.location && (
-                  <p className="text-[11px] text-rose-600 mt-1 font-semibold">{formErrors.location}</p>
+                  <p className="text-xs text-rose-800 dark:text-rose-300 mt-1 font-semibold">{formErrors.location}</p>
                 )}
               </div>
 
@@ -680,9 +682,9 @@ export function ScheduleManager() {
                 <div>
                   <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                     Marcar como Destaque
-                    {formIsHighlight && <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
+                    {formIsHighlight && <span className="text-xs font-black text-amber-800 dark:text-amber-300 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
                   </p>
-                  <p className="text-xs text-slate-500">Exibido com card dourado no mural e no feed dos jovens</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">Exibido com card dourado no mural e no feed dos jovens</p>
                 </div>
               </div>
 
@@ -725,10 +727,10 @@ export function ScheduleManager() {
       <Dialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
         <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-600">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Atividade?
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
               Tem certeza que deseja remover <strong className="text-slate-900 dark:text-white">&ldquo;{itemToDelete?.title}&rdquo;</strong> do cronograma oficial?
             </DialogDescription>
           </DialogHeader>
@@ -756,10 +758,10 @@ export function ScheduleManager() {
       <Dialog open={isSyncModalOpen} onOpenChange={setIsSyncModalOpen}>
         <DialogContent className="sm:max-w-[460px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-[#007DA5]">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-[#005E7C] dark:text-[#7DE3F4]">
               <Database className="h-5 w-5" /> Sincronizar Cronograma 2027
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
               Isso atualizará todas as 82 atividades oficiais dos 6 dias (05 a 10 de Fevereiro de 2027) no banco de dados. Deseja continuar?
             </DialogDescription>
           </DialogHeader>

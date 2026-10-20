@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -37,18 +39,18 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     const standaloneMedia = window.matchMedia("(display-mode: standalone)").matches;
     const navigatorStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     const runningStandalone = standaloneMedia || navigatorStandalone;
-    setIsInstalled(runningStandalone);
+    startTransition(() => { setIsInstalled(runningStandalone); });
 
     // Detect iOS
     const userAgent = window.navigator.userAgent || "";
     const isIOSDevice =
       /iPad|iPhone|iPod/.test(userAgent) ||
       (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1);
-    setIsIOS(isIOSDevice);
+    startTransition(() => { setIsIOS(isIOSDevice); });
 
     // Detect Android
     const isAndroidDevice = /Android/i.test(userAgent);
-    setIsAndroid(isAndroidDevice);
+    startTransition(() => { setIsAndroid(isAndroidDevice); });
 
     // 2. Register Service Worker
     if ("serviceWorker" in navigator) {
@@ -63,7 +65,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 3. Online/Offline listeners
-    setIsOffline(!navigator.onLine);
+    startTransition(() => { setIsOffline(!navigator.onLine); });
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
     window.addEventListener("online", handleOnline);
@@ -72,7 +74,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     // 4. Android/Chrome beforeinstallprompt listener
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      startTransition(() => { setDeferredPrompt(e as BeforeInstallPromptEvent); });
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
@@ -88,7 +90,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
 
       if (shouldPrompt) {
         timer = setTimeout(() => {
-          setShowInstallModal(true);
+          startTransition(() => { setShowInstallModal(true); });
         }, 2200); // 2.2s delay for seamless initial page render
       }
     }

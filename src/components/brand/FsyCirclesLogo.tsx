@@ -20,7 +20,7 @@ const SIZE_CONFIG = {
     svgWidth: 88,
     svgHeight: 34,
     textSize: "text-xs",
-    subtextSize: "text-[9px]",
+    subtextSize: "text-xs",
   },
   sm: {
     height: "h-9",
@@ -28,7 +28,7 @@ const SIZE_CONFIG = {
     svgWidth: 104,
     svgHeight: 40,
     textSize: "text-sm",
-    subtextSize: "text-[10px]",
+    subtextSize: "text-xs",
   },
   md: {
     height: "h-11",
@@ -204,7 +204,7 @@ export function FsyCirclesLogo({
               Ribeirão Preto 2
             </span>
             {showYear && (
-              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
+              <span className="rounded-md bg-[#FFE48A] px-1.5 py-0.5 text-xs sm:text-xs font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
                 2027
               </span>
             )}

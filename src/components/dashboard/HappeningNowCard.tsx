@@ -47,7 +47,7 @@ export function HappeningNowCard({
               <span>Em Breve • 06 a 10 Fev 2027</span>
             </div>
 
-            <span className="rounded-xl bg-white/90 px-2.5 py-1 text-[11px] font-black text-slate-900 border border-slate-900/20 shadow-sm flex items-center gap-1">
+            <span className="rounded-xl bg-white/90 px-2.5 py-1 text-xs font-black text-slate-900 border border-slate-900/20 shadow-sm flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" />
               {daysRemaining !== undefined && daysRemaining > 0
                 ? `Faltam ${daysRemaining} dias`
@@ -68,7 +68,7 @@ export function HappeningNowCard({
           {/* Time & Location Pill Row */}
           <div className="mt-4 flex flex-wrap gap-2">
             <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
-              <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
+              <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
               <span>Chegada: 06/02/2027 (1º Dia)</span>
             </div>
 
@@ -92,7 +92,7 @@ export function HappeningNowCard({
             </div>
           </div>
 
-          <Link href="/schedule" className="block w-full">
+          <Link href="/schedule" className="fsy-action-link block w-full">
             <motion.div
               whileHover={shouldReduceMotion ? undefined : { y: -1 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
@@ -126,7 +126,7 @@ export function HappeningNowCard({
               Confira a programação completa para ver os horários da sessão.
             </p>
           </div>
-          <Link href="/schedule">
+          <Link className="fsy-action-link" href="/schedule">
             <motion.div
               whileHover={shouldReduceMotion ? undefined : { y: -1 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
@@ -175,7 +175,7 @@ export function HappeningNowCard({
         {/* Time & Location Pill Row */}
         <div className="mt-4 flex flex-wrap gap-2">
           <div className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-xs font-black text-slate-900 border-2 border-slate-900 shadow-sm">
-            <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
+            <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
             <span>{currentEvent.startTime} - {currentEvent.endTime}</span>
           </div>
 
@@ -198,13 +198,13 @@ export function HappeningNowCard({
         {nextEvent && (
           <div className="flex items-center justify-between text-xs font-bold text-slate-800 bg-white/60 px-3 py-2 rounded-xl border border-slate-900/15">
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-[10px] font-black uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">A Seguir</span>
+              <span className="text-xs font-black uppercase text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">A Seguir</span>
               <span className="truncate font-extrabold">{nextEvent.startTime} • {nextEvent.title}</span>
             </div>
           </div>
         )}
 
-        <Link href="/schedule" className="block w-full">
+        <Link href="/schedule" className="fsy-action-link block w-full">
           <motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -1 }}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}

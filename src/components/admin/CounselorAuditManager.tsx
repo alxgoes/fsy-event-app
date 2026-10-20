@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -157,7 +159,7 @@ export function CounselorAuditManager() {
 
   useEffect(() => {
     if (!profileLoading && isAuthorized) {
-      loadData();
+      startTransition(() => { loadData(); });
     }
   }, [profileLoading, isAuthorized, loadData]);
 
@@ -226,7 +228,7 @@ export function CounselorAuditManager() {
   if (profileLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
       </div>
     );
   }
@@ -265,10 +267,10 @@ export function CounselorAuditManager() {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="rounded-md bg-amber-100 dark:bg-amber-950 px-2 py-0.5 text-xs font-black text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="h-3 w-3 text-amber-600" />
+                  <Sparkles className="h-3 w-3 text-amber-800 dark:text-amber-300" />
                   Auditoria & Transparência
                 </span>
-                <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800">
+                <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black text-[#005E7C] dark:text-cyan-300 border border-sky-200 dark:border-sky-800">
                   Casal Diretor · Logística · Coordenadores
                 </span>
               </div>
@@ -293,7 +295,7 @@ export function CounselorAuditManager() {
               disabled={loading}
               className="flex items-center gap-1.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors min-h-[38px] cursor-pointer"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[#007DA5]" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[#005E7C] dark:text-[#7DE3F4]" : ""}`} />
               <span>Atualizar</span>
             </button>
 
@@ -316,7 +318,7 @@ export function CounselorAuditManager() {
           <div className="mt-4 p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
-                <Database className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <Database className="h-6 w-6 text-amber-800 dark:text-amber-300 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-heading text-sm sm:text-base font-black text-amber-950 dark:text-amber-200">
                     Ativação da Tabela no Supabase
@@ -349,7 +351,7 @@ export function CounselorAuditManager() {
 
             {showSql && (
               <div className="mt-4">
-                <pre className="p-4 rounded-2xl bg-slate-900 text-slate-100 text-[11px] font-mono overflow-x-auto max-h-56 border border-slate-700 leading-relaxed shadow-inner">
+                <pre className="p-4 rounded-2xl bg-slate-900 text-slate-100 text-xs font-mono overflow-x-auto max-h-56 border border-slate-700 leading-relaxed shadow-inner">
                   {COUNSELOR_AUDIT_SQL}
                 </pre>
               </div>
@@ -367,7 +369,7 @@ export function CounselorAuditManager() {
 
         {successMessage && (
           <div className="mt-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-300 dark:border-emerald-900 text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-800 dark:text-emerald-300" />
             <span>{successMessage}</span>
           </div>
         )}
@@ -376,49 +378,49 @@ export function CounselorAuditManager() {
       {/* 2. Metrics Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
-          <span className="text-[11px] font-black uppercase text-slate-500 dark:text-slate-400 block">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400 block">
             Total de Registros
           </span>
           <div className="font-heading text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
             {totalLogs}
           </div>
-          <span className="text-[11px] font-bold text-slate-400 mt-1 block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
             Alterações rastreadas
           </span>
         </div>
 
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
-          <span className="text-[11px] font-black uppercase text-[#007DA5] dark:text-cyan-400 block">
+          <span className="text-xs font-black uppercase text-[#005E7C] dark:text-cyan-400 block">
             Comunicados Enviados
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-[#007DA5] dark:text-cyan-400 mt-1">
+          <div className="font-heading text-2xl sm:text-3xl font-black text-[#005E7C] dark:text-cyan-400 mt-1">
             {publishedCount}
           </div>
-          <span className="text-[11px] font-bold text-slate-400 mt-1 block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
             Publicações no mural
           </span>
         </div>
 
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
-          <span className="text-[11px] font-black uppercase text-red-600 dark:text-red-400 block">
+          <span className="text-xs font-black uppercase text-red-600 dark:text-red-400 block">
             Avisos Excluídos
           </span>
           <div className="font-heading text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 mt-1">
             {deletedCount}
           </div>
-          <span className="text-[11px] font-bold text-slate-400 mt-1 block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
             Preservados no histórico
           </span>
         </div>
 
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm">
-          <span className="text-[11px] font-black uppercase text-[#007DA5] dark:text-[#01B6D1] block">
+          <span className="text-xs font-black uppercase text-[#005E7C] dark:text-[#01B6D1] block">
             Consultores Ativos
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-[#007DA5] dark:text-[#01B6D1] mt-1">
+          <div className="font-heading text-2xl sm:text-3xl font-black text-[#005E7C] dark:text-[#01B6D1] mt-1">
             {uniqueAuthors}
           </div>
-          <span className="text-[11px] font-bold text-slate-400 mt-1 block">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
             Com ações registradas
           </span>
         </div>
@@ -428,7 +430,7 @@ export function CounselorAuditManager() {
       <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
           <Input
             type="text"
             aria-label="Buscar registros por consultor, título ou conteúdo"
@@ -472,15 +474,15 @@ export function CounselorAuditManager() {
       {/* 4. Log Entries Feed */}
       {loading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="h-10 w-10 animate-spin text-[#007DA5]" />
+          <Loader2 className="h-10 w-10 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : logs.length === 0 ? (
         <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
-          <ShieldAlert className="h-10 w-10 mx-auto text-slate-400 mb-3" />
+          <ShieldAlert className="h-10 w-10 mx-auto text-slate-600 dark:text-slate-300 mb-3" />
           <h3 className="font-heading text-lg font-black text-slate-800 dark:text-slate-200">
             Nenhum registro encontrado no histórico
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-md mx-auto">
             Assim que os consultores publicarem avisos ou fizerem alterações em suas companhias, todas as
             ações serão registradas automaticamente aqui com nome, conteúdo e carimbo de data/hora.
           </p>
@@ -526,11 +528,11 @@ export function CounselorAuditManager() {
                         <span className="font-heading text-sm font-black text-slate-900 dark:text-white">
                           {log.author_name}
                         </span>
-                        <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-[10px] font-black uppercase text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800">
+                        <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black uppercase text-[#005E7C] dark:text-cyan-300 border border-sky-200 dark:border-sky-800">
                           {ROLE_LABELS[log.author_role as keyof typeof ROLE_LABELS] || log.author_role}
                         </span>
                         {log.company_name && (
-                          <span className="rounded-md bg-purple-100 dark:bg-purple-950 px-2 py-0.5 text-[10px] font-black text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                          <span className="rounded-md bg-purple-100 dark:bg-purple-950 px-2 py-0.5 text-xs font-black text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
                             <Building2 className="h-3 w-3" />
                             {log.company_name}
                           </span>
@@ -556,8 +558,8 @@ export function CounselorAuditManager() {
                       <span>{log.action_label || (isDelete ? "Removido" : "Publicado")}</span>
                     </span>
 
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl">
-                      <Clock className="h-3.5 w-3.5 text-[#007DA5]" />
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl">
+                      <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                       <span>
                         {formattedDate} às {formattedTime}
                       </span>
@@ -591,7 +593,7 @@ export function CounselorAuditManager() {
 
                 {/* Meta details footer */}
                 {log.details && (
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 flex-wrap gap-2">
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 flex-wrap gap-2">
                     <div className="flex items-center gap-3">
                       {Boolean(log.details.priority) && (
                         <span>
@@ -611,8 +613,8 @@ export function CounselorAuditManager() {
                       )}
                     </div>
 
-                    <span className="text-[11px] font-semibold text-slate-400">
-                      ID de Auditoria: <code className="text-[10px]">{log.id.slice(0, 8)}</code>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      ID de Auditoria: <code className="text-xs">{log.id.slice(0, 8)}</code>
                     </span>
                   </div>
                 )}

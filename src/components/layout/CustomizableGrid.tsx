@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUp, Check, GripVertical, LayoutGrid, Loader2, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,9 +53,6 @@ export function CustomizableGrid({ pageKey, version, items, className, toolbarCl
   const current = editing ? draft : order;
   const labelOf = (id: string) => byId.get(id)?.label ?? id;
 
-  useEffect(() => {
-    if (!editing) setDraft(order);
-  }, [order, editing]);
 
   // Mantém o foco no controle usado depois que o cartão muda de lugar no DOM.
   useLayoutEffect(() => {
@@ -105,7 +103,7 @@ export function CustomizableGrid({ pageKey, version, items, className, toolbarCl
   };
 
   // ---- Arraste por ponteiro (mouse, caneta e toque) ----------------------
-  const tick = useCallback(() => {
+  const tick = useCallback(function animateTick() {
     frame.current = null;
     const id = dragging;
     const point = pointer.current;
@@ -128,7 +126,7 @@ export function CustomizableGrid({ pageKey, version, items, className, toolbarCl
       });
       lastSwap.current = hit;
     }
-    if (point.y < edge || point.y > window.innerHeight - edge) frame.current = requestAnimationFrame(tick);
+    if (point.y < edge || point.y > window.innerHeight - edge) frame.current = requestAnimationFrame(animateTick);
   }, [dragging, announceMove]);
 
   const onPointerDown = (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {

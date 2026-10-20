@@ -20,7 +20,7 @@ export default function Error({
     <div className="min-h-screen bg-[#FAF8F5] dark:bg-slate-950 flex items-center justify-center p-4 sm:p-6 text-slate-900 selection:bg-[#FFE48A]">
       <div className="max-w-md w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xl text-center space-y-6">
         {/* Error Icon */}
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FC4E6D] text-white border-2 border-slate-900 shadow-sm">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FC4E6D] text-slate-950 border-2 border-slate-900 shadow-sm">
           <AlertTriangle className="h-8 w-8 text-white" />
         </div>
 
@@ -36,7 +36,7 @@ export default function Error({
 
         {/* Offline hint badge */}
         <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 p-3 flex items-center gap-2.5 text-left text-xs text-amber-900 dark:text-amber-200">
-          <WifiOff className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <WifiOff className="h-4 w-4 shrink-0 text-amber-800 dark:text-amber-300 dark:text-amber-400" />
           <span className="font-semibold text-xs">
             Dica: Os dados essenciais do seu crachá e alojamento permanecem salvos em cache.
           </span>
@@ -54,9 +54,9 @@ export default function Error({
 
           <Link
             href="/dashboard"
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-3 text-xs font-black text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
+            className="fsy-action-link w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-3 text-xs font-black text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
           >
-            <Home className="h-3.5 w-3.5 text-[#007DA5]" />
+            <Home className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
             <span>Ir para Início</span>
           </Link>
         </div>

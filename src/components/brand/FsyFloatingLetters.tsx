@@ -124,6 +124,7 @@ export function FsyFloatingLetters({
         currentSize.container,
         className
       )}
+      role="img"
       aria-label="FSY"
     >
       {BADGES.map((b) => {

@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * Route Handlers, and Server Actions that respects the user's session cookies.
  */
 export async function createAuthenticatedServerClient() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

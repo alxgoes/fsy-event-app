@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -88,7 +90,7 @@ export function AccountsManager() {
     return () => clearTimeout(id);
   }, [query]);
 
-  useEffect(() => setPage(1), [debounced, role, status]);
+  useEffect(() => startTransition(() => { setPage(1); }), [debounced, role, status]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -107,7 +109,7 @@ export function AccountsManager() {
   }, [page, debounced, role, status]);
 
   useEffect(() => {
-    void load();
+    startTransition(() => { void load(); });
   }, [load]);
 
   useEffect(() => {
@@ -139,7 +141,7 @@ export function AccountsManager() {
 
       <div className="grid gap-3 sm:grid-cols-[1fr_200px_220px]">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 dark:text-slate-300" aria-hidden="true" />
           <Input aria-label="Buscar por nome, e-mail, companhia ou estaca" placeholder="Buscar nome, e-mail, companhia…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-10" type="search" />
         </div>
         <NativeSelect aria-label="Filtrar por cargo" value={role} onChange={(e) => setRole(e.target.value)}>

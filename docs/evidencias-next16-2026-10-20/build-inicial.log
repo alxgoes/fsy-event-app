@@ -1,0 +1,85 @@
+> fsy-sessao-ribeirao-preto-2@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.4.2 (webpack)
+✓ Running next.config.mjs took 28ms
+- Experiments (use with caution):
+  · cpus: 1
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 47s
+  Running TypeScript ...
+
+  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+    - target was set to ES2017 (For top-level `await`. Note: Next.js only polyfills for the esmodules target.)
+    - include was updated to add '.next/dev/types/**/*.ts'
+
+  The following mandatory changes were made to your tsconfig.json:
+
+    - jsx was set to react-jsx (next.js uses the React automatic runtime)
+
+  Finished TypeScript in 33.1s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/24) ...
+  Generating static pages using 1 worker (6/24)
+  Generating static pages using 1 worker (12/24)
+  Generating static pages using 1 worker (18/24)
+✓ Generating static pages using 1 worker (24/24) in 4.3s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /acesso-negado
+├ ○ /admin
+├ ○ /admin/announcements
+├ ○ /admin/companies
+├ ○ /admin/counselor-audit
+├ ○ /admin/logistics
+├ ○ /admin/media
+├ ○ /admin/medical
+├ ○ /admin/schedule
+├ ○ /admin/users
+├ ○ /announcements
+├ ƒ /api/admin/accounts
+├ ƒ /api/admin/accounts/[id]
+├ ƒ /api/admin/accounts/[id]/email
+├ ƒ /api/admin/accounts/[id]/password
+├ ƒ /api/admin/accounts/[id]/recovery
+├ ƒ /api/admin/counselor-audit
+├ ƒ /api/announcements
+├ ƒ /api/announcements/like
+├ ƒ /api/auth/recover
+├ ƒ /api/auth/register
+├ ƒ /api/companies
+├ ƒ /api/inclusion
+├ ƒ /api/inclusion/[id]
+├ ƒ /api/inclusion/[id]/decision
+├ ƒ /api/inclusion/[id]/interviews
+├ ƒ /api/inclusion/[id]/interviews/[interviewId]
+├ ƒ /api/instagram
+├ ƒ /api/logistics
+├ ƒ /api/media
+├ ƒ /api/medical
+├ ƒ /api/medical/appointments
+├ ƒ /api/schedule
+├ ƒ /api/users
+├ ƒ /auth/callback
+├ ƒ /auth/confirm
+├ ○ /consultor
+├ ○ /dashboard
+├ ○ /loading-preview
+├ ○ /login
+├ ○ /manifest.webmanifest
+├ ○ /offline
+├ ○ /redefinir-senha
+└ ○ /schedule
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

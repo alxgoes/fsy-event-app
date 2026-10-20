@@ -1,0 +1,80 @@
+{
+  "phase": "passagem inicial anterior às últimas correções; confirmação final delegada à CI pelo usuário",
+  "axeCases": 56,
+  "documentOverflowCases": 0,
+  "unlabeledCases": 0,
+  "smallTargetCases": 8,
+  "textScale200": [
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/dashboard",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/schedule",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 768,
+      "route": "/admin/users",
+      "overflow": false,
+      "bodyWidth": 768
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/dashboard",
+      "overflow": false,
+      "bodyWidth": 390
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/schedule",
+      "overflow": false,
+      "bodyWidth": 390
+    },
+    {
+      "textScale200": true,
+      "width": 390,
+      "route": "/admin/users",
+      "overflow": false,
+      "bodyWidth": 390
+    }
+  ],
+  "interactions": [
+    {
+      "instagramExpanded": "true"
+    },
+    {
+      "instagramDialog": {
+        "hasEnd": true,
+        "contain": true,
+        "region": true
+      }
+    },
+    {
+      "dialogClosed": true
+    },
+    {
+      "layout": {
+        "handleCount": 6,
+        "moved": true,
+        "persistedAfterReload": true
+      }
+    },
+    {
+      "layoutRestored": true
+    },
+    {
+      "runtimeErrors": []
+    }
+  ],
+  "darkThemeCaveat": "A classe CSS foi alternada diretamente nesta coleta; o fundo dependente de resolvedTheme não mudou. O runner corrigido usa localStorage e next-themes, aguardando CI."
+}

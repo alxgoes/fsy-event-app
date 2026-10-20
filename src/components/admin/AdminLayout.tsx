@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -208,7 +210,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
 
   // Auto-close sidebar on route change
   useEffect(() => {
-    setIsSidebarOpen(false);
+    startTransition(() => { setIsSidebarOpen(false); });
   }, [pathname]);
 
   const handleSignOut = async () => {
@@ -277,7 +279,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-[10px] font-black uppercase text-amber-950 border border-amber-500/40 hidden md:inline shrink-0">
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-xs font-black uppercase text-amber-950 border border-amber-500/40 hidden md:inline shrink-0">
                   2027
                 </span>
               </div>
@@ -302,7 +304,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             size="sm"
             href="/dashboard"
             icon={<Compass className="h-3.5 w-3.5" />}
-            iconColor="text-[#007DA5] dark:text-cyan-400"
+            iconColor="text-[#005E7C] dark:text-cyan-400"
             className="hidden md:inline-flex"
           >
             Portal Jovem
@@ -315,11 +317,11 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
               whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
               onClick={() => setDropdownOpen((o) => !o)}
               className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 min-h-[44px] min-w-[44px] p-1.5 sm:px-2.5 sm:py-1.5 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer"
-              aria-label="Menu do usuário"
+              aria-expanded={dropdownOpen}
             >
               {loading ? (
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700">
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-500 dark:text-slate-300" />
                 </div>
               ) : (
                 <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-xs border border-slate-900 shrink-0">
@@ -331,13 +333,13 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                 <p className="font-black text-slate-900 dark:text-white truncate max-w-[90px]">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400">
                   {roleLabels[currentRole]?.label || roleLabel}
                 </p>
               </div>
 
               <ChevronDown
-                className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3.5 w-3.5 text-slate-500 dark:text-slate-300 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </motion.button>
 
@@ -361,10 +363,10 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                         <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                           {displayName}
                         </p>
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
+                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 truncate">
                           {displayEmail}
                         </p>
-                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-black text-[#007DA5] dark:text-cyan-300">
+                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-black text-[#005E7C] dark:text-cyan-300">
                           {roleLabels[currentRole]?.label || roleLabel}
                         </span>
                       </div>
@@ -377,7 +379,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="min-h-[44px] w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#007DA5] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
+                      className="fsy-action-link min-h-[44px] w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#005E7C] dark:text-[#7DE3F4] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
                         <Compass className="h-4 w-4" />
@@ -392,9 +394,9 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     <Link
                       href="/admin"
                       onClick={() => setDropdownOpen(false)}
-                      className="min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      className="fsy-action-link min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <Shield className="h-4 w-4 text-slate-400" />
+                      <Shield className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                       <span>Painel de Gestão (Início)</span>
                     </Link>
 
@@ -459,7 +461,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
               aria-label="Fechar menu lateral"
             >
               <X className="h-5 w-5" />
@@ -474,7 +476,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                 <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">05–10 de fevereiro de 2027</p>
               </div>
 
-              <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)} className={styles.portal}>
+              <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)} className={"fsy-action-link " + (styles.portal)}>
                 <Compass className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                 <span>Portal Jovem</span>
               </Link>
@@ -492,7 +494,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       href={item.href}
                       onClick={() => setIsSidebarOpen(false)}
                       aria-current={isActive ? "page" : undefined}
-                      className={`${styles.navLink} ${isActive ? styles.active : ""}`}
+                      className={"fsy-action-link " + (`${styles.navLink} ${isActive ? styles.active : ""}`)}
                     >
                       {isActive && (
                         <motion.div

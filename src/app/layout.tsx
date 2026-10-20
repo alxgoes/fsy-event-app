@@ -1,3 +1,4 @@
+import { EVENT_THEME } from "@/lib/event/identity";
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Cinzel, Inter } from "next/font/google";
 import "./globals.css";
@@ -35,7 +36,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "FSY Sessão Ribeirão Preto 2",
-  description: "Programação, companhias e comunicados do FSY Sessão Ribeirão Preto 2.",
+  description: `${EVENT_THEME} · Programação, companhias e comunicados do FSY Sessão Ribeirão Preto 2.`,
   applicationName: "FSY RP 2",
   appleWebApp: {
     capable: true,

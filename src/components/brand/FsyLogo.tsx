@@ -1,3 +1,4 @@
+import { EVENT_THEME_LEAD, EVENT_THEME_FOCUS, EVENT_SCRIPTURE } from "@/lib/event/identity";
 import React from "react";
 import { FsyFloatingLetters, FsyFloatingLettersSvg } from "./FsyFloatingLetters";
 import { FsyCirclesLogo, FsyCirclesSvg } from "./FsyCirclesLogo";
@@ -164,16 +165,16 @@ export function FsyLogo({
   const sizeClasses = {
     sm: {
       mark: "h-9 w-auto",
-      rejoice: "text-[10px] tracking-[0.18em]",
+      rejoice: "text-xs tracking-[0.18em]",
       christ: "text-base tracking-[0.06em]",
-      scripture: "text-[10px] tracking-[0.2em]",
+      scripture: "text-xs tracking-[0.2em]",
       gap: "gap-2.5",
     },
     md: {
       mark: "h-14 w-auto",
       rejoice: "text-xs tracking-[0.2em]",
       christ: "text-2xl tracking-[0.08em]",
-      scripture: "text-[10px] tracking-[0.22em]",
+      scripture: "text-xs tracking-[0.22em]",
       gap: "gap-4",
     },
     lg: {
@@ -212,20 +213,20 @@ export function FsyLogo({
           className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
-          REJOICE IN
+          {EVENT_THEME_LEAD}
         </span>
         <span
           className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-0.5 ${sizeClasses.christ}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
-          CHRIST
+          {EVENT_THEME_FOCUS}
         </span>
         {showScripture && (
           <span
             className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1 ${sizeClasses.scripture}`}
             style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
           >
-            PHILIPPIANS 4:4
+            {EVENT_SCRIPTURE}
           </span>
         )}
       </div>
@@ -242,20 +243,20 @@ export function FsyLogo({
             className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
             style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
           >
-            REJOICE IN
+            {EVENT_THEME_LEAD}
           </span>
           <span
             className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-1 ${sizeClasses.christ}`}
             style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
           >
-            CHRIST
+            {EVENT_THEME_FOCUS}
           </span>
           {showScripture && (
             <span
               className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1.5 ${sizeClasses.scripture}`}
               style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
             >
-              PHILIPPIANS 4:4
+              {EVENT_SCRIPTURE}
             </span>
           )}
         </div>
@@ -273,20 +274,20 @@ export function FsyLogo({
           className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
-          REJOICE IN
+          {EVENT_THEME_LEAD}
         </span>
         <span
           className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-0.5 ${sizeClasses.christ}`}
           style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
         >
-          CHRIST
+          {EVENT_THEME_FOCUS}
         </span>
         {showScripture && (
           <span
             className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1 ${sizeClasses.scripture}`}
             style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
           >
-            PHILIPPIANS 4:4
+            {EVENT_SCRIPTURE}
           </span>
         )}
       </div>

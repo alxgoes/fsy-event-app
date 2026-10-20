@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -127,7 +129,7 @@ export function LogisticsManager() {
   }, []);
 
   useEffect(() => {
-    loadBuses();
+    startTransition(() => { loadBuses(); });
   }, [loadBuses]);
 
   const handleCreate = async () => {
@@ -285,7 +287,7 @@ export function LogisticsManager() {
               Supabase Live
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Controle em tempo real de caravanas, horários de chegada, retorno e motoristas das 4 estacas.
           </p>
         </div>
@@ -321,27 +323,27 @@ export function LogisticsManager() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
-            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Ônibus
             </CardTitle>
-            <Truck className="h-4 w-4 text-[#007DA5]" />
+            <Truck className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-slate-900 dark:text-white">{buses.length}</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Registrados no banco</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 font-semibold">Registrados no banco</p>
           </CardContent>
         </Card>
 
         <Card className="border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm p-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2 p-0">
-            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Passageiros
             </CardTitle>
             <Users className="h-4 w-4 text-[#06D6A0]" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-slate-900 dark:text-white">{totalPassengers}</div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">de {totalCapacity} vagas totais</p>
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 font-semibold">de {totalCapacity} vagas totais</p>
           </CardContent>
         </Card>
 
@@ -350,18 +352,18 @@ export function LogisticsManager() {
             <CardTitle className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
               Chegaram
             </CardTitle>
-            <CheckCircle className="h-4 w-4 text-emerald-600" />
+            <CheckCircle className="h-4 w-4 text-emerald-800 dark:text-emerald-300" />
           </CardHeader>
           <CardContent className="p-0 pt-2">
             <div className="text-3xl font-black text-emerald-700 dark:text-emerald-300">{arrivedCount}</div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-semibold">Desembarcados no campus</p>
+            <p className="text-xs text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 mt-1 font-semibold">Desembarcados no campus</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
         <Input
           aria-label="Buscar por estaca, número do ônibus ou motorista"
           placeholder="Buscar por estaca, número do ônibus ou motorista..."
@@ -374,11 +376,11 @@ export function LogisticsManager() {
       {/* Buses Grid */}
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
         </div>
       ) : filteredBuses.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
-          <Truck className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
+          <Truck className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhum ônibus cadastrado</p>
           <p className="text-xs max-w-sm mx-auto">
             Clique no botão &ldquo;Adicionar Ônibus&rdquo; para registrar a primeira caravana.
@@ -402,7 +404,7 @@ export function LogisticsManager() {
                         {STATUS_LABELS[bus.status] ?? bus.status}
                       </Badge>
                     </div>
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
                       {bus.stake_city}
                     </p>
                   </div>
@@ -411,7 +413,7 @@ export function LogisticsManager() {
                     disabled={deleting === bus.id}
                     title="Remover ônibus"
                     aria-label={`Remover ônibus ${bus.bus_number}`}
-                    className="text-rose-600/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
+                    className="text-rose-800 dark:text-rose-300/80 hover:text-rose-700 dark:hover:text-rose-400 transition-colors p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -419,7 +421,7 @@ export function LogisticsManager() {
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                    <Phone className="h-3.5 w-3.5 text-[#007DA5] shrink-0" />
+                    <Phone className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
                     <span className="truncate font-semibold">{bus.driver_name}</span>
                   </div>
                   <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
@@ -444,7 +446,7 @@ export function LogisticsManager() {
 
                 {/* Status Switcher Buttons */}
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1.5">
+                  <p className="text-xs font-black uppercase text-slate-600 dark:text-slate-300 mb-1.5">
                     Atualizar Status em Tempo Real
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -453,7 +455,7 @@ export function LogisticsManager() {
                         key={s}
                         onClick={() => handleStatusChange(bus.id, s)}
                         disabled={updatingStatus === bus.id}
-                        className={`text-[10px] font-bold px-2 py-1 rounded-lg border transition-all ${
+                        className={`text-xs font-bold px-2 py-1 rounded-lg border transition-all ${
                           bus.status === s
                             ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm font-black"
                             : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400"
@@ -475,7 +477,7 @@ export function LogisticsManager() {
         <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">Cadastrar Ônibus / Caravana</DialogTitle>
-            <DialogDescription className="text-slate-500 dark:text-slate-400 text-xs">
+            <DialogDescription className="text-slate-500 dark:text-slate-300 dark:text-slate-400 text-xs">
               Adicione os detalhes da caravana para monitoramento da logística.
             </DialogDescription>
           </DialogHeader>
@@ -483,7 +485,7 @@ export function LogisticsManager() {
           <div className="grid gap-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-1" className="text-[10px] font-black uppercase text-slate-500">Identificação do Ônibus *</label>
+                <label htmlFor="field-logisticsmanager-1" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Identificação do Ônibus *</label>
                 <Input id="field-logisticsmanager-1"
                   placeholder="Ex: Ônibus 01"
                   value={form.bus_number}
@@ -493,7 +495,7 @@ export function LogisticsManager() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-2" className="text-[10px] font-black uppercase text-slate-500">Estaca / Região *</label>
+                <label htmlFor="field-logisticsmanager-2" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Estaca / Região *</label>
                 <Input id="field-logisticsmanager-2"
                   placeholder="Ex: Estaca São José do Rio Preto"
                   value={form.stake_city}
@@ -519,7 +521,7 @@ export function LogisticsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-3" className="text-xs font-black uppercase text-slate-500">Nome do Motorista</label>
+                <label htmlFor="field-logisticsmanager-3" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Nome do Motorista</label>
                 <Input id="field-logisticsmanager-3"
                   placeholder="Nome do motorista"
                   value={form.driver_name}
@@ -529,7 +531,7 @@ export function LogisticsManager() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-4" className="text-[10px] font-black uppercase text-slate-500">Telefone do Motorista</label>
+                <label htmlFor="field-logisticsmanager-4" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Telefone do Motorista</label>
                 <Input id="field-logisticsmanager-4"
                   placeholder="(17) 99999-9999"
                   value={form.driver_phone}
@@ -541,7 +543,7 @@ export function LogisticsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-5" className="text-[10px] font-black uppercase text-slate-500">Capacidade Total</label>
+                <label htmlFor="field-logisticsmanager-5" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Capacidade Total</label>
                 <Input id="field-logisticsmanager-5"
                   type="number"
                   value={form.capacity}
@@ -551,7 +553,7 @@ export function LogisticsManager() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-6" className="text-[10px] font-black uppercase text-slate-500">Passageiros Confirmados</label>
+                <label htmlFor="field-logisticsmanager-6" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Passageiros Confirmados</label>
                 <Input id="field-logisticsmanager-6"
                   type="number"
                   value={form.passengers_count}
@@ -563,7 +565,7 @@ export function LogisticsManager() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-7" className="text-[10px] font-black uppercase text-slate-500">Previsão de Chegada</label>
+                <label htmlFor="field-logisticsmanager-7" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Previsão de Chegada</label>
                 <Input id="field-logisticsmanager-7"
                   type="time"
                   value={form.arrival_fsy_time}
@@ -573,7 +575,7 @@ export function LogisticsManager() {
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="field-logisticsmanager-8" className="text-[10px] font-black uppercase text-slate-500">Previsão de Retorno</label>
+                <label htmlFor="field-logisticsmanager-8" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Previsão de Retorno</label>
                 <Input id="field-logisticsmanager-8"
                   type="time"
                   value={form.departure_fsy_time}
@@ -584,7 +586,7 @@ export function LogisticsManager() {
             </div>
 
             <div className="space-y-1">
-              <label htmlFor="field-logisticsmanager-9" className="text-[10px] font-black uppercase text-slate-500">Observações / Bagageiro</label>
+              <label htmlFor="field-logisticsmanager-9" className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Observações / Bagageiro</label>
               <Input id="field-logisticsmanager-9"
                 placeholder="Ex: Ar condicionado ok, parada programada em posto..."
                 value={form.notes}
@@ -614,10 +616,10 @@ export function LogisticsManager() {
       <Dialog open={!!busToDelete} onOpenChange={(open) => !open && setBusToDelete(null)}>
         <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-600">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Caravana / Ônibus?
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
               Tem certeza que deseja remover <strong className="text-slate-900 dark:text-white">&ldquo;{busToDelete?.bus_number} — {busToDelete?.stake_city}&rdquo;</strong> do sistema?
             </DialogDescription>
           </DialogHeader>

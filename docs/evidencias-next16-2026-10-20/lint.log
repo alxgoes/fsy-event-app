@@ -1,0 +1,2 @@
+> fsy-sessao-ribeirao-preto-2@0.1.0 lint
+> eslint src --max-warnings=0 --cache --cache-location .next/cache/eslint

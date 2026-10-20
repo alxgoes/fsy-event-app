@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -141,7 +143,7 @@ export function MediaManager() {
   }, []);
 
   useEffect(() => {
-    loadPhotos();
+    startTransition(() => { loadPhotos(); });
   }, [loadPhotos]);
 
   const handleAddPhoto = async (e: React.FormEvent) => {
@@ -294,7 +296,7 @@ export function MediaManager() {
               FSY 2027 Live
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium">
             Sincronização em tempo real com o Google Drive para o Mural de Memórias dos jovens.
           </p>
         </div>
@@ -322,7 +324,7 @@ export function MediaManager() {
             target="_blank"
             rel="noopener noreferrer"
             icon={<FolderOpen className="h-4 w-4" />}
-            iconColor="text-[#007DA5] dark:text-cyan-400"
+            iconColor="text-[#005E7C] dark:text-cyan-400"
           >
             Pasta Drive
           </GooeyButton>
@@ -331,7 +333,7 @@ export function MediaManager() {
             variant="outline"
             size="sm"
             icon={<RefreshCw className="h-3.5 w-3.5" />}
-            iconColor="text-emerald-600 dark:text-emerald-400"
+            iconColor="text-emerald-800 dark:text-emerald-300 dark:text-emerald-400"
             onClick={loadPhotos}
             loading={loading}
           >
@@ -370,12 +372,12 @@ export function MediaManager() {
               <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                   <h3 className="font-heading font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-[#007DA5]" />
+                    <Sparkles className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
                     Cadastrar Nova Foto Oficial do Google Drive
                   </h3>
                   <button
                     onClick={() => setShowForm(false)}
-                    className="p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
+                    className="p-1 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -418,7 +420,7 @@ export function MediaManager() {
                       Link de Compartilhamento do Google Drive *
                     </label>
                     <div className="relative">
-                      <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
                       <Input
                         aria-label="Link de Compartilhamento do Google Drive"
                         value={driveUrl}
@@ -427,7 +429,7 @@ export function MediaManager() {
                         className="pl-10"
                       />
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-300 mt-1">
                       Cole o link da foto com permissão &ldquo;Qualquer pessoa com o link pode ver&rdquo;.
                     </p>
                   </div>
@@ -446,10 +448,10 @@ export function MediaManager() {
                         className="h-16 w-16 object-cover rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm"
                       />
                       <div>
-                        <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                        <p className="text-xs font-black text-emerald-800 dark:text-emerald-300 dark:text-emerald-400">
                           Miniatura de alta definição detectada!
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
                           Pronta para ser exibida nos portais com transição suave.
                         </p>
                       </div>
@@ -462,7 +464,7 @@ export function MediaManager() {
                         type="checkbox"
                         checked={visible}
                         onChange={(e) => setVisible(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-[#007DA5] focus:ring-[#007DA5]"
+                        className="h-4 w-4 rounded border-slate-300 text-[#005E7C] dark:text-[#7DE3F4] focus:ring-[#007DA5]"
                       />
                       <span>Publicar imediatamente no Mural dos Jovens</span>
                     </label>
@@ -497,13 +499,13 @@ export function MediaManager() {
 
       {/* Photos Grid with Shared Layout Lightbox (P4 / P7) */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500">
+        <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-500 dark:text-slate-300">
           <VoluteLoader size={72} variant="brand" />
           <p className="text-xs font-bold tracking-wide">Carregando acervo de mídia...</p>
         </div>
       ) : filteredPhotos.length === 0 ? (
-        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2 backdrop-blur-sm">
-          <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#007DA5]" />
+        <div className="rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2 backdrop-blur-sm">
+          <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-heading font-black text-base text-slate-700 dark:text-slate-300">
             Nenhuma foto encontrada nesta categoria
           </p>
@@ -541,19 +543,19 @@ export function MediaManager() {
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center p-4 text-center">
-                      <ImageIcon className="h-8 w-8 text-slate-400 mb-1" />
-                      <span className="text-xs text-slate-500 font-bold">Google Drive</span>
+                      <ImageIcon className="h-8 w-8 text-slate-600 dark:text-slate-300 mb-1" />
+                      <span className="text-xs text-slate-500 dark:text-slate-300 font-bold">Google Drive</span>
                     </div>
                   )}
 
                   {/* Category Badge */}
-                  <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 text-white text-[11px] font-black px-2.5 py-0.5 backdrop-blur-md border border-white/20">
+                  <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 text-white text-xs font-black px-2.5 py-0.5 backdrop-blur-md border border-white/20">
                     {photo.category}
                   </span>
 
                   {/* Visibility Tag */}
                   {!photo.visible && (
-                    <span className="absolute top-2 right-2 rounded-full bg-amber-500 text-amber-950 text-[11px] font-black px-2.5 py-0.5 shadow-sm">
+                    <span className="absolute top-2 right-2 rounded-full bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 shadow-sm">
                       Oculta
                     </span>
                   )}
@@ -573,7 +575,7 @@ export function MediaManager() {
                     <h4 className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
                       {photo.title}
                     </h4>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
                       {new Date(photo.created_at).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
@@ -583,7 +585,7 @@ export function MediaManager() {
                       href={photo.drive_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs font-black text-[#007DA5] dark:text-cyan-400 hover:underline"
+                      className="fsy-action-link flex items-center gap-1 text-xs font-black text-[#005E7C] dark:text-cyan-400 hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Drive
@@ -594,7 +596,7 @@ export function MediaManager() {
                       <button
                         onClick={() => handleCopyLink(photo.drive_url, photo.id)}
                         title="Copiar link do Drive"
-                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300 transition-colors cursor-pointer"
                       >
                         {copiedId === photo.id ? (
                           <Check className="h-4 w-4 text-emerald-500" />
@@ -667,7 +669,7 @@ export function MediaManager() {
 
                 <button
                   onClick={() => setLightboxPhoto(null)}
-                  className="p-1.5 rounded-full text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -689,7 +691,7 @@ export function MediaManager() {
 
               {/* Bottom Action Dock inside Lightbox */}
               <div className="p-4 bg-slate-950/90 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                <div className="text-xs text-slate-400 font-semibold">
+                <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
                   Publicado em: {new Date(lightboxPhoto.created_at).toLocaleDateString("pt-BR")}
                 </div>
 
@@ -736,10 +738,10 @@ export function MediaManager() {
       <Dialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
         <DialogContent className="sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-600">
+            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Foto do Mural?
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
               Tem certeza que deseja remover <strong className="text-slate-900 dark:text-white">&ldquo;{photoToDelete?.title}&rdquo;</strong> da galeria oficial do FSY 2027?
             </DialogDescription>
           </DialogHeader>

@@ -39,7 +39,7 @@ function fixture(identity = { user: { id: 'staff-identity' }, role: 'medico' }) 
     modules[file] = exports;
     return exports;
   };
-  const invoke = (route, method, body, version = '3', params = { id, interviewId }) => load(`src/app/api/inclusion/${route}`)[method]({ url: `https://fsy.test/api/inclusion/${id}?version=${version}`, json: async () => body }, { params });
+  const invoke = (route, method, body, version = '3', params = { id, interviewId }) => load(`src/app/api/inclusion/${route}`)[method]({ url: `https://fsy.test/api/inclusion/${id}?version=${version}`, json: async () => body }, { params: Promise.resolve(params) });
   return { invoke, rpcCalls, queryCalls, fail: code => { rpcResult = { data: null, error: { code, message: 'private database detail' } }; } };
 }
 

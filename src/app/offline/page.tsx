@@ -31,7 +31,7 @@ export default function OfflinePage() {
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <Link
             href="/dashboard"
-            className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-xs font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-[#005E7C] transition-all"
+            className="fsy-action-link flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-xs font-black border-2 border-slate-900 shadow-brutal-sm hover:bg-[#005E7C] transition-all"
           >
             <Home className="h-4 w-4" />
             <span>Voltar ao painel</span>

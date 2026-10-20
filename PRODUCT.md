@@ -20,7 +20,7 @@ Centralizar e orquestrar todas as operações, comunicações e experiências do
 
 ## Positioning
 
-Uma plataforma de evento sob medida para a Sessão Ribeirão Preto 2, que une a identidade visual acolhedora e reverente do tema oficial FSY 2027 ("Rejoice in Christ" / Filipenses 4:4) a uma arquitetura operacional robusta com controle de acesso rigoroso por perfil (RBAC), segurança médica estrita e sincronização em tempo real.
+Uma plataforma de evento sob medida para a Sessão Ribeirão Preto 2, que une a identidade visual acolhedora e reverente do tema oficial FSY 2027 ("Alegra-se em Cristo" / Filipenses 4:4) a uma arquitetura operacional robusta com controle de acesso rigoroso por perfil (RBAC), segurança médica estrita e consultas autenticadas e atualização periódica.
 
 ## Operating Context
 
@@ -35,7 +35,7 @@ Evento presencial de 5 dias em regime de retiro/acampamento. A maior parte dos a
 
 ## Brand Commitments
 
-- **Tema e Lema:** "REJOICE IN CHRIST" (Filipenses 4:4).
+- **Tema e Lema:** "Alegra-se em Cristo" (Filipenses 4:4).
 - **Cores Primárias Oficiais:** Neutral 5 (`#EFEFE7`), Parchment (`#F5EFCA`), Sunshine (`#FFE48A`), Yellow 10 (`#FFB81C`), Gold 10 (`#DBBF6B`), Gray 5 (`#E0E2E2`).
 - **Cores Secundárias Oficiais:** Tons de Vermelho/Rosa (`#FDA192`, `#FC4E6D`), Laranja/Âmbar (`#F68D2E`, `#D45311`), Verde Lima/Folha (`#D3E952`, `#BED21E`, `#93C742`, `#6DB344`) e Azul Céu/Mar (`#B0EEFC`, `#7DE3F4`, `#01B6D1`, `#007DA5`).
 - **Tipografia:** Estética clássica inspirada na família McKay, utilizando Cinzel (títulos display), Cormorant Garamond (subtítulos e destaques serifados) e Inter (corpo de texto e interface de dados).

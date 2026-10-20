@@ -1,10 +1,11 @@
+import { EVENT_THEME } from "@/lib/event/identity";
 import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "FSY Sessão Ribeirão Preto 2 2027",
     short_name: "FSY RP 2",
-    description: "Aplicativo oficial da Sessão Ribeirão Preto 2 do FSY Brasil 2027",
+    description: `FSY Sessão Ribeirão Preto 2 2027 · ${EVENT_THEME}`,
     start_url: "/dashboard",
     display: "standalone",
     background_color: "#0B1528",

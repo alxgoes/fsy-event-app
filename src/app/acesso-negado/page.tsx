@@ -27,7 +27,7 @@ export default function AcessoNegadoPage() {
             <h1 className="font-heading text-3xl font-black text-slate-900 dark:text-white">
               Acesso Negado
             </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium leading-relaxed">
               Seu perfil não tem permissão para acessar esta área da gestão.
             </p>
           </div>
@@ -42,7 +42,7 @@ export default function AcessoNegadoPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/dashboard"
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-sm font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] transition-colors min-h-[44px]"
+              className="fsy-action-link flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-sm font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] transition-colors min-h-[44px]"
             >
               <Home className="h-4 w-4" />
               Meu Painel
@@ -58,7 +58,7 @@ export default function AcessoNegadoPage() {
         </div>
 
         {/* Footer note */}
-        <p className="mt-4 text-center text-xs font-bold text-slate-400 dark:text-slate-600">
+        <p className="mt-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-600">
           FSY Sessão Ribeirão Preto 2 • 2027 (05 a 10 de Fevereiro)
         </p>
       </motion.div>

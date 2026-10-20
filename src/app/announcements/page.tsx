@@ -1,4 +1,5 @@
 "use client";
+import { startTransition } from "react";
 import { Input } from "@/components/ui/input";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -119,10 +120,10 @@ export default function AnnouncementsPage() {
     } finally {
       setLoading(false);
     }
-  }, [loadReadStatus, profile?.id]);
+  }, [loadReadStatus, profile]);
 
   useEffect(() => {
-    loadData();
+    startTransition(() => { void loadData(); });
   }, [loadData]);
 
   // Toggle mark as read
@@ -236,7 +237,7 @@ export default function AnnouncementsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-black text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all w-fit"
+            className="fsy-action-link inline-flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-2.5 text-xs font-black text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar ao Dashboard</span>
@@ -267,11 +268,11 @@ export default function AnnouncementsPage() {
         <div className="rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-lg mb-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FC4E6D] text-white border-2 border-slate-900 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FC4E6D] text-slate-950 border-2 border-slate-900 shadow-sm">
                 <Megaphone className="h-6 w-6" />
               </div>
               <div>
-                <span className="text-xs font-black uppercase tracking-wider text-[#007DA5] dark:text-cyan-400">
+                <span className="text-xs font-black uppercase tracking-wider text-[#005E7C] dark:text-cyan-400">
                   Lembretes & Mensagens Oficiais
                 </span>
                 <h1 className="font-heading text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
@@ -296,7 +297,7 @@ export default function AnnouncementsPage() {
         {/* Search & Filter Bar */}
         <div className="space-y-3 mb-6">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-300 dark:text-slate-400" />
             <Input
               type="text"
               aria-label="Pesquisar comunicados, avisos ou recados"
@@ -335,7 +336,7 @@ export default function AnnouncementsPage() {
               onClick={() => setFilter("urgentes")}
               className={`px-3.5 py-2 rounded-2xl text-xs font-black border-2 border-slate-900 dark:border-slate-700 transition-all min-h-[36px] ${
                 filter === "urgentes"
-                  ? "bg-[#FC4E6D] text-white shadow-sm"
+                  ? "bg-[#FC4E6D] text-slate-950 shadow-sm"
                   : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50"
               }`}
             >
@@ -367,7 +368,7 @@ export default function AnnouncementsPage() {
             <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
               Nenhum comunicado encontrado
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-sm mx-auto">
               {searchQuery
                 ? "Nenhum resultado para os termos pesquisados."
                 : filter === "nao_lidos"
@@ -401,9 +402,9 @@ export default function AnnouncementsPage() {
                     className={`rounded-3xl border-2 p-5 shadow-brutal-md transition-all ${
                       !isRead
                         ? isUrgent
-                          ? "border-red-500 bg-red-50/80 dark:bg-red-950/40"
+                          ? "border-red-500 bg-red-50/80 dark:bg-red-950"
                           : isImportant
-                          ? "border-amber-500 bg-amber-50/80 dark:bg-amber-950/30"
+                          ? "border-amber-500 bg-amber-50/80 dark:bg-amber-950"
                           : "border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900"
                         : "border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 opacity-80"
                     }`}
@@ -412,9 +413,9 @@ export default function AnnouncementsPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className={`rounded-xl px-2.5 py-0.5 text-[10px] font-black uppercase border-2 border-slate-900 ${
+                          className={`rounded-xl px-2.5 py-0.5 text-xs font-black uppercase border-2 border-slate-900 ${
                             isUrgent
-                              ? "bg-red-500 text-white animate-pulse"
+                              ? "bg-red-700 text-white animate-pulse"
                               : isImportant
                               ? "bg-[#FFE48A] text-amber-950"
                               : "bg-[#007DA5] text-white"
@@ -433,7 +434,7 @@ export default function AnnouncementsPage() {
                         </span>
                       </div>
 
-                      <span className="text-xs font-black text-[#007DA5] dark:text-cyan-400 flex items-center gap-1">
+                      <span className="text-xs font-black text-[#005E7C] dark:text-cyan-400 flex items-center gap-1">
                         <Building2 className="h-3.5 w-3.5" />
                         <span>Para: {targetLabel}</span>
                       </span>
@@ -461,7 +462,7 @@ export default function AnnouncementsPage() {
                           onClick={() => toggleLike(item.id)}
                           className={`flex items-center gap-1.5 font-black text-xs rounded-xl px-3 py-1 border transition-all cursor-pointer ${
                             likeInfo.isLiked
-                              ? "text-rose-600 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
+                              ? "text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 shadow-sm"
                               : "text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 hover:text-rose-600 hover:border-rose-300"
                           }`}
                           title={likeInfo.isLiked ? "Descurtir" : "Curtir lembrete"}
@@ -485,7 +486,7 @@ export default function AnnouncementsPage() {
                             <span>Marcar como lido</span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-800">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-800">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             <span>Lido</span>
                           </span>

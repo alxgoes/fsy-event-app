@@ -31,7 +31,7 @@ const VARIANT_STYLES: Record<NonNullable<GooeyButtonProps["variant"]>, string> =
   gold:
     "bg-[#FFE48A] text-slate-950 border-2 border-slate-900 shadow-tactile-pill hover:bg-[#fedd74]",
   coral:
-    "bg-[#FC4E6D] text-white border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#e63c5b]",
+    "bg-[#FC4E6D] text-slate-950 border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#e63c5b]",
   outline:
     "bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-tactile-pill hover:bg-slate-100 dark:hover:bg-slate-700",
   ghost:
@@ -105,7 +105,7 @@ export function GooeyButton({
           href={href}
           target={target}
           rel={rel}
-          className={baseClasses}
+          className={"fsy-action-link " + (baseClasses)}
           aria-label={ariaLabel}
           onClick={onClick}
         >

@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Input } from "@/components/ui/input";
@@ -106,7 +108,7 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { void loadCases(); }, [loadCases]);
+  useEffect(() => { startTransition(() => { void loadCases(); }); }, [loadCases]);
   useEffect(() => {
     if (!dirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
@@ -137,8 +139,8 @@ export function InclusionManager({ records, recordsLoading, requestedRecord, onO
     lastRequest.current = requestedRecord.request;
     if (dirty && !window.confirm("Há alterações não salvas. Deseja descartá-las para abrir outro acompanhamento?")) return;
     const existing = cases.find(item => item.medical_record_id === requestedRecord.id);
-    if (existing) { void openCase(existing.id); }
-    else { ++requestSequence.current; setDetailLoading(false); setRecordId(requestedRecord.id); setNewParticipant(false); setCreating(true); setDetail(null); setDirty(false); }
+    if (existing) { startTransition(() => { void openCase(existing.id); }); }
+    else { ++requestSequence.current; startTransition(() => { setDetailLoading(false); setRecordId(requestedRecord.id); setNewParticipant(false); setCreating(true); setDetail(null); setDirty(false); }); }
   }, [requestedRecord, loading, cases, openCase, dirty]);
 
   async function mutate(path: string, payload: CreateInclusionInput | UpdateInclusionInput | InclusionInterviewInput | InclusionDecisionInput, method: "POST" | "PATCH", message: string) {

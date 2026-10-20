@@ -94,10 +94,10 @@ export function GooeyPillTabs({
             {/* Tab count badge */}
             {tab.count !== undefined && (
               <span
-                className={`ml-1 text-[11px] font-black px-1.5 py-0.2 rounded-full ${
+                className={`ml-1 text-xs font-black px-1.5 py-0.2 rounded-full ${
                   isActive
                     ? "bg-white/20 text-white"
-                    : "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                    : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-300"
                 }`}
               >
                 {tab.count}

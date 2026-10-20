@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useEffect, useRef } from "react";
 
 const DEFAULTS = {
   colorA: "#00FFF0",
@@ -384,10 +384,11 @@ export default function Seigaiha({
     strength,
   });
 
-  cfgRef.current = {
-    colorA,
-    colorB,
-    colors,
+  useLayoutEffect(() => {
+    cfgRef.current = {
+      colorA,
+      colorB,
+      colors,
     count,
     rings,
     thickness,
@@ -397,6 +398,7 @@ export default function Seigaiha({
     followPointer,
     strength,
   };
+  });
 
   useEffect(() => {
     const container = containerRef.current;

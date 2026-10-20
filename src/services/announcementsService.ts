@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/client";
 import { getOfflineCacheKey } from "@/services/offlineCache";
+import {
+  allowsDirectFallback,
+  cachedRequest,
+  fetchJson,
+  invalidateRequests,
+  sessionScope,
+} from "@/lib/requests/client";
 
 export interface Announcement {
   id: string;
@@ -14,52 +21,53 @@ export interface Announcement {
   profiles?: { full_name: string; role: string } | null;
 }
 
-
+/** Avisos mudam pouco em segundos; curtidas invalidam a lista. */
+const ANNOUNCEMENTS_TTL_MS = 20_000;
 
 export async function getAnnouncements(
-  companyId?: string | null
+  companyId?: string | null, signal?: AbortSignal
 ): Promise<{ data: Announcement[]; fromCache: boolean }> {
   const storageKey = await getOfflineCacheKey("announcements", companyId);
   try {
+    const scope = await sessionScope();
     const endpoint = companyId
-      ? `/api/announcements?company_id=${encodeURIComponent(companyId)}&_t=${Date.now()}`
-      : `/api/announcements?_t=${Date.now()}`;
+      ? `/api/announcements?company_id=${encodeURIComponent(companyId)}`
+      : "/api/announcements";
 
-    const res = await fetch(endpoint, { cache: "no-store" });
-    if (res.ok) {
-      const json = await res.json();
-      const list = (json.data ?? []) as Announcement[];
-      const filtered = companyId
-        ? list
-        : list.filter((a) => !a.target_company_id);
-
-      if (storageKey && typeof window !== "undefined") {
+    const data = await cachedRequest(
+      `announcements:${scope}:${companyId || "general"}`,
+      async (signal) => {
         try {
-          localStorage.setItem(storageKey, JSON.stringify(filtered));
-        } catch {}
-      }
-      return { data: filtered, fromCache: false };
-    }
+          const json = await fetchJson<{ data?: Announcement[] }>(endpoint, signal);
+          const list = json.data ?? [];
+          return companyId ? list : list.filter((a) => !a.target_company_id);
+        } catch (error) {
+          if (!allowsDirectFallback(error)) throw error;
+          const supabase = createClient();
+          let query = supabase.from("announcements").select("*, profiles:author_id(full_name, role)");
+          if (companyId) {
+            query = query.or(`target_company_id.eq.${companyId},target_company_id.is.null`);
+          } else {
+            query = query.is("target_company_id", null);
+          }
+          const { data: dbData, error: dbError } = await query
+            .order("created_at", { ascending: false })
+            .abortSignal(signal);
+          if (dbError || !dbData) throw dbError ?? error;
+          return dbData as Announcement[];
+        }
+      },
+      { ttlMs: ANNOUNCEMENTS_TTL_MS, signal }
+    );
 
-    // Direct Supabase fallback
-    const supabase = createClient();
-    let query = supabase.from("announcements").select("*, profiles:author_id(full_name, role)");
-    if (companyId) {
-      query = query.or(`target_company_id.eq.${companyId},target_company_id.is.null`);
-    } else {
-      query = query.is("target_company_id", null);
+    if (storageKey && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      } catch {}
     }
-    const { data: dbData } = await query.order("created_at", { ascending: false });
-    if (dbData) {
-      if (storageKey && typeof window !== "undefined") {
-        try {
-          localStorage.setItem(storageKey, JSON.stringify(dbData));
-        } catch {}
-      }
-      return { data: dbData as Announcement[], fromCache: false };
-    }
+    return { data, fromCache: false };
   } catch {
-    // Network error or offline
+    // Rede indisponível, acesso negado ou falha do servidor
   }
 
   // Fallback to offline localStorage cache
@@ -86,6 +94,7 @@ export async function toggleLikeAnnouncement(
     });
     if (res.ok) {
       const json = await res.json();
+      invalidateRequests("announcements:");
       return { success: true, likesCount: json.likes_count };
     }
   } catch {}

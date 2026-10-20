@@ -178,7 +178,7 @@ export function ScrollIndicator({
                   className={cn(
                     'absolute right-0 h-0.5 transition-colors duration-200',
                     section.level === 2 || section.level === undefined ? 'w-5' : 'w-3.5',
-                    isActive ? 'bg-[#007DA5] dark:bg-[#01B6D1]' : 'bg-slate-700 dark:bg-slate-400',
+                    isActive ? 'bg-[#007DA5] dark:bg-[#01B6D1] dark:text-slate-950' : 'bg-slate-700 dark:bg-slate-400',
                   )}
                   style={{ top: `${y}px` }}
                 />
@@ -202,11 +202,11 @@ export function ScrollIndicator({
                     onMouseEnter={() => playHoverSound()}
                     onClick={() => handleClick(i)}
                     className={cn(
-                      'font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 px-2 py-0.5 whitespace-nowrap rounded-md shadow-xs',
+                      'font-mono text-xs font-bold uppercase tracking-wider cursor-pointer bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 px-2 py-0.5 whitespace-nowrap rounded-md shadow-xs',
                       'transition-colors duration-150',
                       'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#007DA5] dark:focus-visible:ring-[#01B6D1]',
                       isActive
-                        ? 'text-[#007DA5] dark:text-[#01B6D1] border-[#007DA5] dark:border-[#01B6D1] font-black'
+                        ? 'text-[#005E7C] dark:text-[#01B6D1] border-[#007DA5] dark:border-[#01B6D1] font-black'
                         : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white',
                     )}
                   >
@@ -219,14 +219,14 @@ export function ScrollIndicator({
 
           {/* Smooth moving active cursor */}
           <motion.div className="absolute right-0 z-20" style={{ top: smoothY }}>
-            <div className="h-0.5 w-6 bg-[#007DA5] dark:bg-[#01B6D1] shadow-xs" />
+            <div className="h-0.5 w-6 bg-[#007DA5] dark:bg-[#01B6D1] dark:text-slate-950 shadow-xs" />
             <div
               className={cn(
                 'absolute top-0 right-7 -translate-y-1/2 transition-opacity duration-200',
                 isHovered ? 'opacity-0' : 'opacity-100',
               )}
             >
-              <span className="font-mono text-[10px] font-black bg-[#007DA5] dark:bg-[#01B6D1] text-white px-1.5 py-0.5 rounded shadow-xs tabular-nums">
+              <span className="font-mono text-xs font-black bg-[#007DA5] dark:bg-[#01B6D1] dark:text-slate-950 text-white px-1.5 py-0.5 rounded shadow-xs tabular-nums">
                 {filteredSections.length > 0
                   ? `${activeIndex + 1}/${filteredSections.length}`
                   : '0/0'}

@@ -1,6 +1,6 @@
 ---
 name: FSY Sessão Ribeirão Preto 2
-description: Sistema de design oficial FSY 2027 "Rejoice in Christ" para a Sessão Ribeirão Preto 2
+description: Sistema de design oficial FSY 2027 "Alegra-se em Cristo" para a Sessão Ribeirão Preto 2
 colors:
   primary: "#007DA5"
   primary-hover: "#005E7C"
@@ -96,7 +96,7 @@ components:
 
 **Creative North Star: "A Flâmula da Juventude"**
 
-O sistema de design do FSY Sessão Ribeirão Preto 2 traduz o tema oficial da juventude para 2027, *"Rejoice in Christ"* (Filipenses 4:4), em uma experiência digital acolhedora, vibrante e funcional. Inspirado nas flâmulas históricas de eventos e na arquitetura sagrada do templo, o sistema equilibra a solenidade serena de proporções clássicas com o entusiasmo juvenil de uma conferência de cinco dias repleta de aprendizado, música e companheirismo.
+O sistema de design do FSY Sessão Ribeirão Preto 2 traduz o tema oficial da juventude para 2027, *"Alegra-se em Cristo"* (Filipenses 4:4), em uma experiência digital acolhedora, vibrante e funcional. Inspirado nas flâmulas históricas de eventos e na arquitetura sagrada do templo, o sistema equilibra a solenidade serena de proporções clássicas com o entusiasmo juvenil de uma conferência de cinco dias repleta de aprendizado, música e companheirismo.
 
 A interface rejeita deliberadamente o visual frio e asséptico de dashboards corporativos cinzas, assim como sombras pesadas ou estéticas carregadas. Em seu lugar, emprega uma atmosfera banhada em tons de pergaminho (*Parchment* e *Neutral 5*), toques quentes de sol (*Sunshine*), tipografia serifada nobre nos títulos e contrastes nítidos de leitura que garantem acessibilidade plena sob a luz natural do dia.
 
@@ -127,7 +127,7 @@ A paleta é orientada pelo Guia Oficial FSY 2027, estruturada para oferecer cont
 - **Ouro do Templo** (`#DBBF6B` / Gold 10): Exclusivo para detalhes da estátua do Morôni, portal do templo e insígnias cerimoniais.
 
 ### Named Rules
-**The No-Shadow-On-Brand Rule.** O identificador, o arco do templo e a tipografia "Rejoice in Christ" nunca devem receber sombras projetadas (*drop shadow*) nem gradientes. A marca vive sempre limpa sobre fundo neutro ou claro.
+**The No-Shadow-On-Brand Rule.** O identificador, o arco do templo e a tipografia "Alegra-se em Cristo" nunca devem receber sombras projetadas (*drop shadow*) nem gradientes. A marca vive sempre limpa sobre fundo neutro ou claro.
 
 **The Daylight Contrast Rule.** Todo texto ou dado operacional deve atingir conformidade WCAG AA sobre sua superfície imediata, assegurando leitura perfeita em smartphones sob sol aberto.
 
@@ -212,8 +212,19 @@ O sistema utiliza a filosofia de **Camadas Flutuantes**: superfícies limpas e l
 - **Do** incluir indicações imediatas de restrições alimentares e alergias severas nos cards da equipe médica e consultores.
 
 ### Don't:
-- **Don't** aplicar gradientes ou sombras projetadas (*drop shadows*) na marca oficial do FSY, no templo ou na tipografia "Rejoice in Christ".
+- **Don't** aplicar gradientes ou sombras projetadas (*drop shadows*) na marca oficial do FSY, no templo ou na tipografia "Alegra-se em Cristo".
 - **Don't** utilizar fundos cinzas frios ou paletas genéricas corporativas de dashboards convencionais.
 - **Don't** inventar selos ou alterar as proporções do arco do templo.
 - **Don't** inserir avisos ou disclaimers declarando que a aplicação é o site institucional geral da Igreja.
 - **Don't** quebrar a proteção de dados: prontuários e alergias confidenciais nunca devem ser expostos fora da equipe autorizada.
+
+## Pares semânticos de contraste — lote complementar de 20/10/2026
+
+- Saudação: `--fsy-hero: #005E7C` com texto branco, contraste calculado 7,26:1; não colocar luz/ciano translúcido sobre essa área de leitura.
+- Notificações/selos rosa: `--fsy-accent-ink: #0F172A` sobre `#FC4E6D`, 5,48:1. Branco sobre esse rosa não atende texto pequeno.
+- Urgência: vermelho escuro `#B91C1C` com branco, 6,47:1. Texto e ícone continuam identificando a prioridade; cor não é o único sinal.
+- Links: `--fsy-link` usa azul escuro `#005E7C` no claro e `#7DE3F4` no escuro. Superfícies ciano usam primeiro plano grafite.
+- Metadados e rótulos funcionais usam pelo menos o passo Label de 12 px já definido; marca gráfica decorativa não substitui o nome acessível dos controles.
+- Links operacionais `.fsy-action-link` reservam 44×44 px e foco visível. Links dentro do texto corrido da legenda preservam seu comportamento inline, com leitura integral expandida.
+
+Essas referências matemáticas não são uma certificação do site inteiro; a auditoria mede cada contexto renderizado. Os critérios WCAG/Impeccable permanecem os mesmos, sem regras silenciadas ou alteração do piso tipográfico para melhorar pontuação.

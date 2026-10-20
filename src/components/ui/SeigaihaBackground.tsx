@@ -1,16 +1,14 @@
-﻿"use client";
+"use client";
+import { useHydrated } from "@/lib/ui/useHydrated";
 
-import React, { useEffect, useState } from "react";
+
+import React from "react";
 import { useTheme } from "next-themes";
 import Seigaiha from "./Seigaiha";
 
 export function SeigaihaBackground() {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useHydrated();
 
   // Avoid flash before theme resolution
   const isDark = mounted ? resolvedTheme === "dark" : false;
@@ -61,7 +59,7 @@ export function SeigaihaBackground() {
         followPointer={true}
         strength={palette.strength}
         style={{
-          opacity: isDark ? 0.85 : 0.7,
+          opacity: isDark ? 0.25 : 0.7,
         }}
       />
     </div>

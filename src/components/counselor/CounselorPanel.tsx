@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 import { CustomizableGrid } from "@/components/layout/CustomizableGrid";
 import { NativeSelect } from "@/components/ui/native-select";
 
@@ -161,7 +163,7 @@ export function CounselorPanel() {
 
   useEffect(() => {
     if (!profileLoading && profile) {
-      loadCounselorData();
+      startTransition(() => { loadCounselorData(); });
     }
   }, [profileLoading, profile, loadCounselorData]);
 
@@ -321,7 +323,7 @@ export function CounselorPanel() {
 
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black text-[#007DA5] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800 uppercase tracking-wider">
+                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800 uppercase tracking-wider">
                     Painel do Consultor
                   </span>
                   {company && (
@@ -344,7 +346,7 @@ export function CounselorPanel() {
                       &ldquo;{company.motto}&rdquo;
                     </p>
                   ) : (
-                    <p className="text-xs text-slate-400 italic">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 italic">
                       Nenhum lema ou grito de guerra definido
                     </p>
                   )}
@@ -355,7 +357,7 @@ export function CounselorPanel() {
                         setMottoText(company.motto || "");
                         setEditingMotto(true);
                       }}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#007DA5] dark:text-cyan-400 hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#005E7C] dark:text-cyan-400 hover:underline cursor-pointer"
                     >
                       <Edit3 className="h-3 w-3" />
                       <span>{company.motto ? "Alterar Lema" : "Definir Lema"}</span>
@@ -373,10 +375,10 @@ export function CounselorPanel() {
                 disabled={loadingData}
                 className="flex items-center gap-1.5 rounded-2xl bg-[#FAF8F5] dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-3.5 py-2 text-xs font-black shadow-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors min-h-[38px]"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${loadingData ? "animate-spin text-[#007DA5]" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${loadingData ? "animate-spin text-[#005E7C] dark:text-[#7DE3F4]" : ""}`} />
                 <span>Atualizar</span>
               </button>
-              <Link href="/dashboard">
+              <Link className="fsy-action-link" href="/dashboard">
                 <motion.div
                   whileHover={shouldReduceMotion ? undefined : { y: -2 }}
                   whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
@@ -393,7 +395,7 @@ export function CounselorPanel() {
           {company && company.counselors && company.counselors.length > 0 && (
             <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-500 dark:text-slate-400">
+                <span className="font-bold text-slate-600 dark:text-slate-300">
                   Consultores parceiros:
                 </span>
                 <span className="font-bold text-slate-900 dark:text-white">
@@ -401,7 +403,7 @@ export function CounselorPanel() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-500 dark:text-slate-400">
+                <span className="font-bold text-slate-600 dark:text-slate-300">
                   Total de Jovens na Companhia:
                 </span>
                 <span className="rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-black px-2.5 py-0.5 border border-emerald-200 dark:border-emerald-800">
@@ -415,7 +417,7 @@ export function CounselorPanel() {
         {/* Warning if no company */}
         {!profile?.company_id && !loadingData && (
           <div className="rounded-3xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 p-6 text-center space-y-2 shadow-sm">
-            <AlertTriangle className="h-8 w-8 mx-auto text-amber-600" />
+            <AlertTriangle className="h-8 w-8 mx-auto text-amber-800 dark:text-amber-300" />
             <h3 className="font-serif text-lg font-bold text-amber-900 dark:text-amber-200">
               Aguardando Designação de Companhia
             </h3>
@@ -433,17 +435,17 @@ export function CounselorPanel() {
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                   Jovens Alocados
                 </span>
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#007DA5]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4]">
                   <Users className="h-4 w-4" />
                 </div>
               </div>
               <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                 {youthList.length}
               </div>
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                 {youthWithRoom} com alojamento/quarto informado
               </div>
             </motion.div>) },
@@ -452,7 +454,7 @@ export function CounselorPanel() {
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                   Mural & Avisos
                 </span>
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950 text-[#FC4E6D]">
@@ -462,7 +464,7 @@ export function CounselorPanel() {
               <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                 {announcements.length}
               </div>
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                 Comunicados publicados no mural da companhia
               </div>
             </motion.div>) },
@@ -471,7 +473,7 @@ export function CounselorPanel() {
               className="rounded-3xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
                   Curtidas Recebidas
                 </span>
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-950 text-pink-600">
@@ -481,7 +483,7 @@ export function CounselorPanel() {
               <div className="font-serif text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                 {totalLikes}
               </div>
-              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                 Interações dos jovens nos avisos da companhia
               </div>
             </motion.div>) }]} />
@@ -542,7 +544,7 @@ export function CounselorPanel() {
                     <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
                       Publicar para a Companhia
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
                       Aparecerá imediatamente no portal dos seus jovens
                     </p>
                   </div>
@@ -576,7 +578,7 @@ export function CounselorPanel() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="field-counselorpanel-3" className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label htmlFor="field-counselorpanel-3" className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Prioridade
                       </label>
                       <NativeSelect id="field-counselorpanel-3"
@@ -593,7 +595,7 @@ export function CounselorPanel() {
                     </div>
 
                     <div>
-                      <label htmlFor="field-counselorpanel-4" className="block text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label htmlFor="field-counselorpanel-4" className="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         Categoria
                       </label>
                       <NativeSelect id="field-counselorpanel-4"
@@ -616,7 +618,7 @@ export function CounselorPanel() {
 
                   {postSuccess && (
                     <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/50 p-3 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900 flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle2 className="h-4 w-4 text-emerald-800 dark:text-emerald-300" />
                       <span>Comunicado publicado com sucesso!</span>
                     </div>
                   )}
@@ -646,22 +648,22 @@ export function CounselorPanel() {
                 <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white">
                   Comunicados Ativos da Companhia
                 </h3>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                   {announcements.length} publicado(s)
                 </span>
               </div>
 
               {loadingData ? (
                 <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+                  <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
                 </div>
               ) : announcements.length === 0 ? (
                 <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
-                  <Megaphone className="h-8 w-8 mx-auto text-slate-400 mb-2" />
+                  <Megaphone className="h-8 w-8 mx-auto text-slate-600 dark:text-slate-300 mb-2" />
                   <p className="font-serif text-base font-bold text-slate-700 dark:text-slate-300">
                     Nenhum comunicado publicado ainda
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-sm mx-auto">
                     Use o formulário ao lado para enviar o primeiro aviso ou instruções para os jovens da sua companhia.
                   </p>
                 </div>
@@ -687,17 +689,17 @@ export function CounselorPanel() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                               <span
-                                className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase ${
+                                className={`rounded-md px-2 py-0.5 text-xs font-black uppercase ${
                                   isUrgent
-                                    ? "bg-red-500 text-white"
+                                    ? "bg-red-700 text-white"
                                     : isImportant
-                                    ? "bg-[#FC4E6D] text-white"
+                                    ? "bg-[#FC4E6D] text-slate-950"
                                     : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                                 }`}
                               >
                                 {isUrgent ? "Urgente" : isImportant ? "Importante" : "Lembrete"}
                               </span>
-                              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {new Date(item.created_at).toLocaleDateString("pt-BR", {
                                   day: "2-digit",
@@ -728,10 +730,10 @@ export function CounselorPanel() {
 
                         {/* Likes indicator */}
                         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-xs text-slate-500 dark:text-slate-300">
                             Categoria: <strong>{item.category || "Companhia"}</strong>
                           </span>
-                          <div className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-900">
+                          <div className="flex items-center gap-1 text-xs font-bold text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-900">
                             <Heart className="h-3 w-3 fill-rose-500" />
                             <span>{item.likes_count ?? (item.liked_by?.length || 0)} curtida(s)</span>
                           </div>
@@ -750,7 +752,7 @@ export function CounselorPanel() {
             {/* Search Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
                 <Input
                   type="text"
                   aria-label="Buscar jovem por nome, quarto ou estaca"
@@ -768,15 +770,15 @@ export function CounselorPanel() {
 
             {loadingData ? (
               <div className="flex justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
               </div>
             ) : filteredYouth.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center">
-                <Users className="h-8 w-8 mx-auto text-slate-400 mb-2" />
+                <Users className="h-8 w-8 mx-auto text-slate-600 dark:text-slate-300 mb-2" />
                 <p className="font-serif text-base font-bold text-slate-700 dark:text-slate-300">
                   Nenhum jovem encontrado
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-sm mx-auto">
                   A coordenação vincula os jovens registrados às companhias.
                 </p>
               </div>
@@ -804,7 +806,7 @@ export function CounselorPanel() {
                             <h4 className="font-serif text-sm font-bold text-slate-900 dark:text-white truncate">
                               {youth.full_name}
                             </h4>
-                            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate">
+                            <p className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">
                               {youth.stake || "Estaca não informada"}
                             </p>
                           </div>
@@ -813,11 +815,11 @@ export function CounselorPanel() {
                         <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
                           {youth.room ? (
                             <div className="flex items-center gap-1.5 font-medium">
-                              <Bed className="h-3.5 w-3.5 text-[#007DA5]" />
+                              <Bed className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                               <span>Quarto: <strong>{youth.room}</strong></span>
                             </div>
                           ) : (
-                            <div className="text-[11px] text-slate-400 italic">
+                            <div className="text-xs text-slate-600 dark:text-slate-300 italic">
                               Quarto pendente
                             </div>
                           )}
@@ -832,21 +834,21 @@ export function CounselorPanel() {
                               href={`https://wa.me/55${cleanPhone}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
+                              className="fsy-action-link flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 transition-colors"
                             >
                               <MessageCircle className="h-3 w-3" />
                               <span>WhatsApp</span>
                             </a>
                             <a
                               href={`tel:${cleanPhone}`}
-                              className="flex items-center justify-center rounded-xl bg-[#FAF8F5] dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                              className="fsy-action-link flex items-center justify-center rounded-xl bg-[#FAF8F5] dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors"
                               title="Ligar"
                             >
                               <Phone className="h-3.5 w-3.5" />
                             </a>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">
+                          <span className="text-xs text-slate-600 dark:text-slate-300 italic">
                             Telefone não informado
                           </span>
                         )}
@@ -909,7 +911,7 @@ export function CounselorPanel() {
         <DialogContent className="sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Edit3 className="h-4 w-4 text-[#007DA5]" />
+              <Edit3 className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
               Lema & Grito de Guerra da Companhia
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-600 dark:text-slate-400">

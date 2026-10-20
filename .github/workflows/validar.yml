@@ -1,0 +1,62 @@
+name: Validar FSY
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validar-fsy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54399
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dev
+      SUPABASE_SERVICE_ROLE_KEY: dev
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3117
+      FSY_QA_OUTPUT_DIR: ${{ runner.temp }}/fsy-qa
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Instalar dependências travadas
+        run: npm ci
+      - name: Revisar código
+        run: npm run lint
+      - name: Verificar tipos
+        run: npm run typecheck
+      - name: Testar funções e permissões do banco
+        run: npm test
+      - name: Auditar dependências de produção
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: Compilar aplicação
+        run: npm run build
+      - name: Preparar navegador de teste isolado
+        run: npm install --prefix "$RUNNER_TEMP/fsy-qa-tools" --no-package-lock --no-audit --no-fund puppeteer@24.10.0 axe-core@4.14.0
+      - name: Verificar telas, acessibilidade e interações
+        run: |
+          export FSY_PUPPETEER_MODULE="$RUNNER_TEMP/fsy-qa-tools/node_modules/puppeteer"
+          export FSY_AXE_MODULE="$RUNNER_TEMP/fsy-qa-tools/node_modules/axe-core"
+          node scripts/visual-qa/verify.cjs
+          node scripts/visual-qa/assert.cjs "$FSY_QA_OUTPUT_DIR/fsy-visual-report.json"
+      - name: Guardar evidências com dados fictícios
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fsy-verificacao-${{ github.sha }}
+          path: ${{ runner.temp }}/fsy-qa
+          if-no-files-found: ignore
+          retention-days: 7

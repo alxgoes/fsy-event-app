@@ -4,6 +4,10 @@ Atualizado em 20/10/2026. Escopo autorizado pelo usuário nesta conversa: implem
 
 Repositório: `https://github.com/alxgoes/fsy-event-app.git`. Site: `https://fsy-event-app.vercel.app/`. Base analisada: `84b22b9935d2f6ef073bcbc9e0edf7a03df2a608`.
 
+## Estado da entrega local e orientação final
+
+Atualização posterior ao plano: execução exclusiva GPT-6.1-Sol medium, sem novos agentes/modelos. Tema exato **Alegra-se em Cristo**. Next 16/React 19, acessibilidade, cache/cancelamento e complemento RLS foram integrados. Lint/tipos, 145 testes serializados, quatro testes PWA após bump v3 e build final com um worker passaram. O root confirmou migrações 001–003 e contagens/políticas remotas preservadas. Por instrução final, a confirmação visual ocorre na CI após push pelo root, sem novo build local e sem aguardar CI neste executor. O manual é a última edição substantiva. A nota >95% não está demonstrada; não converter aprovação de CI em 20/20 automático.
+
 ## 1. Contexto para o agente executor
 
 Leia `AGENTS.md`, `PRODUCT.md`, `DESIGN.md`, `docs/inclusao.md` e os contratos reais. A análise anterior está em `/Users/alexgoes/Documents/FSY/ANALISE-FSY-2026-10-20.md`; o contexto adicional, em `/Users/alexgoes/Documents/FSY/BRIEF-ORCA-FSY.md`.

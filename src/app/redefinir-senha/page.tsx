@@ -85,7 +85,7 @@ export default function RedefinirSenhaPage() {
         className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-slate-900 sm:p-8"
       >
         <div className="mb-6 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E6F4F9] text-[#007DA5] dark:bg-[#01B6D1]/15 dark:text-[#7DE3F4]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E6F4F9] text-[#005E7C] dark:bg-[#01B6D1] dark:text-slate-950/15 dark:text-[#7DE3F4]">
             <KeyRound className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
@@ -107,7 +107,7 @@ export default function RedefinirSenhaPage() {
             <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-100">
               Este link de redefinição é inválido, já foi usado ou expirou. Peça um novo na tela de entrada.
             </p>
-            <Link href="/login?modo=recuperar" className={cn(buttonVariants(), "h-11 w-full rounded-xl text-sm font-semibold")}>
+            <Link href="/login?modo=recuperar" className={"fsy-action-link " + (cn(buttonVariants(), "h-11 w-full rounded-xl text-sm font-semibold"))}>
               Pedir novo link
             </Link>
           </div>
@@ -140,7 +140,7 @@ export default function RedefinirSenhaPage() {
         )}
 
         <p className="mt-6 text-center text-sm">
-          <Link href="/login" className="inline-flex min-h-11 items-center font-semibold text-[#007DA5] underline-offset-4 hover:underline dark:text-[#7DE3F4]">
+          <Link href="/login" className="fsy-action-link inline-flex min-h-11 items-center font-semibold text-[#005E7C] dark:text-[#7DE3F4] underline-offset-4 hover:underline">
             Voltar para a entrada
           </Link>
         </p>

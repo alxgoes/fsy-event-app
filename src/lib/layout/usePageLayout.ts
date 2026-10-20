@@ -1,4 +1,5 @@
 "use client";
+import { startTransition } from "react";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -55,7 +56,7 @@ export function usePageLayout(pageKey: string, defaultIds: readonly string[], ve
     let active = true;
     const key = cacheKey(userId, pageKey);
     purgeForeignLayouts(userId);
-    setSaved(readCache(key));
+    startTransition(() => { setSaved(readCache(key)); });
 
     createClient()
       .from("user_layout_preferences")

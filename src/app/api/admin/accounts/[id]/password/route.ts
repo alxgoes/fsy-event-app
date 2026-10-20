@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
  * Define uma nova senha do portal para outra conta (direção apenas).
  * A senha atual nunca é lida; a nova não é registrada nem devolvida.
  */
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params: paramsPromise }: { params: Promise<{ id: string }> }) {
+  const params = await paramsPromise;
   const auth = await requireIdentity("accountGuardians");
   if (auth.response) return auth.response;
   if (!z.string().uuid().safeParse(params.id).success) return json({ error: "Conta inválida." }, 400);

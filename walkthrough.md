@@ -1,3 +1,19 @@
+# Entrega local complementar — 20/10/2026
+
+Tema exato **Alegra-se em Cristo**, centralizado em `src/lib/event/identity.ts`, aplicado a marca, cartões, login/rodapé, carregamento, metadados e PWA; lemas e horários preservados.
+
+Next 16.4.2/React 19.3.1, cookies/params assíncronos, Proxy, flat ESLint; 0 vulnerabilidades de produção, 0 críticas no audit completo (13 avisos em ferramentas de desenvolvimento). Requisições deduplicadas/limitadas e canceladas no cleanup; contraste/semântica/alvos corrigidos em lote. Cache PWA v3.
+
+Verificação: lint sem erros/avisos, tipos, **145/145 testes serializados**, **4/4 PWA** após o bump e **build final aprovado com um worker**. A última tentativa de interromper pelo root encontrou PID já encerrado e não matou o build aprovado. QA inicial: 56 casos axe/DOM, 6 casos de texto 200%, zero overflow/rótulos ausentes, interações de legenda/diálogo/layout passaram. A coleta revelou achados corrigidos depois; a confirmação final é da CI e ainda não foi executada neste checkout. Não declarar 20/20.
+
+O root confirmou Supabase Healthy e aplicação atômica de 001–003: contagens preservadas (Auth/perfis 6, companhias 4, agenda 82, fotos 4, avisos 0), 3 tabelas novas, 15 restrições de perfil ativo, 9 políticas sensíveis exatas, zero grants inesperados; jovem com 1 perfil próprio, leitura esperada e sem UPDATE médico/agenda. Snapshot JSON privado fora Git não é pg_dump/Storage completo. Google nome/logo salvos, OAuth em Teste; SMTP custom OFF e nenhum provedor de envio confirmado.
+
+O usuário autorizou upload/implantação, sob execução do root após o commit local. Este executor não faz push/deploy, não aguarda CI, não envia e-mails nem exclui dados reais. Nenhum novo modelo/agente. Evidências: `docs/evidencias-next16-2026-10-20/`; pendências detalhadas na auditoria e no manual.
+
+---
+
+## Histórico anterior preservado (d1055c7; estados externos superados acima)
+
 # Revisão de fluidez e navegação
 
 ## Continuação: acompanhamento de inclusão

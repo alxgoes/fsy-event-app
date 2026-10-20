@@ -61,7 +61,7 @@ const ONE = 'src/app/api/admin/accounts/[id]/route.ts';
 const RECOVERY = 'src/app/api/admin/accounts/[id]/recovery/route.ts';
 const PASSWORD = 'src/app/api/admin/accounts/[id]/password/route.ts';
 const EMAIL = 'src/app/api/admin/accounts/[id]/email/route.ts';
-const ctx = (id) => ({ params: { id } });
+const ctx = (id) => ({ params: Promise.resolve({ id }) });
 
 test('account list merges Auth data with profiles and reports providers', async () => {
   const w = world();

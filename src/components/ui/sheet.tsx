@@ -69,7 +69,7 @@ function SheetContent({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 min-h-[44px] min-w-[44px] rounded-full p-0 text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="absolute top-4 right-4 min-h-[44px] min-w-[44px] rounded-full p-0 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
               />
             }
           >
@@ -119,7 +119,7 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-xs text-slate-500 dark:text-slate-400 font-medium", className)}
+      className={cn("text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium", className)}
       {...props}
     />
   );

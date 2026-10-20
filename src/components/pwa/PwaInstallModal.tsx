@@ -1,5 +1,6 @@
 "use client";
 
+import { EVENT_THEME } from "@/lib/event/identity";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -53,7 +54,7 @@ export function PwaInstallModal() {
           <button
             type="button"
             onClick={() => closeInstallModal(true)}
-            className="absolute top-4 right-4 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             aria-label="Fechar modal de instalação"
           >
             <X className="h-5 w-5" />
@@ -72,7 +73,7 @@ export function PwaInstallModal() {
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFE48A] border border-slate-900 text-slate-950 text-xs font-black uppercase">
               <Sparkles className="h-3 w-3 text-amber-900" />
-              <span>Instale o App Oficial • FSY 2027</span>
+              <span>Instale o App • FSY 2027 · {EVENT_THEME}</span>
             </div>
 
             <div>
@@ -88,11 +89,11 @@ export function PwaInstallModal() {
           {/* Benefits Grid */}
           <div className="mt-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2">
             <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-              <Zap className="h-4 w-4 text-[#007DA5] shrink-0" />
+              <Zap className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
               <span>Acesso instantâneo com um clique no celular</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-              <WifiOff className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <WifiOff className="h-4 w-4 text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 shrink-0" />
               <span>Acesse pelo celular. Atualizações e dados da sessão precisam de internet.</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -107,21 +108,21 @@ export function PwaInstallModal() {
               /* iOS Safari Instructions */
               <div className="space-y-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border-2 border-sky-300 dark:border-sky-800 p-4">
                 <p className="text-xs font-black text-sky-950 dark:text-sky-200 uppercase tracking-wide flex items-center gap-1.5">
-                  <Share className="h-3.5 w-3.5 text-[#007DA5]" />
+                  <Share className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                   <span>Como instalar no iPhone / iPad:</span>
                 </p>
 
                 <ol className="space-y-2.5 text-xs text-slate-800 dark:text-slate-200">
                   <li className="flex items-start gap-2.5">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-[10px] font-black">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-xs font-black">
                       1
                     </span>
                     <span>
-                      Toque no botão de <strong>Compartilhar</strong> (quadrado com seta para cima <Share className="inline h-3.5 w-3.5 text-[#007DA5] -mt-0.5" />) na barra inferior do Safari.
+                      Toque no botão de <strong>Compartilhar</strong> (quadrado com seta para cima <Share className="inline h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4] -mt-0.5" />) na barra inferior do Safari.
                     </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-[10px] font-black">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-xs font-black">
                       2
                     </span>
                     <span>
@@ -129,7 +130,7 @@ export function PwaInstallModal() {
                     </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-[10px] font-black">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#007DA5] text-white text-xs font-black">
                       3
                     </span>
                     <span>
@@ -169,7 +170,7 @@ export function PwaInstallModal() {
             <button
               type="button"
               onClick={() => closeInstallModal(true)}
-              className="text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+              className="text-xs font-bold text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
             >
               Lembrar mais tarde
             </button>

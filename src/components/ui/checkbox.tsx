@@ -25,7 +25,7 @@ export function Checkbox({
       className={cn(
         "peer relative inline-flex size-5 shrink-0 items-center justify-center rounded-md border-[1.5px] border-slate-500 dark:border-slate-400 transition-colors cursor-pointer select-none overflow-hidden focus-within:ring-4 focus-within:ring-[#007DA5]/25",
         checked
-          ? "bg-[#007DA5] border-[#007DA5] text-white dark:bg-[#01B6D1] dark:border-[#01B6D1] dark:text-slate-950"
+          ? "bg-[#007DA5] border-[#007DA5] text-white dark:bg-[#01B6D1] dark:text-slate-950 dark:border-[#01B6D1] dark:text-slate-950"
           : "bg-white dark:bg-slate-800",
         disabled && "opacity-50 cursor-not-allowed",
         className

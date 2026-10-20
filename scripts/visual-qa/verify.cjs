@@ -18,7 +18,7 @@ function server(args,env){const p=spawn(process.execPath,args,{cwd:root,env:{...
 server(['scripts/visual-qa/fake-supabase.mjs'],{});
 server(['node_modules/next/dist/bin/next','start','-p','3117','-H','127.0.0.1'],{NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54399',NEXT_PUBLIC_SUPABASE_ANON_KEY:'dev',SUPABASE_SERVICE_ROLE_KEY:'dev'});
 for(let i=0;i<120;i++){try{const r=await fetch('http://127.0.0.1:3117/login');if(r.ok)break;}catch{}await new Promise(r=>setTimeout(r,1000));}
-const browser=await puppeteer.launch({headless:true});
+const browser=await puppeteer.launch({headless:true,args:["--renderer-process-limit=1","--disable-extensions",...(process.env.CI ? ["--no-sandbox"] : [])]});
 try{
 const page=await browser.newPage();
 await page.evaluateOnNewDocument(()=>{localStorage.setItem('fsy_pwa_dismissed_at',Date.now().toString());});
@@ -26,27 +26,50 @@ await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]
 const cookie=session.sessionCookie('1');
 await page.setCookie({name:'sb-127-auth-token',value:cookie,domain:'127.0.0.1',path:'/'});
 await page.setRequestInterception(true);
-page.on('request',r=>r.url().includes('/api/instagram')?r.respond({status:200,contentType:'application/json',body:JSON.stringify({data:[{id:'qa-long',imageUrl:'https://example.test/qa.svg',caption:'Legenda completa de teste.\n'+('Texto integral com acentos, @fsy_ribeiraopreto e #FSY2027.\n'.repeat(35))+'FIM DA LEGENDA',authorHandle:'fsy_ribeiraopreto',publishedAt:'2026-10-20T12:00:00Z',postUrl:'https://www.instagram.com/p/qa/',mediaType:'IMAGE'}]})}):r.url()==='https://example.test/qa.svg'?r.respond({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect width="400" height="600" fill="#007da5"/><text x="30" y="200" fill="white" font-size="32">FSY · Foto fictícia</text></svg>'}):r.continue());
+page.on('request',r=>r.url().includes('.supabase.co')?r.abort():r.url().startsWith('https://media.fsy.test/img/')?r.respond({status:200,contentType:'image/svg+xml',body:(()=>{const [w,h]=r.url().match(/(\d+)x(\d+)/).slice(1);return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#005e7c"/><text x="10%" y="50%" fill="white" font-size="48">Foto fictícia ${w}×${h}</text></svg>`})()}):r.url().includes('id=INVALIDO')||r.url().includes('/d/INVALIDO')?r.respond({status:404,body:'Fixture indisponível'}):r.url().includes('/api/instagram')?r.respond({status:200,contentType:'application/json',body:JSON.stringify({data:[{id:'qa-long',imageUrl:'https://example.test/qa.svg',caption:'Legenda completa de teste.\n'+('Texto integral com acentos, @fsy_ribeiraopreto e #FSY2027.\n'.repeat(35))+'FIM DA LEGENDA',authorHandle:'fsy_ribeiraopreto',publishedAt:'2026-10-20T12:00:00Z',postUrl:'https://www.instagram.com/p/qa/',mediaType:'IMAGE'}]})}):r.url()==='https://example.test/qa.svg'?r.respond({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect width="400" height="600" fill="#007da5"/><text x="30" y="200" fill="white" font-size="32">FSY · Foto fictícia</text></svg>'}):r.continue());
+await page.goto('http://127.0.0.1:3117/offline',{waitUntil:'networkidle2'});
+const runtimeErrors=[];
+page.on("pageerror",error=>runtimeErrors.push(String(error)));
 const report=[];
 const detectorReports=[];
 for(const mobile of [false,true]){
+for(const dark of [false,true]){
 await page.setViewport({width:mobile?390:1365,height:mobile?844:900});
 for(const route of ['/login','/dashboard','/schedule','/announcements','/consultor','/admin','/admin/users','/admin/medical','/admin/companies','/admin/logistics','/admin/schedule','/admin/announcements','/admin/media','/admin/counselor-audit']){
-await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie(route==='/consultor'?'4':'1'),domain:'127.0.0.1',path:'/'});
+await page.deleteCookie({name:'sb-127-auth-token',domain:'127.0.0.1',path:'/'});
+if(route!=='/login')await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie(route==='/consultor'?'4':'1'),domain:'127.0.0.1',path:'/'});
+await page.evaluate(dark=>localStorage.setItem('theme',dark?'dark':'light'),dark);
 await page.goto('http://127.0.0.1:3117'+route,{waitUntil:'networkidle2',timeout:120000});
 await page.waitForFunction(()=>!document.body.innerText.includes('Sincronizando')&&!document.body.innerText.includes('Carregando seu perfil')&&!!document.querySelector('h1,h2'),{timeout:30000}).catch(()=>{});
 await new Promise(r=>setTimeout(r,1200));
-await page.evaluate(dark=>{document.documentElement.classList.toggle('dark',dark);},mobile);
+await page.waitForFunction(dark=>document.documentElement.classList.contains('dark')===dark,{},dark);
 await new Promise(r=>setTimeout(r,400));
-const state=await page.evaluate(()=>({url:location.pathname,title:document.querySelector('h1,h2')?.textContent,overflow:document.documentElement.scrollWidth>innerWidth,unlabeled:[...document.querySelectorAll('input:not([type=hidden]),select,textarea')].filter(e=>e.getBoundingClientRect().width>0&&!e.labels?.length&&!e.getAttribute('aria-label')&&!e.getAttribute('aria-labelledby')).map(e=>({tag:e.tagName,id:e.id,placeholder:e.placeholder})),smallTargets:[...document.querySelectorAll('button,a[href]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&(r.height<43||r.width<43)}).length}));
+await page.evaluate(()=>document.fonts.ready);
+const state=await page.evaluate(()=>({url:location.pathname,title:document.querySelector('h1,h2')?.textContent,overflow:document.documentElement.scrollWidth>innerWidth,unlabeled:[...document.querySelectorAll('input:not([type=hidden]),select,textarea')].filter(e=>e.getBoundingClientRect().width>0&&!e.labels?.length&&!e.getAttribute('aria-label')&&!e.getAttribute('aria-labelledby')).map(e=>({tag:e.tagName,id:e.id,placeholder:e.placeholder})),smallTargets:[...document.querySelectorAll('button,a[href]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&!e.closest('p')&&(r.height<43.99||r.width<43.99)}).map(e=>({text:e.innerText,aria:e.getAttribute('aria-label'),class:e.className,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))}));
 await page.evaluate(()=>{window.__IMPECCABLE_CONFIG__={autoScan:false};});
 await page.addScriptTag({path:root+'/.agent/skills/impeccable/scripts/detector/detect-antipatterns-browser.js'});
 const detected=await page.evaluate(()=>window.impeccableDetect({decorate:false,serialize:true}));
-detectorReports.push({route,mobile,groups:detected});
-report.push({route,mobile,...state});console.log('QA',route,mobile?'mobile':'desktop',JSON.stringify(state));
-if(['/dashboard','/consultor','/admin','/admin/medical'].includes(route))await page.screenshot({path:output(`fsy-${route.slice(1).replaceAll('/','-')}-${mobile?'mobile':'desktop'}.png`),fullPage:true});
+if(process.env.FSY_AXE_MODULE){
+await page.addScriptTag({path:path.join(process.env.FSY_AXE_MODULE,'axe.min.js')});
+const axe=await page.evaluate(async()=>{const result=await window.axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}});return {violations:result.violations,incomplete:result.incomplete.map(i=>({id:i.id,nodes:i.nodes.length})),passes:result.passes.length};});
+report.push({route,mobile,dark,axe});
+}
+detectorReports.push({route,mobile,dark,groups:detected});
+report.push({route,mobile,dark,...state});console.log('QA',route,mobile?'mobile':'desktop',dark?'dark':'light',JSON.stringify(state));
+if(['/dashboard','/consultor','/admin','/admin/medical'].includes(route))await page.screenshot({path:output(`fsy-${route.slice(1).replaceAll('/','-')}-${mobile?'mobile':'desktop'}-${dark?'dark':'light'}.png`),fullPage:true});
 }
 }
+}
+for(const width of [768,390]){
+await page.setViewport({width,height:1024});
+for(const route of ['/dashboard','/schedule','/admin/users']){
+await page.goto('http://127.0.0.1:3117'+route,{waitUntil:'networkidle2'});
+await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+await new Promise(r=>setTimeout(r,400));
+report.push({textScale200:true,width,route,...await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,bodyWidth:document.documentElement.scrollWidth}))});
+}
+}
+await page.setViewport({width:390,height:844});
 await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('5'),domain:'127.0.0.1',path:'/'});
 await page.goto('http://127.0.0.1:3117/dashboard',{waitUntil:'networkidle2'});
 await page.waitForSelector('button[aria-label^="Ampliar publicação"]',{timeout:30000});
@@ -69,6 +92,14 @@ for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).
 const restored=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
 report.push({layoutRestored:restored[0]===handles[0]});
 for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Salvar layout')){await b.click();break;}}
+const themeBefore = await page.evaluate(()=>document.documentElement.classList.contains('dark'));
+for(let click=0;click<2;click++){
+const before=await page.evaluate(()=>document.documentElement.classList.contains('dark'));
+await page.evaluate(()=>[...document.querySelectorAll('button[aria-label="Alternar tema claro/escuro"]')].find(e=>e.getBoundingClientRect().width>0)?.click());
+await page.waitForFunction(before=>document.documentElement.classList.contains('dark')!==before,{},before);
+}
+report.push({themeToggleRoundTrip:await page.evaluate(before=>document.documentElement.classList.contains('dark')===before,themeBefore)});
+report.push({runtimeErrors});
 fs.writeFileSync(output('fsy-impeccable-dom.json'),JSON.stringify(detectorReports,null,2));
 fs.writeFileSync(output('fsy-visual-report.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));

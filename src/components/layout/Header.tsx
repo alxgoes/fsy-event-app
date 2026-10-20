@@ -1,4 +1,6 @@
 "use client";
+import { startTransition } from "react";
+
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -84,26 +86,26 @@ function NavCardItem({
       <NavigationMenuLink asChild>
         <Link
           href={href}
-          className="group block select-none rounded-2xl p-3 leading-none no-underline outline-none transition-all duration-200 ease-out bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:border-[#007DA5] dark:hover:border-[#01B6D1] hover:shadow-[4px_4px_0px_0px_rgba(0,125,165,0.9)] dark:hover:shadow-[4px_4px_0px_0px_rgba(1,182,209,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] hover:bg-sky-50/80 dark:hover:bg-slate-700/80 cursor-pointer"
+          className="fsy-action-link group block select-none rounded-2xl p-3 leading-none no-underline outline-none transition-all duration-200 ease-out bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:border-[#007DA5] dark:hover:border-[#01B6D1] hover:shadow-[4px_4px_0px_0px_rgba(0,125,165,0.9)] dark:hover:shadow-[4px_4px_0px_0px_rgba(1,182,209,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(15,23,42,1)] hover:bg-sky-50/80 dark:hover:bg-slate-700/80 cursor-pointer"
         >
           <div className="flex items-start gap-3">
             {Icon && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#007DA5] dark:text-[#01B6D1] border-2 border-slate-900/60 dark:border-slate-700 shadow-xs group-hover:bg-[#007DA5] group-hover:text-white group-hover:border-slate-950 transition-all shrink-0 mt-0.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#01B6D1] border-2 border-slate-900/60 dark:border-slate-700 shadow-xs group-hover:bg-[#007DA5] group-hover:text-white group-hover:border-slate-950 transition-all shrink-0 mt-0.5">
                 <Icon className="h-4 w-4" />
               </div>
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-1.5 mb-1">
-                <h4 className="text-xs sm:text-sm font-black text-slate-950 dark:text-white group-hover:text-[#007DA5] dark:group-hover:text-[#01B6D1] transition-colors leading-snug">
+                <h4 className="text-xs sm:text-sm font-black text-slate-950 dark:text-white group-hover:text-[#005E7C] dark:group-hover:text-[#01B6D1] transition-colors leading-snug">
                   {title}
                 </h4>
                 {badge && (
-                  <span className="rounded-md bg-[#FFE48A] text-slate-950 border border-slate-900/40 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider shrink-0 shadow-2xs">
+                  <span className="rounded-md bg-[#FFE48A] text-slate-950 border border-slate-900/40 px-1.5 py-0.5 text-xs font-black uppercase tracking-wider shrink-0 shadow-2xs">
                     {badge}
                   </span>
                 )}
               </div>
-              <p className="line-clamp-2 text-[11px] font-medium leading-relaxed text-slate-700 dark:text-slate-200">
+              <p className="line-clamp-2 text-xs font-medium leading-relaxed text-slate-700 dark:text-slate-200">
                 {children}
               </p>
             </div>
@@ -186,7 +188,7 @@ export function Header() {
 
   useEffect(() => {
     if (profile) {
-      loadNotifications();
+      startTransition(() => { loadNotifications(); });
     }
   }, [profile, loadNotifications]);
 
@@ -276,7 +278,7 @@ export function Header() {
     <header className="sticky top-0 z-40 w-full px-2 sm:px-6 py-2 transition-all max-w-full overflow-x-clip">
       <div className="mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl shadow-xs px-2.5 sm:px-5 py-1.5 sm:py-2 min-w-0">
         {/* Brand Logo & Title */}
-        <Link href="/dashboard" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
+        <Link href="/dashboard" className="fsy-action-link flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -291,11 +293,11 @@ export function Header() {
               <div className="font-heading text-xs sm:text-base font-black tracking-tight text-slate-900 dark:text-white truncate max-w-[120px] xs:max-w-[180px] sm:max-w-none">
                 <span className="hidden sm:inline">Sessão </span>Ribeirão Preto 2
               </div>
-              <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
+              <span className="rounded-md bg-[#FFE48A] px-1 sm:px-1.5 py-0.5 text-xs sm:text-xs font-black uppercase text-slate-950 border border-slate-900/30 shrink-0">
                 2027
               </span>
             </div>
-            <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 hidden sm:block">
+            <p className="text-xs font-bold text-slate-600 dark:text-slate-400 hidden sm:block">
               Edição 2027 • 05 a 10 de Fevereiro
             </p>
           </div>
@@ -307,7 +309,7 @@ export function Header() {
             <NavigationMenuList className="gap-1 p-1 rounded-full bg-slate-100/70 dark:bg-slate-800/70 border-2 border-slate-900/10 dark:border-slate-700/60 shadow-inner backdrop-blur-sm">
               {/* Dashboard Link */}
               <NavigationMenuItem>
-                <Link href="/dashboard" legacyBehavior passHref>
+                <Link className="fsy-action-link" href="/dashboard" legacyBehavior passHref>
                   <NavigationMenuLink
                     className={cn(
                       navigationMenuTriggerStyle(),
@@ -447,11 +449,11 @@ export function Header() {
                 setDropdownOpen(false);
               }}
               className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shrink-0"
-              aria-label="Lembretes e Notificações"
+              aria-label={`Lembretes e Notificações${totalUnread > 0 ? `: ${totalUnread}` : ""}`}
             >
               <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#FC4E6D] text-[10px] font-black text-white border border-slate-900 motion-safe:animate-pulse">
+                <span className="absolute -top-1 -right-1 flex min-h-5 min-w-5 px-1 items-center justify-center rounded-full bg-[#FC4E6D] text-xs font-black text-slate-950 border border-slate-900 motion-safe:animate-pulse">
                   {totalUnread}
                 </span>
               )}
@@ -470,13 +472,13 @@ export function Header() {
                   {/* Popover Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4 text-[#007DA5]" />
+                      <Bell className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                       <h3 className="font-heading text-sm font-black text-slate-900 dark:text-white">
                         Lembretes & Comunicados
                       </h3>
                     </div>
                     {totalUnread > 0 ? (
-                      <span className="rounded-md bg-[#FC4E6D] text-white text-xs font-black px-2 py-0.5">
+                      <span className="rounded-md bg-[#FC4E6D] text-slate-950 text-xs font-black px-2 py-0.5">
                         {totalUnread} pendente(s)
                       </span>
                     ) : (
@@ -489,12 +491,12 @@ export function Header() {
                   {/* Notifications Content List */}
                   <div className="max-h-84 overflow-y-auto p-3 space-y-2.5">
                     {appointments.length === 0 && announcements.length === 0 ? (
-                      <div className="py-8 text-center text-slate-500 dark:text-slate-400">
+                      <div className="py-8 text-center text-slate-500 dark:text-slate-300 dark:text-slate-400">
                         <CheckCircle2 className="h-8 w-8 mx-auto mb-2 opacity-60 text-emerald-500" />
                         <p className="text-xs font-black text-slate-800 dark:text-slate-200">
                           Nenhum lembrete ou agendamento
                         </p>
-                        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mt-0.5">
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mt-0.5">
                           Quando os consultores ou a coordenação postarem algo, você verá aqui.
                         </p>
                       </div>
@@ -523,9 +525,9 @@ export function Header() {
                               <div className="flex items-start justify-between gap-2 mb-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span
-                                    className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase ${
+                                    className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-black uppercase ${
                                       isUrgent
-                                        ? "bg-red-500 text-white"
+                                        ? "bg-red-700 text-white"
                                         : isImportant
                                         ? "bg-[#FFD166] text-slate-950"
                                         : "bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300"
@@ -570,7 +572,7 @@ export function Header() {
                                     <span>Marcar como lido</span>
                                   </button>
                                 ) : (
-                                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 flex items-center gap-1">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     Lido
                                   </span>
@@ -635,7 +637,7 @@ export function Header() {
                                     <span>Marcar como visto</span>
                                   </button>
                                 ) : (
-                                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 flex items-center gap-1">
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     Visualizado
                                   </span>
@@ -657,7 +659,7 @@ export function Header() {
                     <Link
                       href="/announcements"
                       onClick={() => setNotificationsOpen(false)}
-                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#007DA5] dark:text-cyan-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors min-h-[40px]"
+                      className="fsy-action-link flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-black text-[#005E7C] dark:text-cyan-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors min-h-[40px]"
                     >
                       <span>Ver mural de lembretes completo</span>
                       <ExternalLink className="h-3.5 w-3.5" />
@@ -678,7 +680,7 @@ export function Header() {
                 setNotificationsOpen(false);
               }}
               className="flex items-center gap-2 rounded-xl bg-slate-100/90 dark:bg-slate-800/90 px-2.5 py-1.5 min-h-[38px] border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
-              aria-label="Menu do usuário"
+              aria-expanded={dropdownOpen}
             >
               {loading ? (
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -693,12 +695,12 @@ export function Header() {
                 <p className="text-xs font-black text-slate-900 dark:text-white leading-tight">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
-                <p className="text-[10px] font-extrabold text-[#005E7C] dark:text-cyan-400 truncate max-w-[100px]">
+                <p className="text-xs font-extrabold text-[#005E7C] dark:text-cyan-400 truncate max-w-[100px]">
                   {loading ? "Carregando" : displayCompany ?? roleLabel}
                 </p>
               </div>
               <ChevronDown
-                className={`h-3 w-3 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+                className={`h-3 w-3 text-slate-500 dark:text-slate-300 dark:text-slate-400 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
               />
             </motion.button>
 
@@ -722,7 +724,7 @@ export function Header() {
                         <p className="text-sm font-black text-slate-900 dark:text-white truncate">
                           {displayName}
                         </p>
-                        <span className="inline-block px-2 py-0.5 rounded-md bg-[#007DA5]/10 text-[#007DA5] dark:text-cyan-300 text-xs font-black uppercase tracking-wider">
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-[#007DA5]/10 text-[#005E7C] dark:text-cyan-300 text-xs font-black uppercase tracking-wider">
                           {roleLabel}
                         </span>
                       </div>
@@ -734,16 +736,16 @@ export function Header() {
                     <Link
                       href="/dashboard"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="fsy-action-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                      <User className="h-4 w-4 text-slate-500 dark:text-slate-300 dark:text-slate-400" />
                       Meu Dashboard
                     </Link>
 
                     <Link
                       href="/announcements"
                       onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      className="fsy-action-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                       <Megaphone className="h-4 w-4 text-[#FC4E6D]" />
                       Lembretes & Comunicados
@@ -754,7 +756,7 @@ export function Header() {
                       <Link
                         href="/consultor"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                        className="fsy-action-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50/50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                       >
                         <Building2 className="h-4 w-4 text-[#7209B7]" />
                         <span>Painel do Consultor</span>
@@ -766,9 +768,9 @@ export function Header() {
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#007DA5] dark:text-cyan-400 bg-sky-50/50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+                        className="fsy-action-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#005E7C] dark:text-cyan-400 bg-sky-50/50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
                       >
-                        <Shield className="h-4 w-4 text-[#007DA5]" />
+                        <Shield className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                         <span>Painel de Gestão</span>
                       </Link>
                     )}
@@ -780,9 +782,9 @@ export function Header() {
                         setDropdownOpen(false);
                         openInstallModal();
                       }}
-                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-black text-[#007DA5] dark:text-[#7DE3F4] hover:bg-[#007DA5]/10 dark:hover:bg-sky-950/40 transition-colors cursor-pointer text-left"
+                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] hover:bg-[#007DA5]/10 dark:hover:bg-sky-950/40 transition-colors cursor-pointer text-left"
                     >
-                      <Download className="h-4 w-4 text-[#007DA5] dark:text-[#7DE3F4] shrink-0" />
+                      <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
                       <span>{isInstalled ? "App FSY Instalado ✓" : "Baixar / Instalar App"}</span>
                     </button>
                   </div>
@@ -843,11 +845,11 @@ export function Header() {
                   {displayName}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-block px-1.5 py-0.5 rounded-md bg-[#007DA5]/10 text-[#007DA5] dark:text-cyan-300 text-[10px] font-black uppercase tracking-wider">
+                  <span className="inline-block px-1.5 py-0.5 rounded-md bg-[#007DA5]/10 text-[#005E7C] dark:text-cyan-300 text-xs font-black uppercase tracking-wider">
                     {roleLabel}
                   </span>
                   {displayCompany && (
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate">
                       {displayCompany}
                     </span>
                   )}
@@ -860,40 +862,40 @@ export function Header() {
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className={cn(
+                className={"fsy-action-link " + (cn(
                   "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
                   pathname === "/dashboard"
                     ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
                     : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
-                )}
+                ))}
               >
-                <Compass className={cn("h-4 w-4", pathname === "/dashboard" ? "text-white" : "text-[#007DA5]")} />
+                <Compass className={cn("h-4 w-4", pathname === "/dashboard" ? "text-white" : "text-[#005E7C] dark:text-[#7DE3F4]")} />
                 <span>Início</span>
               </Link>
 
               <Link
                 href="/schedule"
                 onClick={() => setMobileMenuOpen(false)}
-                className={cn(
+                className={"fsy-action-link " + (cn(
                   "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
                   pathname === "/schedule"
                     ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
                     : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
-                )}
+                ))}
               >
-                <Calendar className={cn("h-4 w-4", pathname === "/schedule" ? "text-white" : "text-[#007DA5]")} />
+                <Calendar className={cn("h-4 w-4", pathname === "/schedule" ? "text-white" : "text-[#005E7C] dark:text-[#7DE3F4]")} />
                 <span>Programação & Cronograma</span>
               </Link>
 
               <Link
                 href="/announcements"
                 onClick={() => setMobileMenuOpen(false)}
-                className={cn(
+                className={"fsy-action-link " + (cn(
                   "flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
                   pathname === "/announcements"
                     ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
                     : "border-transparent text-slate-800 dark:text-slate-200 hover:bg-[#007DA5]/10 hover:border-slate-950/30 hover:shadow-tactile-pill"
-                )}
+                ))}
               >
                 <div className="flex items-center gap-2.5">
                   <Megaphone className={cn("h-4 w-4", pathname === "/announcements" ? "text-white" : "text-[#FC4E6D]")} />
@@ -901,8 +903,8 @@ export function Header() {
                 </div>
                 {totalUnread > 0 && (
                   <span className={cn(
-                    "rounded-full text-[10px] font-black px-2 py-0.5",
-                    pathname === "/announcements" ? "bg-white text-slate-950" : "bg-[#FC4E6D] text-white"
+                    "rounded-full text-xs font-black px-2 py-0.5",
+                    pathname === "/announcements" ? "bg-white text-slate-950" : "bg-[#FC4E6D] text-slate-950"
                   )}>
                     {totalUnread}
                   </span>
@@ -913,12 +915,12 @@ export function Header() {
                 <Link
                   href="/consultor"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
+                  className={"fsy-action-link " + (cn(
                     "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
                     pathname === "/consultor"
                       ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
                       : "border-transparent text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:border-purple-800/30 hover:shadow-tactile-pill"
-                  )}
+                  ))}
                 >
                   <Building2 className={cn("h-4 w-4", pathname === "/consultor" ? "text-white" : "text-[#7209B7]")} />
                   <span>Painel do Consultor</span>
@@ -929,14 +931,14 @@ export function Header() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
+                  className={"fsy-action-link " + (cn(
                     "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-black transition-all border-2",
                     pathname.startsWith("/admin")
                       ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill"
-                      : "border-transparent text-[#007DA5] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:border-[#007DA5]/30 hover:shadow-tactile-pill"
-                  )}
+                      : "border-transparent text-[#005E7C] dark:text-cyan-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:border-[#007DA5]/30 hover:shadow-tactile-pill"
+                  ))}
                 >
-                  <Shield className={cn("h-4 w-4", pathname.startsWith("/admin") ? "text-white" : "text-[#007DA5]")} />
+                  <Shield className={cn("h-4 w-4", pathname.startsWith("/admin") ? "text-white" : "text-[#005E7C] dark:text-[#7DE3F4]")} />
                   <span>Painel de Gestão</span>
                 </Link>
               )}
@@ -948,9 +950,9 @@ export function Header() {
                   setMobileMenuOpen(false);
                   openInstallModal();
                 }}
-                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-black text-[#007DA5] dark:text-[#7DE3F4] bg-[#007DA5]/10 hover:bg-[#007DA5]/20 dark:bg-sky-950/40 border border-[#007DA5]/30 shadow-xs transition-all cursor-pointer text-left"
+                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] bg-[#007DA5]/10 hover:bg-[#007DA5]/20 dark:bg-sky-950/40 border border-[#007DA5]/30 shadow-xs transition-all cursor-pointer text-left"
               >
-                <Download className="h-4 w-4 text-[#007DA5] dark:text-[#7DE3F4] shrink-0" />
+                <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
                 <span>{isInstalled ? "App FSY Instalado ✓" : "Baixar / Instalar App"}</span>
               </button>
             </div>

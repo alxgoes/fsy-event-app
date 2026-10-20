@@ -1,5 +1,6 @@
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { createClient } from "@/lib/supabase/client";
+import { allowsDirectFallback, cachedRequest, fetchJson, sessionScope } from "@/lib/requests/client";
 
 export interface ScheduleItem {
   id: string;
@@ -15,6 +16,7 @@ export interface ScheduleItem {
 }
 
 const STORAGE_KEY = "fsy_offline_schedule";
+const SCHEDULE_TTL_MS = 60_000;
 
 /** Helper to generate fallback items from the official static schedule */
 function getOfficialStaticFallback(): ScheduleItem[] {
@@ -50,45 +52,47 @@ function getOfficialStaticFallback(): ScheduleItem[] {
 
 /**
  * Loads schedule items with an Offline-First strategy:
- * 1. Tries to fetch from API / Supabase
- * 2. Caches response in localStorage
+ * 1. Tries the API (direct Supabase only when the API fails with 5xx)
+ * 2. Caches response in localStorage (and in memory for a few seconds per account)
  * 3. Falls back to localStorage if offline
  * 4. Falls back to static officialSchedule if storage is empty
  */
-export async function getSchedule(day?: string): Promise<{ data: ScheduleItem[]; fromCache: boolean }> {
-  // Try network fetch first
+export async function getSchedule(day?: string, signal?: AbortSignal): Promise<{ data: ScheduleItem[]; fromCache: boolean }> {
+  const dayKey = day && day !== "all" ? day : "all";
   try {
-    const url = day && day !== "all" ? `/api/schedule?day=${encodeURIComponent(day)}` : "/api/schedule";
-    const res = await fetch(url, { cache: "no-store" });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
-          } catch {
-            // Storage quota exceeded or disabled
-          }
+    const scope = await sessionScope();
+    const data = await cachedRequest(
+      `schedule:${scope}:${dayKey}`,
+      async (signal) => {
+        const url = dayKey !== "all" ? `/api/schedule?day=${encodeURIComponent(dayKey)}` : "/api/schedule";
+        try {
+          const json = await fetchJson<{ data?: ScheduleItem[] }>(url, signal);
+          return Array.isArray(json.data) ? json.data : [];
+        } catch (error) {
+          if (!allowsDirectFallback(error)) throw error;
+          let query = createClient().from("schedule_items").select("*");
+          if (dayKey !== "all") query = query.eq("day", dayKey);
+          const { data: dbData, error: dbError } = await query
+            .order("start_time", { ascending: true })
+            .abortSignal(signal);
+          if (dbError) throw dbError;
+          return (dbData ?? []) as ScheduleItem[];
         }
-        return { data: json.data as ScheduleItem[], fromCache: false };
-      }
-    }
-
-    // Direct Supabase fallback
-    const supabase = createClient();
-    let query = supabase.from("schedule_items").select("*");
-    if (day && day !== "all") query = query.eq("day", day);
-    const { data: dbData } = await query.order("start_time", { ascending: true });
-    if (dbData && dbData.length > 0) {
+      },
+      { ttlMs: SCHEDULE_TTL_MS, signal }
+    );
+    if (data.length > 0) {
       if (typeof window !== "undefined") {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(dbData));
-        } catch {}
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch {
+          // Storage quota exceeded or disabled
+        }
       }
-      return { data: dbData as ScheduleItem[], fromCache: false };
+      return { data, fromCache: false };
     }
   } catch {
-    // Network failed or offline
+    // Rede indisponível, acesso negado ou falha do servidor
   }
 
   // Offline Cache Fallback

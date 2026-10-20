@@ -1,4 +1,7 @@
 "use client";
+import { contrastText } from "@/lib/ui/contrast";
+import { startTransition } from "react";
+
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -108,7 +111,7 @@ export function CompanyManager() {
   }, []);
 
   useEffect(() => {
-    loadData();
+    startTransition(() => { loadData(); });
   }, [loadData]);
 
   const openCreateModal = () => {
@@ -243,7 +246,7 @@ export function CompanyManager() {
             <h2 className="font-heading text-2xl font-black text-slate-900 dark:text-white">
               Gestão de Companhias do FSY
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Casal Diretor, Coordenação e Logística • Criação e designação de consultores
             </p>
           </div>
@@ -276,7 +279,7 @@ export function CompanyManager() {
             exit={{ opacity: 0, y: -10 }}
             className="rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-sm"
           >
-            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="h-5 w-5 text-emerald-800 dark:text-emerald-300 shrink-0" />
             <span>Companhia e consultores salvos no banco de dados com sucesso!</span>
           </motion.div>
         )}
@@ -298,19 +301,19 @@ export function CompanyManager() {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Total de Companhias
           </span>
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-3xl font-black text-slate-900 dark:text-white">
               {companies.length}
             </span>
-            <Building2 className="h-5 w-5 text-[#007DA5]" />
+            <Building2 className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
           </div>
         </div>
 
         <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Consultores Designados
           </span>
           <div className="flex items-baseline justify-between mt-1">
@@ -322,7 +325,7 @@ export function CompanyManager() {
         </div>
 
         <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400">
+          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Jovens Alocados
           </span>
           <div className="flex items-baseline justify-between mt-1">
@@ -336,7 +339,7 @@ export function CompanyManager() {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
         <Input
           type="text"
           aria-label="Buscar por companhia, lema ou consultor"
@@ -349,8 +352,8 @@ export function CompanyManager() {
 
       {/* Companies Grid */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
-          <Loader2 className="h-8 w-8 animate-spin text-[#007DA5]" />
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500 dark:text-slate-300">
+          <Loader2 className="h-8 w-8 animate-spin text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="text-sm font-bold">Carregando companhias...</p>
         </div>
       ) : filteredCompanies.length === 0 ? (
@@ -359,7 +362,7 @@ export function CompanyManager() {
           <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
             Nenhuma companhia encontrada
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-sm mx-auto">
             {searchQuery
               ? "Tente outro termo de busca."
               : "Clique em 'Nova Companhia' para cadastrar a primeira companhia do evento."}
@@ -379,7 +382,7 @@ export function CompanyManager() {
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-white font-black text-xs border border-slate-900/40 shadow-sm"
-                    style={{ backgroundColor: comp.color || "#007DA5" }}
+                    style={{ backgroundColor: comp.color || "#007DA5", color: contrastText(comp.color || "#007DA5") }}
                   >
                     <span className="h-2 w-2 rounded-full bg-white/80" />
                     <span>{comp.id.toUpperCase()}</span>
@@ -419,7 +422,7 @@ export function CompanyManager() {
 
                 {/* Counselors Section */}
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1.5">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1.5">
                     Consultores Designados
                   </span>
                   {comp.counselors && comp.counselors.length > 0 ? (
@@ -427,7 +430,7 @@ export function CompanyManager() {
                       {comp.counselors.map((cName, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#007DA5] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-xs font-bold"
+                          className="inline-flex items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-xs font-bold"
                         >
                           <UserCheck className="h-3 w-3" />
                           {cName}
@@ -435,7 +438,7 @@ export function CompanyManager() {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <span className="text-xs font-semibold text-amber-800 dark:text-amber-300 dark:text-amber-400 flex items-center gap-1">
                       <AlertTriangle className="h-3.5 w-3.5" />
                       Nenhum consultor designado
                     </span>
@@ -445,7 +448,7 @@ export function CompanyManager() {
 
               {/* Footer KPI */}
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400 font-bold">
+                <span className="text-slate-500 dark:text-slate-300 dark:text-slate-400 font-bold">
                   Jovens registrados:
                 </span>
                 <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-black text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700">
@@ -462,10 +465,10 @@ export function CompanyManager() {
         <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
             <DialogTitle className="font-heading text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-[#007DA5]" />
+              <Building2 className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
               {editingCompany ? "Editar Companhia" : "Criar Nova Companhia"}
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
+            <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
               Preencha os dados da companhia e selecione os consultores que terão acesso exclusivo ao painel desta companhia.
             </DialogDescription>
           </DialogHeader>
@@ -515,7 +518,7 @@ export function CompanyManager() {
             {/* Color Selector */}
             <div>
               <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5 text-[#007DA5]" />
+                <Palette className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                 Cor da Companhia
               </label>
               <div className="flex flex-wrap gap-2">
@@ -529,7 +532,7 @@ export function CompanyManager() {
                         ? "border-slate-900 dark:border-white shadow-sm scale-105"
                         : "border-transparent opacity-80 hover:opacity-100"
                     }`}
-                    style={{ backgroundColor: col.value, color: "#fff" }}
+                    style={{ backgroundColor: col.value, color: contrastText(col.value) }}
                   >
                     <span>{col.name}</span>
                   </button>
@@ -541,10 +544,10 @@ export function CompanyManager() {
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                  <UserCheck className="h-4 w-4 text-[#007DA5]" />
+                  <UserCheck className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                   Designar Consultores ({selectedCounselorIds.length} selecionados)
                 </label>
-                <span className="text-xs text-slate-500 font-bold">
+                <span className="text-xs text-slate-500 dark:text-slate-300 font-bold">
                   Apenas usuários com cargo &apos;Consultor&apos;
                 </span>
               </div>
@@ -561,7 +564,7 @@ export function CompanyManager() {
               {/* Counselors Checklist */}
               <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 p-2">
                 {counselors.length === 0 ? (
-                  <p className="text-xs text-slate-500 text-center py-3">
+                  <p className="text-xs text-slate-500 dark:text-slate-300 text-center py-3">
                     Nenhum usuário com cargo &apos;Consultor&apos; cadastrado no sistema.
                   </p>
                 ) : (
@@ -582,7 +585,7 @@ export function CompanyManager() {
                           key={c.id}
                           className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-colors text-xs font-semibold ${
                             isSelected
-                              ? "bg-sky-50 dark:bg-sky-950/60 border-[#007DA5] text-[#007DA5] dark:text-cyan-200"
+                              ? "bg-sky-50 dark:bg-sky-950/60 border-[#007DA5] text-[#005E7C] dark:text-cyan-200"
                               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                           }`}
                         >
@@ -591,13 +594,13 @@ export function CompanyManager() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleCounselorSelection(c.id)}
-                              className="rounded border-slate-400 text-[#007DA5] focus:ring-[#007DA5]"
+                              className="rounded border-slate-400 text-[#005E7C] dark:text-[#7DE3F4] focus:ring-[#007DA5]"
                             />
                             <span className="font-bold">{c.full_name}</span>
                           </div>
 
                           {isAssignedOther && !isSelected && (
-                            <span className="text-xs text-amber-600 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
+                            <span className="text-xs text-amber-800 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
                               Na {c.company_id}
                             </span>
                           )}

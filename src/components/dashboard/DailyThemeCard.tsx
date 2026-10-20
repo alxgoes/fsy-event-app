@@ -1,5 +1,6 @@
 "use client";
 
+import { EVENT_THEME_LEAD, EVENT_THEME_FOCUS, EVENT_SCRIPTURE } from "@/lib/event/identity";
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BookOpen } from "lucide-react";
@@ -21,7 +22,7 @@ export function DailyThemeCard() {
             Tema FSY 2027
           </div>
           <span className="text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] uppercase tracking-wider font-sans bg-white/70 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full border border-slate-900/15 dark:border-slate-700 shadow-sm">
-            Filipenses 4:4
+            {EVENT_SCRIPTURE}
           </span>
         </div>
 
@@ -35,10 +36,10 @@ export function DailyThemeCard() {
             <FsyLogo variant="temple-only" colorMode="four-color" className="h-12 w-auto shrink-0" />
             <div className="flex flex-col">
               <span className="text-xs font-serif tracking-[0.2em] uppercase font-bold text-slate-800 dark:text-slate-200">
-                REGOZIJAI-VOS EM
+                {EVENT_THEME_LEAD}
               </span>
               <span className="text-2xl sm:text-3xl font-serif tracking-[0.06em] uppercase font-black text-slate-950 dark:text-white leading-tight">
-                CRISTO
+                {EVENT_THEME_FOCUS}
               </span>
             </div>
           </div>

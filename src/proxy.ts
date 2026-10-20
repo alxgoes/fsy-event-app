@@ -17,7 +17,7 @@ function isPublicPath(pathname: string) {
   return PUBLIC_EXACT.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Mutações de API só a partir do próprio site (defesa contra requisições forjadas).
   if (
     request.nextUrl.pathname.startsWith("/api") &&

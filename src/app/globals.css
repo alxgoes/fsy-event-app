@@ -23,7 +23,7 @@
     --muted-foreground: 215.4 25% 30%; /* High contrast Slate 700 (#334155) for legible subtitles */
 
     --accent: 349 97% 65%; /* FSY Red 10 #FC4E6D */
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 20 85% 45%; /* FSY Yellow 30 #D45311 */
     --destructive-foreground: 210 40% 98%;
@@ -55,7 +55,7 @@
     --muted-foreground: 215 20.2% 65.1%;
 
     --accent: 349 97% 65%; /* FSY Red 10 #FC4E6D */
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 20 85% 45%;
     --destructive-foreground: 210 40% 98%;
@@ -332,4 +332,26 @@ html:not(.dark) .text-slate-800 {
 button:not([role="switch"]), [role="button"] {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* Pares semânticos FSY: contraste estável em vez de texto sobre luz/gradiente. */
+:root {
+  --fsy-hero: #005e7c;
+  --fsy-accent-ink: #0f172a;
+  --fsy-link: #005e7c;
+}
+.dark {
+  --fsy-link: #7de3f4;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+}
+.fsy-action-link {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.fsy-action-link:focus-visible {
+  outline: 3px solid var(--fsy-link);
+  outline-offset: 3px;
 }
