@@ -3,7 +3,9 @@ name: Validar FSY
 on:
   push:
     branches: [main, 'feat/**', 'fix/**']
+    paths-ignore: ['docs/**', '**/*.md']
   pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
 
 permissions:
@@ -23,7 +25,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: dev
       SUPABASE_SERVICE_ROLE_KEY: dev
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3117
-      FSY_QA_OUTPUT_DIR: ${{ runner.temp }}/fsy-qa
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -47,6 +48,8 @@ jobs:
       - name: Preparar navegador de teste isolado
         run: npm install --prefix "$RUNNER_TEMP/fsy-qa-tools" --no-package-lock --no-audit --no-fund puppeteer@24.10.0 axe-core@4.14.0
       - name: Verificar telas, acessibilidade e interações
+        env:
+          FSY_QA_OUTPUT_DIR: ${{ runner.temp }}/fsy-qa
         run: |
           export FSY_PUPPETEER_MODULE="$RUNNER_TEMP/fsy-qa-tools/node_modules/puppeteer"
           export FSY_AXE_MODULE="$RUNNER_TEMP/fsy-qa-tools/node_modules/axe-core"
