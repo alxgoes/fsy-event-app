@@ -1,6 +1,6 @@
 ---
 name: FSY Sessão Ribeirão Preto 2
-description: Sistema de design oficial FSY 2027 "Alegra-se em Cristo" para a Sessão Ribeirão Preto 2
+description: Sistema de design oficial FSY 2027 "Alegrar-se em Cristo" para a Sessão Ribeirão Preto 2
 colors:
   primary: "#007DA5"
   primary-hover: "#005E7C"
@@ -96,7 +96,7 @@ components:
 
 **Creative North Star: "A Flâmula da Juventude"**
 
-O sistema de design do FSY Sessão Ribeirão Preto 2 traduz o tema oficial da juventude para 2027, *"Alegra-se em Cristo"* (Filipenses 4:4), em uma experiência digital acolhedora, vibrante e funcional. Inspirado nas flâmulas históricas de eventos e na arquitetura sagrada do templo, o sistema equilibra a solenidade serena de proporções clássicas com o entusiasmo juvenil de uma conferência de cinco dias repleta de aprendizado, música e companheirismo.
+O sistema de design do FSY Sessão Ribeirão Preto 2 traduz o tema oficial da juventude para 2027, *"Alegrar-se em Cristo"* (Filipenses 4:4), em uma experiência digital acolhedora, vibrante e funcional. Inspirado nas flâmulas históricas de eventos e na arquitetura sagrada do templo, o sistema equilibra a solenidade serena de proporções clássicas com o entusiasmo juvenil de uma conferência de cinco dias repleta de aprendizado, música e companheirismo.
 
 A interface rejeita deliberadamente o visual frio e asséptico de dashboards corporativos cinzas, assim como sombras pesadas ou estéticas carregadas. Em seu lugar, emprega uma atmosfera banhada em tons de pergaminho (*Parchment* e *Neutral 5*), toques quentes de sol (*Sunshine*), tipografia serifada nobre nos títulos e contrastes nítidos de leitura que garantem acessibilidade plena sob a luz natural do dia.
 
@@ -127,7 +127,7 @@ A paleta é orientada pelo Guia Oficial FSY 2027, estruturada para oferecer cont
 - **Ouro do Templo** (`#DBBF6B` / Gold 10): Exclusivo para detalhes da estátua do Morôni, portal do templo e insígnias cerimoniais.
 
 ### Named Rules
-**The No-Shadow-On-Brand Rule.** O identificador, o arco do templo e a tipografia "Alegra-se em Cristo" nunca devem receber sombras projetadas (*drop shadow*) nem gradientes. A marca vive sempre limpa sobre fundo neutro ou claro.
+**The No-Shadow-On-Brand Rule.** O identificador, o arco do templo e a tipografia "Alegrar-se em Cristo" nunca devem receber sombras projetadas (*drop shadow*) nem gradientes. A marca vive sempre limpa sobre fundo neutro ou claro.
 
 **The Daylight Contrast Rule.** Todo texto ou dado operacional deve atingir conformidade WCAG AA sobre sua superfície imediata, assegurando leitura perfeita em smartphones sob sol aberto.
 
@@ -212,7 +212,7 @@ O sistema utiliza a filosofia de **Camadas Flutuantes**: superfícies limpas e l
 - **Do** incluir indicações imediatas de restrições alimentares e alergias severas nos cards da equipe médica e consultores.
 
 ### Don't:
-- **Don't** aplicar gradientes ou sombras projetadas (*drop shadows*) na marca oficial do FSY, no templo ou na tipografia "Alegra-se em Cristo".
+- **Don't** aplicar gradientes ou sombras projetadas (*drop shadows*) na marca oficial do FSY, no templo ou na tipografia "Alegrar-se em Cristo".
 - **Don't** utilizar fundos cinzas frios ou paletas genéricas corporativas de dashboards convencionais.
 - **Don't** inventar selos ou alterar as proporções do arco do templo.
 - **Don't** inserir avisos ou disclaimers declarando que a aplicação é o site institucional geral da Igreja.

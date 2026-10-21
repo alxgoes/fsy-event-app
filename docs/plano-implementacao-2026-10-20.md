@@ -1,5 +1,7 @@
 # Plano de implementação aprovado — FSY
 
+> Nota de 20/10/2026: o tema foi alterado por ordem do usuário para **Alegrar-se em Cristo**, substituindo a grafia "Alegra-se em Cristo" registrada abaixo como histórico.
+
 Atualizado em 20/10/2026. Escopo autorizado pelo usuário nesta conversa: implementar recuperação do Supabase, segurança, identidade dos formulários, galeria Drive, personalização dos cartões, leitura integral do Instagram, gestão de contas e auditoria Impeccable. Ao final, escrever o manual completo do produto e do design. Aplicativos nativos Android/iOS ficam para uma etapa futura.
 
 Repositório: `https://github.com/alxgoes/fsy-event-app.git`. Site: `https://fsy-event-app.vercel.app/`. Base analisada: `84b22b9935d2f6ef073bcbc9e0edf7a03df2a608`.

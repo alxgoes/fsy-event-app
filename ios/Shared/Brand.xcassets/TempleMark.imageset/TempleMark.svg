@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 180" width="100" height="180" fill="none">
+<!-- Marca do templo em arco, quatro cores, portada de src/components/brand/FsyLogo.tsx (FsyTempleMark). Sem sombra nem gradiente. -->
+<path d="M 12 50 A 38 38 0 0 1 88 50 L 88 174 L 12 174 Z" fill="#EFEFE7" stroke="#111827" stroke-width="1.8" stroke-linejoin="round"/>
+<line x1="16" y1="168" x2="84" y2="168" stroke="#111827" stroke-width="1.8" stroke-linecap="round"/>
+<path d="M 21 168 L 21 118 L 24.5 98 L 28 118 L 28 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="24.5" y1="98" x2="24.5" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 28 168 L 28 96 L 33 76 L 38 96 L 38 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="33" y1="76" x2="33" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 38 168 L 38 82 L 42 62 L 46 82 L 46 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="42" y1="62" x2="42" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 54 168 L 54 82 L 58 62 L 62 82 L 62 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="58" y1="62" x2="58" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 62 168 L 62 96 L 67 76 L 72 96 L 72 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="67" y1="76" x2="67" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 72 168 L 72 118 L 75.5 98 L 79 118 L 79 168" fill="#FFFFFF" stroke="#111827" stroke-width="1.4" stroke-linejoin="round"/>
+<line x1="75.5" y1="98" x2="75.5" y2="168" stroke="#111827" stroke-width="0.9"/>
+<path d="M 28 168 L 28 126 L 72 126 L 72 168 Z" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 34 126 L 34 122 L 37.5 122 L 37.5 126 L 41 126 L 41 122 L 44.5 122 L 44.5 126 L 55.5 126 L 55.5 122 L 59 122 L 59 126 L 62.5 126 L 62.5 122 L 66 122 L 66 126" stroke="#111827" stroke-width="1.3" fill="none"/>
+<path d="M 34 126 L 34 98 L 66 98 L 66 126 Z" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 39 98 L 39 94 L 43 94 L 43 98 L 47 98 L 47 94 L 53 94 L 53 98 L 57 98 L 57 94 L 61 94 L 61 98" stroke="#111827" stroke-width="1.3" fill="none"/>
+<path d="M 40 98 L 40 76 L 60 76 L 60 98 Z" fill="#FFFFFF" stroke="#111827" stroke-width="1.5"/>
+<path d="M 42.5 76 L 42.5 72 L 46.5 72 L 46.5 76 L 50 76 L 53.5 76 L 53.5 72 L 57.5 72 L 57.5 76" stroke="#111827" stroke-width="1.3" fill="none"/>
+<path d="M 43 76 L 48.5 38 L 51.5 38 L 57 76 Z" fill="#FFFFFF" stroke="#111827" stroke-width="1.5" stroke-linejoin="round"/>
+<line x1="50" y1="38" x2="50" y2="76" stroke="#111827" stroke-width="1"/>
+<line x1="21" y1="146" x2="79" y2="146" stroke="#111827" stroke-width="1.2"/>
+<line x1="28" y1="108" x2="72" y2="108" stroke="#111827" stroke-width="1.2"/>
+<path d="M 44.5 168 L 44.5 140 C 44.5 133 55.5 133 55.5 140 L 55.5 168 Z" fill="#DBBF6B" stroke="#111827" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="50" y1="137" x2="50" y2="168" stroke="#111827" stroke-width="0.8" opacity="0.6"/>
+<rect x="47.5" y="34.5" width="5" height="3.5" fill="#DBBF6B" stroke="#111827" stroke-width="1" rx="0.5"/>
+<g transform="translate(50 19)">
+<path d="M 0 15 L -0.8 5 C -0.8 3 1.2 3 1.2 5 L 0.8 15 Z" fill="#DBBF6B" stroke="#111827" stroke-width="0.8"/>
+<circle cx="0.8" cy="3.2" r="1.8" fill="#DBBF6B" stroke="#111827" stroke-width="0.7"/>
+<line x1="1.5" y1="3.8" x2="8" y2="-1.2" stroke="#DBBF6B" stroke-width="1.3" stroke-linecap="round"/>
+<polygon points="7.2,-2.2 9.5,-0.2 8.5,0.8" fill="#DBBF6B" stroke="#111827" stroke-width="0.5"/>
+</g>
+</svg>

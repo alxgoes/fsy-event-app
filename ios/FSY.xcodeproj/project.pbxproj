@@ -1,0 +1,345 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F5A000000000000000000001 /* FSYWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = F5A000000000000000000102 /* FSYWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F5A000000000000000000011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F5A000000000000000000901 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F5A000000000000000000502;
+			remoteInfo = FSYWidgetsExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F5A000000000000000000021 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				F5A000000000000000000001 /* FSYWidgetsExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		F5A000000000000000000101 /* FSY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FSY.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5A000000000000000000102 /* FSYWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FSYWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		F5A000000000000000000111 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		F5A000000000000000000112 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
+		F5A000000000000000000113 /* Widgets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Widgets.xcconfig; sourceTree = "<group>"; };
+		F5A000000000000000000114 /* Local.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Local.example.xcconfig; sourceTree = "<group>"; };
+		F5A000000000000000000115 /* FSY-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FSY-Info.plist"; sourceTree = "<group>"; };
+		F5A000000000000000000116 /* FSYWidgets-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FSYWidgets-Info.plist"; sourceTree = "<group>"; };
+		F5A000000000000000000117 /* FSY-AppGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "FSY-AppGroup.entitlements"; sourceTree = "<group>"; };
+		F5A000000000000000000118 /* FSYWidgets-AppGroup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "FSYWidgets-AppGroup.entitlements"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F5A000000000000000000201 /* FSY */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FSY;
+			sourceTree = "<group>";
+		};
+		F5A000000000000000000202 /* FSYWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FSYWidgets;
+			sourceTree = "<group>";
+		};
+		F5A000000000000000000203 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F5A000000000000000000301 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5A000000000000000000302 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F5A000000000000000000401 = {
+			isa = PBXGroup;
+			children = (
+				F5A000000000000000000201 /* FSY */,
+				F5A000000000000000000202 /* FSYWidgets */,
+				F5A000000000000000000203 /* Shared */,
+				F5A000000000000000000402 /* Config */,
+				F5A000000000000000000403 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F5A000000000000000000402 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				F5A000000000000000000111 /* Shared.xcconfig */,
+				F5A000000000000000000112 /* App.xcconfig */,
+				F5A000000000000000000113 /* Widgets.xcconfig */,
+				F5A000000000000000000114 /* Local.example.xcconfig */,
+				F5A000000000000000000115 /* FSY-Info.plist */,
+				F5A000000000000000000116 /* FSYWidgets-Info.plist */,
+				F5A000000000000000000117 /* FSY-AppGroup.entitlements */,
+				F5A000000000000000000118 /* FSYWidgets-AppGroup.entitlements */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		F5A000000000000000000403 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F5A000000000000000000101 /* FSY.app */,
+				F5A000000000000000000102 /* FSYWidgetsExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F5A000000000000000000501 /* FSY */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5A000000000000000000802 /* Build configuration list for PBXNativeTarget "FSY" */;
+			buildPhases = (
+				F5A000000000000000000601 /* Sources */,
+				F5A000000000000000000301 /* Frameworks */,
+				F5A000000000000000000701 /* Resources */,
+				F5A000000000000000000021 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F5A000000000000000000031 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F5A000000000000000000201 /* FSY */,
+				F5A000000000000000000203 /* Shared */,
+			);
+			name = FSY;
+			packageProductDependencies = (
+			);
+			productName = FSY;
+			productReference = F5A000000000000000000101 /* FSY.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F5A000000000000000000502 /* FSYWidgetsExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F5A000000000000000000803 /* Build configuration list for PBXNativeTarget "FSYWidgetsExtension" */;
+			buildPhases = (
+				F5A000000000000000000602 /* Sources */,
+				F5A000000000000000000302 /* Frameworks */,
+				F5A000000000000000000702 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F5A000000000000000000202 /* FSYWidgets */,
+				F5A000000000000000000203 /* Shared */,
+			);
+			name = FSYWidgetsExtension;
+			packageProductDependencies = (
+			);
+			productName = FSYWidgetsExtension;
+			productReference = F5A000000000000000000102 /* FSYWidgetsExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F5A000000000000000000901 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2630;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					F5A000000000000000000501 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					F5A000000000000000000502 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+				};
+			};
+			buildConfigurationList = F5A000000000000000000801 /* Build configuration list for PBXProject "FSY" */;
+			developmentRegion = "pt-BR";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"pt-BR",
+				Base,
+			);
+			mainGroup = F5A000000000000000000401;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F5A000000000000000000403 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F5A000000000000000000501 /* FSY */,
+				F5A000000000000000000502 /* FSYWidgetsExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F5A000000000000000000701 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5A000000000000000000702 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F5A000000000000000000601 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5A000000000000000000602 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F5A000000000000000000031 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F5A000000000000000000502 /* FSYWidgetsExtension */;
+			targetProxy = F5A000000000000000000011 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F5A000000000000000000A01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000111 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F5A000000000000000000A02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000111 /* Shared.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F5A000000000000000000A11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000112 /* App.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		F5A000000000000000000A12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000112 /* App.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		F5A000000000000000000A21 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000113 /* Widgets.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		F5A000000000000000000A22 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F5A000000000000000000113 /* Widgets.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F5A000000000000000000801 /* Build configuration list for PBXProject "FSY" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5A000000000000000000A01 /* Debug */,
+				F5A000000000000000000A02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F5A000000000000000000802 /* Build configuration list for PBXNativeTarget "FSY" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5A000000000000000000A11 /* Debug */,
+				F5A000000000000000000A12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F5A000000000000000000803 /* Build configuration list for PBXNativeTarget "FSYWidgetsExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5A000000000000000000A21 /* Debug */,
+				F5A000000000000000000A22 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F5A000000000000000000901 /* Project object */;
+}

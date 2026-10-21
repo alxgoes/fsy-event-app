@@ -1,4 +1,4 @@
-const CACHE_NAME = "fsy-pwa-v3";
+const CACHE_NAME = "fsy-pwa-v4";
 const STATIC_ASSETS = ["/offline", "/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {
@@ -44,7 +44,7 @@ self.addEventListener("fetch", (event) => {
       const offlinePage = await cache.match("/offline");
       if (offlinePage) return offlinePage;
       return new Response(
-        '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FSY · Sem conexão</title></head><body style="font-family:system-ui;padding:40px;background:#F3EDE2;color:#0F172A"><h1>Você está sem conexão</h1><p>FSY 2027 · Alegra-se em Cristo</p><p>Conecte-se à internet para acessar os dados da sessão.</p><a href="/dashboard" style="color:#007DA5">Tentar novamente</a></body></html>',
+        '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FSY · Sem conexão</title></head><body style="font-family:system-ui;padding:40px;background:#F3EDE2;color:#0F172A"><h1>Você está sem conexão</h1><p>FSY 2027 · Alegrar-se em Cristo</p><p>Conecte-se à internet para acessar os dados da sessão.</p><a href="/dashboard" style="color:#007DA5">Tentar novamente</a></body></html>',
         { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
       );
     }));

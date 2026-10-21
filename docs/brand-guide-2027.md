@@ -4,12 +4,12 @@
 ---
 
 ## 1. Tema e Identificador
-- **Tema:** *Alegra-se em Cristo*
+- **Tema:** *Alegrar-se em Cristo*
 - **Escritura:** *Philippians 4:4* (Filipenses 4:4)
 - **Elementos do Logo (Primary Mark):**
   1. **Temple Mark:** Ilustração estilizada do Templo com estátua dourada no topo.
   2. **Arch Shape:** Forma em arco como moldura de fundo.
-  3. **Typeset Theme:** Tipografia estilizada ("Alegra-se em Cristo").
+  3. **Typeset Theme:** Tipografia estilizada ("Alegrar-se em Cristo").
   4. **Scripture:** Referência da escritura ("Filipenses 4:4").
 
 ### Formatos e Espaçamentos Oficiais (Identifier Lockups)
@@ -68,13 +68,13 @@
 ---
 
 ## 4. Stickers e Selos Gráficos Oficiais
-1. **Pink Oval Sticker:** Fundo Rosa (`#FC4E6D` / `#FDA192`) com "Alegra-se em Cristo".
+1. **Pink Oval Sticker:** Fundo Rosa (`#FC4E6D` / `#FDA192`) com "Alegrar-se em Cristo".
 2. **Orange Arch Sticker:** Fundo Laranja (`#F68D2E`) com ilustração do Templo.
 3. **Green Square Stamp:** Fundo Verde (`#93C742`) com "20 27", "4:4" e Templo.
-4. **Teal Blue Badge:** Fundo Turquesa (`#01B6D1`) com Arco do Templo e "Alegra-se em Cristo / Filipenses 4:4".
-5. **Light Blue Pennant:** Flâmula Azul (`#B0EEFC`) com "Alegra-se em Cristo — 4:4".
+4. **Teal Blue Badge:** Fundo Turquesa (`#01B6D1`) com Arco do Templo e "Alegrar-se em Cristo / Filipenses 4:4".
+5. **Light Blue Pennant:** Flâmula Azul (`#B0EEFC`) com "Alegrar-se em Cristo — 4:4".
 6. **Orange Circle:** Fundo Laranja (`#F68D2E`) com "20 27" e Arco.
-7. **Yellow Capsule:** Fundo Amarelo (`#FFE48A` / `#FFB81C`) com "Alegra-se em Cristo 20 27".
+7. **Yellow Capsule:** Fundo Amarelo (`#FFE48A` / `#FFB81C`) com "Alegrar-se em Cristo 20 27".
 8. **Temple Die-Cut:** Arco em Neutral 5 com Templo em Gray 5 e detalhes em Gold 10.
 
 ---
@@ -85,4 +85,4 @@
 
 ## Texto adotado nesta sessão
 
-Por orientação expressa do usuário em 20/10/2026, todas as referências do tema no portal usam **Alegra-se em Cristo**, com essa grafia. A escritura continua Filipenses 4:4; lemas das companhias e horários não foram alterados. A constante executável está em `src/lib/event/identity.ts`.
+Por orientação expressa do usuário em 20/10/2026, todas as referências do tema no portal e no app iOS usam **Alegrar-se em Cristo**, com essa grafia. Essa ordem substituiu a grafia anterior "Alegra-se em Cristo", que não deve voltar a ser usada. A escritura continua Filipenses 4:4; lemas das companhias e horários não foram alterados. A constante executável está em `src/lib/event/identity.ts`.

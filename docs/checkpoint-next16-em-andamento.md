@@ -1,5 +1,7 @@
 # Entrega local complementar — 20/10/2026
 
+> Nota de 20/10/2026: o tema foi alterado por ordem do usuário para **Alegrar-se em Cristo**, substituindo a grafia "Alegra-se em Cristo" registrada abaixo como histórico.
+
 Tema exato **Alegra-se em Cristo**, centralizado em `src/lib/event/identity.ts`, aplicado a marca, cartões, login/rodapé, carregamento, metadados e PWA; lemas e horários preservados.
 
 Next 16.4.2/React 19.3.1, cookies/params assíncronos, Proxy, flat ESLint; 0 vulnerabilidades de produção, 0 críticas no audit completo (13 avisos em ferramentas de desenvolvimento). Requisições deduplicadas/limitadas e canceladas no cleanup; contraste/semântica/alvos corrigidos em lote. Cache PWA v3.

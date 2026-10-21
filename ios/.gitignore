@@ -1,0 +1,6 @@
+# Valores locais (chave publicável, Team, Bundle ID, App Group) não são versionados.
+Config/Local.xcconfig
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/

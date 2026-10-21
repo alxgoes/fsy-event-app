@@ -1,0 +1,17 @@
+// Copie para Config/Local.xcconfig (ignorado pelo Git) e preencha.
+// Nunca coloque service_role, senhas ou backups aqui: o app só usa a chave publicável.
+
+// Chave publicável do projeto Supabase vhbmnnpgftrrovjtvbzo
+// (Supabase → Project Settings → API Keys → Publishable key; a mesma NEXT_PUBLIC_SUPABASE_ANON_KEY do portal).
+SUPABASE_PUBLISHABLE_KEY = sb_publishable_COLE_AQUI
+
+// Team ID de 10 caracteres exibido em Xcode → Settings → Accounts (Personal Team serve para testar no aparelho).
+FSY_DEVELOPMENT_TEAM = ABCDE12345
+
+// Bundle ID único para o seu Team.
+FSY_BUNDLE_ID = br.com.seunome.fsyrp2
+
+// Opcional — widgets com a programação exigem App Group (Team pago).
+// FSY_APP_GROUP = group.br.com.seunome.fsyrp2
+// FSY_APP_ENTITLEMENTS = Config/FSY-AppGroup.entitlements
+// FSY_WIDGET_ENTITLEMENTS = Config/FSYWidgets-AppGroup.entitlements

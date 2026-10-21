@@ -2,7 +2,7 @@
 
 Portal do evento de 2027 para jovens, consultores, saúde, mídia, logística e direção. Preparação da equipe em 05/02; participantes de 06 a 10/02/2027. Interface em português do Brasil.
 
-Tema da sessão: **Alegra-se em Cristo**.
+Tema da sessão: **Alegrar-se em Cristo**.
 
 Next.js 16.4.2 (App Router), React 19.3.1, TypeScript, Tailwind e Supabase (Auth/Postgres/RLS). O código local desta retomada não representa publicação ou recuperação do banco real.
 
@@ -38,6 +38,6 @@ Os testes de banco executam migrações e RLS em PGlite com identidades fictíci
 
 Antes de publicar, preservar/exportar banco e Auth, confirmar o projeto externo e conferir as migrações anteriores. A cadeia de segurança é `202610200001_security_hardening.sql` → `202610200002_account_safety.sql` → `202610200003_remote_policy_cleanup.sql`; o coordenador confirmou sua aplicação remota. Não reaplicar `schema.sql` sobre um banco migrado.
 
-A atualização local do Next foi aplicada sem `--force`; a consulta registrada de dependências de produção retornou zero vulnerabilidades. Lint, tipos, 145 testes serializados e build com um worker passaram; a confirmação visual final será feita na CI, sem nota 20/20 presumida. O root cuida da publicação e da checagem após deploy. Aplicativos nativos Android/iOS estão fora desta etapa; instalação PWA usa o navegador.
+A atualização local do Next foi aplicada sem `--force`; a consulta registrada de dependências de produção retornou zero vulnerabilidades. Lint, tipos, 145 testes serializados e build com um worker passaram; a confirmação visual final será feita na CI, sem nota 20/20 presumida. O root cuida da publicação e da checagem após deploy. A primeira versão nativa para iPhone está em [ios/](ios/), com [instruções de execução](docs/ios/README.md) e [estado verificado](docs/ios/ENTREGA.md); o teste autenticado segue pendente. Instalação PWA pelo navegador continua disponível; não há app Android nativo nesta etapa.
 
 Em Mac com 8 GB: uma tarefa pesada por vez; `npm test` limita arquivos a um por vez e o Next usa um worker. A CI executa lint, tipos, testes, audit de produção, build e QA/assert das 56 combinações; guarda artefatos por 7 dias. Sem provedor de e-mail confirmado, não considerar envio/recuperação de produção validados.

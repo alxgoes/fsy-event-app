@@ -1,5 +1,7 @@
 # Confirmação final de qualidade — 20/10/2026
 
+> Nota de 20/10/2026: o tema foi alterado por ordem do usuário para **Alegrar-se em Cristo**, substituindo a grafia "Alegra-se em Cristo" registrada abaixo como histórico.
+
 A versão executável `16b9a54` passou na [CI 39491681275](https://github.com/alxgoes/fsy-event-app/actions/runs/39491681275): lint, tipos, **145/145 testes**, zero vulnerabilidades nas dependências de produção, build e o gate visual sem exceções/ignores novos. Evidências brutas e capturas com dados fictícios: [evidencias-publicacao-2026-10-20](evidencias-publicacao-2026-10-20/).
 
 **Integridade: aprovada na cobertura revisada.** O tema exato **Alegra-se em Cristo**, a identidade FSY, os contratos de cargos e a programação foram preservados. Fotos, campos e cartões respondem ao uso do evento; não há curtidas fictícias no feed. Cartões, ciano e tipografia da marca foram avaliados em contexto, sem retirar achados do detector para elevar a nota.

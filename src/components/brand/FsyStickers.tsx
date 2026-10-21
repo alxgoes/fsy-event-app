@@ -8,7 +8,7 @@ export interface StickerProps {
 }
 
 /**
- * 1. Pink Oval Sticker ("Alegra-se em Cristo")
+ * 1. Pink Oval Sticker ("Alegrar-se em Cristo")
  * Hex #FC4E6D / #FDA192 with dark text
  */
 export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
@@ -98,7 +98,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
 }
 
 /**
- * 5. Light Blue Pennant ("Alegra-se em Cristo — 4:4" on Blue 5 #B0EEFC)
+ * 5. Light Blue Pennant ("Alegrar-se em Cristo — 4:4" on Blue 5 #B0EEFC)
  */
 export function BluePennantSticker({ className = "" }: { className?: string }) {
   return (
@@ -117,7 +117,7 @@ export function BluePennantSticker({ className = "" }: { className?: string }) {
 }
 
 /**
- * 6. Yellow Capsule Sticker ("Alegra-se em Cristo 20 27" on Sunshine #FFE48A / Parchment)
+ * 6. Yellow Capsule Sticker ("Alegrar-se em Cristo 20 27" on Sunshine #FFE48A / Parchment)
  */
 export function YellowCapsuleSticker({ className = "", size = "md" }: StickerProps) {
   const sizeMap = {

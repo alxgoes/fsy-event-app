@@ -1,8 +1,8 @@
 # Manual funcional e de design — FSY Sessão Ribeirão Preto 2
 
-Versão publicada e verificada em 20/10/2026. Preparação da equipe em **05/02/2027**; participantes de **06 a 10/02/2027**. Tema exato definido pelo usuário: **Alegra-se em Cristo**, Filipenses 4:4. Este é o portal da sessão Ribeirão Preto 2, sem representar um portal institucional global.
+Versão publicada e verificada em 20/10/2026. Preparação da equipe em **05/02/2027**; participantes de **06 a 10/02/2027**. Tema exato definido pelo usuário: **Alegrar-se em Cristo**, Filipenses 4:4. Este é o portal da sessão Ribeirão Preto 2, sem representar um portal institucional global.
 
-O portal está publicado em https://fsy-event-app.vercel.app. A revisão executável **38ff96b** foi confirmada como Production Ready, com **144 testes, 56 combinações de tela e 26 verificações públicas aprovadas**. Supabase está Healthy; migrações 001–004 aplicadas, dados preservados. Logística, Coordenação e Direção têm a mesma autoridade administrativa. O envio de e-mail depende de serviço ainda não configurado, e Google OAuth permanece em Teste. A nota Impeccable anterior 17/20 é histórica e não foi recalculada nesta revisão. iOS está pausado pelo usuário.
+O portal está publicado em https://fsy-event-app.vercel.app. A revisão executável **38ff96b** foi confirmada como Production Ready, com **144 testes, 56 combinações de tela e 26 verificações públicas aprovadas**. Supabase está Healthy; migrações 001–004 aplicadas, dados preservados. Logística, Coordenação e Direção têm a mesma autoridade administrativa. O envio de e-mail depende de serviço ainda não configurado, e Google OAuth permanece em Teste. A nota Impeccable anterior 17/20 é histórica e não foi recalculada nesta revisão. O desenvolvimento iOS foi retomado: a primeira versão nativa está instalada no iPhone e a abertura corrigida foi observada; teste autenticado segue pendente. Consulte [entrega iOS](ios/ENTREGA.md). A correção posterior do tema para **Alegrar-se em Cristo** é descrita no mesmo registro; não foi validada pelas evidências históricas da revisão 38ff96b.
 
 ## Índice
 
@@ -197,7 +197,7 @@ Cache não é autorização; as políticas restritivas de perfil ativo foram apl
 
 Cinzel e Cormorant Garamond atendem títulos/destaques; Inter atende interface e leitura. O padrão Seigaiha e as marcas FSY são elementos específicos deste evento. Galeria e campos mantêm suas superfícies próprias. Os blocos de gestão, cartões de indicadores, módulos, menu lateral e botões usam a mesma profundidade tátil da identidade FSY: borda estruturada, sombra deslocada, estado pressionado e foco visível. Os tokens --fsy-depth-border, --fsy-depth-ink, --fsy-depth-panel-shadow e --fsy-depth-button-shadow centralizam claro/escuro; fsy-panel e o escopo fsy-admin aplicam o padrão sem modificar conteúdo ou autorização.
 
-A constante de identidade é `src/lib/event/identity.ts`; marca, cartões, login/rodapé, carregamento, metadados e PWA usam **Alegra-se em Cristo**. Lemas das companhias e horários foram preservados. A citação de Filipenses no cartão continua como escritura, distinta do texto do tema.
+A constante de identidade é `src/lib/event/identity.ts`; marca, cartões, login/rodapé, carregamento, metadados e PWA usam **Alegrar-se em Cristo**. Lemas das companhias e horários foram preservados. A citação de Filipenses no cartão continua como escritura, distinta do texto do tema.
 
 Paleta não garante contraste: a saudação usa branco sobre `--fsy-hero` #005e7c (7,26:1), o contador rosa usa grafite (5,48:1) e urgência usa branco/vermelho escuro (6,47:1). `--fsy-link` adapta a ação ao tema; o fundo escuro foi atenuado e avisos importantes usam superfície estável. IDs de companhia escolhem preto/branco pela luminância da cor configurada. Essas medidas não substituem QA sobre superfícies com imagem/canvas.
 

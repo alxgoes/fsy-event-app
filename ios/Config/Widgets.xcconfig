@@ -1,0 +1,9 @@
+#include "Shared.xcconfig"
+
+PRODUCT_NAME = FSYWidgetsExtension
+PRODUCT_BUNDLE_IDENTIFIER = $(FSY_BUNDLE_ID).widgets
+INFOPLIST_FILE = Config/FSYWidgets-Info.plist
+CODE_SIGN_ENTITLEMENTS = $(FSY_WIDGET_ENTITLEMENTS)
+SKIP_INSTALL = YES
+APPLICATION_EXTENSION_API_ONLY = YES
+LD_RUNPATH_SEARCH_PATHS = $(inherited) @executable_path/Frameworks @executable_path/../../Frameworks
