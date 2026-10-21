@@ -5,6 +5,8 @@ import { isSameOriginRequest } from "@/lib/security/origin";
 const PUBLIC_PREFIXES = ["/login", "/auth", "/acesso-negado", "/offline", "/icons", "/redefinir-senha"];
 const PUBLIC_EXACT = new Set([
   "/api/auth/recover",
+  // Sem cookie de entrada: a rota valida o Bearer do app, perfil e suspensão por conta própria.
+  "/api/auth/native-session",
   "/api/instagram",
   "/icon.svg",
   "/sw.js",

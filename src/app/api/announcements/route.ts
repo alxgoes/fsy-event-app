@@ -6,7 +6,7 @@ import { announcementSchema, announcementUpdateSchema, baseCategory } from "@/ty
 
 export const dynamic = "force-dynamic";
 
-const SELECT = "id, title, content, priority, target_company_id, category, created_at, author_id, profiles(full_name, role)";
+const SELECT = "id, title, content, priority, target_company_id, category, created_at, author_id, profiles!author_id(full_name, role)";
 const COMPANY_ID = /^[\w-]{1,64}$/;
 
 /** Gestores leem tudo; consultores, a própria companhia; demais, a própria companhia e avisos gerais. */

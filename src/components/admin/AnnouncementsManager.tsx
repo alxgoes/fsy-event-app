@@ -95,7 +95,7 @@ export function AnnouncementsManager() {
       const supabase = createClient();
       const { data, error: fetchError } = await supabase
         .from("announcements")
-        .select("id, title, content, priority, target_company_id, category, created_at, profiles(full_name)")
+        .select("id, title, content, priority, target_company_id, category, created_at, profiles!author_id(full_name)")
         .order("created_at", { ascending: false });
 
       if (fetchError) {

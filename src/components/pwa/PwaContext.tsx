@@ -3,6 +3,7 @@ import { startTransition } from "react";
 
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { isNativeAppUserAgent } from "@/types/native-session";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -35,14 +36,18 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     // 1. Detect environment
     if (typeof window === "undefined") return;
 
+    const userAgent = window.navigator.userAgent || "";
+    // Painel aberto dentro do app iOS (WKWebView first-party): já é o app instalado, então nada de
+    // convite/botão de instalação nem service worker. Só interface; permissões seguem no servidor.
+    const nativeApp = isNativeAppUserAgent(userAgent);
+
     // Detect Standalone (already installed as PWA)
     const standaloneMedia = window.matchMedia("(display-mode: standalone)").matches;
     const navigatorStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-    const runningStandalone = standaloneMedia || navigatorStandalone;
+    const runningStandalone = standaloneMedia || navigatorStandalone || nativeApp;
     startTransition(() => { setIsInstalled(runningStandalone); });
 
     // Detect iOS
-    const userAgent = window.navigator.userAgent || "";
     const isIOSDevice =
       /iPad|iPhone|iPod/.test(userAgent) ||
       (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1);
@@ -53,7 +58,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     startTransition(() => { setIsAndroid(isAndroidDevice); });
 
     // 2. Register Service Worker
-    if ("serviceWorker" in navigator) {
+    if (!nativeApp && "serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
