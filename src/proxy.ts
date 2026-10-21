@@ -1,12 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSameOriginRequest } from "@/lib/security/origin";
+import { isBearerApiPath, parseAuthorization } from "@/lib/auth/bearer";
 
 const PUBLIC_PREFIXES = ["/login", "/auth", "/acesso-negado", "/offline", "/icons", "/redefinir-senha"];
 const PUBLIC_EXACT = new Set([
   "/api/auth/recover",
-  // Sem cookie de entrada: a rota valida o Bearer do app, perfil e suspensão por conta própria.
-  "/api/auth/native-session",
   "/api/instagram",
   "/icon.svg",
   "/sw.js",
@@ -43,6 +42,21 @@ export async function proxy(request: NextRequest) {
       { error: "Serviço temporariamente indisponível: configuração de autenticação ausente." },
       { status: 503 }
     );
+  }
+
+  // App iOS: `Authorization: Bearer` só nas APIs permitidas, validado no Auth. Inválido falha fechado e
+  // nunca recorre ao cookie. Cargo, suspensão e escopo continuam conferidos em cada rota.
+  const authorization = parseAuthorization(request.headers.get("authorization"));
+  if (authorization.kind !== "none" && request.nextUrl.pathname.startsWith("/api")) {
+    const denied = () => NextResponse.json(
+      { error: "Sessão do app inválida. Entre novamente." },
+      { status: 401, headers: { "Cache-Control": "private, no-store, max-age=0" } }
+    );
+    if (authorization.kind === "invalid" || !isBearerApiPath(request.nextUrl.pathname)) return denied();
+    const verifier = createServerClient(supabaseUrl, supabaseAnonKey, { cookies: { getAll: () => [], setAll: () => {} } });
+    const { data, error } = await verifier.auth.getUser(authorization.token);
+    if (error || !data?.user) return denied();
+    return NextResponse.next({ request });
   }
 
   const supabase = createServerClient(

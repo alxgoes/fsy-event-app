@@ -3,6 +3,8 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const ts = require('typescript');
+const { loadRoute } = require('./helpers/route-harness.cjs');
+const bearer = loadRoute('src/lib/auth/bearer.ts');
 function load(file, modules) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
@@ -12,7 +14,7 @@ function load(file, modules) {
 function fixture(role, profileError = null, user = { id: 'alice', user_metadata: { role: 'coordenador' }, app_metadata: { role: 'coordenador' } }) {
   let reads = 0;
   const client = { auth: { getUser: async () => ({ data: { user } }) }, from: () => ({ select() { return this; }, eq(column, value) { assert.equal(column, 'id'); assert.equal(value, 'alice'); return this; }, single: async () => { reads++; return { data: role ? { role } : null, error: profileError }; } }) };
-  const common = { 'server-only': {}, '@supabase/ssr': { createServerClient: () => client }, '@/lib/supabase/admin': { createAdminClient: () => client }, 'next/headers': { cookies: async () => ({ getAll: () => [] }) } };
+  const common = { 'server-only': {}, '@supabase/ssr': { createServerClient: () => client }, '@/lib/supabase/admin': { createAdminClient: () => client }, 'next/headers': { cookies: async () => ({ getAll: () => [] }) }, '@/lib/auth/bearer': bearer };
   return { client, common, reads: () => reads };
 }
 
@@ -38,7 +40,7 @@ test('admin proxy ignores forged role cookie and metadata', async () => {
   const f = fixture('jovem');
   const modules = { ...f.common, '@/lib/security/origin': { isSameOriginRequest: () => true }, 'next/server': { NextResponse: { next: () => ({ cookies: { set() {} }, type: 'next' }), redirect: url => ({ pathname: url.pathname }), json: () => ({}) } } };
   const { proxy } = load('src/proxy.ts', modules);
-  const request = { method: 'GET', cookies: { getAll: () => [], get: () => ({ value: 'coordenador' }) }, nextUrl: { pathname: '/admin/medical', clone: () => ({ pathname: '', searchParams: new URLSearchParams() }) } };
+  const request = { method: 'GET', headers: { get: () => null }, cookies: { getAll: () => [], get: () => ({ value: 'coordenador' }) }, nextUrl: { pathname: '/admin/medical', clone: () => ({ pathname: '', searchParams: new URLSearchParams() }) } };
   assert.equal((await proxy(request)).pathname, '/acesso-negado');
   assert.equal(f.reads(), 1);
 });

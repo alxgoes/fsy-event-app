@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const INCLUSION_ROLES = ["medico", "coordenador", "casal_diretor", "logistica"];
 const uuid = z.string().uuid();
-const headers = { "Cache-Control": "private, no-store, max-age=0", "Vary": "Cookie" };
+const headers = { "Cache-Control": "private, no-store, max-age=0", "Vary": "Cookie, Authorization" };
 const caseSelection = "*, medical_record:medical_records(full_name, emergency_contact_name, emergency_contact_phone, emergency_contact_rel, emergency_contact_alt_phone)";
 function withMedicalContacts(row: Record<string, unknown>) {
   const { medical_record, ...caseData } = row;

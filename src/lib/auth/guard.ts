@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentIdentity, type Identity } from "@/lib/supabase/server";
 import { hasRole, type RoleGroup } from "@/lib/auth/permissions";
 
-const NO_STORE = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie" };
+const NO_STORE = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
 
 export function json(body: unknown, status = 200) {
   return NextResponse.json(body, { status, headers: NO_STORE });

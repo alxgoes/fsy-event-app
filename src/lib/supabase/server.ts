@@ -1,15 +1,25 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { parseAuthorization } from "@/lib/auth/bearer";
 import type { UserRole } from "@/lib/supabase/useProfile";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/** Authorization da requisição atual (app iOS). Fora de uma requisição, nenhum. */
+async function requestAuthorization() {
+  try {
+    return parseAuthorization((await headers()).get("authorization"));
+  } catch {
+    return { kind: "none" } as const;
+  }
+}
 
 /**
  * Creates an authenticated Supabase client for Server Components,
  * Route Handlers, and Server Actions that respects the user's session cookies.
+ * Com `Authorization: Bearer` (app iOS) o cliente usa só esse token, sem cookies.
  */
 export async function createAuthenticatedServerClient() {
-  const cookieStore = await cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -17,6 +27,17 @@ export async function createAuthenticatedServerClient() {
     throw new Error("Supabase URL and Anon Key must be defined in environment");
   }
 
+  const authorization = await requestAuthorization();
+  if (authorization.kind !== "none") {
+    // Cabeçalho inválido vira cliente anônimo: nunca cai no cookie de outra sessão.
+    const token = authorization.kind === "bearer" ? authorization.token : null;
+    return createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: { getAll: () => [], setAll: () => {} },
+      global: token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
+    });
+  }
+
+  const cookieStore = await cookies();
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -42,17 +63,32 @@ export interface Identity {
 }
 
 /**
+ * Usuário autenticado da requisição: Bearer do app (validado no Auth) ou cookie do site.
+ * Authorization presente e inválida → null, sem tentar o cookie.
+ */
+async function resolveAuthUser(): Promise<{ id: string; email?: string } | null> {
+  const authorization = await requestAuthorization();
+  if (authorization.kind === "invalid") return null;
+  if (authorization.kind === "bearer") {
+    const { data, error } = await createAdminClient().auth.getUser(authorization.token);
+    return error || !data?.user ? null : data.user;
+  }
+  const supabase = await createAuthenticatedServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+  return error || !user ? null : user;
+}
+
+/**
  * Resolves the session user and the protected profile row in one place.
  * Returns null without a valid session, a profile, or when access is suspended.
  */
 export async function getCurrentIdentity(): Promise<Identity | null> {
   try {
-    const supabase = await createAuthenticatedServerClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-    if (error || !user) return null;
+    const user = await resolveAuthUser();
+    if (!user) return null;
 
     const { data: profile, error: profileError } = await createAdminClient()
       .from("profiles")
@@ -82,13 +118,8 @@ export async function getCurrentUserAndRole(): Promise<{
   role: UserRole | null;
 }> {
   try {
-    const supabase = await createAuthenticatedServerClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
+    const user = await resolveAuthUser();
+    if (!user) {
       return { user: null, role: null };
     }
 

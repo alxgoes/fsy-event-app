@@ -4,6 +4,13 @@ import { getCurrentUserAndRole } from "@/lib/supabase/server";
 import { requireIdentity, json, serverError } from "@/lib/auth/guard";
 import type { CounselorAuditLog } from "@/types/audit";
 
+/** Respostas com dados pessoais/saúde: nunca em cache compartilhado (site e app). */
+const PRIVATE_HEADERS = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
+function privateJson(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}) {
+  return NextResponse.json(body, { ...init, headers: { ...init.headers, ...PRIVATE_HEADERS } });
+}
+
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -13,14 +20,14 @@ export async function GET(request: Request) {
   try {
     const { user, role } = await getCurrentUserAndRole();
     if (!user) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso não autorizado. Sessão necessária." },
         { status: 401 }
       );
     }
 
     if (!role || !ALLOWED_ROLES.includes(role)) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso negado aos registros de auditoria." },
         { status: 403 }
       );
@@ -58,13 +65,13 @@ export async function GET(request: Request) {
         error.message?.toLowerCase().includes("could not find the table") ||
         error.message?.includes("does not exist")
       ) {
-        return NextResponse.json({
+        return privateJson({
           data: [],
           tablePending: true,
           notice: "Tabela counselor_audit_logs pendente de criação no Supabase.",
         });
       }
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
     let logs: CounselorAuditLog[] = data || [];
@@ -79,7 +86,7 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(
+    return privateJson(
       { data: logs },
       {
         headers: {
@@ -89,7 +96,7 @@ export async function GET(request: Request) {
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }
 
@@ -129,7 +136,7 @@ export async function DELETE(request: Request) {
   try {
     const { user, role: callerRole } = await getCurrentUserAndRole();
     if (!user) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso não autorizado. Sessão necessária." },
         { status: 401 }
       );
@@ -137,7 +144,7 @@ export async function DELETE(request: Request) {
 
     // Strictly enforce server-side role check
     if (!callerRole || !ALLOWED_ROLES.includes(callerRole)) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Apenas Casal Diretor, Casal Logística e Coordenadores podem excluir o histórico." },
         { status: 403 }
       );
@@ -157,17 +164,17 @@ export async function DELETE(request: Request) {
         .neq("id", "00000000-0000-0000-0000-000000000000"); // Deletes all rows
 
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return privateJson({ error: error.message }, { status: 500 });
       }
 
-      return NextResponse.json({
+      return privateJson({
         success: true,
         message: "Todo o histórico de consultores foi apagado com sucesso.",
       });
     }
 
     if (!id) {
-      return NextResponse.json(
+      return privateJson(
         { error: "ID do registro ou parâmetro all=true é obrigatório." },
         { status: 400 }
       );
@@ -180,15 +187,15 @@ export async function DELETE(request: Request) {
       .eq("id", id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({
+    return privateJson({
       success: true,
       message: "Registro de auditoria removido com sucesso.",
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }

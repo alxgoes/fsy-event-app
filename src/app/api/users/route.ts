@@ -4,6 +4,13 @@ import { getCurrentUserAndRole } from "@/lib/supabase/server";
 import { requireIdentity, json, serverError } from "@/lib/auth/guard";
 import { ADMIN_ROLES, canAssignRole, canManageAccount, isRole, type Role } from "@/lib/auth/permissions";
 
+/** Respostas com dados pessoais/saúde: nunca em cache compartilhado (site e app). */
+const PRIVATE_HEADERS = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
+function privateJson(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}) {
+  return NextResponse.json(body, { ...init, headers: { ...init.headers, ...PRIVATE_HEADERS } });
+}
+
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -13,14 +20,14 @@ export async function GET() {
   try {
     const { user, role } = await getCurrentUserAndRole();
     if (!user) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso não autorizado. Sessão necessária." },
         { status: 401 }
       );
     }
 
     if (!role || !ALLOWED_USER_MANAGERS.includes(role)) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso negado à gestão de usuários." },
         { status: 403 }
       );
@@ -37,7 +44,7 @@ export async function GET() {
     ]);
 
     if (usersRes.error) {
-      return NextResponse.json(
+      return privateJson(
         { error: usersRes.error.message },
         {
           status: 500,
@@ -48,7 +55,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(
+    return privateJson(
       {
         users: usersRes.data ?? [],
         companies: companiesRes.data ?? [],
@@ -61,7 +68,7 @@ export async function GET() {
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json(
+    return privateJson(
       { error: message },
       {
         status: 500,

@@ -4,6 +4,13 @@ import { getCurrentUserAndRole } from "@/lib/supabase/server";
 import { medicalRecordSchema, medicalRecordUpdateSchema } from "@/types/medical";
 import { z } from "zod";
 
+/** Respostas com dados pessoais/saúde: nunca em cache compartilhado (site e app). */
+const PRIVATE_HEADERS = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
+function privateJson(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}) {
+  return NextResponse.json(body, { ...init, headers: { ...init.headers, ...PRIVATE_HEADERS } });
+}
+
+
 export const dynamic = "force-dynamic";
 
 const ALLOWED_ROLES = ["medico", "coordenador", "casal_diretor", "logistica"];
@@ -42,14 +49,14 @@ export async function GET() {
   try {
     const { user, role } = await getCurrentUserAndRole();
     if (!user) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso não autorizado. Sessão necessária." },
         { status: 401 }
       );
     }
 
     if (!role || !ALLOWED_ROLES.includes(role)) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso negado aos prontuários médicos confidenciais." },
         { status: 403 }
       );
@@ -62,7 +69,7 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
     const filteredRaw = (data ?? []).filter(
@@ -70,10 +77,10 @@ export async function GET() {
     );
     const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>));
 
-    return NextResponse.json({ data: parsed });
+    return privateJson({ data: parsed });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }
 
@@ -81,20 +88,20 @@ export async function POST(request: Request) {
   try {
     const { user, role } = await getCurrentUserAndRole();
     if (!user) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso não autorizado. Sessão necessária." },
         { status: 401 }
       );
     }
 
     if (!role || !ALLOWED_ROLES.includes(role)) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Acesso negado para alteração de prontuários médicos." },
         { status: 403 }
       );
     }
     const parsedBody = medicalRecordSchema.safeParse(await request.json());
-    if (!parsedBody.success) return NextResponse.json({ error: "Confira os dados da ficha médica." }, { status: 400 });
+    if (!parsedBody.success) return privateJson({ error: "Confira os dados da ficha médica." }, { status: 400 });
     const body = parsedBody.data;
     const {
       full_name,
@@ -124,7 +131,7 @@ export async function POST(request: Request) {
     } = body;
 
     if (!full_name) {
-      return NextResponse.json(
+      return privateJson(
         { error: "Nome do participante é obrigatório." },
         { status: 400 }
       );
@@ -174,23 +181,23 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
   try {
     const { user, role } = await getCurrentUserAndRole();
-    if (!user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
-    if (!role || !ALLOWED_ROLES.includes(role)) return NextResponse.json({ error: "Acesso negado às fichas médicas." }, { status: 403 });
+    if (!user) return privateJson({ error: "Autenticação necessária." }, { status: 401 });
+    if (!role || !ALLOWED_ROLES.includes(role)) return privateJson({ error: "Acesso negado às fichas médicas." }, { status: 403 });
     const parsedBody = medicalRecordUpdateSchema.safeParse(await request.json());
-    if (!parsedBody.success) return NextResponse.json({ error: "Confira os dados da ficha médica." }, { status: 400 });
+    if (!parsedBody.success) return privateJson({ error: "Confira os dados da ficha médica." }, { status: 400 });
     const body = parsedBody.data;
     const {
       id,
@@ -209,14 +216,14 @@ export async function PUT(request: Request) {
     } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "ID da ficha é obrigatório." }, { status: 400 });
+      return privateJson({ error: "ID da ficha é obrigatório." }, { status: 400 });
     }
 
     const supabase = createAdminClient();
     const { data: existing, error: readError } = await supabase.from("medical_records")
       .select("emergency_contact_alt_phone").eq("id", id).maybeSingle();
-    if (readError) return NextResponse.json({ error: "Não foi possível consultar a ficha médica." }, { status: 500 });
-    if (!existing) return NextResponse.json({ error: "Ficha médica não encontrada." }, { status: 404 });
+    if (readError) return privateJson({ error: "Não foi possível consultar a ficha médica." }, { status: 500 });
+    if (!existing) return privateJson({ error: "Ficha médica não encontrada." }, { status: 404 });
     let oldContacts: ExtraContactsPayload = {};
     try { oldContacts = JSON.parse(existing.emergency_contact_alt_phone || "{}"); } catch { /* Legacy plain text. */ }
     const extraContacts: ExtraContactsPayload = {
@@ -251,26 +258,26 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }
 
 export async function DELETE(request: Request) {
   try {
     const { user, role } = await getCurrentUserAndRole();
-    if (!user) return NextResponse.json({ error: "Autenticação necessária." }, { status: 401 });
-    if (!role || !ALLOWED_ROLES.includes(role)) return NextResponse.json({ error: "Acesso negado às fichas médicas." }, { status: 403 });
+    if (!user) return privateJson({ error: "Autenticação necessária." }, { status: 401 });
+    if (!role || !ALLOWED_ROLES.includes(role)) return privateJson({ error: "Acesso negado às fichas médicas." }, { status: 403 });
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
     if (!z.string().uuid().safeParse(id).success) {
-      return NextResponse.json({ error: "ID é obrigatório." }, { status: 400 });
+      return privateJson({ error: "ID é obrigatório." }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -280,13 +287,13 @@ export async function DELETE(request: Request) {
       .eq("id", id);
 
     if (error) {
-      if (error.code === "23503") return NextResponse.json({ error: "Esta ficha possui acompanhamento vinculado. Arquive o acompanhamento para preservar o histórico; a ficha não pode ser excluída." }, { status: 409 });
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      if (error.code === "23503") return privateJson({ error: "Esta ficha possui acompanhamento vinculado. Arquive o acompanhamento para preservar o histórico; a ficha não pode ser excluída." }, { status: 409 });
+      return privateJson({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return privateJson({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return privateJson({ error: message }, { status: 500 });
   }
 }

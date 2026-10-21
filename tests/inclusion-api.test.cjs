@@ -56,7 +56,7 @@ test('create binds the medical UUID and staff actor to one transactional RPC', a
   const response = await f.invoke('route.ts', 'POST', createBody);
   assert.equal(response.status, 201);
   assert.match(response.headers['Cache-Control'], /private, no-store/);
-  assert.equal(response.headers.Vary, 'Cookie');
+  assert.equal(response.headers.Vary, 'Cookie, Authorization');
   assert.equal(f.rpcCalls.length, 1);
   const { name, payload } = f.rpcCalls[0];
   assert.equal(name, 'mutate_inclusion');
