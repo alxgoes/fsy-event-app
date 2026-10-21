@@ -69,7 +69,7 @@ struct AnnouncementsView: View {
                     }
                     .padding(16)
                 }
-                .background(FSYBackground())
+                .background(FSYBackground(tab: .avisos))
                 .searchable(text: $query, prompt: "Buscar avisos")
                 .refreshable { await model.refresh(.manual) }
                 .navigationTitle("Avisos")

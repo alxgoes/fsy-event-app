@@ -1,138 +1,56 @@
-# Entrega iOS — primeira versão (20/10/2026)
+# Entrega iOS — estado atual em 21/10/2026
 
-Implementado inteiramente por **Claude Opus 5.5** (`claude-opus-5-5`), sem subagentes. Base: checkout `065a9a3`, branch `feat/retomada-seguranca-ux-2026-10`. A primeira entrega criou `ios/` e `docs/ios/`; o lote posterior também corrigiu o tema no web e nas referências vigentes, conforme seção abaixo. Versionamento e publicação pelo root após a entrega do executor.
+Implementação por **Claude Opus 5.5**, sem subagentes; revisão, publicação web e conferência física pelo coordenador. App **FSY RP2**, bundle `br.com.fsyrp2.app`, SwiftUI iOS 17+, tema **Alegrar-se em Cristo**. Usa o mesmo projeto Supabase e as mesmas contas do [site](https://fsy-event-app.vercel.app).
 
-## Resumo do estado
+## Administração nativa
 
-| Etapa | Estado | Evidência |
-| --- | --- | --- |
-| Projeto Xcode criado e editável | ✅ | `ios/FSY.xcodeproj`, alvos `FSY` + `FSYWidgetsExtension`, esquema compartilhado |
-| Testes de lógica | ✅ 29/29 | `ios/Tests/run-logic-tests.sh` (macOS, sem simulador) |
-| Build iOS Debug sem assinatura | ✅ | Xcode 26.3 (17C529), SDK iphoneos26.2, `-jobs 1`, `CODE_SIGNING_ALLOWED=NO`: `BUILD SUCCEEDED`, 0 erros, 0 avisos |
-| Configuração local | ✅ | `ios/Config/Local.xcconfig` (ignorado): chave **publicável** do portal obtida dos recursos públicos do site com autorização do humano, validada (`sb_publishable_`, 46 caracteres, `auth/v1/settings` do projeto `vhbmnnpgftrrovjtvbzo` → HTTP 200) sem exibir o valor; ocorrências da chave no log de build: 0 |
-| Build assinado | ✅ | Personal Team existente `K4A892MU5J` (único Team no Xcode), assinatura automática, `-allowProvisioningUpdates`, `-jobs 1`: `BUILD SUCCEEDED`, 0 erros, 0 avisos. O Xcode gerou 1 certificado Apple Development; perfil de desenvolvimento expira em **28/10/2026** (Team gratuito: 7 dias). App `br.com.fsyrp2.app` e extensão `br.com.fsyrp2.app.widgets` assinados com o Team |
-| Instalação no iPhone | ✅ | `devicectl device install app` → instalado (`bundleID: br.com.fsyrp2.app`) |
-| Abertura no iPhone | ✅ observada no aparelho espelhado | Após a correção, marcos de fase mostram abertura dissolvendo em 1,18 s no cold start das 22h47. Root observou às 22h48 a interface de autenticação do Google aberta sobre o app pelo Espelhamento do iPhone, confirmando saída da abertura. O humano concluiu o login; root também confirmou Início e Agenda reais após reabertura às 23h03 |
-| Login Google no aparelho | ✅ (root/humano) | Depois que o root cadastrou `fsyrp2://auth-callback` no Supabase, o humano entrou pelo Google e voltou ao app (Início com o tema correto, observado pelo root) |
-| Leitura de dados reais | ✅ logs e observação no aparelho | Antes da correção a Agenda mostrava erro e ficava vazia. Depois: `profiles` 200, `schedule_items` 200 (82 linhas, 82 com dia/horário válidos), `announcement_likes` 200, `announcements` 200 (0 linhas para esta conta, não conferido com o portal). Root observou Agenda preenchida, horários/locais e dias; Avisos exibiu estado vazio sem erro e horário de atualização |
-| Teste autenticado completo (roteiro) | ⛔ não feito | itens 5–14 do roteiro não executados; nenhuma senha usada |
-| Build Release | não executado | apenas Debug foi compilado |
+O painel abre pela navegação SwiftUI de Início ou Perfil. Não usa WebKit, Safari ou sessão web para administrar a sessão. A ponte intermediária `/api/auth/native-session` foi removida em **df9e30d** após a orientação explícita do usuário.
 
-Estado do iPhone comprovado às 21h14 e reconferido por mim depois: `developerModeStatus=enabled`, `pairingState=paired`, `tunnelState=connected`, `ddiServicesAvailable=true`; o Xcode lista o destino `iPhone Ca` (`00008030-001115891446402E`). Reconferido antes da instalação (`developerModeStatus=enabled`, `paired`, `connected`, `ddiServicesAvailable=true`).
-
-## Correção da abertura e tema (20/10/2026, 22h40–22h50)
-
-**Sintoma relatado:** app instalado e processo rodando (root, 22h37), mas a tela não saía da abertura.
-
-**Causa comprovada (não a hipótese inicial):** instrumentei marcos de fase (`PhaseLog`, `os.Logger`, só nomes de etapa) e relancei a frio com `devicectl … --console`. Build antigo, 22h44:
-`bootstrap: início` → `sem sessão, limpando` → limpeza de lembretes/Atividades ao Vivo/widgets **concluída em 44 ms** → `bootstrap: entrada` (fase `.signedOut`) → `abertura: animação mínima concluída` em +1,28 s → **`abertura: dissolvendo` nunca registrado**. A hipótese de serviços de notificação/Live Activity presos foi descartada por essa evidência. O defeito estava em `LaunchTransitionView`: `ready` era um `let`; a `.task` da animação capturou a cópia da view de antes da fase mudar, e ao terminar leu `ready == false`. O `onChange(of: ready)` já tinha disparado antes, com `minimumElapsed == false`. Assim a sobreposição de abertura nunca saía, com a tela de entrada pronta por baixo.
-
-**Correção:**
-- `AppRootView` decide a saída lendo `model.phase` a cada renderização (`showIntro = !introAnimated || phase == .launching`); `LaunchTransitionView` só avisa que a animação mínima terminou.
-- Robustez pedida no brief: `bootstrap()` idempotente e decide a fase só com configuração + Keychain (síncronos). `clearLocalState()` apaga Keychain, cache e memória na hora; lembretes, Atividades ao Vivo e widgets são limpos numa tarefa encadeada (`deviceCleanup`), fora do caminho da interface. Reagendamentos posteriores (sincronização pós-atualização, ativar lembretes) aguardam a última limpeza e conferem geração/conta, para que a limpeza da conta anterior não apague nem receba dados da nova. Sincronizar lembretes/widgets/Live Activity não segura mais a atualização. Logout revoga a sessão no servidor em segundo plano, depois de já ter apagado tudo localmente.
-
-**Evidência após a correção (cold start 22h47, `--terminate-existing`):** `bootstrap: entrada` em +7 ms (antes da limpeza opcional, que terminou em +248 ms); `abertura: animação mínima concluída` e `abertura: dissolvendo` em +1,18 s. Mensagens posteriores do sistema (`RBSServiceErrorDomain … Client not entitled`, `usermanagerd`) são ruído do iOS sem relação com o app.
-
-**Limite do executor:** Claude confirmou a saída por logs, sem captura própria. **Verificação visual pelo root:** após o humano liberar Acessibilidade e captura de tela ao Orca Computer Use, root observou o Espelhamento do iPhone: abertura ainda presa às 22h46 antes da atualização; interface de autenticação do Google aberta às 22h48 depois da atualização. O humano iniciou a autenticação; root não preencheu credenciais nem publicou capturas dessa tela. Após a correção dos dados, root reabriu o app às 23h03 com a sessão preservada e observou Início e Agenda preenchidos. Captura da Agenda sem dados de participantes está em `evidencias-2026-10-20/agenda-iphone.png`.
-
-**Tema:** agora exatamente **Alegrar-se em Cristo** (substitui "Alegra-se em Cristo").
-- iOS: `ios/Shared/EventIdentity.swift` centraliza nome, tema e escritura; usados em `ThemeLockup` (caixa alta via `uppercased` pt-BR: "ALEGRAR-SE EM / CRISTO"), rótulo VoiceOver, herói do Início, abertura e seu rótulo de acessibilidade.
-- Web: `src/lib/event/identity.ts` (alimenta marca, cartões, login/rodapé, carregamento, metadados, manifest/PWA); `public/sw.js` (página offline + cache `fsy-pwa-v3` → `fsy-pwa-v4`, mesma estratégia); comentários de `src/components/brand/FsyStickers.tsx`.
-- Docs vigentes: `README.md`, `PRODUCT.md`, `DESIGN.md`, `docs/brand-guide-2027.md` (registra a substituição), `docs/manual-funcional-e-design.md`, `docs/ios/README.md`. Históricos preservados com nota de substituição no topo: `docs/auditoria-impeccable-2026-10-20.md`, `docs/plano-implementacao-2026-10-20.md`, `docs/checkpoint-next16-em-andamento.md`, `implementation_plan.md`, `walkthrough.md`.
-- `grep -i "alegra-se"` em `src`, `public`, `ios` e docs vigentes: só a nota intencional do brand guide. Nenhum SVG/asset continha o texto. Datas, escritura, lemas, cores e layout inalterados; "Alegrar-se em" tem um caractere a mais; root conferiu a marca na entrada e o texto do Início no iPhone SE sem corte visível.
-
-**Checks deste lote:** testes de lógica iOS 29/29; build assinado serial `-jobs 1` `BUILD SUCCEEDED` (0 erros/avisos); instalação por cima (dados e configuração preservados); relançamento a frio com console acima. Web: `npm run lint` exit 0 e `node --check public/sw.js` OK; sem build Next/PGlite/navegador (CI e publicação com o root). Nenhum commit/push.
-
-## Correção da leitura de dados (20/10/2026, depois do login Google)
-
-**Sintoma (root):** depois do login Google, a Agenda mostrava "Não foi possível concluir a operação. Tente novamente", "Programação indisponível" e "Ainda sem dados carregados".
-
-**Diagnóstico com a sessão já salva no iPhone** (instalação por cima e relançamento; nenhum token extraído; logs só com tabela, status, código PostgREST, nomes de campos e contagens):
-`profiles` HTTP 200 · `schedule_items` HTTP 200 · `announcement_likes` HTTP 200 · **`announcements` HTTP 300 `PGRST201`**.
-
-**Causa comprovada:**
-1. `announcements` tem dois caminhos até `profiles`: a FK `author_id` e a junção `announcement_likes` (migração 001: PK composta `(announcement_id, user_id)` com FKs para as duas tabelas, que o PostgREST trata como muitos-para-muitos). Por isso o embed `profiles(full_name,role)` ficou ambíguo e o PostgREST recusou com `PGRST201`.
-2. `performRefresh` exigia que todas as leituras dessem certo. A falha dos avisos descartou a programação e a companhia, que tinham vindo com status 200, e o app mostrou o erro genérico de servidor.
-
-**Correção (só `ios/`):**
-- `DataClient.announcements` embute o autor por `profiles!author_id(full_name,role)` (dica de FK do PostgREST). RLS, colunas e escopo não mudaram.
-- `performRefresh`: perfil continua obrigatório (suspensão e ausência tratadas como antes). Programação, avisos, companhia e curtidas agora são independentes: cada seção aplica o que recebeu; a que falhar mantém o valor anterior (ou o cache) e gera mensagem específica ("Não foi possível atualizar avisos agora. O restante foi atualizado…", ou a versão sem conexão). Sessão expirada em qualquer leitura continua encerrando a sessão; cancelamento e troca de conta continuam descartando respostas atrasadas.
-- `PhaseLog`: registra status e código PostgREST (`PGRST…`/SQLSTATE) e o caminho de campos de erros de decodificação, mais contagens agregadas. Nunca registra `message`/`details` do servidor, valores, IDs ou tokens.
-
-**Evidência após a correção** (cold start com a sessão preservada): as quatro leituras com HTTP 200 e decodificadas; `schedule_items` 82 linhas, todas com chave `dia0…dia5` e horário interpretável; `announcements` 0 linhas para esta conta. Não comparei com o portal se zero é o esperado (RLS por companhia ou nenhum aviso publicado). `companies` não foi consultada porque o perfil está sem companhia. Build assinado serial `-jobs 1` `BUILD SUCCEEDED` com 0 erros e 0 avisos.
-
-**Achado para o web (não alterado):** `src/app/api/announcements/route.ts` (`SELECT … profiles(full_name, role)`) e `src/components/admin/AnnouncementsManager.tsx` (`profiles(full_name)`) usam o mesmo embed sem dica. A ambiguidade é do schema, não do papel, então é muito provável que retornem o mesmo `PGRST201` desde a migração 001. Detalhes em [CONTRATO-WEB.md](CONTRATO-WEB.md#6-embed-ambíguo-announcements--profiles).
-
-## Pendências humanas concretas (em ordem)
-
-1. **Continuar os testes** do [README](README.md#6-roteiro-de-teste-no-aparelho): login Google, reabertura com sessão, Início e Agenda foram observados. Offline, logout/troca de conta, notificações, Live Activity e acessibilidade ainda exigem exercício próprio.
-2. **Renovação:** com Team gratuito o perfil vence em 28/10/2026; recompilar/instalar com o mesmo comando renova.
-3. O retorno Google já está cadastrado e foi testado. Permanecem opcionais/pendentes o contrato de curtidas e App Group com Team pago ([CONTRATO-WEB.md](CONTRATO-WEB.md)).
-
-## Arquitetura escolhida
-
-**Nativo SwiftUI + REST do Supabase, sem dependências externas.** Sem SDK supabase-swift para evitar resolução de pacotes e builds mais pesados no Mac de 8 GB; os quatro endpoints do Auth e as leituras do PostgREST usam `URLSession` efêmera. O app não é um navegador para o site: telas centrais são nativas e consomem os mesmos dados.
-
-- **Dados:** leituras diretas com o JWT da pessoa; o escopo vem das políticas RLS publicadas (mesmo escopo das APIs web para avisos). Não usa service_role, não cria banco paralelo, não grava nada além da própria sessão de Auth.
-- **Por que não as rotas `/api` do portal:** elas reconhecem a sessão só por cookie; o contrato para aceitar Bearer está em CONTRATO-WEB.md. A recuperação de senha usa a rota pública do portal.
-- **Módulos não nativos** (gestão, saúde, mídia, logística, galeria/Instagram): abertos em `SFSafariViewController`, com login próprio do site. Sem WebView embutida, sem token em URL, sem bridge JavaScript.
-- **Atualização:** ao abrir, ao entrar, ao voltar ao primeiro plano (após 30 s) e manual (puxar). Relógio "agora/próxima" recalcula a cada 30 s sem rede. Sem Realtime e sem sincronização contínua.
-
-## Arquivos
-
-| Caminho | Conteúdo |
+| Módulo | Ações implementadas em SwiftUI |
 | --- | --- |
-| `ios/Config/*.xcconfig`, `Local.example.xcconfig` | Configuração pública, Team/Bundle/App Group por arquivo local ignorado |
-| `ios/Config/FSY-Info.plist`, `FSYWidgets-Info.plist` | Esquema `fsyrp2`, Live Activities, launch estático, pt-BR |
-| `ios/FSY/FSYApp.swift` | Entrada, ciclo de vida, delegado de notificações, raiz |
-| `ios/FSY/State/AppModel.swift` | Sessão, renovação de token, atualização, cache, logout/troca de conta, links |
-| `ios/FSY/Core/AuthClient.swift` | Senha, cadastro, refresh, logout, Google PKCE, recuperação |
-| `ios/FSY/Core/DataClient.swift` | Perfil, companhia, programação, avisos, curtidas próprias |
-| `ios/FSY/Core/Keychain.swift`, `AccountCache.swift` | Sessão no Keychain; cópia por conta com proteção de arquivo |
-| `ios/FSY/Core/DeviceServices.swift` | Rede, lembretes locais, Live Activity, ponte de widgets |
-| `ios/FSY/Core/EventClock.swift`, `DeepLink.swift`, `Models.swift` | Lógica pura testada |
-| `ios/FSY/UI/*` | Abertura, Entrada, abas Início/Agenda/Avisos/Perfil, tema |
-| `ios/FSYWidgets/FSYWidgets.swift` | Widget "Próxima atividade" e Live Activity (Tela Bloqueada + Dynamic Island) |
-| `ios/Shared/*` | Paleta, marca (templo SVG do portal, círculos F·S·Y), calendário, atributos |
-| `ios/Tests/*` | Testes de lógica e script |
+| Visão geral | Contagens de participantes, quartos, companhias, consultores, fichas, comunicados e mídia |
+| Contas e usuários | Busca, filtros, paginação, detalhe/histórico; editar dados/cargo, suspender/reativar, excluir com confirmação, senha, recuperação e e-mail conforme permissões do servidor |
+| Companhias | Criar/editar/excluir, nome/lema/cor e vínculo de consultores |
+| Programação | Criar/editar/excluir, dias 0–5, horários, local, categoria, descrição e destaque |
+| Logística e ônibus | Criar/editar/excluir, motorista, telefone, lotação, horários, observações e status |
+| Comunicados | Criar/editar/excluir, prioridade, categoria e companhia destinatária |
+| Fotos e mídia | Gerenciar registros de mídia, links do Drive, miniatura, categoria e visibilidade |
+| Saúde e atendimentos | Fichas, contatos e observações; agendamentos, alteração de situação e exclusão |
+| Inclusão | Criar acompanhamento, fases/contatos/plano, entrevistas, decisão confirmada, arquivar e reabrir com histórico e controle de versão |
+| Auditoria dos consultores | Consulta, busca, filtro por companhia e detalhe |
 
-## Experiência e marca
+Logística, Coordenação e Casal Diretor recebem todos os módulos. Consultor recebe Comunicados; Mídia recebe Fotos e mídia; Médico recebe Saúde e Inclusão. Jovens não recebem módulos administrativos. A lista nativa organiza a navegação; **cada leitura e escrita é autorizada novamente no servidor**.
 
-- Paleta, cartões com borda de 2 pt e profundidade sólida deslocada, pílulas em caixa alta: tokens de `DESIGN.md`/`globals.css`, claro e escuro.
-- Marca do templo convertida para SVG a partir de `FsyTempleMark` (quatro cores), sem sombra/gradiente; ícone do app a partir de `public/icons/icon-512.png` (ampliado para 1024 px, sem alfa — substituir por arte 1024 original antes de publicação).
-- Títulos em serifada do sistema (New York) como substituto de Cinzel/Cormorant, que não existem como arquivos no repositório; corpo em SF. Todos por estilo dinâmico (Dynamic Type).
-- Abertura: launch estático `#0B1528` → círculos F·S·Y em mola → dissolve. Seletor de dias com `matchedGeometryEffect`, expansão de cartões, pulso do "Acontecendo agora", contagem com `numericText`, feedback tátil em seleção/sucesso/erro. Reduzir Movimento remove escalas, deslocamentos e pulso.
-- Alvos de toque ≥ 44 pt, rótulos VoiceOver em pt-BR, prioridade dos avisos por texto + ícone + cor, layout que quebra pílulas no iPhone SE.
+## Dados e sincronização
 
-## Segurança e privacidade
+- `PortalAPI.swift` chama as mesmas rotas `/api/...` do site com o access token no cabeçalho Authorization. Sessão de autenticação no Keychain; renovação compartilhada entre requisições, sem cookies ou credenciais em URL/log.
+- O servidor valida o token no Supabase Auth e consulta cargo, companhia e suspensão no perfil protegido a cada requisição. Authorization inválida, inclusive vazia, não recorre a outra sessão de cookie. As contas do site continuam usando cookies normalmente.
+- As escritas só mostram sucesso após resposta do servidor. Listas e dados relacionados são recarregados após salvar. Atualização manual, ao voltar ao primeiro plano e a cada **60 segundos na tela administrativa ativa**. Não é Supabase Realtime; uma página web já aberta segue seu próprio mecanismo de atualização.
+- Formulários mantêm o rascunho quando a lista atualiza; uma resposta antiga não substitui uma leitura mais recente. Inclusão envia a versão do caso e preserva a recusa de conflito 409.
+- Dados administrativos, contas e saúde ficam apenas na memória das telas, sem cache persistente ou fila de escrita offline. As APIs respondem `private, no-store` e variam por Cookie e Authorization. Chaves de servidor permanecem no servidor; nenhuma alteração de RLS ou migração foi necessária.
 
-- Sessão (access/refresh token) só no Keychain, `AfterFirstUnlockThisDeviceOnly`. Nunca em log, URL, UserDefaults ou App Group.
-- Cache em Application Support por hash da conta, `completeFileProtection`, fora do backup: perfil (sem telefone), companhia, programação, avisos, curtidas próprias. **Nenhum dado médico.**
-- Logout e troca de conta: revoga a sessão local no Auth, apaga Keychain, todo o cache, lembretes pendentes/entregues, Live Activities e snapshot dos widgets; reinicia a `URLSession`; respostas atrasadas de outra conta são descartadas por geração.
-- Sessão expirada (refresh recusado) → volta à entrada com aviso. Conta suspensa (`suspended_at`) → logout com aviso. Sem rede → mantém sessão e cópia local.
-- Deep links: só `fsyrp2://inicio|agenda|avisos|perfil`, `item` só UUID em agenda/avisos; o resto é ignorado. Sem bridge aberta a terceiros.
-- Widgets/Live Activity: título, local, categoria e horários da programação geral; sem identidade, companhia, contatos ou saúde.
-- Manifesto de privacidade incluído (UserDefaults, sem rastreamento).
+## Instagram e identidade visual
 
-## Recursos e estado real
+Galeria SwiftUI acessível em Início e Perfil: seis publicações reais recebidas do feed público, grade com miniaturas, detalhe com zoom, legendas expansíveis e links. Vídeos usam a capa; assistir ao vídeo e ver todas as imagens de carrosséis abre a publicação original no Instagram. Gerenciamento administrativo de mídia é um módulo separado.
 
-| Recurso | Estado |
-| --- | --- |
-| Entrar/cadastrar/recuperar com contas do portal | Google testado em conta real; cadastro, senha e recuperação ainda não exercitados |
-| Google | Retorno configurado e entrada no app confirmada por humano/root; provedor permanece em modo Teste |
-| Início, Agenda, Avisos, Perfil com dados reais | Início e Agenda observados com sessão real; perfil decodificado e quatro consultas HTTP 200; Avisos vazio sem erro (0 registros); não é validação de todo o roteiro |
-| Offline com cópia por conta | Implementado |
-| Lembretes locais com ação "Ver na agenda" | Implementado; permissão pedida só ao ativar |
-| Live Activity (Tela Bloqueada; Dynamic Island em modelos compatíveis) | Implementado; atualiza com o app em primeiro plano, contador avança pelo sistema; sem push |
-| Widget "Próxima atividade" | Implementado; com Team gratuito mostra "Abra o app" (sem App Group) |
-| Curtir aviso | Somente leitura (contrato web pendente) |
-| Push remoto, Realtime, Universal Links | Não implementados |
+Fundo vetorial geométrico nas cores FSY: discos, arcos, flâmulas, traços e pontos, com arranjos por aba. A troca de abas reorganiza as formas; não há animação contínua ou timer decorativo. Reduzir Movimento mantém a composição estática. Cartões tocáveis têm retorno visual e tátil; imagens usam transição de zoom compatível com a versão do iOS. Logo e templo preservam suas cores e superfície limpa.
 
-## Verificações executadas
+## Verificação
 
-- `plutil -lint` em plists, entitlements, manifesto de privacidade e `project.pbxproj`: OK.
-- `ios/Tests/run-logic-tests.sh`: 29 testes OK (fuso de São Paulo, agora/próxima igual ao portal, intervalo sem evento inventado, allowlist de links, decodificação de avisos/perfil do PostgREST, cargos).
-- Build Debug iphoneos sem assinatura, serial: sucesso; o `.app` contém `PlugIns/FSYWidgetsExtension.appex`, `Info.plist` com hosts públicos substituídos e `NSSupportsLiveActivities`.
-- Primeiro build com assinatura (antes do Team): falha por falta de Team. Depois da configuração local: build assinado, instalação e tentativa de abertura registrados na tabela acima.
-- Busca por `service_role`/`sb_secret` no código iOS: só em comentários de proibição.
-- **Não aplicáveis:** `npm run lint`/`build`/testes web — nenhum arquivo web alterado. Simulador e XCTest não executados, conforme o brief.
+- **69/69 testes nativos** de lógica/contratos passaram, incluindo fuso de São Paulo, cargos/módulos, modelos de API, nulos explícitos, erros e ordenação das respostas assíncronas.
+- Build assinado serial `-jobs 1`: sucesso, sem erros ou avisos. Instalação por cima preserva a sessão Google existente. Não foi usado simulador.
+- **156/156 testes web**, lint, tipos, auditoria de dependências, build e QA visual passaram no [CI 39534915761](https://github.com/alxgoes/fsy-event-app/actions/runs/39534915761), commit **df9e30d**.
+- Backend publicado em produção: deployment GitHub **7216515468**, SHA df9e30d, sucesso. `/api/admin/overview` com Authorization inválida devolveu 401 e `private, no-store`.
+- **Observado no iPhone SE físico:** sessão preservada; entrada no painel SwiftUI; contagens reais de 1 participante, 4 companhias, 0 fichas e 4 registros de mídia; Logística vazia com atualização registrada; abertura de “Novo ônibus” com Salvar desabilitado quando vazio; cancelamento sem escrita. O humano ajudou a rolar a tela pelo espelhamento.
+- **Instagram observado no aparelho:** grade real, abertura do detalhe, imagem e zoom por toque duplo. Fundo geométrico observado em Início, Perfil, painel, Logística e galeria, no modo escuro.
+- Não foram executadas mutações em dados reais, envios de e-mail, exclusões ou decisões de saúde como QA. As demais telas/formulários foram compiladas e revisadas; não se afirma exercício físico de todas as operações. Claro, VoiceOver, Texto Maior e Reduzir Movimento ainda precisam de exercício no aparelho.
+
+Evidências sem tokens, contas ou conteúdo clínico: [pasta de 21/10](evidencias-2026-10-21/README.md). A revisão final de inclusão e contraste do rodapé foi compilada sem erros/avisos e instalada por cima às 00h06, preservando a sessão. No novo cold start: perfil, avisos, curtidas e agenda responderam 200; 82 atividades e seis publicações de Instagram foram recebidas. O rodapé com superfície opaca foi revisado em código, sem nova captura própria após a instalação.
+
+## Ambiente e limites restantes
+
+Xcode 26.3 em `/Users/alexgoes/Downloads/Xcode.app`, SDK iOS 26.2. iPhone SE conectado, CoreDevice `9D90349B-28C9-5857-BAD2-7D0CC6198B2F`, iOS 26.6.1. Personal Team `K4A892MU5J`; perfil de desenvolvimento com validade registrada até 28/10/2026. `ios/Config/Local.xcconfig` é local e ignorado, com somente chave publicável e configuração de assinatura.
+
+Google PKCE retorna em `fsyrp2://auth-callback`, já autorizado no Supabase e testado pelo humano. O provedor Google permanece em modo Teste. Notificações atuais são lembretes locais; APNs e Supabase Realtime não estão implementados. Widgets dependem de App Group/Team compatível; com o Team gratuito mostram “Abra o app”. Curtidas de avisos continuam em modo de leitura na interface nativa.
+
+Abrir, compilar e roteiro: [README](README.md). Contratos e integrações: [CONTRATO-WEB](CONTRATO-WEB.md).

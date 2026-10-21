@@ -88,7 +88,7 @@ struct DataClient {
     }
 
     /// Caminho de campos (nomes de chave e índices) do erro de decodificação, sem valores.
-    private static func fieldPath(_ error: DecodingError) -> String {
+    static func fieldPath(_ error: DecodingError) -> String {
         let (kind, context): (String, DecodingError.Context?) = switch error {
         case .keyNotFound(let key, let c): ("ausente:\(key.stringValue)", c)
         case .typeMismatch(_, let c): ("tipo", c)

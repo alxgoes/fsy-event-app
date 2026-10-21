@@ -10,7 +10,11 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     SyncStatusView()
                     HeroCard()
+                    if !AdminModule.available(for: model.role).isEmpty {
+                        PanelShortcutCard()
+                    }
                     HappeningNowCard()
+                    InstagramPreviewCard()
                     DailyThemeCard()
                     MyCompanyCard()
                     RecentAnnouncementsCard()
@@ -18,7 +22,7 @@ struct HomeView: View {
                 }
                 .padding(16)
             }
-            .background(FSYBackground())
+            .background(FSYBackground(tab: .inicio))
             .refreshable { await model.refresh(.manual) }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -35,6 +39,82 @@ struct HomeView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: GalleryRoute.self) { _ in InstagramGalleryView() }
+            .navigationDestination(for: AdminEntry.self) { _ in AdminHubView() }
+        }
+    }
+}
+
+/// Acesso direto ao painel administrativo nativo do cargo.
+struct PanelShortcutCard: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        NavigationLink(value: AdminEntry.hub) {
+            HStack(spacing: 14) {
+                Image(systemName: "rectangle.grid.2x2.fill")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(FSYPalette.fixedInk)
+                    .frame(width: 52, height: 52)
+                    .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(FSYPalette.sunshine))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(FSYPalette.fixedInk, lineWidth: 2))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Painel de \(model.role.label)").font(FSYFont.title()).foregroundStyle(FSYPalette.ink)
+                    Text("\(AdminModule.available(for: model.role).count) módulos de gestão, sincronizados com o site.")
+                        .font(FSYFont.body())
+                        .foregroundStyle(FSYPalette.muted)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").foregroundStyle(FSYPalette.muted).accessibilityHidden(true)
+            }
+            .fsyCard(padding: 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(FSYPressableCardStyle())
+        .accessibilityHint("Abre o painel administrativo")
+    }
+}
+
+/// Prévia com as três publicações mais recentes; leva à galeria completa.
+private struct InstagramPreviewCard: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        NavigationLink(value: GalleryRoute.gallery) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Pill(text: "Instagram", icon: "camera.fill", fill: Color(hex: 0xFC4E6D), ink: .white)
+                    Spacer()
+                    Text("Ver galeria").font(.subheadline.weight(.semibold)).foregroundStyle(FSYPalette.link)
+                    Image(systemName: "chevron.right").foregroundStyle(FSYPalette.muted).accessibilityHidden(true)
+                }
+                Text("@\(Instagram.officialHandle)").font(FSYFont.title()).foregroundStyle(FSYPalette.ink)
+                if model.instagramPosts.isEmpty {
+                    Text(previewMessage).font(FSYFont.body()).foregroundStyle(FSYPalette.muted)
+                } else {
+                    HStack(spacing: 10) {
+                        ForEach(model.instagramPosts.prefix(3)) { InstagramTile(post: $0, compact: true) }
+                    }
+                    .accessibilityHidden(true)
+                }
+            }
+            .fsyCard(padding: 16)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(FSYPressableCardStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Instagram oficial da sessão, \(model.instagramPosts.count) publicações")
+        .accessibilityHint("Abre a galeria")
+        .task { await model.loadInstagram() }
+    }
+
+    private var previewMessage: String {
+        switch model.instagramState {
+        case .failed: "O feed não carregou agora. Toque para tentar na galeria."
+        case .loaded: "Nenhuma publicação ainda."
+        default: "Carregando publicações…"
         }
     }
 }

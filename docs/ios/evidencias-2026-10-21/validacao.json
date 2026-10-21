@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-21T00:06:00-03:00",
+  "backend": {
+    "commit": "df9e30de4055f400a7884891b0dd89a5da64558a",
+    "ci_run": 39534915761,
+    "tests_passed": 156,
+    "ci_conclusion": "success",
+    "production_deployment": 7216515468,
+    "production_state": "success",
+    "invalid_authorization_http": 401,
+    "invalid_authorization_cache_control": "private, no-store, max-age=0"
+  },
+  "ios": {
+    "bundle_id": "br.com.fsyrp2.app",
+    "framework": "SwiftUI",
+    "admin_webview": false,
+    "native_logic_tests_passed": 69,
+    "signed_build": "success",
+    "build_jobs": 1,
+    "warnings": 0,
+    "installed_over_existing": true,
+    "session_preserved": true
+  },
+  "physical_observations": [
+    "painel nativo com contagens reais",
+    "logística vazia recebida da API com horário de atualização",
+    "formulário Novo ônibus nativo; Salvar vazio desabilitado; cancelado sem escrita",
+    "Instagram: seis publicações, grade, detalhe e zoom por duplo toque",
+    "fundo geométrico em modo escuro"
+  ],
+  "not_exercised_in_production": [
+    "escritas administrativas",
+    "envios de mensagens",
+    "exclusão/suspensão de contas",
+    "decisões clínicas",
+    "todas as telas com VoiceOver/Dynamic Type/modo claro/Reduzir Movimento"
+  ]
+}

@@ -36,13 +36,24 @@ final class AppModel {
     /// Motivo exibido na tela de entrada após logout forçado (sessão expirada, suspensão).
     var signedOutNotice: String?
 
-    var selectedTab: AppTab = .inicio
+    var selectedTab: AppTab = .inicio {
+        didSet { if oldValue != selectedTab { previousTab = oldValue } }
+    }
+    /// Origem da reorganização do fundo geométrico ao trocar de aba.
+    private(set) var previousTab: AppTab = .inicio
     var focusedScheduleID: String?
     var focusedAnnouncementID: String?
 
     private(set) var remindersEnabled = false
     private(set) var reminderStatus: UNAuthorizationStatus = .notDetermined
     private(set) var liveActivityRunning = false
+
+    /// Galeria do Instagram oficial (pública; não depende da conta).
+    enum FeedState: Equatable { case idle, loading, loaded, failed(String) }
+    private(set) var instagramPosts: [InstagramPost] = []
+    private(set) var instagramState: FeedState = .idle
+    @ObservationIgnored private var instagramLoadedAt: Date?
+
 
     let connectivity = Connectivity()
 
@@ -58,6 +69,7 @@ final class AppModel {
     /// limpeza espera a anterior, e todo agendamento posterior espera a última, mantendo a ordem.
     @ObservationIgnored private var deviceCleanup: Task<Void, Never>?
     @ObservationIgnored private var didBootstrap = false
+    @ObservationIgnored private var tokenRefresh: Task<AuthSession, Error>?
     private static let sessionAccount = "current"
 
     private var auth: AuthClient? { config.map { AuthClient(config: $0, http: http) } }
@@ -196,6 +208,7 @@ final class AppModel {
             PhaseLog.mark("limpeza: concluída")
         }
         http.reset()
+        tokenRefresh = nil
         session = nil
         profile = nil
         company = nil
@@ -232,16 +245,50 @@ final class AppModel {
     // MARK: Sessão e dados
 
     /// Renova o token perto do vencimento. Rede indisponível mantém a sessão para uso do cache.
+    /// Single-flight: leituras paralelas, volta ao primeiro plano e abertura do painel compartilham a mesma
+    /// renovação. Duas renovações simultâneas com o mesmo refresh token disputariam a rotação do Auth.
     private func validToken(forceRefresh: Bool = false) async throws -> String {
-        guard var current = session, let auth else { throw APIError.unauthorized }
-        if forceRefresh || current.needsRefresh {
+        guard let current = session, let auth else { throw APIError.unauthorized }
+        if let tokenRefresh {
             let expected = generation
-            current = try await auth.refresh(current)
+            let shared = try await tokenRefresh.value
             guard expected == generation else { throw CancellationError() }
-            session = current
-            persist(current)
+            return shared.accessToken
         }
-        return current.accessToken
+        guard forceRefresh || current.needsRefresh else { return current.accessToken }
+        let expected = generation
+        let task = Task { try await auth.refresh(current) }
+        tokenRefresh = task
+        defer { if expected == generation { tokenRefresh = nil } }
+        let renewed = try await task.value
+        guard expected == generation else { throw CancellationError() }
+        session = renewed
+        persist(renewed)
+        return renewed.accessToken
+    }
+
+    /// Chamada às APIs do portal com `Authorization: Bearer` (as mesmas do site; o servidor confere cargo,
+    /// escopo e suspensão). 401 renova o token uma vez; persistindo, a sessão é encerrada. Resposta que chegar
+    /// depois de troca de conta é descartada.
+    func portal<T>(_ operation: (PortalAPI, String) async throws -> T) async throws -> T {
+        guard phase == .signedIn, let config else { throw APIError.unauthorized }
+        let api = PortalAPI(config: config, http: http)
+        let expected = generation
+        func checked(_ value: T) throws -> T {
+            guard expected == generation else { throw CancellationError() }
+            return value
+        }
+        do {
+            return try checked(try await operation(api, try await validToken()))
+        } catch APIError.unauthorized {
+            guard expected == generation else { throw CancellationError() }
+            do {
+                return try checked(try await operation(api, try await validToken(forceRefresh: true)))
+            } catch APIError.unauthorized {
+                if expected == generation { await signOut(notice: APIError.unauthorized.userMessage) }
+                throw APIError.unauthorized
+            }
+        }
     }
 
     private func authorized<T>(_ operation: (String) async throws -> T) async throws -> T {
@@ -364,6 +411,35 @@ final class AppModel {
             await liveActivities.update(LiveActivityController.state(for: EventClock.moment(items: items, now: Date())))
         }
         liveActivityRunning = liveActivities.isRunning
+    }
+
+    // MARK: Instagram
+
+    /// GET público /api/instagram (mesmo contrato do portal). Sem token: não envia identidade.
+    func loadInstagram(force: Bool = false) async {
+        guard let portal = config?.portalURL, instagramState != .loading else { return }
+        if !force, let instagramLoadedAt, Date().timeIntervalSince(instagramLoadedAt) < 300, !instagramPosts.isEmpty { return }
+        instagramState = .loading
+        var request = URLRequest(url: portal.appendingPathComponent("api/instagram"))
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        do {
+            let (data, response) = try await http.send(request)
+            if let error = HTTPClient.status(response.statusCode) {
+                PhaseLog.read("instagram", status: response.statusCode)
+                throw error
+            }
+            let feed = try JSONDecoder().decode(InstagramFeedResponse.self, from: data)
+            PhaseLog.counts("instagram", rows: feed.data.count, valid: feed.data.count)
+            instagramPosts = feed.data
+            instagramLoadedAt = Date()
+            instagramState = .loaded
+        } catch is CancellationError {
+            instagramState = instagramPosts.isEmpty ? .idle : .loaded
+        } catch let error as APIError {
+            instagramState = .failed(error == .offline ? error.userMessage : "O feed do Instagram não carregou agora.")
+        } catch {
+            instagramState = .failed("O feed do Instagram não carregou agora.")
+        }
     }
 
     // MARK: Lembretes e Live Activity

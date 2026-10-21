@@ -7,5 +7,7 @@ export DEVELOPER_DIR
 OUT="${TMPDIR:-/tmp}/fsy-logic-tests"
 xcrun --sdk macosx swiftc -O -module-name FSYLogic \
   Shared/EventCalendar.swift FSY/Core/Models.swift FSY/Core/EventClock.swift FSY/Core/DeepLink.swift \
+  FSY/Core/Instagram.swift FSY/Core/HTTP.swift FSY/Core/AppConfig.swift \
+  FSY/Core/AdminModels.swift FSY/Core/AdminResource.swift FSY/Core/PortalAPI.swift FSY/Core/PhaseLog.swift FSY/Core/DataClient.swift \
   Tests/main.swift -o "$OUT"
 "$OUT"

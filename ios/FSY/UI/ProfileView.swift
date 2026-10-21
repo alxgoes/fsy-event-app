@@ -5,7 +5,6 @@ import UserNotifications
 struct ProfileView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openURL) private var openURL
-    @State private var portalLink: PortalLink?
     @State private var confirmingSignOut = false
     @State private var liveMessage: String?
 
@@ -49,17 +48,23 @@ struct ProfileView: View {
                     Text("Lembretes são locais e seguem a programação carregada. Avisos novos não chegam por push nesta versão: abra o app ou puxe para atualizar.")
                 }
 
-                if let portal = model.portalURL {
-                    Section {
-                        if model.role != .jovem {
-                            portalButton("Painel de \(model.role.label)", path: model.role.portalHomePath, base: portal, icon: "rectangle.grid.2x2.fill")
+                Section {
+                    if !AdminModule.available(for: model.role).isEmpty {
+                        NavigationLink(value: AdminEntry.hub) {
+                            Label("Painel de \(model.role.label)", systemImage: "rectangle.grid.2x2.fill")
                         }
-                        portalButton("Galeria e Instagram", path: "/dashboard", base: portal, icon: "photo.on.rectangle")
-                    } header: {
-                        Text("Portal")
-                    } footer: {
-                        Text("Abre o site no Safari do sistema, com login próprio do portal. Gestão, saúde, mídia e logística continuam no site.")
+                        .frame(minHeight: 44)
                     }
+                    NavigationLink(value: GalleryRoute.gallery) {
+                        Label("Galeria do Instagram", systemImage: "photo.on.rectangle.angled")
+                    }
+                    .frame(minHeight: 44)
+                } header: {
+                    Text("Sessão FSY")
+                } footer: {
+                    Text(AdminModule.available(for: model.role).isEmpty
+                         ? "Fotos e vídeos publicados no Instagram oficial da sessão."
+                         : "O painel usa a sua conta e as mesmas permissões do site; o que você salva aparece no site.")
                 }
 
                 Section {
@@ -79,11 +84,12 @@ struct ProfileView: View {
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(FSYBackground())
+            .background(FSYBackground(tab: .perfil))
             .navigationTitle("Perfil")
             .refreshable { await model.refresh(.manual) }
             .task { await model.refreshReminderStatus() }
-            .sheet(item: $portalLink) { SafariView(url: $0.url).ignoresSafeArea() }
+            .navigationDestination(for: GalleryRoute.self) { _ in InstagramGalleryView() }
+            .navigationDestination(for: AdminEntry.self) { _ in AdminHubView() }
             .confirmationDialog("Sair da conta?", isPresented: $confirmingSignOut, titleVisibility: .visible) {
                 Button("Sair", role: .destructive) { Task { await model.signOut() } }
                 Button("Cancelar", role: .cancel) {}
@@ -128,15 +134,6 @@ struct ProfileView: View {
             Text(value).foregroundStyle(FSYPalette.ink).multilineTextAlignment(.trailing)
         } label: {
             Label(title, systemImage: icon).foregroundStyle(FSYPalette.muted)
-        }
-        .frame(minHeight: 44)
-    }
-
-    private func portalButton(_ title: String, path: String, base: URL, icon: String) -> some View {
-        Button {
-            portalLink = PortalLink(url: base.appendingPathComponent(String(path.dropFirst())))
-        } label: {
-            Label(title, systemImage: icon)
         }
         .frame(minHeight: 44)
     }

@@ -48,7 +48,7 @@ struct ScheduleView: View {
                     }
                     .padding(16)
                 }
-                .background(FSYBackground())
+                .background(FSYBackground(tab: .agenda))
                 .refreshable { await model.refresh(.manual) }
                 .navigationTitle("Programação")
                 .onChange(of: model.focusedScheduleID, initial: true) { _, id in

@@ -141,9 +141,17 @@ struct SectionHeader: View {
     }
 }
 
-/// Fundo pergaminho das telas.
-struct FSYBackground: View {
-    var body: some View {
-        FSYPalette.background.ignoresSafeArea()
+/// Cartão tocável: o mesmo cartão em camadas afunda sobre a própria sombra ao toque (como o botão),
+/// com feedback tátil. Com Reduzir Movimento, só escurece levemente.
+struct FSYPressableCardStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        configuration.label
+            .offset(x: pressed && !reduceMotion ? 3 : 0, y: pressed && !reduceMotion ? 3 : 0)
+            .opacity(pressed && reduceMotion ? 0.8 : 1)
+            .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.7), value: pressed)
+            .sensoryFeedback(.impact(weight: .light), trigger: pressed) { _, new in new }
     }
 }

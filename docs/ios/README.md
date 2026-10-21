@@ -2,7 +2,7 @@
 
 App nativo SwiftUI para iPhone (iOS 17+), com as mesmas contas, o mesmo banco Supabase (`vhbmnnpgftrrovjtvbzo`) e as mesmas permissões do portal https://fsy-event-app.vercel.app. Tema **Alegrar-se em Cristo**, Filipenses 4:4.
 
-Arquitetura, estado real e pendências: [ENTREGA.md](ENTREGA.md). Contrato pendente do lado web: [CONTRATO-WEB.md](CONTRATO-WEB.md).
+Arquitetura, estado real e pendências: [ENTREGA.md](ENTREGA.md). Contratos de integração: [CONTRATO-WEB.md](CONTRATO-WEB.md).
 
 ## 1. Abrir no Xcode
 
@@ -86,3 +86,6 @@ Use uma conta real controlada (de preferência um `jovem` e uma de gestão). Mar
 12. **Sessão expirada:** revogar sessões no Supabase (ou trocar a senha pelo portal) → ao atualizar, o app volta à entrada com "Sua sessão expirou".
 13. **Google:** só depois do item 1 de [CONTRATO-WEB.md](CONTRATO-WEB.md); abre a autenticação do sistema, não WebView.
 14. **Acessibilidade:** VoiceOver lê rótulos em português; Texto Maior (Ajustes › Tela e Brilho) não corta cartões no SE; claro/escuro.
+15. **Painel nativo (equipe):** Início ou Perfil › “Painel de Logística” → navegação SwiftUI com módulos do cargo e contagens reais, sem navegador. Abra Logística › “+” → formulário nativo, Salvar desabilitado vazio; cancele sem criar dado real. Companhias, Programação, Comunicados, Mídia, Contas, Saúde, Inclusão e Auditoria usam as mesmas APIs do site. Listas atualizam ao puxar, ao retornar e a cada 60 segundos enquanto ativas. Validar mutações somente com fixtures isoladas; não excluir contas ou enviar mensagens reais como QA.
+16. **Instagram:** Início › cartão Instagram (ou Perfil › Galeria do Instagram) → as mesmas publicações do perfil oficial; vídeo/carrossel com selo; tocar abre o detalhe com zoom por pinça/toque duplo, legenda completa e "Abrir publicação no Instagram". Modo avião → erro com "Tentar novamente".
+17. **Fundo:** trocar entre as abas → formas geométricas se reorganizam; com Reduzir Movimento ficam paradas. Conferir contraste no claro e no escuro.
