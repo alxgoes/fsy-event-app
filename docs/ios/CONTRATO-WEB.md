@@ -1,6 +1,6 @@
 # Contrato web/Supabase necessário para o app iOS
 
-Nenhum arquivo web, migração ou configuração remota foi alterado. Os itens abaixo são decisões e mudanças externas que o app iOS precisa para funções específicas. Tudo que não está listado aqui funciona com o que já está publicado (RLS das migrações 001–004).
+O app usa as políticas RLS publicadas (migrações 001–004), sem nova migração. O root cadastrou, com confirmação humana específica, o retorno OAuth descrito no item 1. Os demais contratos abaixo permanecem pendentes ou registram limitações conhecidas.
 
 ## O que o app usa hoje sem mudança
 
@@ -10,7 +10,7 @@ Nenhum arquivo web, migração ou configuração remota foi alterado. Os itens a
 | Perfil próprio | `GET /rest/v1/profiles?id=eq.<uid>` | `profiles_self_read` |
 | Companhia | `GET /rest/v1/companies?id=eq.<id>` | leitura autenticada |
 | Programação | `GET /rest/v1/schedule_items` | leitura autenticada |
-| Avisos | `GET /rest/v1/announcements?select=…,profiles(full_name,role)` | `announcements_scoped_read` (igual a GET /api/announcements) |
+| Avisos | `GET /rest/v1/announcements?select=…,profiles!author_id(full_name,role)` | `announcements_scoped_read` (igual a GET /api/announcements) |
 | Próprias curtidas | `GET /rest/v1/announcement_likes?user_id=eq.<uid>` | `announcement_likes_own_read` |
 | Recuperar senha | `POST https://fsy-event-app.vercel.app/api/auth/recover` | público; requisição nativa não envia `Origin`, aceita por `isSameOriginRequest` |
 
@@ -23,7 +23,7 @@ O app usa PKCE com `ASWebAuthenticationSession` (sessão efêmera do sistema):
 - `GET https://vhbmnnpgftrrovjtvbzo.supabase.co/auth/v1/authorize?provider=google&redirect_to=fsyrp2://auth-callback&code_challenge=<S256>&code_challenge_method=s256`
 - retorno `fsyrp2://auth-callback?code=<code>` → `POST /auth/v1/token?grant_type=pkce` com `{auth_code, code_verifier}`.
 
-**Necessário:** adicionar exatamente `fsyrp2://auth-callback` em Supabase → Authentication → URL Configuration → Redirect URLs. Sem isso o Supabase redireciona para a Site URL (portal) e o app recebe erro/cancelamento. O OAuth do Google segue em modo **Teste**: só e-mails de teste cadastrados entram. Nenhum ajuste no Google Cloud é necessário além do que o portal já usa (o redirect do Google continua sendo o callback do Supabase).
+**Configurado pelo root em 20/10/2026:** `fsyrp2://auth-callback` foi acrescentado em Supabase → Authentication → URL Configuration → Redirect URLs após confirmação humana específica. A lista passou de quatro para cinco URLs, preservando as anteriores e a Site URL. O humano concluiu o login Google e voltou ao app; root observou o Início nativo e a sessão preservada após reabrir. Em outro projeto, é necessário repetir essa configuração; sem ela o retorno vai para o portal. O OAuth do Google segue em modo **Teste**: só e-mails de teste cadastrados entram. O callback do Google continua sendo o do Supabase.
 
 ## 2. Curtir aviso pelo app (mudança de código web)
 
@@ -49,3 +49,9 @@ O app atualiza ao abrir, ao voltar ao primeiro plano (após 30 s), ao entrar e a
 ## 5. Universal Links — não usado
 
 Links internos usam o esquema `fsyrp2://` com allowlist. Universal Links (`https://fsy-event-app.vercel.app/...` abrindo o app) exigiriam `/.well-known/apple-app-site-association` publicado pelo portal com o Team ID e o Bundle ID definitivos.
+
+## 6. Embed ambíguo announcements → profiles
+
+Comprovado pelo app em 20/10/2026: `GET /rest/v1/announcements?select=…,profiles(full_name,role)` → **HTTP 300 `PGRST201`**. Depois da migração 001, `announcement_likes` (PK `(announcement_id, user_id)`, FKs para `announcements` e `profiles`) é um segundo caminho além de `announcements.author_id`. O app iOS passou a usar `profiles!author_id(...)`.
+
+O web usa o embed sem dica em `src/app/api/announcements/route.ts` (`SELECT`) e `src/components/admin/AnnouncementsManager.tsx`. É **muito provável** que esses pontos falhem do mesmo jeito; não verifiquei no site. Correção sugerida, sem migração nem mudança de RLS: `profiles!author_id(full_name, role)` e `profiles!author_id(full_name)`. A chave da resposta continua `profiles`.

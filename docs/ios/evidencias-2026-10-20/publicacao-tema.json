@@ -1,0 +1,20 @@
+{
+  "tema": "Alegrar-se em Cristo",
+  "revisao_web": "b18dc06a5dd1a56340d67bcf5f6fbf1e3069c4c8",
+  "ci": {
+    "url": "https://github.com/alxgoes/fsy-event-app/actions/runs/39529938351",
+    "conclusao": "success"
+  },
+  "producao": {
+    "deployment_github": 7215740598,
+    "estado": "success",
+    "url": "https://fsy-event-app.vercel.app",
+    "confirmacao_utc": "2026-10-21T02:01:10Z"
+  },
+  "checagens_publicas": [
+    {"caminho": "/login", "http": 200, "tema_correto": true, "tema_antigo": false},
+    {"caminho": "/manifest.webmanifest", "http": 200, "tema_correto": true, "tema_antigo": false},
+    {"caminho": "/sw.js", "http": 200, "tema_correto": true, "tema_antigo": false, "cache_v4": true}
+  ],
+  "nota": "Verificacao publica sem credenciais. A CI usa fixtures; nao comprova fluxos autenticados reais do app iOS."
+}

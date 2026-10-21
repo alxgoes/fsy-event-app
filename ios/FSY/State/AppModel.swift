@@ -277,28 +277,43 @@ final class AppModel {
                 return
             }
 
-            async let scheduleRows = authorized { try await data.schedule(token: $0) }
-            async let announcementRows = authorized { try await data.announcements(token: $0) }
-            async let likedRows = authorized { try await data.likedAnnouncementIDs(userID: userID, token: $0) }
-            var companyRow: Company?
+            // Cada seção é independente: a falha de uma (ex.: avisos) não apaga a programação nem a companhia
+            // já recebidas. Sessão expirada em qualquer leitura continua encerrando a sessão.
+            async let scheduleResult = attempt { try await self.authorized { try await data.schedule(token: $0) } }
+            async let announcementResult = attempt { try await self.authorized { try await data.announcements(token: $0) } }
+            async let likedResult = attempt { try await self.authorized { try await data.likedAnnouncementIDs(userID: userID, token: $0) } }
+            var companyResult: Result<Company?, Error> = .success(nil)
             if let companyID = loaded.companyID {
-                companyRow = try await authorized { try await data.company(id: companyID, token: $0) }
+                companyResult = await attempt { try await self.authorized { try await data.company(id: companyID, token: $0) } }
             }
-            let (newSchedule, newAnnouncements) = try await (scheduleRows, announcementRows)
-            // Curtidas são complementares: uma falha não invalida a atualização.
-            let newLikes = (try? await likedRows) ?? likedIDs
+            let (scheduleRows, announcementRows, likedRows) = await (scheduleResult, announcementResult, likedResult)
+            for failure in [scheduleRows.failure, announcementRows.failure, companyResult.failure, likedRows.failure] {
+                if failure is CancellationError { return }
+                if case APIError.unauthorized? = failure { throw APIError.unauthorized }
+            }
 
             guard expected == generation, !Task.isCancelled else { return }
+            var failed: [String] = []
             profile = loaded
-            company = companyRow
-            schedule = newSchedule
-            announcements = newAnnouncements
-            likedIDs = newLikes
+            switch companyResult {
+            case .success(let row): company = row
+            case .failure: if company?.id != loaded.companyID { company = nil }; failed.append("companhia")
+            }
+            switch scheduleRows {
+            case .success(let rows): schedule = rows
+            case .failure: failed.append("programação")
+            }
+            switch announcementRows {
+            case .success(let rows): announcements = rows
+            case .failure: failed.append("avisos")
+            }
+            // Curtidas são complementares: uma falha mantém as anteriores sem alerta.
+            if case .success(let ids) = likedRows { likedIDs = ids }
             source = .live
             lastSuccess = Date()
-            errorMessage = nil
-            AccountCache.save(CachedSnapshot(profile: loaded, company: companyRow, schedule: newSchedule,
-                                             announcements: newAnnouncements, likedIDs: newLikes, savedAt: Date()),
+            errorMessage = Self.partialFailureMessage(failed, offline: [scheduleRows.failure, announcementRows.failure, companyResult.failure].contains { ($0 as? APIError) == .offline })
+            AccountCache.save(CachedSnapshot(profile: loaded, company: company, schedule: schedule,
+                                             announcements: announcements, likedIDs: likedIDs, savedAt: Date()),
                               userID: userID)
             scheduleDeviceSync(expected: expected)
         } catch is CancellationError {
@@ -313,6 +328,19 @@ final class AppModel {
             guard expected == generation else { return }
             errorMessage = APIError.server(0).userMessage
         }
+    }
+
+    private func attempt<T>(_ operation: () async throws -> T) async -> Result<T, Error> {
+        do { return .success(try await operation()) } catch { return .failure(error) }
+    }
+
+    /// Mensagem quando só parte das seções atualizou; nil quando tudo veio.
+    static func partialFailureMessage(_ failed: [String], offline: Bool) -> String? {
+        guard !failed.isEmpty else { return nil }
+        let list = failed.count == 1 ? failed[0] : failed.dropLast().joined(separator: ", ") + " e " + failed[failed.count - 1]
+        return offline
+            ? "Sem conexão para atualizar \(list). Mostrando o que já estava salvo."
+            : "Não foi possível atualizar \(list) agora. O restante foi atualizado; puxe para tentar de novo."
     }
 
     /// Lembretes, widgets e Live Activity acompanham cada atualização bem-sucedida, depois da última
@@ -408,5 +436,12 @@ final class AppModel {
         case .avisos: focusedAnnouncementID = link.itemID
         default: break
         }
+    }
+}
+
+private extension Result {
+    var failure: Failure? {
+        if case .failure(let error) = self { return error }
+        return nil
     }
 }

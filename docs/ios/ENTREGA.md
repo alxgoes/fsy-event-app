@@ -12,8 +12,10 @@ Implementado inteiramente por **Claude Opus 5.5** (`claude-opus-5-5`), sem subag
 | Configuração local | ✅ | `ios/Config/Local.xcconfig` (ignorado): chave **publicável** do portal obtida dos recursos públicos do site com autorização do humano, validada (`sb_publishable_`, 46 caracteres, `auth/v1/settings` do projeto `vhbmnnpgftrrovjtvbzo` → HTTP 200) sem exibir o valor; ocorrências da chave no log de build: 0 |
 | Build assinado | ✅ | Personal Team existente `K4A892MU5J` (único Team no Xcode), assinatura automática, `-allowProvisioningUpdates`, `-jobs 1`: `BUILD SUCCEEDED`, 0 erros, 0 avisos. O Xcode gerou 1 certificado Apple Development; perfil de desenvolvimento expira em **28/10/2026** (Team gratuito: 7 dias). App `br.com.fsyrp2.app` e extensão `br.com.fsyrp2.app.widgets` assinados com o Team |
 | Instalação no iPhone | ✅ | `devicectl device install app` → instalado (`bundleID: br.com.fsyrp2.app`) |
-| Abertura no iPhone | ✅ observada no aparelho espelhado | Após a correção, marcos de fase mostram abertura dissolvendo em 1,18 s no cold start das 22h47. Root observou às 22h48 a interface de autenticação do Google aberta sobre o app pelo Espelhamento do iPhone, confirmando saída da abertura. O login foi deixado com o humano; teste autenticado ainda não confirmado |
-| Teste real autenticado | ⛔ não feito | sem login real controlado; nenhuma credencial de teste foi usada |
+| Abertura no iPhone | ✅ observada no aparelho espelhado | Após a correção, marcos de fase mostram abertura dissolvendo em 1,18 s no cold start das 22h47. Root observou às 22h48 a interface de autenticação do Google aberta sobre o app pelo Espelhamento do iPhone, confirmando saída da abertura. O humano concluiu o login; root também confirmou Início e Agenda reais após reabertura às 23h03 |
+| Login Google no aparelho | ✅ (root/humano) | Depois que o root cadastrou `fsyrp2://auth-callback` no Supabase, o humano entrou pelo Google e voltou ao app (Início com o tema correto, observado pelo root) |
+| Leitura de dados reais | ✅ logs e observação no aparelho | Antes da correção a Agenda mostrava erro e ficava vazia. Depois: `profiles` 200, `schedule_items` 200 (82 linhas, 82 com dia/horário válidos), `announcement_likes` 200, `announcements` 200 (0 linhas para esta conta, não conferido com o portal). Root observou Agenda preenchida, horários/locais e dias; Avisos exibiu estado vazio sem erro e horário de atualização |
+| Teste autenticado completo (roteiro) | ⛔ não feito | itens 5–14 do roteiro não executados; nenhuma senha usada |
 | Build Release | não executado | apenas Debug foi compilado |
 
 Estado do iPhone comprovado às 21h14 e reconferido por mim depois: `developerModeStatus=enabled`, `pairingState=paired`, `tunnelState=connected`, `ddiServicesAvailable=true`; o Xcode lista o destino `iPhone Ca` (`00008030-001115891446402E`). Reconferido antes da instalação (`developerModeStatus=enabled`, `paired`, `connected`, `ddiServicesAvailable=true`).
@@ -31,21 +33,41 @@ Estado do iPhone comprovado às 21h14 e reconferido por mim depois: `developerMo
 
 **Evidência após a correção (cold start 22h47, `--terminate-existing`):** `bootstrap: entrada` em +7 ms (antes da limpeza opcional, que terminou em +248 ms); `abertura: animação mínima concluída` e `abertura: dissolvendo` em +1,18 s. Mensagens posteriores do sistema (`RBSServiceErrorDomain … Client not entitled`, `usermanagerd`) são ruído do iOS sem relação com o app.
 
-**Limite do executor:** Claude confirmou a saída por logs, sem captura própria. **Verificação visual pelo root:** após o humano liberar Acessibilidade e captura de tela ao Orca Computer Use, root observou o Espelhamento do iPhone: abertura ainda presa às 22h46 antes da atualização; interface de autenticação do Google aberta às 22h48 depois da atualização. O humano iniciou a autenticação; root não preencheu credenciais nem publicou capturas dessa tela. Caminho com sessão salva e dados autenticados ainda não confirmado.
+**Limite do executor:** Claude confirmou a saída por logs, sem captura própria. **Verificação visual pelo root:** após o humano liberar Acessibilidade e captura de tela ao Orca Computer Use, root observou o Espelhamento do iPhone: abertura ainda presa às 22h46 antes da atualização; interface de autenticação do Google aberta às 22h48 depois da atualização. O humano iniciou a autenticação; root não preencheu credenciais nem publicou capturas dessa tela. Após a correção dos dados, root reabriu o app às 23h03 com a sessão preservada e observou Início e Agenda preenchidos. Captura da Agenda sem dados de participantes está em `evidencias-2026-10-20/agenda-iphone.png`.
 
 **Tema:** agora exatamente **Alegrar-se em Cristo** (substitui "Alegra-se em Cristo").
 - iOS: `ios/Shared/EventIdentity.swift` centraliza nome, tema e escritura; usados em `ThemeLockup` (caixa alta via `uppercased` pt-BR: "ALEGRAR-SE EM / CRISTO"), rótulo VoiceOver, herói do Início, abertura e seu rótulo de acessibilidade.
 - Web: `src/lib/event/identity.ts` (alimenta marca, cartões, login/rodapé, carregamento, metadados, manifest/PWA); `public/sw.js` (página offline + cache `fsy-pwa-v3` → `fsy-pwa-v4`, mesma estratégia); comentários de `src/components/brand/FsyStickers.tsx`.
 - Docs vigentes: `README.md`, `PRODUCT.md`, `DESIGN.md`, `docs/brand-guide-2027.md` (registra a substituição), `docs/manual-funcional-e-design.md`, `docs/ios/README.md`. Históricos preservados com nota de substituição no topo: `docs/auditoria-impeccable-2026-10-20.md`, `docs/plano-implementacao-2026-10-20.md`, `docs/checkpoint-next16-em-andamento.md`, `implementation_plan.md`, `walkthrough.md`.
-- `grep -i "alegra-se"` em `src`, `public`, `ios` e docs vigentes: só a nota intencional do brand guide. Nenhum SVG/asset continha o texto. Datas, escritura, lemas, cores e layout inalterados; "Alegrar-se em" tem um caractere a mais, sem conferência visual de quebra de linha.
+- `grep -i "alegra-se"` em `src`, `public`, `ios` e docs vigentes: só a nota intencional do brand guide. Nenhum SVG/asset continha o texto. Datas, escritura, lemas, cores e layout inalterados; "Alegrar-se em" tem um caractere a mais; root conferiu a marca na entrada e o texto do Início no iPhone SE sem corte visível.
 
 **Checks deste lote:** testes de lógica iOS 29/29; build assinado serial `-jobs 1` `BUILD SUCCEEDED` (0 erros/avisos); instalação por cima (dados e configuração preservados); relançamento a frio com console acima. Web: `npm run lint` exit 0 e `node --check public/sw.js` OK; sem build Next/PGlite/navegador (CI e publicação com o root). Nenhum commit/push.
 
+## Correção da leitura de dados (20/10/2026, depois do login Google)
+
+**Sintoma (root):** depois do login Google, a Agenda mostrava "Não foi possível concluir a operação. Tente novamente", "Programação indisponível" e "Ainda sem dados carregados".
+
+**Diagnóstico com a sessão já salva no iPhone** (instalação por cima e relançamento; nenhum token extraído; logs só com tabela, status, código PostgREST, nomes de campos e contagens):
+`profiles` HTTP 200 · `schedule_items` HTTP 200 · `announcement_likes` HTTP 200 · **`announcements` HTTP 300 `PGRST201`**.
+
+**Causa comprovada:**
+1. `announcements` tem dois caminhos até `profiles`: a FK `author_id` e a junção `announcement_likes` (migração 001: PK composta `(announcement_id, user_id)` com FKs para as duas tabelas, que o PostgREST trata como muitos-para-muitos). Por isso o embed `profiles(full_name,role)` ficou ambíguo e o PostgREST recusou com `PGRST201`.
+2. `performRefresh` exigia que todas as leituras dessem certo. A falha dos avisos descartou a programação e a companhia, que tinham vindo com status 200, e o app mostrou o erro genérico de servidor.
+
+**Correção (só `ios/`):**
+- `DataClient.announcements` embute o autor por `profiles!author_id(full_name,role)` (dica de FK do PostgREST). RLS, colunas e escopo não mudaram.
+- `performRefresh`: perfil continua obrigatório (suspensão e ausência tratadas como antes). Programação, avisos, companhia e curtidas agora são independentes: cada seção aplica o que recebeu; a que falhar mantém o valor anterior (ou o cache) e gera mensagem específica ("Não foi possível atualizar avisos agora. O restante foi atualizado…", ou a versão sem conexão). Sessão expirada em qualquer leitura continua encerrando a sessão; cancelamento e troca de conta continuam descartando respostas atrasadas.
+- `PhaseLog`: registra status e código PostgREST (`PGRST…`/SQLSTATE) e o caminho de campos de erros de decodificação, mais contagens agregadas. Nunca registra `message`/`details` do servidor, valores, IDs ou tokens.
+
+**Evidência após a correção** (cold start com a sessão preservada): as quatro leituras com HTTP 200 e decodificadas; `schedule_items` 82 linhas, todas com chave `dia0…dia5` e horário interpretável; `announcements` 0 linhas para esta conta. Não comparei com o portal se zero é o esperado (RLS por companhia ou nenhum aviso publicado). `companies` não foi consultada porque o perfil está sem companhia. Build assinado serial `-jobs 1` `BUILD SUCCEEDED` com 0 erros e 0 avisos.
+
+**Achado para o web (não alterado):** `src/app/api/announcements/route.ts` (`SELECT … profiles(full_name, role)`) e `src/components/admin/AnnouncementsManager.tsx` (`profiles(full_name)`) usam o mesmo embed sem dica. A ambiguidade é do schema, não do papel, então é muito provável que retornem o mesmo `PGRST201` desde a migração 001. Detalhes em [CONTRATO-WEB.md](CONTRATO-WEB.md#6-embed-ambíguo-announcements--profiles).
+
 ## Pendências humanas concretas (em ordem)
 
-1. **Entrar com uma conta real** e seguir o roteiro do [README](README.md#6-roteiro-de-teste-no-aparelho); só então registrar teste autenticado. Root abriu o app às 22h37 de 20/10/2026 (São Paulo); a confiança no desenvolvedor já permite lançamento pelo Mac.
+1. **Continuar os testes** do [README](README.md#6-roteiro-de-teste-no-aparelho): login Google, reabertura com sessão, Início e Agenda foram observados. Offline, logout/troca de conta, notificações, Live Activity e acessibilidade ainda exigem exercício próprio.
 2. **Renovação:** com Team gratuito o perfil vence em 28/10/2026; recompilar/instalar com o mesmo comando renova.
-3. Opcional: `fsyrp2://auth-callback` nas Redirect URLs do Supabase para Google; contrato de curtidas; App Group com Team pago ([CONTRATO-WEB.md](CONTRATO-WEB.md)).
+3. O retorno Google já está cadastrado e foi testado. Permanecem opcionais/pendentes o contrato de curtidas e App Group com Team pago ([CONTRATO-WEB.md](CONTRATO-WEB.md)).
 
 ## Arquitetura escolhida
 
@@ -96,9 +118,9 @@ Estado do iPhone comprovado às 21h14 e reconferido por mim depois: `developerMo
 
 | Recurso | Estado |
 | --- | --- |
-| Entrar/cadastrar/recuperar com contas do portal | Implementado e compilado; não testado contra o Supabase real |
-| Google | Implementado (PKCE + sessão do sistema); depende da Redirect URL e do modo Teste — não funcional até isso |
-| Início, Agenda, Avisos, Perfil com dados reais | Implementado e compilado; sem teste autenticado |
+| Entrar/cadastrar/recuperar com contas do portal | Google testado em conta real; cadastro, senha e recuperação ainda não exercitados |
+| Google | Retorno configurado e entrada no app confirmada por humano/root; provedor permanece em modo Teste |
+| Início, Agenda, Avisos, Perfil com dados reais | Início e Agenda observados com sessão real; perfil decodificado e quatro consultas HTTP 200; Avisos vazio sem erro (0 registros); não é validação de todo o roteiro |
 | Offline com cópia por conta | Implementado |
 | Lembretes locais com ação "Ver na agenda" | Implementado; permissão pedida só ao ativar |
 | Live Activity (Tela Bloqueada; Dynamic Island em modelos compatíveis) | Implementado; atualiza com o app em primeiro plano, contador avança pelo sistema; sem push |
