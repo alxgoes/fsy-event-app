@@ -23,6 +23,8 @@ import {
   Compass,
   ChevronDown,
   Loader2,
+  ClipboardList,
+  Smartphone,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -32,6 +34,7 @@ import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import { GooeyButton } from "@/components/ui/GooeyButton";
 import styles from "./AdminLayout.module.css";
+import { EVENT_DATES } from "@/lib/event/identity";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -93,6 +96,12 @@ const navigationItems: NavItem[] = [
     href: "/admin/media",
     icon: Camera,
     allowedRoles: ["midia", "casal_diretor", "coordenador", "logistica"],
+  },
+  {
+    name: "Inscrições & Autorizações",
+    href: "/admin/inscricoes",
+    icon: ClipboardList,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
     name: "Gestão de Usuários",
@@ -265,14 +274,14 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
             <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
             <FsyFloatingLetters size="xs" className="hidden sm:inline-flex shrink-0" />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[125px] xs:max-w-[170px] sm:max-w-none">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                <span className="font-heading font-bold text-sm text-slate-900 dark:text-white truncate">
                   {currentRole === "midia"
                     ? "Painel de Mídia"
                     : currentRole === "medico"
@@ -299,16 +308,18 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <span>{roleLabels[currentRole]?.label || roleLabel}</span>
           </Badge>
 
-          <GooeyButton
-            variant="tactile-dark"
-            size="sm"
-            href="/dashboard"
-            icon={<Compass className="h-3.5 w-3.5" />}
-            iconColor="text-[#005E7C] dark:text-cyan-400"
-            className="hidden md:inline-flex"
-          >
-            Portal Jovem
-          </GooeyButton>
+          {/* Só a partir de md: no celular o atalho fica no menu do perfil e o título não é truncado. */}
+          <span className="hidden md:inline-flex">
+            <GooeyButton
+              variant="tactile-dark"
+              size="sm"
+              href="/dashboard"
+              icon={<Compass className="h-3.5 w-3.5" />}
+              iconColor="text-[#005E7C] dark:text-cyan-400"
+            >
+              Portal Jovem
+            </GooeyButton>
+          </span>
 
           {/* Interactive Profile Dropdown (Mobile & Desktop) */}
           <div className="relative" ref={dropdownRef}>
@@ -400,6 +411,15 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                       <span>Painel de Gestão (Início)</span>
                     </Link>
 
+                    <Link
+                      href="/instalar"
+                      onClick={() => setDropdownOpen(false)}
+                      className="fsy-action-link min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      <Smartphone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                      <span>Instalar o app</span>
+                    </Link>
+
                     <div className="mx-3 my-1.5 border-t border-slate-100 dark:border-slate-800" />
 
                     {/* Sign Out */}
@@ -473,7 +493,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <div className="space-y-4">
               <div className="px-3 pt-2 pb-1">
                 <p className="font-heading text-lg font-bold leading-tight text-slate-900 dark:text-white">FSY Ribeirão Preto 2</p>
-                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">05–10 de fevereiro de 2027</p>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">{EVENT_DATES}</p>
               </div>
 
               <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)} className={"fsy-action-link " + (styles.portal)}>

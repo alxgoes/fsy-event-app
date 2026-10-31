@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FSY RP2 2027</string>
+    <string name="widget_next_activity_name">FSY • Próximas atividades</string>
+    <string name="widget_next_activity_desc">Acompanhe a atividade atual e a seguinte da programação FSY RP2.</string>
+    <string name="widget_event_calendar_name">FSY • Calendário do evento</string>
+    <string name="widget_event_calendar_desc">Os cinco dias da sessão FSY Ribeirão Preto 2 (06 a 10/02/2027).</string>
+</resources>

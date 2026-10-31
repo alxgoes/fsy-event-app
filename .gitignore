@@ -38,3 +38,20 @@ next-env.d.ts
 # local agents
 .gemini/
 .opencode/
+
+# Android native build & local secrets
+/android/.gradle/
+/android/.kotlin/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/keystore.properties
+/android/app/google-services.json
+**/google-services.json
+*.jks
+*.keystore
+*.apk
+*.aab
+
+.vercel
+.env*

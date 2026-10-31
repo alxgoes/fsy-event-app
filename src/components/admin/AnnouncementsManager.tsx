@@ -2,7 +2,8 @@
 import { startTransition } from "react";
 
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { newIdempotencyKey } from "./RegistrationsApi";
 import {
   Megaphone,
   Plus,
@@ -59,6 +60,8 @@ export function AnnouncementsManager() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Mesma chave enquanto o texto não muda: reenviar após falha de rede não publica duas vezes.
+  const postAttempt = useRef<{ fingerprint: string; key: string } | null>(null);
   const [savedMsg, setSavedMsg] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -136,9 +139,14 @@ export function AnnouncementsManager() {
         author_id: user?.id ?? null,
       };
 
+      const fingerprint = JSON.stringify([payload.title, payload.content, payload.priority, payload.target_company_id, payload.category]);
+      if (postAttempt.current?.fingerprint !== fingerprint) {
+        postAttempt.current = { fingerprint, key: newIdempotencyKey() };
+      }
+
       const res = await fetch("/api/announcements", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": postAttempt.current.key },
         body: JSON.stringify(payload),
       });
 
@@ -148,6 +156,7 @@ export function AnnouncementsManager() {
         throw new Error(json.error || "Falha ao emitir comunicado.");
       }
 
+      postAttempt.current = null;
       setSavedMsg(true);
       setTimeout(() => setSavedMsg(false), 2500);
       setIsDialogOpen(false);

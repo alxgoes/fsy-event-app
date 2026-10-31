@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireIdentity, json, serverError } from "@/lib/auth/guard";
+import { hasRole } from "@/lib/auth/permissions";
 import { likeAnnouncementSchema } from "@/types/announcements";
 
 export const dynamic = "force-dynamic";
@@ -8,13 +9,32 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const auth = await requireIdentity();
   if (auth.response) return auth.response;
-  const userId = auth.identity.user.id;
+  const { identity } = auth;
+  const userId = identity.user.id;
   try {
     const parsed = likeAnnouncementSchema.safeParse(await request.json());
     if (!parsed.success) return json({ error: "ID do comunicado inválido." }, 400);
     const { announcement_id } = parsed.data;
 
     const supabase = createAdminClient();
+    const { data: announcement, error: announcementError } = await supabase
+      .from("announcements")
+      .select("id, target_company_id")
+      .eq("id", announcement_id)
+      .maybeSingle();
+    if (announcementError) return serverError("likes.announcement", announcementError);
+
+    if (
+      announcement?.target_company_id &&
+      !hasRole(identity.role, "announcementManagers") &&
+      identity.profile.company_id !== announcement.target_company_id
+    ) {
+      return json(
+        { error: "Seu cargo não permite curtir comunicados de outra companhia." },
+        403
+      );
+    }
+
     const { data: existing, error: readError } = await supabase
       .from("announcement_likes")
       .select("announcement_id")

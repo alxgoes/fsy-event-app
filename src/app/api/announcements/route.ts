@@ -1,6 +1,8 @@
+import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireIdentity, json, serverError, pick } from "@/lib/auth/guard";
 import { hasRole } from "@/lib/auth/permissions";
+import { dispatchAnnouncementPush } from "@/lib/notifications/fcm-dispatcher";
 import type { Identity } from "@/lib/supabase/server";
 import { announcementSchema, announcementUpdateSchema, baseCategory } from "@/types/announcements";
 
@@ -8,6 +10,23 @@ export const dynamic = "force-dynamic";
 
 const SELECT = "id, title, content, priority, target_company_id, category, created_at, author_id, profiles!author_id(full_name, role)";
 const COMPANY_ID = /^[\w-]{1,64}$/;
+const RETRY_DEDUP_WINDOW_MS = 60_000;
+
+interface AnnouncementIdempotencyRecord {
+  fingerprint: string;
+  data: Record<string, unknown>;
+  expiresAtMs: number;
+}
+
+const announcementIdempotencyCache = new Map<string, AnnouncementIdempotencyRecord>();
+
+function pruneIdempotencyCache(nowMs: number) {
+  for (const [key, entry] of announcementIdempotencyCache.entries()) {
+    if (entry.expiresAtMs <= nowMs) {
+      announcementIdempotencyCache.delete(key);
+    }
+  }
+}
 
 /** Gestores leem tudo; consultores, a própria companhia; demais, a própria companhia e avisos gerais. */
 function canManageAll(identity: Identity) {
@@ -109,6 +128,82 @@ export async function POST(request: Request) {
       return json({ error: "Você só pode publicar comunicados para a sua companhia." }, 403);
     }
 
+    const nowMs = Date.now();
+    pruneIdempotencyCache(nowMs);
+
+    const idempotencyKey =
+      request.headers.get("Idempotency-Key")?.trim() ||
+      request.headers.get("x-idempotency-key")?.trim() ||
+      null;
+    const fingerprint = JSON.stringify({
+      authorId: identity.user.id,
+      title: input.title,
+      content: input.content,
+      priority: input.priority,
+      category: input.category,
+      targetCompanyId: target,
+    });
+
+    if (idempotencyKey) {
+      const cacheKey = `${identity.user.id}:${idempotencyKey}`;
+      const existingCached = announcementIdempotencyCache.get(cacheKey);
+      if (existingCached) {
+        if (existingCached.fingerprint !== fingerprint) {
+          return json(
+            {
+              error: "Idempotency-Key já utilizada com parâmetros distintos.",
+              code: "IDEMPOTENCY_KEY_REUSED",
+            },
+            409
+          );
+        }
+        return json({
+          success: true,
+          data: existingCached.data,
+          deduplicated: true,
+          audited: true,
+        });
+      }
+    }
+
+    const supabase = createAdminClient();
+
+    // Deduplicação em janela de retry (evita avisos duplicados se o cliente reenviar após timeout de rede)
+    const windowCutoffIso = new Date(nowMs - RETRY_DEDUP_WINDOW_MS).toISOString();
+    let dedupQuery = supabase
+      .from("announcements")
+      .select(SELECT)
+      .eq("author_id", identity.user.id)
+      .eq("title", input.title)
+      .eq("content", input.content)
+      .eq("priority", input.priority)
+      .eq("category", input.category)
+      .gte("created_at", windowCutoffIso)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    dedupQuery = target
+      ? dedupQuery.eq("target_company_id", target)
+      : dedupQuery.is("target_company_id", null);
+
+    const { data: recentMatches } = await dedupQuery;
+    if (Array.isArray(recentMatches) && recentMatches.length > 0 && recentMatches[0]) {
+      const existingRow = recentMatches[0] as Record<string, unknown>;
+      if (idempotencyKey) {
+        announcementIdempotencyCache.set(`${identity.user.id}:${idempotencyKey}`, {
+          fingerprint,
+          data: existingRow,
+          expiresAtMs: nowMs + 10 * 60_000,
+        });
+      }
+      return json({
+        success: true,
+        data: existingRow,
+        deduplicated: true,
+        audited: true,
+      });
+    }
+
     const payload = {
       title: input.title,
       content: input.content,
@@ -116,23 +211,56 @@ export async function POST(request: Request) {
       category: input.category,
       target_company_id: target,
       author_id: identity.user.id,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date(nowMs).toISOString(),
     };
 
-    const supabase = createAdminClient();
     const { data, error } = await supabase.from("announcements").insert(payload).select(SELECT).single();
     if (error) return serverError("announcements.post", error);
 
-    const audited = await recordAudit(supabase, identity, {
-      company_id: target,
-      action_type: "publicou_comunicado",
-      action_label: "Novo Comunicado Publicado",
-      title: payload.title,
-      content: payload.content,
-      details: { priority: payload.priority, category: payload.category, target_company_id: target },
-    });
+    if (idempotencyKey && data) {
+      announcementIdempotencyCache.set(`${identity.user.id}:${idempotencyKey}`, {
+        fingerprint,
+        data: data as Record<string, unknown>,
+        expiresAtMs: nowMs + 10 * 60_000,
+      });
+    }
 
-    return json({ success: true, data, audited });
+    // A partir daqui o aviso já está persistido. Falhas em auditoria ou FCM NUNCA podem falhar o POST.
+    let audited = false;
+    try {
+      audited = await recordAudit(supabase, identity, {
+        company_id: target,
+        action_type: "publicou_comunicado",
+        action_label: "Novo Comunicado Publicado",
+        title: payload.title,
+        content: payload.content,
+        details: { priority: payload.priority, category: payload.category, target_company_id: target },
+      });
+    } catch (auditErr) {
+      console.error("[api] announcements.audit.exception", auditErr);
+    }
+
+    const dispatchTask = async () => {
+      try {
+        await dispatchAnnouncementPush({
+          announcementId: String(data.id),
+          priority: payload.priority,
+          category: baseCategory(payload.category),
+          targetCompanyId: target,
+        });
+      } catch (pushErr) {
+        console.error("[api] announcements.push.exception", pushErr);
+      }
+    };
+
+    // P2: Desacopla o envio FCM da resposta HTTP via `after()` de `next/server`
+    if (typeof after === "function") {
+      after(dispatchTask);
+    } else {
+      await dispatchTask();
+    }
+
+    return json({ success: true, data, audited, push: { scheduled: true } });
   } catch (err) {
     return serverError("announcements.post", err);
   }

@@ -10,6 +10,12 @@ function privateJson(body: unknown, init: { status?: number; headers?: Record<st
   return NextResponse.json(body, { ...init, headers: { ...init.headers, ...PRIVATE_HEADERS } });
 }
 
+function serverError(context: string, error?: unknown) {
+  const code = (error as { code?: string } | undefined)?.code;
+  console.error(`[api] ${context}`, code ?? "");
+  return privateJson({ error: "Não foi possível concluir a operação. Tente novamente." }, { status: 500 });
+}
+
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +75,7 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.get", error);
     }
 
     const filteredRaw = (data ?? []).filter(
@@ -79,8 +85,7 @@ export async function GET() {
 
     return privateJson({ data: parsed });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.get", err);
   }
 }
 
@@ -181,13 +186,12 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.post", error);
     }
 
     return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.post", err);
   }
 }
 
@@ -222,7 +226,7 @@ export async function PUT(request: Request) {
     const supabase = createAdminClient();
     const { data: existing, error: readError } = await supabase.from("medical_records")
       .select("emergency_contact_alt_phone").eq("id", id).maybeSingle();
-    if (readError) return privateJson({ error: "Não foi possível consultar a ficha médica." }, { status: 500 });
+    if (readError) return serverError("medical.put.read", readError);
     if (!existing) return privateJson({ error: "Ficha médica não encontrada." }, { status: 404 });
     let oldContacts: ExtraContactsPayload = {};
     try { oldContacts = JSON.parse(existing.emergency_contact_alt_phone || "{}"); } catch { /* Legacy plain text. */ }
@@ -258,13 +262,12 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.put", error);
     }
 
     return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.put", err);
   }
 }
 
@@ -288,12 +291,11 @@ export async function DELETE(request: Request) {
 
     if (error) {
       if (error.code === "23503") return privateJson({ error: "Esta ficha possui acompanhamento vinculado. Arquive o acompanhamento para preservar o histórico; a ficha não pode ser excluída." }, { status: 409 });
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.delete", error);
     }
 
     return privateJson({ success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.delete", err);
   }
 }

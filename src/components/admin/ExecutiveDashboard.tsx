@@ -9,6 +9,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   Building2,
+  ClipboardList,
   Stethoscope,
   Truck,
   Calendar,
@@ -437,6 +438,34 @@ export function ExecutiveDashboard() {
                   </h3>
                   <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Cadastrar e gerenciar fotos do Drive que aparecem nas caixas de destaque do portal.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
+                  <span>Abrir módulo</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </motion.div>
+            </Link>) },
+{ id: "registrations", label: "Inscrições", content: (<Link className="fsy-action-link" href="/admin/inscricoes">
+              <motion.div
+                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
+                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
+                      <ClipboardList className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4] text-xs font-black px-2 py-0.5">
+                      Planilha e PDF
+                    </span>
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
+                    Inscrições & Autorizações
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Importar o Excel oficial, revisar nomes e alertas, exportar e gerar as fichas de autorização em PDF.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">

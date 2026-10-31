@@ -44,15 +44,7 @@ export async function GET() {
     ]);
 
     if (usersRes.error) {
-      return privateJson(
-        { error: usersRes.error.message },
-        {
-          status: 500,
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          },
-        }
-      );
+      return serverError("users.get", usersRes.error);
     }
 
     return privateJson(
@@ -67,16 +59,7 @@ export async function GET() {
       }
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson(
-      { error: message },
-      {
-        status: 500,
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        },
-      }
-    );
+    return serverError("users.get", err);
   }
 }
 

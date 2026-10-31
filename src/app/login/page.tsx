@@ -507,6 +507,9 @@ export default function LoginPage() {
       <footer className="text-center py-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
         © 2027 FSY Sessão Ribeirão Preto 2 · {EVENT_THEME}
         <span className="block font-medium">{EVENT_PLACE}</span>
+        <Link href="/instalar" className="fsy-action-link justify-center font-semibold text-[#005E7C] underline-offset-4 hover:underline dark:text-[#7DE3F4]">
+          Instalar o app
+        </Link>
       </footer>
     </div>
   );

@@ -1,5 +1,5 @@
 /**
- * Autenticação do app iOS nas mesmas APIs do site.
+ * Autenticação do app iOS/Android nas mesmas APIs do site.
  *
  * O app envia `Authorization: Bearer <access_token do Supabase>` (nunca cookie, nunca service_role).
  * O servidor valida o token no Auth e lê cargo/suspensão do banco a cada requisição, exatamente como faz
@@ -15,6 +15,7 @@ export const BEARER_API_PREFIXES = [
   "/api/logistics",
   "/api/media",
   "/api/medical",
+  "/api/notifications",
   "/api/schedule",
   "/api/users",
 ] as const;

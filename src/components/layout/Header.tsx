@@ -268,7 +268,7 @@ export function Header() {
   const userIsMaster = !isYouth && isMasterAdmin(role);
   const canAccessFullAdmin = !isYouth && canAccessAdmin(role);
   const canSeeCounselorPanel = !isYouth && (userIsMaster || role === "consultor");
-  const { openInstallModal, isInstalled } = usePwa();
+  const { isInstalled } = usePwa();
 
   // Count unread items
   const unreadAppointments = appointments.filter((a) => !a.is_seen && a.status === "agendado");
@@ -777,17 +777,14 @@ export function Header() {
                     )}
 
                     {/* PWA App Download / Install */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDropdownOpen(false);
-                        openInstallModal();
-                      }}
-                      className="flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] hover:bg-[#007DA5]/10 dark:hover:bg-sky-950/40 transition-colors cursor-pointer text-left"
+                    <Link
+                      href="/instalar"
+                      onClick={() => setDropdownOpen(false)}
+                      className="fsy-action-link flex items-center gap-2.5 w-full px-3 py-2 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] hover:bg-[#007DA5]/10 dark:hover:bg-sky-950/40 transition-colors text-left"
                     >
-                      <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
-                      <span>{isInstalled ? "App FSY Instalado ✓" : "Baixar / Instalar App"}</span>
-                    </button>
+                      <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" aria-hidden="true" />
+                      <span>{isInstalled ? "App instalado · ver versões" : "Instalar o app"}</span>
+                    </Link>
                   </div>
 
                   {/* Sign Out */}
@@ -945,17 +942,14 @@ export function Header() {
               )}
 
               {/* PWA App Download / Install (Mobile) */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openInstallModal();
-                }}
-                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] bg-[#007DA5]/10 hover:bg-[#007DA5]/20 dark:bg-sky-950/40 border border-[#007DA5]/30 shadow-xs transition-all cursor-pointer text-left"
+              <Link
+                href="/instalar"
+                onClick={() => setMobileMenuOpen(false)}
+                className="fsy-action-link flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-xs font-black text-[#005E7C] dark:text-[#7DE3F4] bg-[#007DA5]/10 hover:bg-[#007DA5]/20 dark:bg-sky-950/40 border border-[#007DA5]/30 shadow-xs transition-colors text-left"
               >
-                <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" />
-                <span>{isInstalled ? "App FSY Instalado ✓" : "Baixar / Instalar App"}</span>
-              </button>
+                <Download className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4] shrink-0" aria-hidden="true" />
+                <span>{isInstalled ? "App instalado · ver versões" : "Instalar o app"}</span>
+              </Link>
             </div>
 
             {/* Logout action in mobile menu */}
