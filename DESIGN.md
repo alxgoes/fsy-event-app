@@ -16,17 +16,17 @@ colors:
   gold-temple: "#DBBF6B"
 typography:
   display:
-    fontFamily: "Cinzel, Cormorant Garamond, serif"
+    fontFamily: "Libre Baskerville, Georgia, serif"
     fontSize: "clamp(2rem, 5vw, 3rem)"
     fontWeight: 700
     lineHeight: 1.15
-    letterSpacing: "-0.02em"
+    letterSpacing: "0"
   headline:
-    fontFamily: "Cinzel, Cormorant Garamond, serif"
+    fontFamily: "Libre Baskerville, Georgia, serif"
     fontSize: "clamp(1.5rem, 3.5vw, 2rem)"
     fontWeight: 700
     lineHeight: 1.2
-    letterSpacing: "-0.01em"
+    letterSpacing: "0"
   title:
     fontFamily: "Inter, system-ui, sans-serif"
     fontSize: "1.125rem"
@@ -102,7 +102,7 @@ A interface rejeita deliberadamente o visual frio e asséptico de dashboards cor
 
 **Key Characteristics:**
 - **Calor Solar & Serenidade:** Fundos suaves com textura sutil e toques de luz que transmitem acolhimento e celebração.
-- **Tipografia Nobre com Clareza:** Títulos que ecoam a dignidade do tema (*Cinzel* e *Cormorant Garamond*) combinados com a legibilidade cristalina de *Inter* para dados e horários.
+- **Tipografia Nobre com Clareza:** Títulos em *Libre Baskerville* (escolha do usuário em 31/10/2026), escrituras em *Cormorant Garamond* itálico e *Inter* para dados, números e horários.
 - **Camadas Flutuantes Táteis:** Superfícies elevadas com suavidade, cantos amigáveis e feedback imediato de toque para uso ágil em celulares.
 - **Selos Gráficos e Badges 2027:** Uso intencional dos selos e adesivos temáticos para identificar categorias, status e prioridades sem sobrecarregar a visão.
 
@@ -133,7 +133,9 @@ A paleta é orientada pelo Guia Oficial FSY 2027, estruturada para oferecer cont
 
 ## Typography
 
-**Display Font:** Cinzel / Cormorant Garamond (fallback: Georgia, serif)  
+**Display/Headline Font:** Libre Baskerville 400–700, auto-hospedada em `src/app/fonts/` (SIL OFL 1.1; fallback: Georgia, serif)  
+**Scripture Font:** Cormorant Garamond itálico verdadeiro (`font-scripture`; itálico de `font-serif`/`font-heading` é redirecionado para ela)  
+**Lockup do tema:** Cinzel (`font-lockup`), somente no "Alegrar-se em Cristo" tipográfico, preservando a forma em caixa alta  
 **Body Font:** Inter (fallback: system-ui, -apple-system, sans-serif)  
 **Label/Mono Font:** Inter Bold com tracking expandido  
 
@@ -148,6 +150,10 @@ A paleta é orientada pelo Guia Oficial FSY 2027, estruturada para oferecer cont
 
 ### Named Rules
 **The Scripture Voice Rule.** Passagens bíblicas e citações temáticas utilizam Cormorant Garamond com proporções elegantes e subtis, nunca fontes sans-serif genéricas.
+
+**The Figures Rule.** Contadores, KPIs e horários usam Inter com algarismos tabulares (`.fsy-figure`, `data-kpi`). Nunca serifa display em números: Cinzel desenha "1" como "I".
+
+**The Real Glyph Rule.** O letreiro FSY do app usa glifos reais da Libre Baskerville em discos (azul/sol/rosa), nunca caminhos vetoriais desenhados à mão. Ele não é o identificador oficial 2027 e não substitui o templo/arco.
 
 ## Layout
 
@@ -208,7 +214,7 @@ O sistema utiliza a filosofia de **Camadas Flutuantes**: superfícies limpas e l
 - **Do** manter a paleta base em tons quentes de pergaminho (`#FAF8F5` / `#F5EFCA`) com cartões brancos e texto em grafite de alto contraste.
 - **Do** reservar o tom Gold 10 (`#DBBF6B`) estritamente para elementos do templo, ícones sagrados e coroamentos honoríficos.
 - **Do** priorizar a legibilidade móvel com alvos de toque de pelo menos 44x44px.
-- **Do** aplicar animações fluidas com Framer Motion (transições de primavera com amortecimento de 24).
+- **Do** usar os tokens de movimento (`src/lib/motion.ts` / `--motion-*`): 100 ms retorno, 160 ms cor, 220 ms estado, 260 ms reordenação, 300/200 ms sobreposição, 520 ms somente no momento focal do login. Molas criticamente amortecidas (`damping ≥ 2·√stiffness`), sem bounce.
 - **Do** incluir indicações imediatas de restrições alimentares e alergias severas nos cards da equipe médica e consultores.
 
 ### Don't:
@@ -228,3 +234,11 @@ O sistema utiliza a filosofia de **Camadas Flutuantes**: superfícies limpas e l
 - Links operacionais `.fsy-action-link` reservam 44×44 px e foco visível. Links dentro do texto corrido da legenda preservam seu comportamento inline, com leitura integral expandida.
 
 Essas referências matemáticas não são uma certificação do site inteiro; a auditoria mede cada contexto renderizado. Os critérios WCAG/Impeccable permanecem os mesmos, sem regras silenciadas ou alteração do piso tipográfico para melhorar pontuação.
+
+## Movimento — revisão de 31/10/2026
+
+- **Sem laços decorativos.** `animate-ping`/`animate-pulse` infinitos saíram de avisos, selos e indicadores "ao vivo"; estado é comunicado por cor, ícone e texto. Novidade recebe `.fsy-attention` (dois pulsos de 600 ms, para). Esqueletos de carregamento continuam com pulse e param em movimento reduzido.
+- **Momento focal único:** no login o letreiro FSY assenta (opacidade + 6 px, 60 ms entre letras) e a faixa do tema entra por máscara (`.fsy-reveal`, 480 ms). Nada letra a letra, nada em laço.
+- **Movimento reduzido:** sem translação, escala ou FLIP; opacidade/cor em até 150 ms. A reordenação aplica na hora.
+- **Arraste de cartões:** só pela alça no modo Personalizar; o cartão levantado segue o dedo (`.fsy-drag-lift`), vizinhos fazem FLIP com mola amortecida, autoscroll proporcional a 80 px das bordas, e Esc/cancelamento do ponteiro/troca de app revertem a ordem anterior. Alternativas: teclado (Enter, setas, Home/End, Esc) e botões Subir/Descer.
+- **Privacidade:** áreas de saúde ficam sob `PrivacyShield`, que cobre a tela ao ocultar a aba/app e exige toque para mostrar. Não impede capturas de tela e não deve ser descrito assim.

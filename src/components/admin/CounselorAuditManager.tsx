@@ -381,7 +381,7 @@ export function CounselorAuditManager() {
           <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400 block">
             Total de Registros
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+          <div data-kpi="" className="fsy-figure text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1">
             {totalLogs}
           </div>
           <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
@@ -393,7 +393,7 @@ export function CounselorAuditManager() {
           <span className="text-xs font-black uppercase text-[#005E7C] dark:text-cyan-400 block">
             Comunicados Enviados
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-[#005E7C] dark:text-cyan-400 mt-1">
+          <div data-kpi="" className="fsy-figure text-2xl sm:text-3xl font-bold text-[#005E7C] dark:text-cyan-400 mt-1">
             {publishedCount}
           </div>
           <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
@@ -405,7 +405,7 @@ export function CounselorAuditManager() {
           <span className="text-xs font-black uppercase text-red-600 dark:text-red-400 block">
             Avisos Excluídos
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-red-600 dark:text-red-400 mt-1">
+          <div data-kpi="" className="fsy-figure text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mt-1">
             {deletedCount}
           </div>
           <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">
@@ -417,7 +417,7 @@ export function CounselorAuditManager() {
           <span className="text-xs font-black uppercase text-[#005E7C] dark:text-[#01B6D1] block">
             Consultores Ativos
           </span>
-          <div className="font-heading text-2xl sm:text-3xl font-black text-[#005E7C] dark:text-[#01B6D1] mt-1">
+          <div data-kpi="" className="fsy-figure text-2xl sm:text-3xl font-bold text-[#005E7C] dark:text-[#01B6D1] mt-1">
             {uniqueAuthors}
           </div>
           <span className="text-xs font-bold text-slate-600 dark:text-slate-300 mt-1 block">

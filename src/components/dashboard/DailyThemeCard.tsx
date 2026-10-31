@@ -35,15 +35,15 @@ export function DailyThemeCard() {
           <div className="flex items-center gap-3">
             <FsyLogo variant="temple-only" colorMode="four-color" className="h-12 w-auto shrink-0" />
             <div className="flex flex-col">
-              <span className="text-xs font-serif tracking-[0.2em] uppercase font-bold text-slate-800 dark:text-slate-200">
+              <span className="text-xs font-lockup tracking-[0.2em] uppercase font-bold text-slate-800 dark:text-slate-200">
                 {EVENT_THEME_LEAD}
               </span>
-              <span className="text-2xl sm:text-3xl font-serif tracking-[0.06em] uppercase font-black text-slate-950 dark:text-white leading-tight">
+              <span className="text-2xl sm:text-3xl font-lockup tracking-[0.06em] uppercase font-bold text-slate-950 dark:text-white leading-tight">
                 {EVENT_THEME_FOCUS}
               </span>
             </div>
           </div>
-          <blockquote className="mt-3 pt-3 border-t-2 border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-serif italic font-medium text-slate-950 dark:text-slate-100 leading-relaxed">
+          <blockquote className="mt-3 pt-3 border-t-2 border-slate-200 dark:border-slate-700 text-sm sm:text-base font-serif italic font-medium text-slate-950 dark:text-slate-100 leading-relaxed">
             “Regozijai-vos sempre no Senhor; outra vez digo, regozijai-vos.”
           </blockquote>
         </motion.div>

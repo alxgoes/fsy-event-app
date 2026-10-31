@@ -43,7 +43,7 @@ export function HappeningNowCard({
           {/* Top Bar: Pre-event Status */}
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-[#FFD166] border border-slate-900 shadow-brutal-sm">
-              <Hourglass className="h-3.5 w-3.5 text-[#06D6A0] animate-pulse" />
+              <Hourglass className="h-3.5 w-3.5 text-[#06D6A0]" aria-hidden="true" />
               <span>Em Breve • 06 a 10 Fev 2027</span>
             </div>
 
@@ -154,7 +154,6 @@ export function HappeningNowCard({
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-xs font-black uppercase tracking-wider text-[#FFE48A] border border-slate-900 shadow-sm">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#06D6A0] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#06D6A0]"></span>
             </span>
             Acontecendo Agora

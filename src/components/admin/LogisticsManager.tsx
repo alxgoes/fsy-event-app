@@ -251,7 +251,7 @@ export function LogisticsManager() {
       case "programado":
         return "bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800";
       case "a_caminho":
-        return "bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 animate-pulse";
+        return "bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
       case "chegou":
         return "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 font-black";
       case "retornando":
@@ -288,12 +288,12 @@ export function LogisticsManager() {
             </Badge>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400">
-            Controle em tempo real de caravanas, horários de chegada, retorno e motoristas das 4 estacas.
+            Controle de caravanas, horários de chegada, retorno e motoristas das 4 estacas.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
               <CheckCircle2 className="h-4 w-4" /> Salvo com sucesso!
             </span>
           )}

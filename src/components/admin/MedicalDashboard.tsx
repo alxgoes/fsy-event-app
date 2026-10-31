@@ -6,6 +6,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { PrivacyShield } from "@/components/privacy/PrivacyShield";
 import {
   ShieldAlert,
   Search,
@@ -581,6 +582,7 @@ export function MedicalDashboard() {
   const severeCount = records.filter((r) => r.is_severe_allergy).length;
 
   return (
+    <PrivacyShield label="Dados de saúde">
     <div className="space-y-5 sm:space-y-6 text-slate-900 dark:text-slate-100 max-w-full min-w-0">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-w-0 max-w-full">
@@ -607,7 +609,7 @@ export function MedicalDashboard() {
 
         <div className={`flex items-center gap-2 flex-wrap w-full sm:w-auto ${activeTab === "inclusion" ? "hidden" : ""}`}>
           {savedMsg && (
-            <span className="flex items-center gap-1 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none w-full sm:w-auto justify-center">
+            <span className="flex items-center gap-1 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 fsy-fade-in w-full sm:w-auto justify-center">
               <CheckCircle2 className="h-4 w-4" /> Salvo com sucesso!
             </span>
           )}
@@ -696,15 +698,15 @@ export function MedicalDashboard() {
                 <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300">Total de Fichas</span>
                 <FileText className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
               </div>
-              <p className="text-3xl font-black text-slate-900 dark:text-white mt-2">{records.length}</p>
+              <p data-kpi="" className="fsy-figure text-3xl font-black text-slate-900 dark:text-white mt-2">{records.length}</p>
               <p className="text-xs text-slate-500 dark:text-slate-300 font-bold mt-0.5">Participantes cadastrados</p>
             </Card>) },
 { id: "allergies", label: "Alergias graves", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow-brutal-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-rose-700 dark:text-rose-300">Alergias Graves</span>
-                <ShieldAlert className="h-5 w-5 text-rose-800 dark:text-rose-300 animate-pulse" />
+                <ShieldAlert className="h-5 w-5 text-rose-800 dark:text-rose-300" aria-hidden="true" />
               </div>
-              <p className="text-3xl font-black text-rose-700 dark:text-rose-300 mt-2">{severeCount}</p>
+              <p data-kpi="" className="fsy-figure text-3xl font-black text-rose-700 dark:text-rose-300 mt-2">{severeCount}</p>
               <p className="text-xs text-rose-800 dark:text-rose-300 dark:text-rose-400 font-bold mt-0.5">Atenção especial da equipe</p>
             </Card>) },
 { id: "diets", label: "Dietas e restrições", className: "", content: (<Card className="p-4 rounded-3xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow-brutal-sm">
@@ -712,7 +714,7 @@ export function MedicalDashboard() {
                 <span className="text-xs font-black uppercase text-amber-700 dark:text-amber-300">Dietas / Restrições</span>
                 <HeartPulse className="h-5 w-5 text-amber-800 dark:text-amber-300" />
               </div>
-              <p className="text-3xl font-black text-amber-700 dark:text-amber-300 mt-2">
+              <p data-kpi="" className="fsy-figure text-3xl font-black text-amber-700 dark:text-amber-300 mt-2">
                 {records.filter((r) => r.dietary_restrictions && r.dietary_restrictions !== "Nenhuma").length}
               </p>
               <p className="text-xs text-amber-800 dark:text-amber-300 dark:text-amber-400 font-bold mt-0.5">Alimentação diferenciada</p>
@@ -1328,7 +1330,7 @@ export function MedicalDashboard() {
               {/* Severe Allergy Alert Banner */}
               {viewingRecord.is_severe_allergy && (
                 <div className="fsy-panel rounded-2xl border-2 border-rose-500 bg-rose-50 dark:bg-rose-950/50 p-4 flex items-center gap-3">
-                  <ShieldAlert className="h-6 w-6 text-rose-800 dark:text-rose-300 flex-shrink-0 animate-pulse" />
+                  <ShieldAlert className="h-6 w-6 text-rose-800 dark:text-rose-300 flex-shrink-0" aria-hidden="true" />
                   <div>
                     <h4 className="text-xs font-black text-rose-800 dark:text-rose-200 uppercase tracking-wider">
                       Atenção Médica: Alergia Severa com Risco
@@ -1884,5 +1886,6 @@ export function MedicalDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+    </PrivacyShield>
   );
 }

@@ -34,6 +34,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile, isMasterAdmin, canAccessAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { usePwa } from "@/components/pwa/PwaContext";
 import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
+import { EVENT_DATES } from "@/lib/event/identity";
 import { VoluteLoader } from "@/components/ui/VoluteLoader";
 import {
   NavigationMenu,
@@ -298,7 +299,7 @@ export function Header() {
               </span>
             </div>
             <p className="text-xs font-bold text-slate-600 dark:text-slate-400 hidden sm:block">
-              Edição 2027 • 05 a 10 de Fevereiro
+              {EVENT_DATES}
             </p>
           </div>
         </Link>
@@ -448,12 +449,12 @@ export function Header() {
                 setNotificationsOpen((o) => !o);
                 setDropdownOpen(false);
               }}
-              className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shrink-0"
+              className="relative flex h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 before:absolute before:-inset-1.5 before:content-[''] items-center justify-center rounded-xl bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 border-2 border-slate-900/20 dark:border-slate-700 shadow-2xs hover:border-slate-950 dark:hover:border-slate-600 hover:shadow-tactile-pill hover:bg-[#007DA5]/10 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shrink-0"
               aria-label={`Lembretes e Notificações${totalUnread > 0 ? `: ${totalUnread}` : ""}`}
             >
               <Bell className="h-4 w-4 text-slate-800 dark:text-slate-200" />
               {totalUnread > 0 && (
-                <span className="absolute -top-1 -right-1 flex min-h-5 min-w-5 px-1 items-center justify-center rounded-full bg-[#FC4E6D] text-xs font-black text-slate-950 border border-slate-900 motion-safe:animate-pulse">
+                <span key={totalUnread} className="fsy-attention fsy-figure absolute -top-1 -right-1 flex min-h-5 min-w-5 px-1 items-center justify-center rounded-full bg-[#FC4E6D] text-xs font-bold text-slate-950 border border-slate-900">
                   {totalUnread}
                 </span>
               )}
@@ -537,7 +538,7 @@ export function Header() {
                                     {isUrgent ? "Urgente" : isImportant ? "Importante" : "Recado Cia"}
                                   </span>
                                   {!isRead && (
-                                    <span className="h-2 w-2 rounded-full bg-[#FC4E6D] animate-ping" />
+                                    <span className="h-2 w-2 rounded-full bg-[#FC4E6D]"><span className="sr-only">Não lido</span></span>
                                   )}
                                 </div>
 
@@ -817,7 +818,7 @@ export function Header() {
               setDropdownOpen(false);
               setNotificationsOpen(false);
             }}
-            className="flex lg:hidden h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer shrink-0"
+            className="relative flex lg:hidden h-8 w-8 sm:h-9 sm:w-9 min-h-0 min-w-0 before:absolute before:-inset-1.5 before:content-[''] items-center justify-center rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-750 transition-colors cursor-pointer shrink-0"
             aria-label="Abrir menu de navegação"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

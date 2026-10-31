@@ -112,8 +112,12 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        heading: ["var(--font-heading)", "var(--font-serif)", "Cinzel", "Cormorant Garamond", "serif"],
-        serif: ["var(--font-serif)", "var(--font-heading)", "Cormorant Garamond", "Cinzel", "serif"],
+        // Títulos (Libre Baskerville). `serif` é o mesmo papel; itálico serifado vira escritura em globals.css.
+        heading: ["var(--font-heading)", "Georgia", "serif"],
+        serif: ["var(--font-heading)", "Georgia", "serif"],
+        scripture: ["var(--font-scripture)", "Georgia", "serif"],
+        // Exclusivo do lockup "Alegrar-se em Cristo"; não usar em títulos de tela.
+        lockup: ["var(--font-lockup)", "Georgia", "serif"],
       },
       keyframes: {
         "accordion-down": {

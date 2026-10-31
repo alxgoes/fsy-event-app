@@ -88,7 +88,8 @@
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading tracking-tight;
+    @apply font-heading;
+    letter-spacing: 0; /* Baskerville perde legibilidade com tracking negativo */
   }
 }
 
@@ -394,4 +395,113 @@ button:not([role="switch"]), [role="button"] {
 .fsy-panel button:focus-visible {
   outline: 3px solid hsl(var(--ring));
   outline-offset: 4px;
+}
+
+/* ==========================================================================
+   Tipografia FSY — Libre Baskerville nos títulos, Inter em dados
+   Itálico serifado é a voz das escrituras/lemas: usa Cormorant com itálico
+   verdadeiro, já que a Libre Baskerville instalada só tem o romano.
+   ========================================================================== */
+:is(.font-serif, .font-heading).italic,
+blockquote.font-serif {
+  font-family: var(--font-scripture), Georgia, serif;
+}
+h1, h2, h3 {
+  text-wrap: balance;
+}
+/* Números operacionais (contadores, KPIs, horários): Inter tabular, nunca serifa. */
+.fsy-figure {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: -0.01em;
+}
+::selection {
+  background: #ffe48a;
+  color: #0f172a;
+}
+input, textarea {
+  caret-color: #007da5;
+}
+.dark :is(input, textarea) {
+  caret-color: #7de3f4;
+}
+
+/* ==========================================================================
+   Movimento FSY — espelhado em src/lib/motion.ts
+   ========================================================================== */
+:root {
+  --motion-instant: 100ms;
+  --motion-fast: 160ms;
+  --motion-base: 220ms;
+  --motion-layout: 260ms;
+  --motion-overlay: 300ms;
+  --motion-exit: 200ms;
+  --motion-focal: 520ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Sinal de novidade: dois pulsos e para. Substitui laços infinitos (ping/pulse). */
+@keyframes fsy-attention {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.18); opacity: 0.75; }
+}
+.fsy-attention {
+  animation: fsy-attention 600ms var(--ease-out) 2;
+}
+
+/* Entrada focal do lockup no login: revelação por máscara, uma vez. */
+@keyframes fsy-reveal {
+  from { clip-path: inset(0 0 100% 0); transform: translateY(12px); opacity: 0; }
+  to { clip-path: inset(0 0 0 0); transform: translateY(0); opacity: 1; }
+}
+.fsy-reveal {
+  animation: fsy-reveal 480ms var(--ease-out) 80ms both;
+}
+@keyframes fsy-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fsy-fade-in {
+  animation: fsy-fade-in 320ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Rede de segurança: nenhum laço decorativo; estados seguem visíveis por cor/texto. */
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .fsy-attention {
+    animation: none !important;
+  }
+  .fsy-reveal {
+    animation: fsy-fade-in 150ms linear both;
+  }
+  .fsy-fade-in {
+    animation-duration: 150ms;
+  }
+}
+
+/* ==========================================================================
+   Proteção de privacidade (dados de saúde) — cobre ao ocultar a aba/app.
+   Não impede capturas de tela; apenas evita exposição ao alternar apps.
+   ========================================================================== */
+.fsy-privacy-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* acima de diálogos e sheets (z-50) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--background)); /* opaco: blur ainda revelaria a forma dos dados */
+}
+
+/* Arraste de cartões: o cartão levantado acompanha o dedo (transform aplicado em JS);
+   o slot de origem fica tingido e pontilhado. will-change só durante o gesto. */
+.fsy-drag-lift {
+  z-index: 40;
+  will-change: transform;
+  border-radius: 1.6rem;
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.35), 0 8px 12px -8px rgba(15, 23, 42, 0.2);
 }

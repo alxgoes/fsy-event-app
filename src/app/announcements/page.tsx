@@ -415,7 +415,7 @@ export default function AnnouncementsPage() {
                         <span
                           className={`rounded-xl px-2.5 py-0.5 text-xs font-black uppercase border-2 border-slate-900 ${
                             isUrgent
-                              ? "bg-red-700 text-white animate-pulse"
+                              ? "bg-red-700 text-white"
                               : isImportant
                               ? "bg-[#FFE48A] text-amber-950"
                               : "bg-[#007DA5] text-white"

@@ -49,7 +49,8 @@ export function FsyTempleMark({
         maxHeight: "100%",
         aspectRatio: "100 / 180",
       }}
-      aria-label="FSY Temple Arch Mark"
+      role="img"
+      aria-label="Templo de Salt Lake no arco, símbolo do tema 2027"
     >
       {/* Arch Background Container matching Image 1 */}
       <path
@@ -211,20 +212,20 @@ export function FsyLogo({
       <div className={`flex flex-col select-none ${className}`}>
         <span
           className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
-          style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
         >
           {EVENT_THEME_LEAD}
         </span>
         <span
           className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-0.5 ${sizeClasses.christ}`}
-          style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
         >
           {EVENT_THEME_FOCUS}
         </span>
         {showScripture && (
           <span
             className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1 ${sizeClasses.scripture}`}
-            style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+            style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
           >
             {EVENT_SCRIPTURE}
           </span>
@@ -241,20 +242,20 @@ export function FsyLogo({
         <div className="mt-3 flex flex-col items-center">
           <span
             className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
-            style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+            style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
           >
             {EVENT_THEME_LEAD}
           </span>
           <span
             className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-1 ${sizeClasses.christ}`}
-            style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+            style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
           >
             {EVENT_THEME_FOCUS}
           </span>
           {showScripture && (
             <span
               className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1.5 ${sizeClasses.scripture}`}
-              style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+              style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
             >
               {EVENT_SCRIPTURE}
             </span>
@@ -272,20 +273,20 @@ export function FsyLogo({
       <div className="flex flex-col justify-center">
         <span
           className={`font-serif uppercase font-bold text-slate-950 dark:text-white leading-none ${sizeClasses.rejoice}`}
-          style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
         >
           {EVENT_THEME_LEAD}
         </span>
         <span
           className={`font-serif uppercase font-bold text-slate-900 dark:text-white leading-none mt-0.5 ${sizeClasses.christ}`}
-          style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+          style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
         >
           {EVENT_THEME_FOCUS}
         </span>
         {showScripture && (
           <span
             className={`font-serif uppercase font-normal text-slate-800 dark:text-slate-200 mt-1 ${sizeClasses.scripture}`}
-            style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', 'Cormorant Garamond', serif" }}
+            style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
           >
             {EVENT_SCRIPTURE}
           </span>

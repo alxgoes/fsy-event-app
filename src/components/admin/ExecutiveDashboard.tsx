@@ -19,7 +19,9 @@ import {
   RefreshCw,
   Compass,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { fetchJson, HttpStatusError } from "@/lib/requests/client";
+import type { AdminOverview } from "@/types/native-auth";
+import { ErrorState, PermissionState } from "@/components/ui/states";
 import { ScrollIndicator, ScrollSection } from "@/components/ui/scroll-indicator";
 
 const DASHBOARD_SECTIONS: ScrollSection[] = [
@@ -39,14 +41,7 @@ interface ExecutiveMetrics {
   totalPhotos: number;
 }
 
-interface RecentAnnouncement {
-  id: string;
-  title: string;
-  priority: string;
-  category?: string;
-  created_at: string;
-  content: string;
-}
+type RecentAnnouncement = AdminOverview["recent_announcements"][number];
 
 export function ExecutiveDashboard() {
   const shouldReduceMotion = useReducedMotion();
@@ -64,61 +59,31 @@ export function ExecutiveDashboard() {
   const [recentAnnouncements, setRecentAnnouncements] = useState<RecentAnnouncement[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [loadError, setLoadError] = useState<"forbidden" | "failed" | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Só contagens agregadas no servidor (GET /api/admin/overview): o navegador não baixa perfis nem fichas de saúde.
   const loadExecutiveData = useCallback(async () => {
     setLoading(true);
-    const supabase = createClient();
-
+    const controller = new AbortController();
     try {
-      const [
-        { data: profiles },
-        { count: companiesCount },
-        { count: medicalCount },
-        { data: annData, count: announcementsCount },
-        { count: photosCount },
-      ] = await Promise.all([
-        supabase.from("profiles").select("id, role, company_id, room"),
-        supabase.from("companies").select("*", { count: "exact", head: true }),
-        supabase.from("medical_records").select("*", { count: "exact", head: true }),
-        supabase
-          .from("announcements")
-          .select("id, title, priority, category, created_at, content", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .limit(4),
-        supabase.from("media_photos").select("*", { count: "exact", head: true }),
-      ]);
-
-      let totalY = 0;
-      let withComp = 0;
-      let withRoom = 0;
-      let totalCouns = 0;
-
-      if (profiles) {
-        profiles.forEach((p) => {
-          if (p.role === "jovem" || !p.role) {
-            totalY++;
-            if (p.company_id) withComp++;
-            if (p.room) withRoom++;
-          }
-          if (p.role === "consultor") {
-            totalCouns++;
-          }
-        });
-      }
-
+      const overview = await fetchJson<AdminOverview>("/api/admin/overview", controller.signal);
       setMetrics({
-        totalYouth: totalY,
-        youthWithCompany: withComp,
-        youthWithRoom: withRoom,
-        totalCompanies: companiesCount ?? 0,
-        totalCounselors: totalCouns,
-        medicalAlerts: medicalCount ?? 0,
-        totalAnnouncements: announcementsCount ?? 0,
-        totalPhotos: photosCount ?? 0,
+        totalYouth: overview.total_youth,
+        youthWithCompany: overview.youth_with_company,
+        youthWithRoom: overview.youth_with_room,
+        totalCompanies: overview.total_companies,
+        totalCounselors: overview.total_counselors,
+        medicalAlerts: overview.medical_records,
+        totalAnnouncements: overview.total_announcements,
+        totalPhotos: overview.total_photos,
       });
-
-      setRecentAnnouncements(annData ?? []);
+      setRecentAnnouncements(overview.recent_announcements);
+      setLoadError(null);
+      setLoaded(true);
     } catch (err) {
-      console.error("Error loading executive dashboard metrics:", err);
+      const status = err instanceof HttpStatusError ? err.status : 0;
+      setLoadError(status === 401 || status === 403 ? "forbidden" : "failed");
     } finally {
       setLoading(false);
     }
@@ -186,8 +151,32 @@ export function ExecutiveDashboard() {
           </div>
         </div>
 
+        {loadError === "forbidden" && (
+          <PermissionState
+            title="Métricas indisponíveis para o seu cargo"
+            description="A visão consolidada é exclusiva da coordenação, do Casal Diretor e da logística. Os módulos abaixo continuam conforme o seu acesso."
+          />
+        )}
+        {loadError === "failed" && (
+          <ErrorState
+            title="Não foi possível carregar as métricas"
+            description="A consulta ao servidor falhou ou a conexão caiu. Os números não foram atualizados."
+            actions={
+              <button
+                type="button"
+                onClick={() => void loadExecutiveData()}
+                disabled={loading}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#007DA5] px-4 text-sm font-semibold text-white hover:bg-[#005E7C] dark:bg-[#01B6D1] dark:text-slate-950"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
+                Tentar novamente
+              </button>
+            }
+          />
+        )}
+
         {/* 2. Top Metrics (Bento Grid of 4 Minimalist Boxes) */}
-        <CustomizableGrid pageKey="admin-metrics" version={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" items={[{ id: "youth", label: "Jovens", content: (<motion.div
+        {!loadError && <CustomizableGrid pageKey="admin-metrics" version={1} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" items={[{ id: "youth", label: "Jovens", content: (<motion.div
             whileHover={shouldReduceMotion ? undefined : { y: -2 }}
             transition={{ type: "spring", stiffness: 350, damping: 25 }}
             className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
@@ -200,8 +189,8 @@ export function ExecutiveDashboard() {
                 <Users className="h-4 w-4" />
               </div>
             </div>
-            <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
-              {metrics.totalYouth}
+            <div data-kpi="" className="fsy-figure text-3xl font-bold text-slate-900 dark:text-white">
+              {loaded ? metrics.totalYouth : <><span aria-hidden="true">—</span><span className="sr-only">Carregando</span></>}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Em companhias: <strong>{metrics.youthWithCompany}</strong></span>
@@ -221,8 +210,8 @@ export function ExecutiveDashboard() {
                 <Building2 className="h-4 w-4" />
               </div>
             </div>
-            <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
-              {metrics.totalCompanies}
+            <div data-kpi="" className="fsy-figure text-3xl font-bold text-slate-900 dark:text-white">
+              {loaded ? metrics.totalCompanies : <><span aria-hidden="true">—</span><span className="sr-only">Carregando</span></>}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Consultores: <strong>{metrics.totalCounselors}</strong></span>
@@ -242,8 +231,8 @@ export function ExecutiveDashboard() {
                 <Stethoscope className="h-4 w-4" />
               </div>
             </div>
-            <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
-              {metrics.medicalAlerts}
+            <div data-kpi="" className="fsy-figure text-3xl font-bold text-slate-900 dark:text-white">
+              {loaded ? metrics.medicalAlerts : <><span aria-hidden="true">—</span><span className="sr-only">Carregando</span></>}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span className="text-emerald-800 dark:text-emerald-300 dark:text-emerald-400 font-bold">Acompanhamento Ativo</span>
@@ -265,8 +254,8 @@ export function ExecutiveDashboard() {
                 <Camera className="h-4 w-4" />
               </div>
             </div>
-            <div className="font-serif text-3xl font-black text-slate-900 dark:text-white">
-              {metrics.totalPhotos}
+            <div data-kpi="" className="fsy-figure text-3xl font-bold text-slate-900 dark:text-white">
+              {loaded ? metrics.totalPhotos : <><span aria-hidden="true">—</span><span className="sr-only">Carregando</span></>}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Drive & Murais</span>
@@ -274,7 +263,7 @@ export function ExecutiveDashboard() {
                 Gerenciar &rarr;
               </Link>
             </div>
-          </motion.div>) }]} />
+          </motion.div>) }]} />}
       </div>
 
       {/* 3. Interactive Management Modules (Bento Action Cards) */}
@@ -497,9 +486,9 @@ export function ExecutiveDashboard() {
                     <h4 className="font-serif text-sm font-bold text-slate-900 dark:text-white">
                       {ann.title}
                     </h4>
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                      {ann.content}
-                    </p>
+                    {ann.category && (
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{ann.category}</p>
+                    )}
                   </div>
                 </div>
               ))}

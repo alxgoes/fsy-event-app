@@ -29,7 +29,7 @@ export function HeroCard({
     >
       <div className="absolute top-4 right-6 hidden sm:flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold backdrop-blur-md border border-white/25 text-[#005E7C]">
-          <span className="h-2 w-2 rounded-full bg-[#93C742] animate-pulse" />
+          <span className="h-2 w-2 rounded-full bg-[#93C742]" aria-hidden="true" />
           <span>Sessão Ribeirão Preto 2</span>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function HeroCard({
         <div>
           {/* Day & Theme Badge */}
           <div className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-1 text-xs sm:text-sm font-black uppercase tracking-wider backdrop-blur-md border border-white/30 text-[#005E7C] mb-3">
-            <span className="h-2 w-2 rounded-full bg-[#93C742] animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-[#93C742]" aria-hidden="true" />
             {sessionDay}
           </div>
 

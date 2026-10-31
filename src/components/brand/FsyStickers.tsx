@@ -20,7 +20,7 @@ export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
   return (
     <div
       className={`inline-flex flex-col items-center justify-center rounded-full bg-[#FDA192] text-slate-950 font-serif border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none ${sizeMap[size]} ${className}`}
-      style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
+      style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <span className="text-[0.7em] tracking-[0.2em] uppercase font-bold">{EVENT_THEME_LEAD}</span>
       <span className="text-[1.15em] tracking-[0.1em] uppercase font-bold leading-tight">{EVENT_THEME_FOCUS}</span>
@@ -85,7 +85,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
   return (
     <div
       className={`inline-flex flex-col items-center rounded-2xl bg-[#01B6D1] text-white border-2 border-slate-900 shadow-sm select-none text-center ${sizeMap[size]} ${className}`}
-      style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
+      style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <div className="h-10 w-auto mb-1">
         <FsyTempleMark colorMode="four-color" className="h-full w-auto mx-auto" />
@@ -107,7 +107,7 @@ export function BluePennantSticker({ className = "" }: { className?: string }) {
       style={{
         clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
         minWidth: "260px",
-        fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif",
+        fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif",
       }}
     >
       <span className="text-xs font-bold tracking-widest pl-1">{EVENT_THEME}</span>
@@ -128,7 +128,7 @@ export function YellowCapsuleSticker({ className = "", size = "md" }: StickerPro
   return (
     <div
       className={`inline-flex items-center justify-between gap-3 rounded-full bg-[#FFE48A] text-slate-950 border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none font-serif ${sizeMap[size]} ${className}`}
-      style={{ fontFamily: "var(--font-heading), 'Mckay', 'Cinzel', serif" }}
+      style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <div className="flex flex-col text-left">
         <span className="text-[0.7em] tracking-[0.18em] uppercase font-bold leading-none">{EVENT_THEME_LEAD}</span>

@@ -200,7 +200,7 @@ export function AnnouncementsManager() {
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-rose-50 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800 motion-safe:animate-pulse";
+        return "bg-rose-50 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800";
       case "important":
         return "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800";
       default:
@@ -222,12 +222,12 @@ export function AnnouncementsManager() {
             </Badge>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400">
-            Envie alertas para todos os participantes ou companhias específicas em tempo real.
+            Envie alertas para todos os participantes ou para companhias específicas. Eles aparecem quando o portal é aberto ou atualizado.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
               <CheckCircle2 className="h-4 w-4" /> Comunicado publicado!
             </span>
           )}

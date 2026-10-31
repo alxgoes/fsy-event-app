@@ -293,11 +293,11 @@ export function MediaManager() {
               Gestão de Fotos & Mídia
             </h1>
             <span className="rounded-full bg-[#FC4E6D]/15 text-[#FC4E6D] dark:text-[#ff6b87] border border-[#FC4E6D]/30 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider">
-              FSY 2027 Live
+              FSY 2027
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium">
-            Sincronização em tempo real com o Google Drive para o Mural de Memórias dos jovens.
+            Fotos do Google Drive selecionadas para o Mural de Memórias dos jovens.
           </p>
         </div>
 

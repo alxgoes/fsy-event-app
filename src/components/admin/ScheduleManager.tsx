@@ -349,17 +349,17 @@ export function ScheduleManager() {
               Gestão do Cronograma Oficial
             </h1>
             <Badge className="bg-[#007DA5] text-white text-xs font-black uppercase">
-              FSY 2027 Live
+              FSY 2027
             </Badge>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium">
-            05 a 10 de Fevereiro de 2027 — Todas as alterações refletem em tempo real no portal dos jovens.
+            Dia da equipe 05/02 · Participantes 06 a 10 de fevereiro de 2027. As alterações aparecem no portal dos jovens na próxima atualização da página.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 motion-safe:animate-pulse motion-reduce:animate-none">
+            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
               <CheckCircle2 className="h-4 w-4" /> Atualizado!
             </span>
           )}
@@ -762,7 +762,7 @@ export function ScheduleManager() {
               <Database className="h-5 w-5" /> Sincronizar Cronograma 2027
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
-              Isso atualizará todas as 82 atividades oficiais dos 6 dias (05 a 10 de Fevereiro de 2027) no banco de dados. Deseja continuar?
+              Isso atualizará todas as 82 atividades oficiais dos 6 dias (05/02, dia da equipe, e 06 a 10 de fevereiro de 2027) no banco de dados. Deseja continuar?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 flex gap-2">
