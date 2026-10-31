@@ -39,3 +39,13 @@ Com Java/SDK configurados, executar a partir de `android`:
 As migrações `202610310001` e `202610310002` foram aplicadas juntas em uma transação ao projeto Supabase confirmado. Antes: zero objetos-alvo existentes. Depois: seis tabelas novas com RLS forçada, zero grants de tabelas/funções para anon/authenticated, contagens antigas preservadas (Auth6/perfis6/companhias4/agenda82/prontuários0). O snapshot de estrutura/contagens não equivale a dump completo de dados/Auth/Storage.
 
 A ficha de autorização sintética foi renderizada e inspecionada após corrigir marcação de sexo e sobreposição médica. Modelo oficial preservado byte a byte; cinco testes PDF aprovados. Não foi usado dado pessoal real.
+
+## Publicação do APK
+
+Release público: https://github.com/alxgoes/fsy-event-app/releases/tag/android-v1.0.0
+
+Download HTTPS verificado: https://github.com/alxgoes/fsy-event-app/releases/download/android-v1.0.0/fsy-rp2-2027-v1.0.0-release.apk
+
+O digest SHA256 publicado pelo GitHub coincide com `android/release-metadata.json`. A chave de assinatura permanece fora Git; o release contém apenas APK e soma de verificação.
+
+Portal publicado: https://fsy-event-app.vercel.app/instalar — produção READY, HTTP200. `/api/app-release` retorna `ready_direct_download`, tamanho e SHA256 do APK real. Consultas sem sessão às rotas administrativas e de dispositivos retornaram401 JSON. Web lint/typecheck/build finais aprovados.
