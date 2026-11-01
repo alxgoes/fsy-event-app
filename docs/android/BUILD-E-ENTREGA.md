@@ -10,6 +10,8 @@ Nenhum celular ou emulador conectado: OAuth/FCM reais, integração com launcher
 
 Distribuição desta versão: release GitHub `android-v1.1.0`; o site `/instalar` usa `android/release-metadata.json` e `NEXT_PUBLIC_ANDROID_APK_URL`. A assinatura persistente permite atualizar a instalação 1.0.0.
 
+Publicação concluída em 01/11/2026: commit `640799e`, [release Android 1.1.0](https://github.com/alxgoes/fsy-event-app/releases/tag/android-v1.1.0), deployment Vercel `dpl_6zFtExNWAmyi8mtNPEPq2D9RPs6E`, produção [Instalar o app](https://fsy-event-app.vercel.app/instalar). APK público respondeu HTTP 200 e seu digest no GitHub coincide com o SHA256 acima. `/api/app-release` em produção confirmou 1.1.0 (2), 10.291.151 bytes, hash e URL novos, com disponibilidade `ready_direct_download`; `/instalar` respondeu 200 e seu botão consulta essa API no cliente. As rotas administrativas de inscrições e de dispositivos de notificações mantiveram HTTP 401 sem sessão. Lint e build web aprovados; o rastreamento de arquivos da rota inclui os metadados Android.
+
 ## Histórico da primeira entrega — 31/10/2026
 
 Estado verificado: APK release Kotlin/Compose compilado e assinado. Sem WebView para funcionalidades internas.
