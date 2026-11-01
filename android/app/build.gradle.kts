@@ -67,8 +67,8 @@ android {
         applicationId = "br.com.fsyrp2.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -152,6 +152,13 @@ android {
 
     testOptions {
         unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            it.maxHeapSize = "2048m"
+            it.maxParallelForks = 1
+            it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
+            it.systemProperty("roborazzi.test.record", "true")
+        }
     }
 
     packaging {
@@ -172,7 +179,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.browser:browser:1.8.0")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
     implementation("androidx.glance:glance-appwidget:1.1.1")
@@ -188,4 +194,11 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("org.json:json:20231013")
+    // Native Compose rendering with synthetic fixtures; excluded from release.
+    "testDebugImplementation"("org.robolectric:robolectric:4.14.1")
+    "testDebugImplementation"("androidx.test:core:1.6.1")
+    "testDebugImplementation"("androidx.test.ext:junit:1.2.1")
+    "testDebugImplementation"("androidx.compose.ui:ui-test-junit4")
+    "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi:1.29.0")
+    "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi-compose:1.29.0")
 }

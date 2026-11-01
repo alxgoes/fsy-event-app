@@ -1,13 +1,10 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -174,7 +171,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 },
                 modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
+                Icon(FsyIcons.Plus, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
                 Text("Registrar nova ficha médica")
             }
@@ -206,7 +203,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                             IconButton(
                                 onClick = { creatingNewRecord = false; editingRecord = rec },
                                 modifier = Modifier.size(48.dp)
-                            ) { Icon(Icons.Default.Edit, contentDescription = "Editar ficha") }
+                            ) { Icon(FsyIcons.Pencil, contentDescription = "Editar ficha") }
                             IconButton(
                                 onClick = {
                                     scope.launch {
@@ -218,7 +215,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                                     }
                                 },
                                 modifier = Modifier.size(48.dp)
-                            ) { Icon(Icons.Default.Delete, contentDescription = "Excluir ficha", tint = FsyPalette.Danger) }
+                            ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir ficha", tint = FsyPalette.Danger) }
                         }
                     }
                 }
@@ -236,7 +233,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 },
                 modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
+                Icon(FsyIcons.Plus, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
                 Text("Agendar consulta médica")
             }
@@ -253,7 +250,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                                 FsyStatusBadge(
                                     text = appt.priority.uppercase(),
                                     backgroundColor = if (appt.priority == "urgent") FsyPalette.Danger else FsyPalette.PrimarySky,
-                                    contentColor = Color.White
+                                    contentColor = if (appt.priority == "urgent") MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary
                                 )
                                 FsyStatusBadge(
                                     text = appt.status,
@@ -274,7 +271,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                             IconButton(
                                 onClick = { creatingNewAppointment = false; editingAppointment = appt },
                                 modifier = Modifier.size(48.dp)
-                            ) { Icon(Icons.Default.Edit, contentDescription = "Editar consulta") }
+                            ) { Icon(FsyIcons.Pencil, contentDescription = "Editar consulta") }
                             IconButton(
                                 onClick = {
                                     scope.launch {
@@ -286,7 +283,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                                     }
                                 },
                                 modifier = Modifier.size(48.dp)
-                            ) { Icon(Icons.Default.Delete, contentDescription = "Excluir consulta", tint = FsyPalette.Danger) }
+                            ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir consulta", tint = FsyPalette.Danger) }
                         }
                     }
                 }
@@ -484,7 +481,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 onClick = { creatingCase = true },
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
+                Icon(FsyIcons.Plus, contentDescription = null)
                 Spacer(Modifier.width(4.dp))
                 Text("Novo caso")
             }
@@ -496,7 +493,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
         if (cases.isEmpty() && !isLoading) {
             FsyEmptyStateCard(
                 title = "Nenhum caso de inclusão listado",
-                description = "Toque em 'Novo caso' para registrar acompanhamento individualizado."
+                description = "Use “Novo caso” para registrar um acompanhamento."
             )
         } else {
             cases.forEach { c ->
@@ -511,7 +508,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                                 FsyStatusBadge(
                                     text = c.supportLevel.uppercase(),
                                     backgroundColor = if (c.supportLevel == "critical" || c.supportLevel == "high") FsyPalette.Danger else FsyPalette.PrimarySky,
-                                    contentColor = Color.White
+                                    contentColor = if (c.supportLevel == "critical" || c.supportLevel == "high") MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onPrimary
                                 )
                                 FsyStatusBadge(
                                     text = c.workflowStatus,
@@ -552,7 +549,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                             onClick = { recordingDecisionForCase = c },
                             modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
                         ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(FsyIcons.CircleCheck, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Decisão")
                         }
@@ -638,7 +635,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                         onClick = { addingInterviewForCase = detailCase },
                         modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                        Icon(FsyIcons.Plus, contentDescription = null)
                         Spacer(Modifier.width(4.dp))
                         Text("Registrar entrevista")
                     }

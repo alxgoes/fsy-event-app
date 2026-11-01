@@ -114,3 +114,9 @@ Antes de publicar: exportar dados/Auth, conferir o histórico de migrações, ap
 Para retornar, preservar o artefato anterior e o snapshot do banco/Auth. Reverter código não desfaz migrações; não reaplicar schema antigo nem revogar as proteções por SQL improvisado. Preferir correção progressiva compatível com os dados e restaurar backup apenas sob um procedimento conferido. Os servidores locais de QA e a sessão Astra foram encerrados.
 
 O manual funcional e de design foi escrito como última etapa editorial substantiva, refletindo esses resultados e limitações.
+
+## Android 1.1.0 — revisão de 01/11/2026
+
+Interface Kotlin/Compose redesenhada por Claude Opus 5.5: marca oficial em português sem estrela nem repetição decorativa, ícones Lucide, controles arredondados, início com informações operacionais, seletor de aparência persistente e cinco widgets. `docs/android/MOTION-DESIGN.md` registra movimentos realmente utilizados, incluindo entrada automática, alternância pausável de avisos não urgentes e páginas do widget Destaques.
+
+QA com dados sintéticos em renderização Android nativa: 21 testes debug e 7 release aprovados, build assinado e lint sem erros (51 avisos). Revisor independente Impeccable encerrou três correções visuais com ship no escopo capturado; fonte 200%, temas claro/escuro, campos e widgets foram recapturados. Mesmo certificado da 1.0.0; nenhum harness de teste no release. Teste em aparelho e entrega real de OAuth/FCM continuam pendentes. Metadados verificáveis em `android/release-metadata.json` e instruções em `docs/android/BUILD-E-ENTREGA.md`.

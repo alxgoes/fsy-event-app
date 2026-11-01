@@ -2,26 +2,52 @@ package br.com.fsyrp2.app.ui.screens
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,295 +56,323 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import br.com.fsyrp2.app.state.FsyAppState
-import br.com.fsyrp2.app.ui.components.FsyDiscLogo
-import br.com.fsyrp2.app.ui.components.FsySectionCard
+import br.com.fsyrp2.app.ui.components.FsyActionButton
+import br.com.fsyrp2.app.ui.components.FsyButtonTone
+import br.com.fsyrp2.app.ui.components.FsyCardShape
+import br.com.fsyrp2.app.ui.components.FsyControlShape
+import br.com.fsyrp2.app.ui.components.FsyEventFacts
+import br.com.fsyrp2.app.ui.components.FsyOfficialMark
+import br.com.fsyrp2.app.ui.components.FsyNotice
+import br.com.fsyrp2.app.ui.components.FsySegmentedSelector
+import br.com.fsyrp2.app.ui.components.FsyStatusBadge
+import br.com.fsyrp2.app.ui.components.fsyReveal
+import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
-import br.com.fsyrp2.app.ui.motion.fsyPressScale
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.FsyPalette
+import br.com.fsyrp2.app.ui.theme.LibreBaskervilleFontFamily
 
-private enum class AuthMode(val label: String) {
-    LOGIN("Entrar"),
-    SIGN_UP("Criar conta"),
-    RECOVER("Recuperar senha")
-}
+private enum class AuthMode { LOGIN, SIGN_UP, RECOVER }
 
 @Composable
 fun AuthScreen(appState: FsyAppState) {
     val context = LocalContext.current
     val haptics = rememberFsyHaptics()
+    val focus = LocalFocusManager.current
     val reduceMotion = fsyMotionPreferences().reduceMotion
 
-    var mode by remember { mutableStateOf(AuthMode.LOGIN) }
-    var email by remember { mutableStateOf("") }
+    var mode by rememberSaveable { mutableStateOf(AuthMode.LOGIN) }
+    var email by rememberSaveable { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var fullName by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("") }
+    var fullName by rememberSaveable { mutableStateOf("") }
+    var unit by rememberSaveable { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
 
-    val primaryInteraction = remember { MutableInteractionSource() }
-    val googleInteraction = remember { MutableInteractionSource() }
+    fun switchMode(target: AuthMode) {
+        haptics.tick()
+        appState.authError = null
+        appState.authInfoMessage = null
+        mode = target
+    }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
+    fun submit(current: AuthMode) {
+        haptics.confirm()
+        focus.clearFocus()
+        when (current) {
+            AuthMode.LOGIN -> appState.signIn(email, password)
+            AuthMode.SIGN_UP -> appState.signUp(email, password, fullName, unit)
+            AuthMode.RECOVER -> appState.requestPasswordRecovery(email)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .imePadding(),
+        contentAlignment = Alignment.TopCenter,
+    ) {
         Column(
             modifier = Modifier
+                .widthIn(max = 480.dp)
                 .fillMaxSize()
-                .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 24.dp),
+                .padding(horizontal = 20.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            Spacer(Modifier.height(8.dp))
-
-            FsyDiscLogo(size = 84.dp)
-
+            // Identidade: único momento focal da app (assenta uma vez, sem laço).
             Column(
+                modifier = Modifier.fsyReveal(0),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                // Identificador oficial completo (PNG original): placa clara, cantos amplos.
                 Surface(
-                    color = FsyPalette.SecondarySunshine,
-                    shape = RoundedCornerShape(999.dp)
+                    color = androidx.compose.ui.graphics.Color.White,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                    modifier = Modifier.semantics { heading() },
                 ) {
-                    Text(
-                        text = "FSY 2027 • SESSÃO RIBEIRÃO PRETO 2",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = FsyPalette.DeepText,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                    )
+                    FsyOfficialMark(modifier = Modifier.height(188.dp).padding(horizontal = 18.dp, vertical = 14.dp))
                 }
-
-                Text(
-                    text = "Alegrar-se em Cristo",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground
+                FsyStatusBadge(
+                    text = FsyEventFacts.SESSION,
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
                 )
-
                 Text(
-                    text = "“Alegrai-vos sempre no Senhor; outra vez digo, alegrai-vos.” — Filipenses 4:4",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = "06 a 10 de fevereiro de 2027 • Ipê Park Hotel • São José do Rio Preto / SP",
+                    text = "${FsyEventFacts.DATES}\n${FsyEventFacts.VENUE} · ${FsyEventFacts.CITY}",
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            // Seletor de modo (Entrar / Criar conta / Recuperar senha)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Surface(
+                shape = FsyCardShape,
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                shadowElevation = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fsyReveal(1),
             ) {
-                AuthMode.entries.forEach { tabMode ->
-                    val selected = mode == tabMode
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            haptics.tick()
-                            appState.authError = null
-                            appState.authInfoMessage = null
-                            mode = tabMode
-                        },
-                        label = {
-                            Text(
-                                text = tabMode.label,
-                                modifier = Modifier.fillMaxWidth(),
-                                textAlign = TextAlign.Center
-                            )
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
-                    )
-                }
-            }
-
-            if (!appState.authError.isNullOrBlank()) {
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Text(
-                        text = appState.authError.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(14.dp)
-                    )
-                }
-            }
-
-            if (!appState.authInfoMessage.isNullOrBlank()) {
-                Surface(
-                    color = FsyPalette.Success.copy(alpha = 0.14f),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = appState.authInfoMessage.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(14.dp)
-                    )
-                }
-            }
-
-            AnimatedContent(
-                targetState = mode,
-                transitionSpec = { fsyContentSwap(reduceMotion) },
-                label = "AuthFormModeSwap"
-            ) { currentMode ->
-                FsySectionCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        if (currentMode == AuthMode.SIGN_UP) {
-                            OutlinedTextField(
-                                value = fullName,
-                                onValueChange = { fullName = it },
-                                label = { Text("Nome completo") },
-                                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    capitalization = KeyboardCapitalization.Words,
-                                    imeAction = ImeAction.Next
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            OutlinedTextField(
-                                value = unit,
-                                onValueChange = { unit = it },
-                                label = { Text("Ala ou Ramo / Estaca") },
-                                leadingIcon = { Icon(Icons.Default.Place, contentDescription = null) },
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    capitalization = KeyboardCapitalization.Words,
-                                    imeAction = ImeAction.Next
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        OutlinedTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            label = { Text("E-mail") },
-                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Email,
-                                imeAction = if (currentMode == AuthMode.RECOVER) ImeAction.Done else ImeAction.Next
-                            ),
-                            modifier = Modifier.fillMaxWidth()
+                    if (mode != AuthMode.RECOVER) {
+                        FsySegmentedSelector(
+                            options = listOf("Entrar", "Criar conta"),
+                            selectedIndex = if (mode == AuthMode.SIGN_UP) 1 else 0,
+                            onSelect = { switchMode(if (it == 1) AuthMode.SIGN_UP else AuthMode.LOGIN) },
                         )
+                    } else {
+                        Text(
+                            "Recuperar senha",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                    }
 
-                        if (currentMode != AuthMode.RECOVER) {
-                            OutlinedTextField(
-                                value = password,
-                                onValueChange = { password = it },
-                                label = { Text("Senha") },
-                                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                                trailingIcon = {
-                                    IconButton(
-                                        onClick = { showPassword = !showPassword },
-                                        modifier = Modifier.size(48.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (showPassword) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                            contentDescription = if (showPassword) "Ocultar senha" else "Mostrar senha"
-                                        )
-                                    }
-                                },
-                                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Done
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                    val ext = FsyPalette.Extended
+                    AnimatedVisibility(visible = !appState.authError.isNullOrBlank()) {
+                        FsyNotice(
+                            icon = FsyIcons.CircleAlert,
+                            text = appState.authError.orEmpty(),
+                            container = MaterialTheme.colorScheme.errorContainer,
+                            content = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                    AnimatedVisibility(visible = !appState.authInfoMessage.isNullOrBlank()) {
+                        FsyNotice(
+                            icon = FsyIcons.CircleCheck,
+                            text = appState.authInfoMessage.orEmpty(),
+                            container = ext.successContainer,
+                            content = ext.onSuccessContainer,
+                        )
+                    }
 
-                        Button(
-                            onClick = {
-                                haptics.confirm()
-                                when (currentMode) {
-                                    AuthMode.LOGIN -> appState.signIn(email, password)
-                                    AuthMode.SIGN_UP -> appState.signUp(email, password, fullName, unit)
-                                    AuthMode.RECOVER -> appState.requestPasswordRecovery(email)
-                                }
-                            },
-                            enabled = !appState.isAuthenticating,
-                            interactionSource = primaryInteraction,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .defaultMinSize(minHeight = 52.dp)
-                                .fsyPressScale(primaryInteraction)
-                        ) {
-                            if (appState.isAuthenticating) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Spacer(Modifier.width(10.dp))
-                            }
-                            Text(
-                                text = when (currentMode) {
-                                    AuthMode.LOGIN -> "Entrar no aplicativo"
-                                    AuthMode.SIGN_UP -> "Criar minha conta"
-                                    AuthMode.RECOVER -> "Enviar link de recuperação"
-                                },
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        if (currentMode == AuthMode.LOGIN) {
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                            OutlinedButton(
-                                onClick = {
-                                    haptics.confirm()
-                                    val oauthUri = appState.buildGoogleOAuthUri()
-                                    if (oauthUri != null) {
-                                        try {
-                                            CustomTabsIntent.Builder()
-                                                .setShowTitle(true)
-                                                .build()
-                                                .launchUrl(context, oauthUri)
-                                        } catch (_: Exception) {
-                                            appState.authError = "Não foi possível iniciar o navegador seguro para login com Google."
+                    AnimatedContent(
+                        targetState = mode,
+                        transitionSpec = { fsyContentSwap(reduceMotion) },
+                        label = "AuthFormModeSwap",
+                    ) { currentMode ->
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            if (currentMode == AuthMode.LOGIN) {
+                                // Pílula curta com o "G" oficial de quatro cores (diretrizes de marca do Google).
+                                androidx.compose.material3.OutlinedButton(
+                                    enabled = !appState.isAuthenticating,
+                                    shape = br.com.fsyrp2.app.ui.components.FsyPillShape,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        contentColor = MaterialTheme.colorScheme.onSurface,
+                                    ),
+                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp, vertical = 10.dp),
+                                    modifier = Modifier
+                                        .align(Alignment.CenterHorizontally)
+                                        .heightIn(min = 48.dp),
+                                    onClick = {
+                                        haptics.confirm()
+                                        val oauthUri = appState.buildGoogleOAuthUri()
+                                        if (oauthUri != null) {
+                                            try {
+                                                CustomTabsIntent.Builder()
+                                                    .setShowTitle(true)
+                                                    .build()
+                                                    .launchUrl(context, oauthUri)
+                                            } catch (_: Exception) {
+                                                appState.authError = "Não foi possível abrir o navegador para entrar com Google."
+                                            }
                                         }
-                                    }
-                                },
-                                enabled = !appState.isAuthenticating,
-                                interactionSource = googleInteraction,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .defaultMinSize(minHeight = 52.dp)
-                                    .fsyPressScale(googleInteraction)
-                            ) {
+                                    },
+                                ) {
+                                    androidx.compose.foundation.Image(
+                                        painter = androidx.compose.ui.res.painterResource(br.com.fsyrp2.app.R.drawable.ic_google_g),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                    Spacer(Modifier.size(10.dp))
+                                    Text("Continuar com Google", style = MaterialTheme.typography.labelLarge)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                                    Text(
+                                        "ou com e-mail",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                    )
+                                    HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                                }
+                            }
+                            if (currentMode == AuthMode.RECOVER) {
                                 Text(
-                                    text = "Continuar com Google (OAuth PKCE)",
-                                    fontWeight = FontWeight.SemiBold
+                                    "Enviaremos um link para criar uma nova senha.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                            }
+                            if (currentMode == AuthMode.SIGN_UP) {
+                                AuthField(
+                                    value = fullName,
+                                    onValueChange = { fullName = it },
+                                    label = "Nome completo",
+                                    icon = FsyIcons.UserRound,
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+                                    onNext = { focus.moveFocus(FocusDirection.Down) },
+                                )
+                                AuthField(
+                                    value = unit,
+                                    onValueChange = { unit = it },
+                                    label = "Ala ou ramo / estaca",
+                                    icon = FsyIcons.MapPin,
+                                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+                                    onNext = { focus.moveFocus(FocusDirection.Down) },
+                                )
+                            }
+                            AuthField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = "E-mail",
+                                icon = FsyIcons.Mail,
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Email,
+                                    imeAction = if (currentMode == AuthMode.RECOVER) ImeAction.Done else ImeAction.Next,
+                                ),
+                                onNext = { focus.moveFocus(FocusDirection.Down) },
+                                onDone = { submit(currentMode) },
+                            )
+                            if (currentMode != AuthMode.RECOVER) {
+                                AuthField(
+                                    value = password,
+                                    onValueChange = { password = it },
+                                    label = "Senha",
+                                    icon = FsyIcons.Lock,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                                    onDone = { submit(currentMode) },
+                                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                                    trailing = {
+                                        IconButton(onClick = { showPassword = !showPassword }, modifier = Modifier.size(48.dp)) {
+                                            Icon(
+                                                imageVector = if (showPassword) FsyIcons.EyeOff else FsyIcons.Eye,
+                                                contentDescription = if (showPassword) "Ocultar senha" else "Mostrar senha",
+                                            )
+                                        }
+                                    },
+                                )
+                            }
+                            if (currentMode == AuthMode.LOGIN) {
+                                TextButton(
+                                    onClick = { switchMode(AuthMode.RECOVER) },
+                                    modifier = Modifier.align(Alignment.End).height(48.dp),
+                                ) {
+                                    Text("Esqueci a senha", color = FsyPalette.Link, style = MaterialTheme.typography.labelLarge)
+                                }
+                            }
+                            FsyActionButton(
+                                label = when (currentMode) {
+                                    AuthMode.LOGIN -> "Entrar"
+                                    AuthMode.SIGN_UP -> "Criar conta"
+                                    AuthMode.RECOVER -> "Enviar link"
+                                },
+                                icon = when (currentMode) {
+                                    AuthMode.RECOVER -> FsyIcons.Mail
+                                    else -> FsyIcons.ArrowRight
+                                },
+                                loading = appState.isAuthenticating,
+                                onClick = { submit(currentMode) },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (currentMode == AuthMode.RECOVER) {
+                                TextButton(
+                                    onClick = { switchMode(AuthMode.LOGIN) },
+                                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                                ) {
+                                    Icon(FsyIcons.ArrowLeft, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.size(6.dp))
+                                    Text("Voltar para entrar", style = MaterialTheme.typography.labelLarge)
+                                }
                             }
                         }
                     }
                 }
             }
+            Spacer(Modifier.height(8.dp))
         }
     }
+}
+
+@Composable
+private fun AuthField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: ImageVector,
+    keyboardOptions: KeyboardOptions,
+    onNext: () -> Unit = {},
+    onDone: () -> Unit = {},
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
+        trailingIcon = trailing,
+        singleLine = true,
+        shape = FsyControlShape,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = KeyboardActions(onNext = { onNext() }, onDone = { onDone() }),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    )
 }

@@ -1,5 +1,7 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,15 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.FolderZip
-import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -129,7 +122,8 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
     ) {
         item {
             FsyStatusBadge(
-                text = "INSCRIÇÕES FSY (34 COLUNAS) • TELA PROTEGIDA (FLAG_SECURE)",
+                text = "Tela protegida",
+                icon = br.com.fsyrp2.app.ui.icons.FsyIcons.Lock,
                 backgroundColor = FsyPalette.PrimarySky.copy(alpha = 0.14f),
                 contentColor = FsyPalette.PrimarySky
             )
@@ -139,10 +133,17 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
         item {
             FsySectionCard {
                 Text(
-                    text = "Resumo Canônico (Revisão #${listState.currentRevision})",
+                    text = "Resumo das inscrições",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                if (listState.currentRevision.toString() != "0") {
+                    Text(
+                        text = "Revisão ${listState.currentRevision}",
+                        style = MaterialTheme.typography.bodySmall.merge(TabularTextStyle),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = "${metrics.totalCount} inscritos (${metrics.participantCount} participantes • ${metrics.counselorCount} conselheiros)",
@@ -164,7 +165,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Usar nomes normalizados (Title Case pt-BR) nos PDFs/Excel",
+                        text = "Padronizar nomes nos documentos",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f)
                     )
@@ -196,7 +197,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         .fillMaxWidth()
                         .defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.UploadFile, contentDescription = null)
+                    Icon(FsyIcons.Upload, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Importar Planilha Excel (.xlsx — 34 Colunas)", fontWeight = FontWeight.Bold)
                 }
@@ -241,7 +242,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             .weight(1f)
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(FsyIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Exportar .xlsx")
                     }
@@ -274,7 +275,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             .weight(1f)
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.Description, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(FsyIcons.FileText, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Ficha em Branco")
                     }
@@ -338,7 +339,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             .weight(1f)
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.FolderZip, contentDescription = null)
+                        Icon(FsyIcons.FolderArchive, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
                         Text("Baixar ZIP (até 50 PDFs)")
                     }
@@ -403,7 +404,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                             modifier = Modifier.size(48.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Delete,
+                                                imageVector = FsyIcons.Trash2,
                                                 contentDescription = "Excluir lote ${batch.filename}",
                                                 tint = FsyPalette.Danger
                                             )
@@ -429,7 +430,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         value = search,
                         onValueChange = { search = it },
                         label = { Text("Buscar por nome, ID participante, estaca ou ala") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
@@ -523,7 +524,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
             item {
                 FsyEmptyStateCard(
                     title = "Nenhuma inscrição encontrada",
-                    description = "Importe a planilha Excel oficial de 34 colunas ou ajuste os filtros de pesquisa."
+                    description = "Importe a planilha ou ajuste os filtros."
                 )
             }
         } else {
@@ -543,10 +544,10 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                     contentColor = FsyPalette.PrimarySky
                                 )
                                 if (item.hasHealthAlert) {
-                                    FsyStatusBadge("SAÚDE", FsyPalette.Danger, Color.White)
+                                    FsyStatusBadge("Saúde", FsyPalette.Danger, MaterialTheme.colorScheme.onError, icon = FsyIcons.HeartPulse)
                                 }
                                 if (item.hasMissingGuardianForMinor) {
-                                    FsyStatusBadge("SEM RESPONSÁVEL", FsyPalette.Warning, FsyPalette.DeepText)
+                                    FsyStatusBadge("Sem responsável", FsyPalette.Extended.warningContainer, FsyPalette.Extended.onWarningContainer, icon = FsyIcons.TriangleAlert)
                                 }
                             }
                             Spacer(Modifier.height(4.dp))
@@ -590,7 +591,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                 .weight(1f)
                                 .defaultMinSize(minHeight = 48.dp)
                         ) {
-                            Icon(Icons.Default.Visibility, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(FsyIcons.Eye, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("34 Colunas")
                         }
@@ -624,7 +625,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                 .weight(1f)
                                 .defaultMinSize(minHeight = 48.dp)
                         ) {
-                            Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(FsyIcons.FileDown, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Ficha PDF")
                         }
@@ -681,7 +682,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         style = MaterialTheme.typography.bodySmall.merge(TabularTextStyle)
                     )
                     Text(
-                        text = "Nomes normalizados (Title Case): ${preview.normalizedNamesChangedCount} • Alertas saúde: ${preview.healthAlertCount} • Erros bloqueantes: ${preview.blockingErrorCount}",
+                        text = "Nomes padronizados: ${preview.normalizedNamesChangedCount} • Alertas saúde: ${preview.healthAlertCount} • Erros bloqueantes: ${preview.blockingErrorCount}",
                         style = MaterialTheme.typography.bodySmall.merge(TabularTextStyle)
                     )
 
@@ -730,7 +731,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                     useNormalizedNames = useNormalizedNames
                                 )
                                 activePreview = null
-                                feedback = "Importação concluída: ${res.insertedCount} inseridos, ${res.updatedCount} atualizados (Revisão #${res.currentRevision})."
+                                feedback = "Importação concluída: ${res.insertedCount} inseridos, ${res.updatedCount} atualizados (revisão ${res.currentRevision})."
                                 reload()
                             } catch (e: Exception) {
                                 errorMsg = e.message
@@ -784,7 +785,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = FsyPalette.Danger, contentColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(containerColor = FsyPalette.Danger, contentColor = MaterialTheme.colorScheme.onError),
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) { Text("Excluir lote") }
             },

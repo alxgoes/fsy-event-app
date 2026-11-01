@@ -1,19 +1,47 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.model.AdminModule
@@ -21,18 +49,62 @@ import br.com.fsyrp2.app.model.AdminOverview
 import br.com.fsyrp2.app.model.UserRole
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.state.OverlayDestination
+import br.com.fsyrp2.app.ui.components.FsyClickableCard
 import br.com.fsyrp2.app.ui.components.FsyEmptyStateCard
-import br.com.fsyrp2.app.ui.components.FsyHeroBanner
+import br.com.fsyrp2.app.ui.components.FsyGutter
+import br.com.fsyrp2.app.ui.components.FsyIconTile
+import br.com.fsyrp2.app.ui.components.FsyNotice
 import br.com.fsyrp2.app.ui.components.FsySectionCard
+import br.com.fsyrp2.app.ui.components.FsySectionTitle
+import br.com.fsyrp2.app.ui.components.FsyTopBar
 import br.com.fsyrp2.app.ui.components.ReorderableCardItem
 import br.com.fsyrp2.app.ui.components.ReorderableCardSection
+import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.TabularTextStyle
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Ícone Lucide de cada módulo administrativo (mesma família em toda a app). */
+fun AdminModule.icon(): ImageVector = when (this) {
+    AdminModule.OVERVIEW -> FsyIcons.LayoutDashboard
+    AdminModule.ACCOUNTS -> FsyIcons.UserCog
+    AdminModule.COMPANIES -> FsyIcons.Users
+    AdminModule.SCHEDULE -> FsyIcons.CalendarClock
+    AdminModule.LOGISTICS -> FsyIcons.Bus
+    AdminModule.ANNOUNCEMENTS -> FsyIcons.Megaphone
+    AdminModule.MEDIA -> FsyIcons.Images
+    AdminModule.MEDICAL -> FsyIcons.Stethoscope
+    AdminModule.INCLUSION -> FsyIcons.HandHeart
+    AdminModule.COUNSELOR_AUDIT -> FsyIcons.ClipboardCheck
+    AdminModule.REGISTRATIONS -> FsyIcons.FileSpreadsheet
+}
+
+/** Rótulo curto para o seletor de módulos (o título completo segue no cabeçalho). */
+private fun AdminModule.shortLabel(): String = when (this) {
+    AdminModule.OVERVIEW -> "Visão geral"
+    AdminModule.ACCOUNTS -> "Contas"
+    AdminModule.COMPANIES -> "Companhias"
+    AdminModule.SCHEDULE -> "Programação"
+    AdminModule.LOGISTICS -> "Logística"
+    AdminModule.ANNOUNCEMENTS -> "Comunicados"
+    AdminModule.MEDIA -> "Fotos"
+    AdminModule.MEDICAL -> "Saúde"
+    AdminModule.INCLUSION -> "Inclusão"
+    AdminModule.COUNSELOR_AUDIT -> "Auditoria"
+    AdminModule.REGISTRATIONS -> "Inscrições"
+}
+
+/** Linha de apoio sem jargão técnico. */
+private fun AdminModule.plainSubtitle(): String = when (this) {
+    AdminModule.REGISTRATIONS -> "Planilha de inscrições e fichas em PDF"
+    else -> subtitlePt
+}
+
+private fun AdminModule.isSensitive(): Boolean =
+    this == AdminModule.MEDICAL || this == AdminModule.INCLUSION
+
 @Composable
 fun AdminHubScreen(
     appState: FsyAppState,
@@ -71,7 +143,7 @@ fun AdminHubScreen(
             try {
                 overview = appState.apiClient.fetchAdminOverview(appState.withValidSession())
             } catch (_: Exception) {
-                overviewError = "Não foi possível atualizar os indicadores. Tente novamente."
+                overviewError = "Não foi possível atualizar os números."
             } finally {
                 overviewLoading = false
             }
@@ -86,124 +158,111 @@ fun AdminHubScreen(
                 val s = appState.withValidSession()
                 overview = appState.apiClient.fetchAdminOverview(s)
             } catch (e: Exception) {
-                overviewError = e.message ?: "Erro ao carregar visão geral administrativa."
+                overviewError = e.message ?: "Não foi possível carregar a visão geral."
             } finally {
                 overviewLoading = false
             }
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "Administração • ${activeModule.titlePt}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = activeModule.subtitlePt,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            haptics.tick()
-                            if (activeModule != AdminModule.OVERVIEW && availableModules.contains(AdminModule.OVERVIEW)) {
-                                activeModule = AdminModule.OVERVIEW
-                            } else {
-                                appState.overlayDestination = OverlayDestination.None
-                            }
-                        },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+    ) {
+        FsyTopBar(
+            title = activeModule.titlePt,
+            subtitle = "Administração",
+            onBack = {
+                haptics.tick()
+                if (activeModule != AdminModule.OVERVIEW && availableModules.contains(AdminModule.OVERVIEW)) {
+                    activeModule = AdminModule.OVERVIEW
+                } else {
+                    appState.overlayDestination = OverlayDestination.None
                 }
+            },
+        )
+
+        if (availableModules.isEmpty()) {
+            FsyEmptyStateCard(
+                icon = FsyIcons.Lock,
+                title = "Acesso restrito",
+                description = "Seu perfil não tem permissões administrativas.",
             )
-        }
-    ) { innerPadding ->
-        Column(
+        } else {
+
+        // Seletor de módulos: ícone + rótulo curto, selecionado em "sol".
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = FsyGutter, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (availableModules.isEmpty()) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    FsyEmptyStateCard(
-                        title = "Acesso restrito",
-                        description = "Seu perfil não possui permissões administrativas ativas."
-                    )
-                }
-            } else {
-                // Barra horizontal de módulos administrativos
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    availableModules.forEach { mod ->
-                        val isSelected = activeModule == mod
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                haptics.tick()
-                                activeModule = mod
-                            },
-                            label = {
-                                Text(
-                                    text = mod.titlePt,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                )
-                            },
-                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                        )
-                    }
-                }
-
-                HorizontalDivider()
-
-                AnimatedContent(
-                    targetState = activeModule,
-                    transitionSpec = { fsyContentSwap(reduceMotion) },
-                    label = "AdminModuleSwap",
-                    modifier = Modifier.fillMaxSize()
-                ) { targetMod ->
-                    when (targetMod) {
-                        AdminModule.OVERVIEW -> AdminOverviewModuleContent(
-                            appState = appState,
-                            overview = overview,
-                            isLoading = overviewLoading,
-                            errorMessage = overviewError,
-                            onSelectModule = { mod ->
-                                haptics.confirm()
-                                activeModule = mod
-                            }
-                        )
-
-                        AdminModule.ACCOUNTS -> AccountsAdminModuleView(appState = appState)
-                        AdminModule.COMPANIES -> CompaniesAdminModuleView(appState = appState)
-                        AdminModule.SCHEDULE -> ScheduleAdminModuleView(appState = appState)
-                        AdminModule.LOGISTICS -> LogisticsAdminModuleView(appState = appState)
-                        AdminModule.ANNOUNCEMENTS -> AnnouncementsAdminModuleView(appState = appState)
-                        AdminModule.MEDIA -> MediaAdminModuleView(appState = appState)
-                        AdminModule.MEDICAL -> MedicalAdminModuleView(appState = appState)
-                        AdminModule.INCLUSION -> InclusionAdminModuleView(appState = appState)
-                        AdminModule.COUNSELOR_AUDIT -> CounselorAuditAdminModuleView(appState = appState)
-                        AdminModule.REGISTRATIONS -> RegistrationsAdminScreen(appState = appState)
-                    }
-                }
+            availableModules.forEach { mod ->
+                val isSelected = activeModule == mod
+                FilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        haptics.tick()
+                        activeModule = mod
+                    },
+                    label = {
+                        Text(mod.shortLabel(), fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium)
+                    },
+                    leadingIcon = { Icon(mod.icon(), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    shape = br.com.fsyrp2.app.ui.components.FsyPillShape,
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                        selectedBorderColor = Color.Transparent,
+                    ),
+                    modifier = Modifier.height(48.dp),
+                )
             }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+        AnimatedContent(
+            targetState = activeModule,
+            transitionSpec = { fsyContentSwap(reduceMotion) },
+            label = "AdminModuleSwap",
+            modifier = Modifier.fillMaxSize()
+        ) { targetMod ->
+            when (targetMod) {
+                AdminModule.OVERVIEW -> AdminOverviewModuleContent(
+                    appState = appState,
+                    overview = overview,
+                    isLoading = overviewLoading,
+                    errorMessage = overviewError,
+                    availableModules = availableModules,
+                    onRetry = { loadOverview() },
+                    onSelectModule = { mod ->
+                        haptics.confirm()
+                        activeModule = mod
+                    }
+                )
+
+                AdminModule.ACCOUNTS -> AccountsAdminModuleView(appState = appState)
+                AdminModule.COMPANIES -> CompaniesAdminModuleView(appState = appState)
+                AdminModule.SCHEDULE -> ScheduleAdminModuleView(appState = appState)
+                AdminModule.LOGISTICS -> LogisticsAdminModuleView(appState = appState)
+                AdminModule.ANNOUNCEMENTS -> AnnouncementsAdminModuleView(appState = appState)
+                AdminModule.MEDIA -> MediaAdminModuleView(appState = appState)
+                AdminModule.MEDICAL -> MedicalAdminModuleView(appState = appState)
+                AdminModule.INCLUSION -> InclusionAdminModuleView(appState = appState)
+                AdminModule.COUNSELOR_AUDIT -> CounselorAuditAdminModuleView(appState = appState)
+                AdminModule.REGISTRATIONS -> RegistrationsAdminScreen(appState = appState)
+            }
+        }
         }
     }
 }
@@ -214,6 +273,8 @@ private fun AdminOverviewModuleContent(
     overview: AdminOverview?,
     isLoading: Boolean,
     errorMessage: String?,
+    availableModules: List<AdminModule>,
+    onRetry: () -> Unit,
     onSelectModule: (AdminModule) -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -225,48 +286,32 @@ private fun AdminOverviewModuleContent(
 
     val counts = overview
 
+    // Os ids persistidos não mudam; os títulos descrevem o que cada cartão mostra.
     val metricCards = listOf(
-        ReorderableCardItem("youth-total", "Total de Jovens") {
+        ReorderableCardItem("youth-total", "Jovens") {
+            val noCompany = ((counts?.totalYouth ?: 0) - (counts?.youthWithCompany ?: 0)).coerceAtLeast(0)
+            val noRoom = ((counts?.totalYouth ?: 0) - (counts?.youthWithRoom ?: 0)).coerceAtLeast(0)
             MetricSummaryCard(
-                label = "Jovens Cadastrados",
+                icon = FsyIcons.Users,
+                label = "Jovens cadastrados",
                 value = counts?.totalYouth?.toString() ?: "—",
-                detail = "${((counts?.totalYouth ?: 0) - (counts?.youthWithCompany ?: 0)).coerceAtLeast(0)} sem companhia • ${((counts?.totalYouth ?: 0) - (counts?.youthWithRoom ?: 0)).coerceAtLeast(0)} sem quarto"
+                detail = if (counts != null) "$noCompany sem companhia · $noRoom sem quarto" else null,
             )
         },
-        ReorderableCardItem("companies-total", "Total de Companhias") {
-            MetricSummaryCard(
-                label = "Companhias Ativas",
-                value = counts?.totalCompanies?.toString() ?: "—",
-                detail = "Companhias cadastradas na sessão"
-            )
+        ReorderableCardItem("companies-total", "Companhias") {
+            MetricSummaryCard(FsyIcons.Users, "Companhias", counts?.totalCompanies?.toString() ?: "—", null)
         },
-        ReorderableCardItem("counselors-total", "Total de Conselheiros") {
-            MetricSummaryCard(
-                label = "Conselheiros",
-                value = counts?.totalCounselors?.toString() ?: "—",
-                detail = "Atuando na Sessão Ribeirão Preto 2"
-            )
+        ReorderableCardItem("counselors-total", "Conselheiros") {
+            MetricSummaryCard(FsyIcons.HandHeart, "Conselheiros", counts?.totalCounselors?.toString() ?: "—", null)
         },
-        ReorderableCardItem("medical-total", "Fichas Médicas") {
-            MetricSummaryCard(
-                label = "Fichas de Saúde",
-                value = counts?.medicalRecords?.toString() ?: "—",
-                detail = "Acesso restrito à equipe autorizada"
-            )
+        ReorderableCardItem("medical-total", "Fichas de saúde") {
+            MetricSummaryCard(FsyIcons.Stethoscope, "Fichas de saúde", counts?.medicalRecords?.toString() ?: "—", "Acesso restrito à equipe autorizada")
         },
-        ReorderableCardItem("inclusion-open", "Casos de Inclusão") {
-            MetricSummaryCard(
-                label = "Fotos da sessão",
-                value = counts?.totalPhotos?.toString() ?: "—",
-                detail = "Álbuns cadastrados pela equipe"
-            )
+        ReorderableCardItem("inclusion-open", "Fotos") {
+            MetricSummaryCard(FsyIcons.Images, "Álbuns de fotos", counts?.totalPhotos?.toString() ?: "—", null)
         },
-        ReorderableCardItem("announcements-urgent", "Avisos Urgentes") {
-            MetricSummaryCard(
-                label = "Avisos Publicados",
-                value = counts?.totalAnnouncements?.toString() ?: "—",
-                detail = "Comunicados cadastrados na sessão"
-            )
+        ReorderableCardItem("announcements-urgent", "Avisos") {
+            MetricSummaryCard(FsyIcons.Megaphone, "Avisos publicados", counts?.totalAnnouncements?.toString() ?: "—", null)
         }
     )
 
@@ -281,36 +326,44 @@ private fun AdminOverviewModuleContent(
         "inclusion" to AdminModule.INCLUSION,
         "counselor-audit" to AdminModule.COUNSELOR_AUDIT,
         "registrations" to AdminModule.REGISTRATIONS
-    )
+    ).filterValues { availableModules.contains(it) }
 
     val moduleCards = moduleMap.map { (id, mod) ->
         ReorderableCardItem(id = id, title = mod.titlePt) {
-            FsySectionCard {
+            FsyClickableCard(
+                onClick = { onSelectModule(mod) },
+                onClickLabel = "Abrir ${mod.titlePt}",
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+            ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    FsyIconTile(
+                        icon = mod.icon(),
+                        size = 42.dp,
+                        container = if (mod.isSensitive()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                        tint = if (mod.isSensitive()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(mod.titlePt, style = MaterialTheme.typography.titleSmall)
                         Text(
-                            text = mod.titlePt,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = mod.subtitlePt,
+                            mod.plainSubtitle(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    FilledTonalButton(
-                        onClick = { onSelectModule(mod) },
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    ) {
-                        Text("Abrir")
-                        Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Default.ChevronRight, contentDescription = null)
+                    if (mod.isSensitive()) {
+                        Icon(
+                            FsyIcons.Lock,
+                            contentDescription = "Dados sensíveis",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp),
+                        )
                     }
+                    Icon(FsyIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -320,70 +373,29 @@ private fun AdminOverviewModuleContent(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = FsyGutter)
+            .padding(top = 14.dp, bottom = 28.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FsyHeroBanner(
-            badgeText = "CENTRAL ADMINISTRATIVA NATIVA",
-            title = "Gestão FSY Ribeirão Preto 2",
-            subtitle = "Todos os 11 módulos com leitura e escrita sincronizadas em tempo real com o portal web e iOS."
-        )
-
-        // Destaque direto para o módulo de Inscrições FSY (34 colunas + PDFs + ZIP + XLSX)
-        FsySectionCard {
-            Row(
+        AnimatedVisibility(visible = isLoading) {
+            LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = AdminModule.REGISTRATIONS.titlePt,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Importar planilha Excel de 34 colunas, pré-visualizar diffs, excluir lote por UUID e baixar PDFs/ZIP.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.width(8.dp))
-                Button(
-                    onClick = { onSelectModule(AdminModule.REGISTRATIONS) },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text("Gerenciar")
-                }
-            }
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            )
+        }
+        AnimatedVisibility(visible = !errorMessage.isNullOrBlank()) {
+            FsyNotice(
+                icon = FsyIcons.CircleAlert,
+                text = errorMessage.orEmpty(),
+                container = MaterialTheme.colorScheme.errorContainer,
+                content = MaterialTheme.colorScheme.onErrorContainer,
+                actionLabel = "Tentar de novo",
+                onAction = onRetry,
+            )
         }
 
-        if (isLoading) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
-
-        if (!errorMessage.isNullOrBlank()) {
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = MaterialTheme.shapes.medium,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = errorMessage,
-                    modifier = Modifier.padding(12.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-
-        Text(
-            text = "Indicadores da Sessão",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-
+        FsySectionTitle("Números da sessão")
         ReorderableCardSection(
             pageKey = "admin-metrics",
             defaultIds = metricsDefaults,
@@ -393,14 +405,8 @@ private fun AdminOverviewModuleContent(
             scrollState = scrollState
         )
 
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = "Módulos de Operação",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-
+        Spacer(Modifier.height(4.dp))
+        FsySectionTitle("Módulos")
         ReorderableCardSection(
             pageKey = "admin-modules",
             defaultIds = modulesDefaults,
@@ -412,29 +418,41 @@ private fun AdminOverviewModuleContent(
     }
 }
 
+/** Indicador: rótulo, número em sans tabular (nunca serifa em números) e detalhe opcional. */
 @Composable
 private fun MetricSummaryCard(
+    icon: ImageVector,
     label: String,
     value: String,
-    detail: String
+    detail: String?,
 ) {
-    FsySectionCard {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.headlineMedium.merge(TabularTextStyle),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = detail,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    FsySectionCard(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = "$label: $value" + (detail?.let { ". $it" } ?: "")
+            },
+        ) {
+            FsyIconTile(
+                icon = icon,
+                container = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (detail != null) {
+                    Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Box {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineSmall.merge(TabularTextStyle),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
 }
-

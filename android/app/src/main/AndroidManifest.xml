@@ -83,6 +83,42 @@
         </receiver>
 
         <receiver
+            android:name=".widget.DayAgendaWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_day_agenda_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_day_agenda_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.AnnouncementsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_announcements_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_announcements_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.FsyHighlightsWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_highlights_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_highlights_info" />
+        </receiver>
+
+        <receiver
             android:name=".widget.EventCalendarWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_event_calendar_name">

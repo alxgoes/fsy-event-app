@@ -1,17 +1,11 @@
 package br.com.fsyrp2.app.ui.screens
 
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+import br.com.fsyrp2.app.ui.icons.FsyIconsFilled
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -82,39 +76,14 @@ fun CounselorScreen(appState: FsyAppState) {
     val annSectionOrder = appState.cardOrderFor("consultor-announcements")
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Painel do Conselheiro",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            haptics.tick()
-                            appState.overlayDestination = OverlayDestination.None
-                        },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar ao início"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            haptics.tick()
-                            appState.refreshCoreData()
-                        },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Atualizar dados da companhia")
-                    }
+            FsyTopBar(
+                title = "Conselheiro",
+                subtitle = appState.company?.name ?: "Minha companhia",
+                onBack = {
+                    haptics.tick()
+                    appState.overlayDestination = OverlayDestination.None
                 }
             )
         }
@@ -159,13 +128,13 @@ fun CounselorScreen(appState: FsyAppState) {
             if (company == null) {
                 FsyEmptyStateCard(
                     title = "Nenhuma companhia vinculada ao seu perfil",
-                    description = "Solicite à coordenação o vínculo da sua companhia no módulo de Contas ou Companhias."
+                    description = "Peça à coordenação para vincular sua companhia."
                 )
             } else {
                 FsyHeroBanner(
-                    badgeText = "MINHA COMPANHIA • CONSELHEIRO",
+                    badgeText = "Minha companhia",
                     title = company.name,
-                    subtitle = company.motto?.let { "Lema: “$it”" } ?: "Defina o lema / grito de guerra da sua companhia abaixo"
+                    subtitle = company.motto?.let { "“$it”" } ?: "Sem lema definido"
                 )
 
                 // Métricas reordenáveis do conselheiro (consultor-metrics)
@@ -176,7 +145,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     ) {
                         FsySectionCard {
                             Text(
-                                text = "Jovens Designados",
+                                text = "Jovens",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -194,7 +163,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     ) {
                         FsySectionCard {
                             Text(
-                                text = "Sala de Reunião Oficial",
+                                text = "Sala de reunião",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -213,9 +182,9 @@ fun CounselorScreen(appState: FsyAppState) {
                                         .fillMaxWidth()
                                         .defaultMinSize(minHeight = 48.dp)
                                 ) {
-                                    Icon(Icons.Default.OpenInNew, contentDescription = null)
+                                    Icon(FsyIcons.ExternalLink, contentDescription = null)
                                     Spacer(Modifier.width(6.dp))
-                                    Text("Abrir pasta Google Drive da companhia")
+                                    Text("Fotos da companhia")
                                 }
                             }
                         }
@@ -231,7 +200,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Lema / Grito de Guerra",
+                                    text = "Lema",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -242,7 +211,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                     },
                                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                                 ) {
-                                    Icon(Icons.Default.Edit, contentDescription = null)
+                                    Icon(FsyIcons.Pencil, contentDescription = null)
                                     Spacer(Modifier.width(4.dp))
                                     Text(if (editingMotto) "Cancelar" else "Editar lema")
                                 }
@@ -258,7 +227,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                 OutlinedTextField(
                                     value = mottoInput,
                                     onValueChange = { mottoInput = it },
-                                    label = { Text("Novo lema / grito de guerra da companhia") },
+                                    label = { Text("Novo lema") },
                                     modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(Modifier.height(8.dp))
@@ -316,7 +285,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     ) {
                         FsySectionCard {
                             Text(
-                                text = "Novo Aviso para ${company.name}",
+                                text = "Novo aviso",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -334,7 +303,7 @@ fun CounselorScreen(appState: FsyAppState) {
                             OutlinedTextField(
                                 value = newAnnContent,
                                 onValueChange = { newAnnContent = it },
-                                label = { Text("Mensagem para os jovens da companhia") },
+                                label = { Text("Mensagem") },
                                 minLines = 3,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -346,7 +315,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Destacar como aviso urgente",
+                                    text = "Marcar como urgente",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                                 Switch(
@@ -390,7 +359,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                     .fillMaxWidth()
                                     .defaultMinSize(minHeight = 48.dp)
                             ) {
-                                Icon(Icons.Default.Add, contentDescription = null)
+                                Icon(FsyIcons.Plus, contentDescription = null)
                                 Spacer(Modifier.width(6.dp))
                                 Text(if (isPublishingAnn) "Publicando..." else "Publicar aviso para a companhia")
                             }
@@ -402,7 +371,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     ) {
                         FsySectionCard {
                             Text(
-                                text = "Avisos da Companhia (${companyAnnouncements.size})",
+                                text = "Avisos da companhia (${companyAnnouncements.size})",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -410,7 +379,7 @@ fun CounselorScreen(appState: FsyAppState) {
 
                             if (companyAnnouncements.isEmpty()) {
                                 Text(
-                                    text = "Nenhum aviso exclusivo da companhia foi publicado ainda.",
+                                    text = "Nenhum aviso da companhia ainda.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -449,7 +418,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                                     modifier = Modifier.size(48.dp)
                                                 ) {
                                                     Icon(
-                                                        imageVector = Icons.Default.Delete,
+                                                        imageVector = FsyIcons.Trash2,
                                                         contentDescription = "Excluir aviso ${ann.title}",
                                                         tint = FsyPalette.Danger
                                                     )
@@ -475,7 +444,7 @@ fun CounselorScreen(appState: FsyAppState) {
                 // Lista de Jovens da Companhia
                 FsySectionCard {
                     Text(
-                        text = "Jovens da Companhia (${filteredYouth.size})",
+                        text = "Jovens (${filteredYouth.size})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -484,8 +453,8 @@ fun CounselorScreen(appState: FsyAppState) {
                     OutlinedTextField(
                         value = youthSearch,
                         onValueChange = { youthSearch = it },
-                        label = { Text("Buscar jovem por nome, ala ou quarto") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        label = { Text("Buscar por nome, ala ou quarto") },
+                        leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -494,7 +463,7 @@ fun CounselorScreen(appState: FsyAppState) {
 
                     if (filteredYouth.isEmpty()) {
                         Text(
-                            text = "Nenhum jovem encontrado para esta busca.",
+                            text = "Ninguém encontrado.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -548,9 +517,9 @@ fun CounselorScreen(appState: FsyAppState) {
                     .fillMaxWidth()
                     .defaultMinSize(minHeight = 48.dp)
             ) {
-                Icon(Icons.Default.Favorite, contentDescription = null)
+                Icon(FsyIconsFilled.Heart, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Acompanhamento de Inclusão e Necessidades Especiais")
+                Text("Acompanhamento de inclusão")
             }
         }
     }
@@ -566,14 +535,14 @@ fun CounselorScreen(appState: FsyAppState) {
             },
             title = {
                 Text(
-                    text = "Excluir Aviso",
+                    text = "Excluir aviso",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = "Deseja realmente excluir o aviso “${deletingAnn.title}”? Esta ação não pode ser desfeita.",
+                    text = "Excluir “${deletingAnn.title}”? Não dá para desfazer.",
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -604,7 +573,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     enabled = !isDeletingAnnouncement,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = FsyPalette.Danger,
-                        contentColor = Color.White
+                        contentColor = MaterialTheme.colorScheme.onError
                     ),
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {

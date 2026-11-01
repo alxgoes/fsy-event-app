@@ -384,13 +384,14 @@ class FsyAppState(
                 coroutineScope {
                     val profileDeferred = async { apiClient.fetchCurrentProfile(validSession) }
                     val scheduleDeferred = async { runCatching { apiClient.fetchSchedule(validSession) }.getOrDefault(emptyList()) }
-                    val announcementsDeferred = async { runCatching { apiClient.fetchAnnouncements(validSession) }.getOrDefault(emptyList()) }
+                    val announcementsDeferred = async { runCatching { apiClient.fetchAnnouncements(validSession) } }
                     val instagramDeferred = async { runCatching { apiClient.fetchInstagramFeed() }.getOrNull() }
                     val mediaDeferred = async { runCatching { apiClient.fetchPublicMedia(validSession) }.getOrDefault(emptyList()) }
 
                     val loadedProfile = profileDeferred.await()
                     val loadedSchedule = scheduleDeferred.await()
-                    val loadedAnnouncements = announcementsDeferred.await()
+                    val loadedAnnouncementsResult = announcementsDeferred.await()
+                    val loadedAnnouncements = loadedAnnouncementsResult.getOrDefault(emptyList())
                     val loadedInsta = instagramDeferred.await()
                     val loadedMedia = mediaDeferred.await()
 
@@ -425,6 +426,8 @@ class FsyAppState(
                         userId = validSession.userId,
                         companyName = loadedCompany?.name,
                         updatedAtEpochMs = System.currentTimeMillis(),
+                        visibleAnnouncementCount = loadedAnnouncementsResult.getOrNull()?.size,
+                        urgentAnnouncementCount = loadedAnnouncementsResult.getOrNull()?.count { it.isUrgent },
                         activities = loadedSchedule
                             .filter { it.dayKey != "dia0" }
                             .map {

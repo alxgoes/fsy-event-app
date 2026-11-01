@@ -1,20 +1,13 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -123,7 +116,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                         value = search,
                         onValueChange = { search = it },
                         label = { Text("Buscar por nome, e-mail ou ala") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
@@ -249,7 +242,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                             .weight(1f)
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(FsyIcons.Pencil, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Gerenciar")
                     }
@@ -269,7 +262,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                             .weight(1f)
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(FsyIcons.History, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Auditoria")
                     }
@@ -500,7 +493,7 @@ private fun AccountEditDialog(
                         enabled = manualPassword.length >= 8,
                         modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.Key, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(FsyIcons.KeyRound, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Definir senha")
                     }
@@ -532,7 +525,7 @@ private fun AccountEditDialog(
                     enabled = emailSubject.isNotBlank() && emailBody.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Email, contentDescription = null)
+                    Icon(FsyIcons.Mail, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
                     Text("Disparar e-mail institucional")
                 }
@@ -550,7 +543,7 @@ private fun AccountEditDialog(
                     enabled = deleteConfirm.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null, tint = FsyPalette.Danger)
+                    Icon(FsyIcons.Trash2, contentDescription = null, tint = FsyPalette.Danger)
                     Spacer(Modifier.width(6.dp))
                     Text("Excluir conta permanentemente", color = FsyPalette.Danger)
                 }
@@ -646,7 +639,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                     },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(FsyIcons.Plus, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
                     Text("Nova companhia")
                 }
@@ -688,7 +681,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                                 editingCompany = comp
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Edit, contentDescription = "Editar ${comp.name}") }
+                        ) { Icon(FsyIcons.Pencil, contentDescription = "Editar ${comp.name}") }
 
                         IconButton(
                             onClick = {
@@ -702,7 +695,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                             },
                             modifier = Modifier.size(48.dp)
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Excluir ${comp.name}", tint = FsyPalette.Danger)
+                            Icon(FsyIcons.Trash2, contentDescription = "Excluir ${comp.name}", tint = FsyPalette.Danger)
                         }
                     }
                 }
@@ -823,7 +816,7 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                     },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(FsyIcons.Plus, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
                     Text("Nova atividade")
                 }
@@ -859,7 +852,7 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                                 editingItem = item
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Edit, contentDescription = "Editar ${item.title}") }
+                        ) { Icon(FsyIcons.Pencil, contentDescription = "Editar ${item.title}") }
                         IconButton(
                             onClick = {
                                 scope.launch {
@@ -872,7 +865,7 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                                 }
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir ${item.title}", tint = FsyPalette.Danger) }
+                        ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir ${item.title}", tint = FsyPalette.Danger) }
                     }
                 }
             }
@@ -993,7 +986,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                     },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(FsyIcons.Plus, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
                     Text("Novo ônibus")
                 }
@@ -1026,7 +1019,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                     }
                     Row {
                         IconButton(onClick = { creatingNew = false; editingBus = bus }, modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar ${bus.name}")
+                            Icon(FsyIcons.Pencil, contentDescription = "Editar ${bus.name}")
                         }
                         IconButton(
                             onClick = {
@@ -1039,7 +1032,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                                 }
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir ${bus.name}", tint = FsyPalette.Danger) }
+                        ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir ${bus.name}", tint = FsyPalette.Danger) }
                     }
                 }
             }
@@ -1133,7 +1126,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                     },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(FsyIcons.Plus, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
                     Text("Novo aviso")
                 }
@@ -1152,7 +1145,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                     Column(modifier = Modifier.weight(1f)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             if (ann.isUrgent) {
-                                FsyStatusBadge("URGENTE", FsyPalette.Danger, Color.White)
+                                FsyStatusBadge("Urgente", FsyPalette.Danger, MaterialTheme.colorScheme.onError, icon = FsyIcons.TriangleAlert)
                             }
                             FsyStatusBadge(
                                 text = if (ann.companyId != null) "Companhia" else "Global",
@@ -1166,7 +1159,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                     }
                     Row {
                         IconButton(onClick = { creatingNew = false; editingAnn = ann }, modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar ${ann.title}")
+                            Icon(FsyIcons.Pencil, contentDescription = "Editar ${ann.title}")
                         }
                         IconButton(
                             onClick = {
@@ -1179,7 +1172,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                                 }
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir ${ann.title}", tint = FsyPalette.Danger) }
+                        ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir ${ann.title}", tint = FsyPalette.Danger) }
                     }
                 }
             }
@@ -1288,7 +1281,7 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                     },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
+                    Icon(FsyIcons.Plus, contentDescription = null)
                     Spacer(Modifier.width(4.dp))
                     Text("Nova mídia")
                 }
@@ -1315,7 +1308,7 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                     }
                     Row {
                         IconButton(onClick = { creatingNew = false; editingPhoto = photo }, modifier = Modifier.size(48.dp)) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar ${photo.title}")
+                            Icon(FsyIcons.Pencil, contentDescription = "Editar ${photo.title}")
                         }
                         IconButton(
                             onClick = {
@@ -1328,7 +1321,7 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                                 }
                             },
                             modifier = Modifier.size(48.dp)
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Excluir ${photo.title}", tint = FsyPalette.Danger) }
+                        ) { Icon(FsyIcons.Trash2, contentDescription = "Excluir ${photo.title}", tint = FsyPalette.Danger) }
                     }
                 }
             }
@@ -1434,7 +1427,7 @@ fun CounselorAuditAdminModuleView(appState: FsyAppState) {
             item {
                 FsyEmptyStateCard(
                     title = "Nenhum registro de auditoria",
-                    description = "As alterações de lemas de companhia e avisos publicados por conselheiros aparecerão aqui."
+                    description = "Mudanças de lema e avisos dos conselheiros aparecem aqui."
                 )
             }
         } else {

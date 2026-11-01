@@ -917,6 +917,8 @@ data class WidgetSnapshotDto(
     val userId: String,
     val companyName: String? = null,
     val updatedAtEpochMs: Long = 0L,
-    val activities: List<WidgetActivitySummaryDto> = emptyList()
+    val activities: List<WidgetActivitySummaryDto> = emptyList(),
+    val visibleAnnouncementCount: Int? = null,
+    val urgentAnnouncementCount: Int? = null,
 )
 

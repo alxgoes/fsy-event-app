@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Entrada de página: desliza 12% e acende, 260 ms, desaceleração. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android" android:interpolator="@android:anim/decelerate_interpolator" android:duration="260">
+    <translate android:fromXDelta="12%" android:toXDelta="0%" />
+    <alpha android:fromAlpha="0" android:toAlpha="1" />
+</set>

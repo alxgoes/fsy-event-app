@@ -1,5 +1,9 @@
 package br.com.fsyrp2.app.ui.screens
 
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+import br.com.fsyrp2.app.ui.components.FsyTopBar
+import br.com.fsyrp2.app.ui.components.FsySegmentedSelector
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -7,10 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,28 +44,14 @@ fun GalleryScreen(appState: FsyAppState) {
     var zoomedExternalUrl by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Galeria & @fsybrasiloficial",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            haptics.tick()
-                            appState.overlayDestination = OverlayDestination.None
-                        },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar"
-                        )
-                    }
+            FsyTopBar(
+                title = "Galeria",
+                subtitle = "Fotos e publicações",
+                onBack = {
+                    haptics.tick()
+                    appState.overlayDestination = OverlayDestination.None
                 }
             )
         }
@@ -79,35 +65,15 @@ fun GalleryScreen(appState: FsyAppState) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = activeSection == "instagram",
-                        onClick = {
-                            haptics.tick()
-                            activeSection = "instagram"
-                        },
-                        label = { Text("Instagram (${appState.instagramPosts.size})") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
-                    )
-                    FilterChip(
-                        selected = activeSection == "session",
-                        onClick = {
-                            haptics.tick()
-                            activeSection = "session"
-                        },
-                        label = { Text("Fotos da Sessão (${appState.publicMediaPhotos.size})") },
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
-                    )
-                }
+                FsySegmentedSelector(
+                    options = listOf("Instagram", "Fotos da sessão"),
+                    selectedIndex = if (activeSection == "session") 1 else 0,
+                    onSelect = { index ->
+                        haptics.tick()
+                        activeSection = if (index == 1) "session" else "instagram"
+                    }
+                )
             }
-
             if (activeSection == "instagram") {
                 item {
                     OutlinedButton(
@@ -119,17 +85,18 @@ fun GalleryScreen(appState: FsyAppState) {
                             .fillMaxWidth()
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
-                        Icon(Icons.Default.OpenInNew, contentDescription = null)
+                        Icon(FsyIcons.ExternalLink, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Abrir perfil oficial @fsybrasiloficial (link externo)")
+                        Text("Abrir no Instagram")
                     }
                 }
 
                 if (appState.instagramPosts.isEmpty()) {
                     item {
                         FsyEmptyStateCard(
-                            title = "Publicações do Instagram indisponíveis",
-                            description = "Toque no botão acima para visitar @fsybrasiloficial diretamente."
+                            icon = FsyIcons.Camera,
+                            title = "Sem publicações agora",
+                            description = "Abra o Instagram para ver as últimas."
                         )
                     }
                 } else {
@@ -153,7 +120,9 @@ fun GalleryScreen(appState: FsyAppState) {
                             if (post.caption.isNotBlank()) {
                                 Text(
                                     text = post.caption,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 3,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                                 Spacer(Modifier.height(8.dp))
                             }
@@ -170,7 +139,7 @@ fun GalleryScreen(appState: FsyAppState) {
                                     },
                                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                                 ) {
-                                    Text("Ampliar imagem")
+                                    Text("Ampliar")
                                 }
                                 TextButton(
                                     onClick = {
@@ -178,7 +147,7 @@ fun GalleryScreen(appState: FsyAppState) {
                                     },
                                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                                 ) {
-                                    Icon(Icons.Default.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Icon(FsyIcons.ExternalLink, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(4.dp))
                                     Text("Ver no Instagram")
                                 }
@@ -190,8 +159,9 @@ fun GalleryScreen(appState: FsyAppState) {
                 if (appState.publicMediaPhotos.isEmpty()) {
                     item {
                         FsyEmptyStateCard(
-                            title = "Nenhuma foto publicada ainda",
-                            description = "As fotos oficiais de cada dia da sessão Ribeirão Preto 2 aparecerão aqui."
+                            icon = FsyIcons.Images,
+                            title = "Nenhuma foto ainda",
+                            description = "As fotos de cada dia aparecem aqui."
                         )
                     }
                 } else {
@@ -227,9 +197,9 @@ fun GalleryScreen(appState: FsyAppState) {
                                     .fillMaxWidth()
                                     .defaultMinSize(minHeight = 48.dp)
                             ) {
-                                Icon(Icons.Default.OpenInNew, contentDescription = null)
+                                Icon(FsyIcons.ExternalLink, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Abrir no Google Drive (link externo)")
+                                Text("Abrir no Drive")
                             }
                         }
                     }
@@ -290,7 +260,7 @@ fun GalleryScreen(appState: FsyAppState) {
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            imageVector = FsyIcons.X,
                             contentDescription = "Fechar visualização ampliada",
                             tint = Color.White
                         )
@@ -322,9 +292,9 @@ fun GalleryScreen(appState: FsyAppState) {
                                 .fillMaxWidth()
                                 .defaultMinSize(minHeight = 48.dp)
                         ) {
-                            Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.White)
+                            Icon(FsyIcons.ExternalLink, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(8.dp))
-                            Text("Abrir publicação original externa", color = Color.White)
+                            Text("Abrir publicação", color = Color.White)
                         }
                     }
                 }

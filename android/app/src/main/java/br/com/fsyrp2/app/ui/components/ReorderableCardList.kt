@@ -1,28 +1,23 @@
 package br.com.fsyrp2.app.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.DragIndicator
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,12 +32,15 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import br.com.fsyrp2.app.data.CardOrderManager
+import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.FsyReorderAutoScroll
+import br.com.fsyrp2.app.ui.motion.fsyContentSwap
+import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.fsyReorderHandle
 import br.com.fsyrp2.app.ui.motion.fsyReorderItem
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
@@ -55,11 +53,11 @@ data class ReorderableCardItem(
 )
 
 /**
- * Container de cartões reordenáveis integrando o pacote de motion nativo (`ui/motion/FsyReorder.kt`):
- * - Arraste por alça de 48 dp (`Modifier.fsyReorderHandle`) + botões Subir/Descer (`reorder.moveBy`)
- * - FLIP crítico sem ultrapassagem para vizinhos (`Modifier.fsyReorderItem`)
- * - Rolagem automática nas bordas se `scrollState` for fornecido (`FsyReorderAutoScroll`)
- * - Persistência isolada por conta (`fsy:layout:v1:{userId}:{pageKey}`) somente no commit.
+ * Cartões reordenáveis (`ui/motion/FsyReorder.kt`).
+ * - Uso normal: só os cartões, com revelação escalonada na primeira exibição.
+ * - "Organizar": os cartões viram linhas compactas (alça de 48 dp para arrastar com o dedo +
+ *   botões Subir/Descer para TalkBack e teclado). Linhas curtas tornam o arraste preciso.
+ * - FLIP sem ultrapassagem, rolagem automática nas bordas, persistência só no commit.
  */
 @Composable
 fun ReorderableCardSection(
@@ -72,9 +70,12 @@ fun ReorderableCardSection(
     viewportTopPx: Float? = null,
     viewportBottomPx: Float? = null,
     modifier: Modifier = Modifier,
+    revealOffset: Int = 2,
+    reveal: (Modifier.(Int) -> Modifier) = { i -> fsyReveal(i) },
 ) {
     var editing by remember { mutableStateOf(false) }
     val haptics = rememberFsyHaptics()
+    val reduceMotion = fsyMotionPreferences().reduceMotion
     val resolvedOrder = remember(defaultIds, orderedIds) {
         CardOrderManager.resolveOrder(defaultIds, orderedIds)
     }
@@ -103,118 +104,72 @@ fun ReorderableCardSection(
             },
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(
-                onClick = {
-                    haptics.tick()
-                    editing = !editing
-                },
-                modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Tune,
-                    contentDescription = "Personalizar ordem dos cartões",
-                )
-                Spacer(Modifier.width(6.dp))
-                Text(if (editing) "Concluir organização" else "Organizar cartões")
-            }
-
-            if (editing && !isDefault) {
-                TextButton(
-                    onClick = {
-                        haptics.confirm()
-                        onOrderChange(defaultIds)
-                    },
-                    modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.RestartAlt,
-                        contentDescription = "Restaurar ordem padrão dos cartões",
+        AnimatedContent(
+            targetState = editing,
+            transitionSpec = { fsyContentSwap(reduceMotion) },
+            label = "reorderMode",
+        ) { isEditing ->
+            Column(verticalArrangement = Arrangement.spacedBy(if (isEditing) 8.dp else 14.dp)) {
+                if (isEditing) {
+                    Text(
+                        text = "Arraste pela alça ou use as setas.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                     )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Restaurar padrão")
+                }
+                reorder.order.forEachIndexed { index, cardId ->
+                    val item = cardMap[cardId] ?: return@forEachIndexed
+                    Box(
+                        modifier = Modifier
+                            .fsyReorderItem(reorder, cardId)
+                            .fillMaxWidth()
+                            .then(if (isEditing) Modifier else Modifier.reveal(index + revealOffset)),
+                    ) {
+                        if (isEditing) {
+                            ReorderRow(
+                                position = index + 1,
+                                title = item.title,
+                                canUp = index > 0,
+                                canDown = index < reorder.order.size - 1,
+                                onUp = { reorder.moveBy(cardId, -1) },
+                                onDown = { reorder.moveBy(cardId, 1) },
+                                handle = Modifier.fsyReorderHandle(reorder, cardId, item.title),
+                            )
+                        } else {
+                            item.content()
+                        }
+                    }
                 }
             }
         }
 
-        reorder.order.forEachIndexed { index, cardId ->
-            val item = cardMap[cardId] ?: return@forEachIndexed
-            Box(
-                modifier = Modifier
-                    .fsyReorderItem(reorder, cardId)
-                    .fillMaxWidth(),
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (editing) {
-                        Surface(
-                            tonalElevation = 2.dp,
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .fsyReorderHandle(reorder, cardId, item.title),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.DragIndicator,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                        )
-                                    }
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        text = "${index + 1}. ${item.title}",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                }
-                                Row {
-                                    IconButton(
-                                        onClick = { reorder.moveBy(cardId, -1) },
-                                        enabled = index > 0,
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .semantics {
-                                                contentDescription = "Mover cartão ${item.title} para cima"
-                                            },
-                                    ) {
-                                        Icon(Icons.Default.ArrowUpward, contentDescription = null)
-                                    }
-                                    IconButton(
-                                        onClick = { reorder.moveBy(cardId, 1) },
-                                        enabled = index < reorder.order.size - 1,
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .semantics {
-                                                contentDescription = "Mover cartão ${item.title} para baixo"
-                                            },
-                                    ) {
-                                        Icon(Icons.Default.ArrowDownward, contentDescription = null)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    item.content()
-                }
+        // Controles de organização no fim da lista: presentes, mas fora do caminho.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AnimatedVisibility(visible = editing && !isDefault) {
+                FsyActionButton(
+                    label = "Restaurar",
+                    icon = FsyIcons.RotateCcw,
+                    tone = FsyButtonTone.Outline,
+                    onClick = {
+                        haptics.confirm()
+                        onOrderChange(defaultIds)
+                    },
+                )
             }
+            FsyActionButton(
+                label = if (editing) "Concluir" else "Organizar",
+                icon = if (editing) FsyIcons.Check else FsyIcons.SlidersHorizontal,
+                tone = if (editing) FsyButtonTone.Primary else FsyButtonTone.Outline,
+                onClick = {
+                    haptics.tick()
+                    editing = !editing
+                },
+            )
         }
     }
 
@@ -225,6 +180,55 @@ fun ReorderableCardSection(
             viewportTop = viewportTopPx ?: measuredViewportTop,
             viewportBottom = viewportBottomPx ?: measuredViewportBottom,
         )
+    }
+}
+
+@Composable
+private fun ReorderRow(
+    position: Int,
+    title: String,
+    canUp: Boolean,
+    canDown: Boolean,
+    onUp: () -> Unit,
+    onDown: () -> Unit,
+    handle: Modifier,
+) {
+    Surface(
+        shape = FsyControlShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .then(handle),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(FsyIcons.GripVertical, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Text(
+                text = "$position",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(20.dp),
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            FsyIconButton(icon = FsyIcons.ArrowUp, contentDescription = "Subir $title", onClick = onUp, enabled = canUp)
+            FsyIconButton(icon = FsyIcons.ArrowDown, contentDescription = "Descer $title", onClick = onDown, enabled = canDown)
+            Spacer(Modifier.width(2.dp))
+        }
     }
 }
 

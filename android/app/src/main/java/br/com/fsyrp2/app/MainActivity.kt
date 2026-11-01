@@ -7,22 +7,30 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Campaign
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.state.MainTab
 import br.com.fsyrp2.app.state.OverlayDestination
+import br.com.fsyrp2.app.ui.components.FsyEventFacts
+import br.com.fsyrp2.app.ui.components.FsyNavDestination
+import br.com.fsyrp2.app.ui.components.FsyNavigationBar
+import br.com.fsyrp2.app.ui.components.FsyTempleMark
+import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
@@ -55,16 +63,34 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun FsyRootContent(appState: FsyAppState) {
+internal fun FsyRootContent(appState: FsyAppState) {
     val haptics = rememberFsyHaptics()
     val reduceMotion = fsyMotionPreferences().reduceMotion
 
     if (appState.isBootstrapping) {
+        // Abertura silenciosa: papel quente, templo e nome da sessão. Sem laço decorativo.
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                FsyTempleMark(height = 96.dp)
+                Text(
+                    text = FsyEventFacts.SESSION,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
         return
     }
@@ -87,40 +113,34 @@ private fun FsyRootContent(appState: FsyAppState) {
             initialModule = overlay.initialModule
         )
         OverlayDestination.None -> {
-            Scaffold(
-                bottomBar = {
-                    NavigationBar {
-                        MainTab.entries.forEach { tab ->
-                            val selected = appState.selectedTab == tab
-                            val icon = when (tab) {
-                                MainTab.HOME -> Icons.Default.Home
-                                MainTab.AGENDA -> Icons.Default.CalendarMonth
-                                MainTab.ANNOUNCEMENTS -> Icons.Default.Campaign
-                                MainTab.PROFILE -> Icons.Default.Person
-                            }
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = {
-                                    if (!selected) {
-                                        haptics.tick()
-                                        appState.selectedTab = tab
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = tab.label
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = tab.label,
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                }
-                            )
-                        }
+            val tabs = MainTab.entries
+            val destinations = tabs.map { tab ->
+                FsyNavDestination(
+                    label = tab.label,
+                    icon = when (tab) {
+                        MainTab.HOME -> FsyIcons.LayoutDashboard
+                        MainTab.AGENDA -> FsyIcons.CalendarDays
+                        MainTab.ANNOUNCEMENTS -> FsyIcons.Megaphone
+                        MainTab.PROFILE -> FsyIcons.UserRound
                     }
+                )
+            }
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
+                // Cada tela aplica o recuo da barra de status na própria barra superior.
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                bottomBar = {
+                    FsyNavigationBar(
+                        destinations = destinations,
+                        selectedIndex = tabs.indexOf(appState.selectedTab),
+                        onSelect = { index ->
+                            val tab = tabs[index]
+                            if (appState.selectedTab != tab) {
+                                haptics.tick()
+                                appState.selectedTab = tab
+                            }
+                        }
+                    )
                 }
             ) { innerPadding ->
                 Box(

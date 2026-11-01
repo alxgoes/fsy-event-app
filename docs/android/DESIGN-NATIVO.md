@@ -1,20 +1,23 @@
 # Design nativo Android: FSY Sessão Ribeirão Preto 2
 
-Autor: Claude Opus 5.5 (design/motion). Implementação das telas: Gemini. App 100% nativo em Jetpack Compose: nenhuma funcionalidade depende de WebView ou do site. Versão 31/10/2026; os arquivos de motion **não foram compilados** ainda (aguardando o slot de build).
+Redesenho nativo "Papel e Arco" (Claude Opus 5.5, 01/11/2026), dentro do mundo visual oficial já fixado (DESIGN.md web + guia oficial 2027). Movimento detalhado em [MOTION-DESIGN.md](MOTION-DESIGN.md). Estado: código salvo, **compilação e capturas a cargo do parent** (não compilado por este agente).
 
 ## 1. Identidade
 
-- **Mesma identidade do portal web:**
-  - Parchment `#FAF8F5` como fundo, com cartões brancos e texto grafite `#0F172A`.
-  - Azul FSY `#007DA5` (escuro: `#01B6D1`), Sunshine `#FFE48A` e coral `#FC4E6D`.
-  - `FsyTheme.kt` hoje usa `#006B8F` e `#E85D4A`; alinhar aos tokens oficiais acima. É uma tarefa do Gemini.
-- **Tipografia:**
-  - **Libre Baskerville** (OFL) para títulos de tela e de seção. Copiar `src/app/fonts/LibreBaskerville-VariableFont_wght.ttf` para `res/font/` e definir `FontFamily` com os pesos 400 e 700.
-  - Sistema (Roboto) para interface, dados e **números**, com `fontFeatureSettings = "tnum"` em horários e contadores.
-  - Cinzel só no lockup "Alegrar-se em Cristo". Nunca desenhar letras como vetor.
-- **Letreiro FSY:** três discos (azul/F branco, sol/S grafite, coral/Y grafite), glifo de fonte real, borda de 1,5 dp, **sem sombra** e sem animação em laço.
-- **Marca oficial:** templo e arco sem recolorir, sem sombra e sem gradiente.
-- **Alvos de toque:** mínimo de 48 dp. O texto escala com a fonte do sistema até 200% sem cortar.
+- **Fatos oficiais (não reescrever):** Sessão Ribeirão Preto 2 · Ipê Park Hotel, São José do Rio Preto (SP) · 06 a 10 de fevereiro de 2027 · "Alegrar-se em Cristo" · Filipenses 4:4. O app não se apresenta como portal oficial global da Igreja.
+- **Marca oficial (guia 2027 em português, `referencias/identidade-oficial-2027/portugues/Assets`):** PNGs originais copiados sem alteração para `res/drawable-nodpi/` (`fsy_official_mark_vertical`, `_horizontal`, `_wordmark_centered`). Temple-Only (autorizado na p. 6 para espaços pequenos) = recorte exato do arco do PNG vertical (`fsy_official_temple_only`, 439×906 px, x 214–652, y 36–941), recortado pela própria forma do arco. Sem recolorir, sem sombra, sem gradiente, sem recombinar marca e letreiro, sem animar partes da marca (só o contêiner). Os PNGs têm fundo branco: aparecem sempre em placa clara, inclusive no tema escuro.
+- **Removido:** estrela do launcher e o templo redesenhado à mão (`fsy_temple_mark.xml`). Nenhum ícone de família/casa: Início usa Lucide `LayoutDashboard`; ícone de pessoas só em Companhia/participantes.
+- **Launcher:** ícone adaptativo com o Temple-Only oficial sobre branco (`drawable-xxxhdpi/ic_launcher_temple.png`). `drawable/ic_launcher_foreground.xml` virou silhueta de arco monocromática, usada só como ícone pequeno de notificação (exige forma alfa; não reproduz o identificador).
+- **Cores (todas as 36 funções do Material 3 mapeadas, sem cor dinâmica):** papel `#FAF8F5`, cartões `#FFFFFF`, grafite `#0F172A`, azul `#007DA5` (escuro: céu `#7DE3F4` com texto grafite), Sunshine `#FFE48A` como seleção (indicador da navegação, chips, aparência), coral `#FC4E6D` só em curtidas/selos com texto grafite, erro `#B91C1C`. Causa do roxo anterior: ~22 funções (secondaryContainer, surfaceContainer*, outline*, inverse*, error*) caíam na paleta-base do M3. Ouro `#DBBF6B`/Gray5 ficam reservados ao identificador.
+- **Aparência:** Automático (padrão, acompanha o celular e reage à troca), Claro, Escuro — Perfil › Aparência. Preferência em `SharedPreferences("fsy_appearance")`, global (vale no login), fora do cofre de sessão. Ícones das barras do sistema seguem o tema efetivo (`WindowCompat` + `SideEffect`). As cores principais fazem transição de 220 ms na troca.
+- **Tipografia:** Libre Baskerville (OFL, `res/font`) em títulos, marca e citação; sans do sistema na interface; números e horários sempre sans tabular (`tnum`).
+- **Ícones:** família única Lucide 0.460 (ISC; partes Feather MIT), 84 vetores locais gerados dos SVG oficiais em `ui/icons/FsyIcons.kt` (traço 2, pontas redondas) + `FsyIconsFilled.Heart` para curtida marcada. Nenhum `Icons.Default` restante; `material-icons-extended` ficou sem uso (remoção a critério do parent).
+- **Forma:** cartões 24 dp; botões, seletores, chips e indicadores em pílula; campos 14 dp.
+- **Alvos de toque:** mínimo 48 dp. Texto em sp; seletores longos (Aparência) em linhas verticais para não cortar a 200%.
+
+### Atribuições
+Texto integral empacotado em `res/raw/licencas_terceiros.txt` (Lucide ISC, Feather MIT, Libre Baskerville OFL).
+Lucide — ISC License, Copyright (c) Lucide Contributors 2022. Partes do Feather — MIT, Copyright (c) 2013-2022 Cole Bemis. https://lucide.dev/license
 
 ## 2. Motion: princípios
 
@@ -102,23 +105,22 @@ FsyReorderAutoScroll(reorder, scroll, vp.top, vp.bottom)
   - Nenhuma notificação de outra conta aparece depois de trocar de usuário.
 - **Horários do evento:** fuso `America/Sao_Paulo`, 06 a 10/02/2027. O dia 05 é exclusivo da equipe.
 
-## 6. Widgets (Glance)
+## 6. Widgets
 
-- **"Próximas atividades" (2×2, 4×2, 4×4 responsivo):**
-  - Título em Libre Baskerville de 14 a 16 sp, legível.
-  - Lista com horário (tabular) e local.
-  - O item atual é marcado com barra azul de 3 dp e texto "Agora", sem animação.
-- **"Calendário do evento" (4×2):** os cinco dias de 06 a 10/02, com o dia atual destacado em Sunshine e o texto em grafite.
-- **Ações:**
-  - Tocar abre a tela exata (deep link).
-  - O botão "Confirmar presença" só aparece se o fluxo existir na API, e com o mesmo cuidado de idempotência.
-- **Privacidade:**
-  - Sem dados de saúde, documentos ou companhia de outra pessoa.
-  - Sem conta conectada: "Entre no app FSY para ver sua agenda".
-  - Trocar de conta atualiza todos os widgets.
-- **Atualização:** ao abrir o app, ao voltar ao primeiro plano e periodicamente pelo WorkManager, sem polling agressivo. Mostrar "Atualizado às HH:MM".
-- **Motion:** widgets não animam. O sistema faz a transição de abrir o app.
-- **Acessibilidade:** `contentDescription` em todas as ações, contraste AA nos dois temas e alvos de 48 dp.
+Cinco widgets, todos com `appWidgetBackground` / `@android:id/background` (transição de abertura do launcher no Android 12+), cantos 24 dp, templo oficial pequeno no cabeçalho, textos e descrições em pt-BR.
+
+| Widget | Conteúdo | Tamanhos |
+| :-- | :-- | :-- |
+| Próxima atividade (Glance) | "Agora" e "A seguir" com hora tabular e local | 2×2 compacto; 4×2/4×4 com linhas |
+| Agenda do dia (Glance, novo) | Atividades do dia a partir da atual; "+N no app" | 4×2 (3 linhas), 4×3+ (6 linhas) |
+| Contagem e calendário (Glance) | "Faltam N dias"/"Sessão em andamento", cinco dias com o dia atual em Sunshine | 2×2; 4×2 com dias |
+| Avisos (Glance, novo) | Total de avisos visíveis e quantos são urgentes (selo de erro com texto); toque abre o mural. Nunca mostra título ou conteúdo | 2×2; 4×2 com dica |
+| Destaques (RemoteViews, novo) | ViewFlipper: contagem → próxima atividade → tema, setas Anterior/Próximo | 3×2 redimensionável |
+
+- **Dados e privacidade:** só a agenda pública do `WidgetSnapshotDto` existente (sem companhia, quarto, saúde). Sem sessão: "Entre no app para ver a agenda". Sair da conta limpa o snapshot e atualiza os cinco widgets (`FsyWidgetManager.updateAllWidgets`).
+- **Atualização:** a mesma do app (abertura, primeiro plano, WorkManager de 30 min). O `WidgetSyncWorker` agora também grava `visibleAnnouncementCount`/`urgentAnnouncementCount` (API de avisos já existente; se a leitura falhar, as contagens ficam nulas e o widget pede para abrir o app; só a companhia do snapshot anterior da MESMA conta é preservada). Nada de atualização frequente para animar.
+- **Tema:** os widgets seguem o claro/escuro do **sistema/launcher** (cores dia/noite do Glance e `values-night`), não a preferência manual do app, porque são desenhados pelo launcher fora do processo.
+- **Motion:** ver MOTION-DESIGN.md §6. Glance 1.1 não anima conteúdo; o único movimento de conteúdo é a troca manual de página do ViewFlipper (sem autoStart, sem laço; layout estático com "Remover animações").
 
 ## 7. Critérios de aceite visuais (Android)
 

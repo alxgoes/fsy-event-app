@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fsy_window_background">#FAF8F5</color>
+    <color name="fsy_primary">#007DA5</color>
+    <color name="fsy_widget_paper">#FAF8F5</color>
+    <color name="fsy_widget_card">#FFFFFF</color>
+    <color name="fsy_widget_ink">#0F172A</color>
+    <color name="fsy_widget_muted">#475569</color>
+    <color name="fsy_widget_primary">#005E7C</color>
+    <color name="fsy_widget_sun">#FFE48A</color>
+    <color name="fsy_widget_on_sun">#0F172A</color>
+</resources>

@@ -1,79 +1,105 @@
 package br.com.fsyrp2.app.ui.components
 
-import android.content.Context
-import android.content.Intent
-import android.graphics.BitmapFactory
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import br.com.fsyrp2.app.R
+import br.com.fsyrp2.app.ui.icons.FsyIcons
+import br.com.fsyrp2.app.ui.motion.FsyMotion
+import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
+import br.com.fsyrp2.app.ui.motion.fsyPressScale
 import br.com.fsyrp2.app.ui.theme.FsyPalette
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
-@Composable
-fun FsyDiscLogo(
-    size: Dp = 56.dp,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.size(size),
-        shape = CircleShape,
-        color = FsyPalette.PrimarySky,
-        border = BorderStroke(2.dp, FsyPalette.SecondarySunshine),
-        shadowElevation = 2.dp
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "Emblema oficial FSY 2027 — Alegrar-se em Cristo",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
+/*
+ * Kit de componentes nativos "Papel e Arco".
+ * Cartões brancos com fio de 1 dp sobre papel quente, títulos serifados, ícones Lucide de
+ * traço único, um tom de destaque por vez. Nada de gradiente, brilho ou sombra decorativa.
+ */
+
+val FsyCardShape = RoundedCornerShape(24.dp)
+val FsyControlShape = RoundedCornerShape(14.dp)
+val FsyPillShape = RoundedCornerShape(999.dp)
+
+/** Margem lateral padrão das telas (16 dp em telefone). */
+val FsyGutter = 16.dp
+
+// --- Contêineres ------------------------------------------------------------------------
 
 @Composable
 fun FsySectionCard(
     modifier: Modifier = Modifier,
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    borderColor: Color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f),
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = FsyCardShape,
         color = containerColor,
         border = BorderStroke(1.dp, borderColor),
-        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(contentPadding),
@@ -82,6 +108,226 @@ fun FsySectionCard(
     }
 }
 
+/** Cartão inteiro tocável, com retorno de pressão e ondulação. */
+@Composable
+fun FsyClickableCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onClickLabel: String? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .fsyPressScale(interaction)
+            .clip(FsyCardShape)
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(),
+                onClickLabel = onClickLabel,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        shape = FsyCardShape,
+        color = containerColor,
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Column(modifier = Modifier.padding(contentPadding), content = content)
+    }
+}
+
+/** Ícone em ladrilho suave: identifica a seção sem competir com o título. */
+@Composable
+fun FsyIconTile(
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    container: Color = MaterialTheme.colorScheme.primaryContainer,
+    tint: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    size: Dp = 36.dp,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(size * 0.32f))
+            .background(container),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size * 0.55f))
+    }
+}
+
+/**
+ * Cabeçalho de cartão: ícone + título + ação curta opcional (com chevron).
+ * A ação mantém alvo de 48 dp e nome acessível próprio.
+ */
+@Composable
+fun FsyCardHeader(
+    icon: ImageVector,
+    title: String,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    actionDescription: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    // Fonte ampliada (>= 130%): título com a linha toda e ação embaixo, sem quebrar palavras.
+    val largeText = LocalDensity.current.fontScale >= 1.3f
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            FsyIconTile(icon = icon)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() },
+            )
+            if (!largeText && actionLabel != null && onAction != null) {
+                FsyTextAction(label = actionLabel, onClick = onAction, description = actionDescription)
+            }
+        }
+        if (largeText && actionLabel != null && onAction != null) {
+            FsyTextAction(
+                label = actionLabel,
+                onClick = onAction,
+                description = actionDescription,
+                modifier = Modifier.padding(start = 40.dp),
+            )
+        }
+    }
+}
+
+/** Ação de texto com chevron (ex.: "Ver tudo ›"). */
+@Composable
+fun FsyTextAction(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+) {
+    TextButton(
+        onClick = onClick,
+        modifier = modifier
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier),
+        contentPadding = PaddingValues(start = 10.dp, end = 4.dp),
+        colors = ButtonDefaults.textButtonColors(contentColor = FsyPalette.Link),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        Icon(FsyIcons.ChevronRight, contentDescription = null, modifier = Modifier.size(18.dp))
+    }
+}
+
+/** Título de seção de tela: serifado, com espaço maior acima que abaixo. */
+@Composable
+fun FsySectionTitle(
+    text: String,
+    modifier: Modifier = Modifier,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() },
+        )
+        trailing?.invoke(this)
+    }
+}
+
+// --- Cabeçalhos de tela -----------------------------------------------------------------
+
+/**
+ * Barra superior própria das telas principais e sobrepostas: aplica o recuo da barra de
+ * status, título serifado, voltar com rótulo acessível e até duas ações.
+ */
+@Composable
+fun FsyTopBar(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    showMark: Boolean = onBack == null,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .padding(start = if (onBack != null) 4.dp else FsyGutter, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onBack != null) {
+                IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
+                    Icon(FsyIcons.ArrowLeft, contentDescription = "Voltar")
+                }
+                Spacer(Modifier.width(4.dp))
+            } else if (showMark) {
+                FsyTempleMark(height = 36.dp, decorative = true)
+                Spacer(Modifier.width(12.dp))
+            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics(mergeDescendants = true) { heading() },
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+        }
+    }
+}
+
+/** Botão de ícone com nome acessível obrigatório (48 dp). */
+@Composable
+fun FsyIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    IconButton(onClick = onClick, enabled = enabled, modifier = modifier.size(48.dp)) {
+        Icon(icon, contentDescription = contentDescription, tint = if (enabled) tint else tint.copy(alpha = 0.38f))
+    }
+}
+
+/**
+ * Faixa de saudação: azul profundo sólido (#005E7C, 7,26:1 com branco), sem gradiente.
+ * Assinatura preservada para chamadas existentes.
+ */
 @Composable
 fun FsyHeroBanner(
     badgeText: String,
@@ -90,87 +336,215 @@ fun FsyHeroBanner(
     modifier: Modifier = Modifier,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
+    val ext = FsyPalette.Extended
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = FsyPalette.PrimarySky,
-        shadowElevation = 2.dp
+        shape = RoundedCornerShape(24.dp),
+        color = ext.hero,
+        contentColor = ext.onHero,
     ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(FsyPalette.PrimarySky, FsyPalette.DeepText)
-                    )
-                )
-                .padding(20.dp)
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Surface(
-                        color = FsyPalette.SecondarySunshine,
-                        shape = RoundedCornerShape(999.dp)
-                    ) {
-                        Text(
-                            text = badgeText.uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = FsyPalette.DeepText,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
+                FsyStatusBadge(
+                    text = badgeText,
+                    backgroundColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = ext.onHero,
+                    modifier = Modifier.semantics { heading() },
+                )
+                if (subtitle.isNotBlank()) {
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.88f)
+                        color = ext.onHero.copy(alpha = 0.92f)
                     )
                 }
-                if (trailingContent != null) {
-                    Spacer(Modifier.width(12.dp))
-                    trailingContent()
-                }
+            }
+            if (trailingContent != null) {
+                Spacer(Modifier.width(12.dp))
+                trailingContent()
             }
         }
     }
 }
+
+// --- Selos e botões ---------------------------------------------------------------------
 
 @Composable
 fun FsyStatusBadge(
     text: String,
     backgroundColor: Color,
     contentColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
 ) {
     Surface(
         modifier = modifier,
         color = backgroundColor,
-        shape = RoundedCornerShape(999.dp)
+        contentColor = contentColor,
+        shape = FsyPillShape
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = contentColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (icon != null) Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+/** Selo neutro (metadado: sala, quarto, categoria). */
+@Composable
+fun FsyMetaChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+) {
+    FsyStatusBadge(
+        text = text,
+        icon = icon,
+        backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        modifier = modifier,
+    )
+}
+
+enum class FsyButtonTone { Primary, Tonal, Outline, Danger }
+
+/**
+ * Botão de ação com ícone + rótulo curto visível. Altura mínima 48 dp; retorno de pressão.
+ */
+@Composable
+fun FsyActionButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    tone: FsyButtonTone = FsyButtonTone.Primary,
+    enabled: Boolean = true,
+    loading: Boolean = false,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val mod = modifier
+        .defaultMinSize(minHeight = 48.dp)
+        .fsyPressScale(interaction, enabled)
+    val content: @Composable RowScope.() -> Unit = {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+                color = LocalContentColorOr(),
+            )
+            Spacer(Modifier.width(10.dp))
+        } else if (icon != null) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
+    val padding = PaddingValues(horizontal = 18.dp, vertical = 12.dp)
+    when (tone) {
+        FsyButtonTone.Primary -> Button(
+            onClick = onClick, enabled = enabled && !loading, modifier = mod, shape = FsyPillShape,
+            interactionSource = interaction, contentPadding = padding, content = content,
+        )
+        FsyButtonTone.Tonal -> FilledTonalButton(
+            onClick = onClick, enabled = enabled && !loading, modifier = mod, shape = FsyPillShape,
+            interactionSource = interaction, contentPadding = padding,
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
+            content = content,
+        )
+        FsyButtonTone.Outline -> OutlinedButton(
+            onClick = onClick, enabled = enabled && !loading, modifier = mod, shape = FsyPillShape,
+            interactionSource = interaction, contentPadding = padding,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            content = content,
+        )
+        FsyButtonTone.Danger -> Button(
+            onClick = onClick, enabled = enabled && !loading, modifier = mod, shape = FsyPillShape,
+            interactionSource = interaction, contentPadding = padding,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+            ),
+            content = content,
         )
     }
 }
 
+@Composable
+private fun LocalContentColorOr(): Color = androidx.compose.material3.LocalContentColor.current
+
+// --- Linhas de lista --------------------------------------------------------------------
+
+/** Linha de lista com ícone, título, apoio e conteúdo final; tocável quando há `onClick`. */
+@Composable
+fun FsyListRow(
+    title: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    supporting: String? = null,
+    iconContainer: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    iconTint: Color = MaterialTheme.colorScheme.onSurface,
+    onClick: (() -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = if (onClick != null) {
+        { Icon(FsyIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+    } else null,
+) {
+    val clickMod = if (onClick != null) {
+        Modifier.clickable(role = Role.Button, onClick = onClick)
+    } else Modifier
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .then(clickMod)
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        if (icon != null) FsyIconTile(icon = icon, container = iconContainer, tint = iconTint, size = 40.dp)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            if (!supporting.isNullOrBlank()) {
+                Text(
+                    supporting,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        trailing?.invoke()
+    }
+}
+
+// --- Estados ----------------------------------------------------------------------------
+
+/** Faixas de conexão/erro: entram e saem com movimento curto; texto de uma linha. */
 @Composable
 fun FsyConnectivityBanner(
     isOnline: Boolean,
@@ -178,228 +552,189 @@ fun FsyConnectivityBanner(
     errorMessage: String?,
     onRefresh: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (!isOnline) {
-            Surface(
-                color = FsyPalette.Warning.copy(alpha = 0.16f),
-                border = BorderStroke(1.dp, FsyPalette.Warning.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CloudOff,
-                        contentDescription = null,
-                        tint = FsyPalette.Warning
-                    )
-                    Text(
-                        text = buildString {
-                            append("Sem conexão • Exibindo dados sincronizados")
-                            if (!lastSyncedAtLabel.isNullOrBlank()) {
-                                append(" às $lastSyncedAtLabel")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+    val ext = FsyPalette.Extended
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    ) {
+        AnimatedVisibility(visible = !isOnline) {
+            FsyNotice(
+                icon = FsyIcons.CloudOff,
+                text = if (!lastSyncedAtLabel.isNullOrBlank()) "Sem conexão · dados de $lastSyncedAtLabel" else "Sem conexão · mostrando dados salvos",
+                container = ext.warningContainer,
+                content = ext.onWarningContainer,
+            )
         }
+        AnimatedVisibility(visible = !errorMessage.isNullOrBlank()) {
+            FsyNotice(
+                icon = FsyIcons.CircleAlert,
+                text = errorMessage.orEmpty(),
+                container = MaterialTheme.colorScheme.errorContainer,
+                content = MaterialTheme.colorScheme.onErrorContainer,
+                actionLabel = "Tentar de novo",
+                onAction = onRefresh,
+            )
+        }
+    }
+}
 
-        if (!errorMessage.isNullOrBlank()) {
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+/** Aviso em linha (atenção, erro, sucesso). Cor nunca é o único sinal: sempre ícone + texto. */
+@Composable
+fun FsyNotice(
+    icon: ImageVector,
+    text: String,
+    container: Color,
+    content: Color,
+    modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
+) {
+    Surface(color = container, contentColor = content, shape = FsyControlShape, modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp).heightIn(min = 44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(vertical = 6.dp))
+            if (actionLabel != null && onAction != null) {
+                TextButton(
+                    onClick = onAction,
+                    modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = content),
                 ) {
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.weight(1f)
-                    )
-                    TextButton(
-                        onClick = onRefresh,
-                        modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null)
-                        Spacer(Modifier.width(4.dp))
-                        Text("Tentar")
-                    }
+                    Icon(FsyIcons.RefreshCw, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(actionLabel, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
     }
 }
 
+/** Estado vazio contextual: ícone, frase curta e, se houver, uma ação. */
 @Composable
 fun FsyEmptyStateCard(
     title: String,
     description: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: ImageVector = FsyIcons.Info,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
-    FsySectionCard(modifier = modifier) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 28.dp, horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FsyIconTile(
+            icon = icon,
+            size = 52.dp,
+            container = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        if (description.isNotBlank()) {
+            Text(
+                description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
+        if (actionLabel != null && onAction != null) {
+            Spacer(Modifier.height(4.dp))
+            FsyActionButton(label = actionLabel, onClick = onAction, tone = FsyButtonTone.Tonal)
+        }
+    }
+}
+
+/** Esqueleto de carregamento: blocos no formato do conteúdo; pulso para em movimento reduzido. */
+@Composable
+fun FsyLoadingBlock(
+    modifier: Modifier = Modifier,
+    rows: Int = 3,
+    rowHeight: Dp = 64.dp,
+) {
+    val reduce = fsyMotionPreferences().reduceMotion
+    val alpha = if (reduce) {
+        0.7f
+    } else {
+        val transition = rememberInfiniteTransition(label = "skeleton")
+        val a by transition.animateFloat(
+            initialValue = 0.55f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+            label = "skeletonAlpha",
+        )
+        a
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics { contentDescription = "Carregando" },
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        repeat(rows) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(rowHeight)
+                    .graphicsLayer { this.alpha = alpha }
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            )
+        }
+    }
+}
+
+/** Ponto de status pequeno (não pisca). */
+@Composable
+fun FsyDot(color: Color, modifier: Modifier = Modifier, size: Dp = 8.dp) {
+    Box(modifier.size(size).clip(CircleShape).background(color))
+}
+
+// --- Movimento de lista -----------------------------------------------------------------
+
+/**
+ * Revelação de item na primeira exibição: parte de um estado já visível (opacidade 0,4),
+ * sobe 10 dp e assenta com saída exponencial; atraso escalonado de 35 ms (máx. 8 itens).
+ * Em movimento reduzido não anima.
+ */
+fun Modifier.fsyReveal(
+    index: Int = 0,
+    stepMs: Int = 35,
+    distance: Dp = 10.dp,
+    durationMs: Int = FsyMotion.OVERLAY_ENTER_MS,
+    startAlpha: Float = 0.4f,
+): Modifier = composed {
+    val reduce = fsyMotionPreferences().reduceMotion
+    if (reduce) return@composed this
+    val offsetPx = with(LocalDensity.current) { distance.toPx() }
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(
+            1f,
+            tween(
+                durationMillis = durationMs,
+                delayMillis = index.coerceIn(0, 8) * stepMs,
+                easing = FsyMotion.EaseOut,
+            ),
+        )
+    }
+    graphicsLayer {
+        val p = progress.value
+        alpha = startAlpha + (1f - startAlpha) * p
+        translationY = (1f - p) * offsetPx
     }
 }
 
 /**
- * Carregador nativo em memória para miniaturas públicas (Instagram / Google Drive) sem cachear dados privados.
+ * Coreografia de entrada da Início: automática, sem toque, ~0,8 s no total
+ * (5 grupos × 90 ms + 420 ms), começando já legível (opacidade 0,6) e subindo 16 dp.
  */
-@Composable
-fun RemotePublicImage(
-    url: String,
-    contentDescription: String?,
-    modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Crop
-) {
-    var bitmap by remember(url) { mutableStateOf<ImageBitmap?>(null) }
-    var failed by remember(url) { mutableStateOf(false) }
-
-    LaunchedEffect(url) {
-        if (url.isBlank() || !url.startsWith("https://")) {
-            failed = true
-            return@LaunchedEffect
-        }
-        val loaded = withContext(Dispatchers.IO) {
-            try {
-                val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = 10000
-                    readTimeout = 12000
-                    instanceFollowRedirects = true
-                }
-                try {
-                    if (conn.responseCode in 200..299) {
-                        conn.inputStream.use { stream ->
-                            BitmapFactory.decodeStream(stream)?.asImageBitmap()
-                        }
-                    } else null
-                } finally {
-                    conn.disconnect()
-                }
-            } catch (_: Exception) {
-                null
-            }
-        }
-        if (loaded != null) {
-            bitmap = loaded
-        } else {
-            failed = true
-        }
-    }
-
-    val currentBitmap = bitmap
-    if (currentBitmap != null) {
-        Image(
-            bitmap = currentBitmap,
-            contentDescription = contentDescription,
-            modifier = modifier,
-            contentScale = contentScale
-        )
-    } else {
-        Box(
-            modifier = modifier
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = if (failed) "Imagem externa" else "Carregando...",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-object ExternalUrlLauncher {
-    fun openExternalUrl(context: Context, url: String) {
-        val trimmed = url.trim()
-        if (!trimmed.startsWith("https://")) return
-        val uri = Uri.parse(trimmed)
-        try {
-            val customTabs = CustomTabsIntent.Builder()
-                .setShowTitle(true)
-                .build()
-            customTabs.launchUrl(context, uri)
-        } catch (_: Exception) {
-            try {
-                val fallback = Intent(Intent.ACTION_VIEW, uri).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(fallback)
-            } catch (_: Exception) {
-                // Nenhum navegador instalado
-            }
-        }
-    }
-
-    fun shareOrViewPrivateDocument(
-        context: Context,
-        filename: String,
-        mimeType: String,
-        bytes: ByteArray
-    ) {
-        val safeName = filename.replace(Regex("[^A-Za-z0-9._ -]"), "_").ifBlank { "documento_fsy" }
-        val dir = File(context.cacheDir, "documents").apply { mkdirs() }
-        // Remove arquivos temporários anteriores (> 15 min) para não reter documentos no cache
-        val cutoff = System.currentTimeMillis() - 15 * 60 * 1000L
-        dir.listFiles()?.forEach { f ->
-            if (f.lastModified() < cutoff) runCatching { f.delete() }
-        }
-        val targetFile = File(dir, safeName)
-        targetFile.writeBytes(bytes)
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            targetFile
-        )
-        val viewIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, mimeType)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = mimeType
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        try {
-            context.startActivity(viewIntent)
-        } catch (_: Exception) {
-            val chooser = Intent.createChooser(shareIntent, "Salvar ou compartilhar $safeName").apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            runCatching { context.startActivity(chooser) }
-        }
-    }
-}
+fun Modifier.fsyHomeEntrance(index: Int): Modifier =
+    fsyReveal(index = index, stepMs = 90, distance = 16.dp, durationMs = 420, startAlpha = 0.6f)
