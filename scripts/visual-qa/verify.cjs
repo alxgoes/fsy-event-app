@@ -1,135 +1,244 @@
-// QA local com identidades fictícias. Requer build feito com URL http://127.0.0.1:54399 e chaves dev.
-// Não testa RLS: use npm test para as políticas reais em Postgres local.
-const {spawn}=require('child_process');
-const fs=require('fs');
-const root=process.cwd();
-// Puppeteer pode estar em um scratchpad; não é dependência de produção.
-const puppeteer=require(process.env.FSY_PUPPETEER_MODULE || 'puppeteer');
-const path=require('path'), net=require('net');
-const output=name=>path.join(process.env.FSY_QA_OUTPUT_DIR || require('os').tmpdir(),name);
-fs.mkdirSync(path.dirname(output('qa')), {recursive:true});
-async function ensureFree(port){await new Promise((resolve,reject)=>{const check=net.createServer();check.once('error',()=>reject(new Error(`Porta ${port} ocupada. Nenhum servidor existente será usado.`)));check.listen(port,'127.0.0.1',()=>check.close(resolve));});}
-const servers=[];
-async function run(){
-await ensureFree(3117);
-await ensureFree(54399);
-const session=await import(root+'/scripts/visual-qa/session.mjs');
-function server(args,env){const p=spawn(process.execPath,args,{cwd:root,env:{...process.env,...env},stdio:['ignore',fs.openSync(output('fsy-visual-server.log'),'a'),'pipe']});p.stderr.on('data',d=>fs.appendFileSync(output('fsy-visual-server.log'),d));servers.push(p);}
-server(['scripts/visual-qa/fake-supabase.mjs'],{});
-server(['node_modules/next/dist/bin/next','start','-p','3117','-H','127.0.0.1'],{NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:54399',NEXT_PUBLIC_SUPABASE_ANON_KEY:'dev',SUPABASE_SERVICE_ROLE_KEY:'dev'});
-for(let i=0;i<120;i++){try{const r=await fetch('http://127.0.0.1:3117/login');if(r.ok)break;}catch{}await new Promise(r=>setTimeout(r,1000));}
-const browser=await puppeteer.launch({headless:true,args:["--renderer-process-limit=1","--disable-extensions",...(process.env.CI ? ["--no-sandbox"] : [])]});
-try{
-const page=await browser.newPage();
-await page.evaluateOnNewDocument(()=>{localStorage.setItem('fsy_pwa_dismissed_at',Date.now().toString());});
-await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
-const cookie=session.sessionCookie('1');
-await page.setCookie({name:'sb-127-auth-token',value:cookie,domain:'127.0.0.1',path:'/'});
-await page.setRequestInterception(true);
-page.on('request',r=>r.url().includes('.supabase.co')?r.abort():r.url().startsWith('https://media.fsy.test/img/')?r.respond({status:200,contentType:'image/svg+xml',body:(()=>{const [w,h]=r.url().match(/(\d+)x(\d+)/).slice(1);return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#005e7c"/><text x="10%" y="50%" fill="white" font-size="48">Foto fictícia ${w}×${h}</text></svg>`})()}):r.url().includes('id=INVALIDO')||r.url().includes('/d/INVALIDO')?r.respond({status:404,body:'Fixture indisponível'}):r.url().includes('/api/instagram')?r.respond({status:200,contentType:'application/json',body:JSON.stringify({data:[{id:'qa-long',imageUrl:'https://example.test/qa.svg',caption:'Legenda completa de teste.\n'+('Texto integral com acentos, @fsy_ribeiraopreto e #FSY2027.\n'.repeat(35))+'FIM DA LEGENDA',authorHandle:'fsy_ribeiraopreto',publishedAt:'2026-10-20T12:00:00Z',postUrl:'https://www.instagram.com/p/qa/',mediaType:'IMAGE'}]})}):r.url()==='https://example.test/qa.svg'?r.respond({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600"><rect width="400" height="600" fill="#007da5"/><text x="30" y="200" fill="white" font-size="32">FSY · Foto fictícia</text></svg>'}):r.continue());
-await page.goto('http://127.0.0.1:3117/offline',{waitUntil:'networkidle2'});
-const runtimeErrors=[];
-page.on("pageerror",error=>runtimeErrors.push(String(error)));
-const report=[];
-const detectorReports=[];
-for(const mobile of [false,true]){
-for(const dark of [false,true]){
-await page.setViewport({width:mobile?390:1365,height:mobile?844:900});
-for(const route of ['/login','/dashboard','/schedule','/announcements','/consultor','/admin','/admin/users','/admin/medical','/admin/companies','/admin/logistics','/admin/schedule','/admin/announcements','/admin/media','/admin/counselor-audit']){
-await page.deleteCookie({name:'sb-127-auth-token',domain:'127.0.0.1',path:'/'});
-if(route!=='/login')await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie(route==='/consultor'?'4':'1'),domain:'127.0.0.1',path:'/'});
-await page.evaluate(dark=>localStorage.setItem('theme',dark?'dark':'light'),dark);
-await page.goto('http://127.0.0.1:3117'+route,{waitUntil:'networkidle2',timeout:120000});
-await page.waitForFunction(()=>!document.body.innerText.includes('Sincronizando')&&!document.body.innerText.includes('Carregando seu perfil')&&!!document.querySelector('h1,h2'),{timeout:30000}).catch(()=>{});
-await new Promise(r=>setTimeout(r,1200));
-await page.waitForFunction(dark=>document.documentElement.classList.contains('dark')===dark,{},dark);
-await new Promise(r=>setTimeout(r,400));
-await page.evaluate(()=>document.fonts.ready);
-const state=await page.evaluate(()=>({url:location.pathname,title:document.querySelector('h1,h2')?.textContent,overflow:document.documentElement.scrollWidth>innerWidth,unlabeled:[...document.querySelectorAll('input:not([type=hidden]),select,textarea')].filter(e=>e.getBoundingClientRect().width>0&&!e.labels?.length&&!e.getAttribute('aria-label')&&!e.getAttribute('aria-labelledby')).map(e=>({tag:e.tagName,id:e.id,placeholder:e.placeholder})),smallTargets:[...document.querySelectorAll('button,a[href]')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&!e.closest('p')&&(r.height<43.99||r.width<43.99)}).map(e=>({text:e.innerText,aria:e.getAttribute('aria-label'),class:e.className,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height}))}));
-await page.evaluate(()=>{window.__IMPECCABLE_CONFIG__={autoScan:false};});
-await page.addScriptTag({path:root+'/.agent/skills/impeccable/scripts/detector/detect-antipatterns-browser.js'});
-const detected=await page.evaluate(()=>window.impeccableDetect({decorate:false,serialize:true}));
-if(process.env.FSY_AXE_MODULE){
-await page.addScriptTag({path:path.join(process.env.FSY_AXE_MODULE,'axe.min.js')});
-const axe=await page.evaluate(async()=>{const result=await window.axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']}});return {violations:result.violations,incomplete:result.incomplete.map(i=>({id:i.id,nodes:i.nodes.length})),passes:result.passes.length};});
-report.push({route,mobile,dark,axe});
+// QA local com identidades fictícias. O build deve usar Supabase local e chaves dev.
+// Este roteiro verifica interface; permissões/RLS reais são verificadas por npm test.
+const { spawn } = require('node:child_process');
+const fs = require('node:fs');
+const path = require('node:path');
+const net = require('node:net');
+const { pathToFileURL } = require('node:url');
+const puppeteer = require(process.env.FSY_PUPPETEER_MODULE || 'puppeteer');
+
+const root = process.cwd();
+const base = 'http://127.0.0.1:3117';
+const output = (name) => path.join(process.env.FSY_QA_OUTPUT_DIR || require('node:os').tmpdir(), name);
+const routes = ['/login', '/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/consultor', '/admin', '/admin/users', '/admin/medical', '/admin/companies', '/admin/logistics', '/admin/schedule', '/admin/announcements', '/admin/media', '/admin/counselor-audit'];
+const youthRoutes = new Set(['/dashboard', '/schedule', '/announcements', '/mais', '/fotos']);
+const servers = [], report = [], detectorReports = [], runtimeErrors = [], blockedSupabase = [];
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+fs.mkdirSync(path.dirname(output('qa')), { recursive: true });
+
+async function ensureFree(port) {
+  await new Promise((resolve, reject) => {
+    const check = net.createServer();
+    check.once('error', () => reject(new Error(`Porta ${port} ocupada. Nenhum servidor existente será usado.`)));
+    check.listen(port, '127.0.0.1', () => check.close(resolve));
+  });
 }
-detectorReports.push({route,mobile,dark,groups:detected});
-report.push({route,mobile,dark,...state});console.log('QA',route,mobile?'mobile':'desktop',dark?'dark':'light',JSON.stringify(state));
-if(['/dashboard','/consultor','/admin','/admin/medical'].includes(route))await page.screenshot({path:output(`fsy-${route.slice(1).replaceAll('/','-')}-${mobile?'mobile':'desktop'}-${dark?'dark':'light'}.png`),fullPage:true});
+
+function server(args, env) {
+  const log = fs.openSync(output('fsy-visual-server.log'), 'a');
+  const proc = spawn(process.execPath, args, { cwd: root, env: { ...process.env, ...env }, stdio: ['ignore', log, log] });
+  fs.closeSync(log);
+  servers.push(proc);
+  return proc;
 }
+
+function image(w = 400, h = 600) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="100%" height="100%" fill="#005e7c"/><text x="10%" y="50%" fill="white" font-size="32">FSY · Foto fictícia</text></svg>`;
 }
+
+async function run() {
+  const axeScript = process.env.FSY_AXE_MODULE ? path.join(process.env.FSY_AXE_MODULE, 'axe.min.js') : require.resolve('axe-core/axe.min.js');
+  await ensureFree(3117);
+  await ensureFree(54399);
+  const session = await import(pathToFileURL(path.join(root, 'scripts/visual-qa/session.mjs')).href);
+  const youth = session.findUser('5');
+  const youthProfile = session.fixtures.tables.profiles.find((p) => p.id === youth.id);
+  const review = { user_id: youth.id, full_name: youth.full_name, company_id: youthProfile.company_id, company_name: 'Companhia fictícia', pending_url: 'https://example.test/qa.svg', current_url: null, submitted_at: '2026-11-02T12:00:00Z' };
+  // Sentinelas internas comprovam o filtro inclusive em bancos antigos (Logística).
+  const schedule = [
+    { id: 'qa-day-zero', day: 'dia0', date: '2027-02-05', title: 'QA INTERNO DIA ZERO', category: 'Atividade', start_time: '10:00', end_time: '11:00' },
+    { id: 'qa-team', day: 'dia1', date: '2027-02-06', title: 'QA INTERNO EQUIPE', category: 'Equipe', start_time: '08:00', end_time: '09:00' },
+    { id: 'qa-legacy-team', day: 'dia1', date: '2027-02-06', title: 'Preparação QA INTERNO LEGADO', category: 'Logística', start_time: '09:00', end_time: '10:00' },
+    { id: 'qa-opening', day: 'dia1', date: '2027-02-06', title: 'Boas-vindas ao FSY', category: 'Espiritual', start_time: '14:00', end_time: '15:00' },
+    { id: 'qa-meal', day: 'dia1', date: '2027-02-06', title: 'Jantar com a companhia', category: 'Alimentação', start_time: '18:00', end_time: '19:00' },
+  ].map((item) => ({ location: '', description: 'Atividade fictícia para verificação.', is_highlight: false, ...item }));
+  server(['scripts/visual-qa/fake-supabase.mjs'], {});
+  const next = server(['node_modules/next/dist/bin/next', 'start', '-p', '3117', '-H', '127.0.0.1'], { NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54399', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'dev', SUPABASE_SERVICE_ROLE_KEY: 'dev', NEXT_PUBLIC_SITE_URL: base });
+  let ready = false;
+  for (let attempt = 0; attempt < 120; attempt++) {
+    if (next.exitCode !== null) throw new Error('Servidor de QA encerrou antes de ficar pronto. Confira fsy-visual-server.log.');
+    try { if ((await fetch(`${base}/login`)).ok) { ready = true; break; } } catch { /* inicializando */ }
+    await sleep(1000);
+  }
+  if (!ready) throw new Error('Servidor de QA não ficou pronto.');
+
+  const browser = await puppeteer.launch({ headless: true, ...(process.env.FSY_CHROME_EXECUTABLE ? { executablePath: process.env.FSY_CHROME_EXECUTABLE } : {}), args: ['--renderer-process-limit=1', '--disable-extensions', ...(process.env.CI ? ['--no-sandbox'] : [])] });
+  let activeUser = '5', pendingPhoto = false;
+  try {
+    const page = await browser.newPage();
+    await page.evaluateOnNewDocument(() => {
+      localStorage.setItem('fsy_pwa_dismissed_at', Date.now().toString());
+      // Uma execução nunca reutiliza o JS de um service worker anterior.
+      navigator.serviceWorker?.getRegistrations().then((items) => items.forEach((item) => item.unregister()));
+    });
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
+    page.on('pageerror', (error) => runtimeErrors.push(String(error)));
+    await page.setRequestInterception(true);
+    page.on('request', async (request) => {
+      const url = new URL(request.url());
+      const json = (body) => request.respond({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
+      if (/(^|\.)supabase\.(co|com)$/.test(url.hostname)) {
+        blockedSupabase.push(url.hostname);
+        return request.abort();
+      }
+      if (url.hostname === 'media.fsy.test') {
+        const [, w, h] = url.pathname.match(/(\d+)x(\d+)/) || [];
+        return request.respond({ status: 200, contentType: 'image/svg+xml', body: image(w, h) });
+      }
+      if (url.hostname === 'example.test') return request.respond({ status: 200, contentType: 'image/svg+xml', body: image() });
+      if (request.url().includes('id=INVALIDO') || request.url().includes('/d/INVALIDO')) return request.respond({ status: 404, body: 'Fixture indisponível' });
+      if (url.origin === base && url.pathname === '/api/instagram') return json({ data: [{ id: 'qa-long', imageUrl: 'https://example.test/qa.svg', caption: 'Legenda completa de teste.\n' + 'Texto integral com acentos, @fsy_ribeiraopreto e #FSY2027.\n'.repeat(35) + 'FIM DA LEGENDA', authorHandle: 'fsy_ribeiraopreto', publishedAt: '2026-10-20T12:00:00Z', postUrl: 'https://www.instagram.com/p/qa/', mediaType: 'IMAGE' }] });
+      if (url.origin === base && request.method() === 'GET') {
+        if (url.pathname === '/api/schedule') return json({ data: schedule });
+        // Só contratos visuais de foto são simulados aqui; autorização é testada no servidor.
+        if (url.pathname === '/api/profile/photo') return json({ status: pendingPhoto ? 'pending' : 'none', approved_url: null, pending_url: pendingPhoto ? review.pending_url : null, submitted_at: pendingPhoto ? review.submitted_at : null, reviewed_at: null, review_note: null });
+        if (url.pathname === '/api/profile/photo/reviews' && ['1', '2', '3', '4'].includes(activeUser)) return json({ data: [review] });
+        if (url.pathname === '/api/profile/photo/company') return json({ data: {} });
+      }
+      return request.continue();
+    });
+
+    async function identity(who) {
+      activeUser = who;
+      await page.deleteCookie({ name: 'sb-127-auth-token', domain: '127.0.0.1', path: '/' });
+      if (who) await page.setCookie({ name: 'sb-127-auth-token', value: session.sessionCookie(who), domain: '127.0.0.1', path: '/' });
+    }
+    async function visit(route, who, dark = false) {
+      await identity(who);
+      await page.evaluate((theme) => localStorage.setItem('theme', theme), dark ? 'dark' : 'light');
+      await page.goto(`${base}${route}`, { waitUntil: 'networkidle2', timeout: 120000 });
+      await page.waitForFunction(() => !!document.querySelector('main h1,main h2') && !document.querySelector('main .animate-pulse'), { timeout: 30000 });
+      await page.waitForFunction((value) => document.documentElement.classList.contains('dark') === value, {}, dark);
+      await page.evaluate(() => document.fonts.ready);
+      await sleep(250);
+    }
+    async function clickVisible(selector) {
+      for (const element of await page.$$(selector)) {
+        const box = await element.boundingBox();
+        if (box?.width && box?.height) { await element.click(); return element; }
+      }
+      throw new Error(`Controle visível ausente: ${selector}`);
+    }
+    async function audit(context) {
+      const state = await page.evaluate(() => {
+        const visible = (element) => { const box = element.getBoundingClientRect(); return box.width > 0 && box.height > 0; };
+        const controls = [...document.querySelectorAll('button,a[href]')].filter(visible);
+        const nav = [...document.querySelectorAll('nav[aria-label="Navegação principal"]')].find(visible);
+        return {
+          url: location.pathname, title: document.querySelector('main h1,main h2')?.textContent,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+          unlabeled: [...document.querySelectorAll('input:not([type=hidden]),select,textarea')].filter((element) => visible(element) && !element.labels?.length && !element.getAttribute('aria-label') && !element.getAttribute('aria-labelledby')).map((element) => ({ tag: element.tagName, id: element.id, placeholder: element.placeholder })),
+          smallTargets: controls.filter((element) => { const box = element.getBoundingClientRect(); return !element.closest('p') && (box.width < 43.99 || box.height < 43.99); }).map((element) => ({ text: element.innerText, aria: element.getAttribute('aria-label'), width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })),
+          navigation: nav ? [...nav.querySelectorAll('a')].map((link) => ({ href: link.getAttribute('href'), text: link.innerText })) : [],
+          privateLinks: controls.filter((element) => /^\/(admin|consultor)(\/|$)/.test(element.getAttribute('href') || '') || /^(Gestão|Administração|Painel do consultor|Publicar)$/.test((element.getAttribute('aria-label') || element.innerText).trim())).map((element) => element.innerText),
+          internalSchedule: document.querySelector('main')?.innerText.includes('QA INTERNO') || false,
+          dayTabs: [...document.querySelectorAll('[role=tablist][aria-label="Dias do evento"] [role=tab]')].map((element) => element.innerText),
+          customization: controls.some((element) => /Personalizar|Salvar layout|Restaurar padrão/.test(element.getAttribute('aria-label') || element.innerText)) || !!document.querySelector('[data-control=handle]'),
+          instagramOnHome: location.pathname === '/dashboard' && !!document.querySelector('button[aria-label^="Ampliar publicação"]'),
+        };
+      });
+      await page.evaluate(() => { window.__IMPECCABLE_CONFIG__ = { autoScan: false }; });
+      await page.addScriptTag({ path: path.join(root, '.agent/skills/impeccable/scripts/detector/detect-antipatterns-browser.js') });
+      detectorReports.push({ ...context, groups: await page.evaluate(() => window.impeccableDetect({ decorate: false, serialize: true })) });
+      await page.addScriptTag({ path: axeScript });
+      const axe = await page.evaluate(async () => {
+        const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] } });
+        return { violations: result.violations, incomplete: result.incomplete.map((item) => ({ id: item.id, nodes: item.nodes.length })), passes: result.passes.length };
+      });
+      report.push({ ...context, ...state, axe });
+      console.log('QA', context.route, context.mobile ? 'celular' : 'desktop', context.dark ? 'escuro' : 'claro', JSON.stringify(state));
+    }
+
+    await page.goto(`${base}/offline`, { waitUntil: 'networkidle2' });
+    for (const mobile of [false, true]) for (const dark of [false, true]) {
+      await page.setViewport({ width: mobile ? 390 : 1365, height: mobile ? 844 : 900 });
+      for (const route of routes) {
+        const who = route === '/login' ? '' : youthRoutes.has(route) ? '5' : route === '/consultor' ? '4' : '1';
+        await visit(route, who, dark);
+        await audit({ matrix: true, route, mobile, dark, youth: who === '5' });
+        if (youthRoutes.has(route) || ['/consultor', '/admin', '/admin/medical'].includes(route)) await page.screenshot({ path: output(`fsy-${route.slice(1).replaceAll('/', '-')}-${mobile ? 'mobile' : 'desktop'}-${dark ? 'dark' : 'light'}.png`), fullPage: true });
+      }
+    }
+
+    // Fonte ampliada mantém o mesmo gate de alvos, rótulos, contraste e transbordamento.
+    for (const width of [768, 390]) for (const route of ['/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/admin/users']) {
+      await page.setViewport({ width, height: 1024 });
+      await visit(route, youthRoutes.has(route) ? '5' : '1');
+      await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+      await sleep(250);
+      await audit({ textScale200: true, width, route, mobile: width < 768, dark: false, youth: youthRoutes.has(route) });
+    }
+
+    await page.setViewport({ width: 390, height: 844 });
+    await visit('/dashboard', '5');
+    for (const route of ['/schedule', '/announcements', '/mais', '/dashboard']) {
+      await clickVisible(`nav[aria-label="Navegação principal"] a[href="${route}"]`);
+      await page.waitForFunction((target) => location.pathname === target, {}, route);
+    }
+    report.push({ fourTabNavigation: true });
+    for (const route of ['/admin', '/consultor']) {
+      await visit(route, '5');
+      report.push({ youthRedirect: route, destination: new URL(page.url()).pathname });
+    }
+    await visit('/schedule?dia=dia0', '5');
+    await audit({ route: '/schedule?dia=dia0', mobile: true, dark: false, youth: true, dayZeroRequest: true });
+
+    await visit('/mais', '5');
+    await clickVisible('main a[href="/fotos"]');
+    await page.waitForSelector('button[aria-label^="Ampliar publicação"]');
+    report.push({ photosDestination: new URL(page.url()).pathname });
+    const expand = await clickVisible('article button[aria-expanded=false]');
+    report.push({ instagramExpanded: await expand.evaluate((element) => element.getAttribute('aria-expanded')) });
+    const instagramTrigger = await clickVisible('button[aria-label^="Ampliar publicação"]');
+    await page.waitForSelector('[role=dialog]');
+    report.push({ instagramDialog: await page.$eval('[role=dialog]', (element) => ({ hasEnd: element.textContent.includes('FIM DA LEGENDA'), contain: !!element.querySelector('.object-contain'), region: !!element.querySelector('[role=region][tabindex="0"]') })) });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+    report.push({ dialogClosed: true, instagramFocusRestored: await instagramTrigger.evaluate((element) => document.activeElement === element) });
+
+    await visit('/mais', '5');
+    await clickVisible('[role=radio][aria-checked=false]');
+    await clickVisible('[role=radio]:nth-child(3)');
+    await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+    await clickVisible('[role=radio]:nth-child(2)');
+    await page.waitForFunction(() => !document.documentElement.classList.contains('dark'));
+    report.push({ appearanceChoices: await page.$$eval('[role=radiogroup][aria-label="Aparência"] [role=radio]', (items) => items.map((item) => item.innerText)), themeToggleRoundTrip: true });
+    pendingPhoto = true;
+    await visit('/mais', '5');
+    await page.waitForFunction(() => document.body.innerText.includes('Em análise pelo seu consultor'));
+    await audit({ route: '/mais', mobile: true, dark: false, youth: true, pendingPhoto: true });
+    await page.screenshot({ path: output('fsy-mais-foto-pendente.png'), fullPage: true });
+    pendingPhoto = false;
+
+    await visit('/consultor', '4');
+    report.push({ counselorPhotoReviews: await page.$eval('#photo-reviews-title', (element) => element.textContent.includes('Fotos para aprovar')) });
+    // Logística inspeciona os cargos de direção, sem gravar nenhuma conta.
+    await visit('/admin/users', '3');
+    await page.waitForSelector('button[aria-label^="Gerenciar conta de"]');
+    const allManageEnabled = await page.$$eval('button[aria-label^="Gerenciar conta de"]', (items) => items.length > 0 && items.every((item) => !item.disabled));
+    const director = session.fixtures.tables.profiles.find((p) => p.role === 'casal_diretor');
+    await clickVisible(`button[aria-label="Gerenciar conta de ${director.full_name}"]`);
+    await page.waitForSelector('#acc-role');
+    report.push({ adminRoleAccess: { allManageEnabled, allRoleOptions: await page.$$eval('#acc-role option', (items) => items.length === 7) } });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+
+    await visit('/admin/media', '1');
+    let mediaTrigger;
+    for (const button of await page.$$('button')) if ((await button.evaluate((element) => element.textContent)).includes('Expandir')) { mediaTrigger = button; break; }
+    if (!mediaTrigger) throw new Error('Prévia administrativa de foto ausente.');
+    await mediaTrigger.click();
+    await page.waitForSelector('[role=dialog]');
+    const adminMediaDialog = await page.$eval('[role=dialog]', (element) => ({ named: !!element.getAttribute('aria-labelledby'), hasVisibilityAction: /Visível|Oculta/.test(element.textContent) }));
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+    report.push({ adminMediaDialog: { ...adminMediaDialog, closed: true, focusRestored: await mediaTrigger.evaluate((element) => document.activeElement === element) } });
+  } finally {
+    report.push({ runtimeErrors, blockedSupabase });
+    fs.writeFileSync(output('fsy-impeccable-dom.json'), JSON.stringify(detectorReports, null, 2));
+    fs.writeFileSync(output('fsy-visual-report.json'), JSON.stringify(report, null, 2));
+    await browser.close();
+  }
 }
-for(const width of [768,390]){
-await page.setViewport({width,height:1024});
-for(const route of ['/dashboard','/schedule','/admin/users']){
-await page.goto('http://127.0.0.1:3117'+route,{waitUntil:'networkidle2'});
-await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
-await new Promise(r=>setTimeout(r,400));
-report.push({textScale200:true,width,route,...await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,bodyWidth:document.documentElement.scrollWidth}))});
-}
-}
-await page.setViewport({width:390,height:844});
-await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('5'),domain:'127.0.0.1',path:'/'});
-await page.goto('http://127.0.0.1:3117/dashboard',{waitUntil:'networkidle2'});
-await page.waitForSelector('button[aria-label^="Ampliar publicação"]',{timeout:30000});
-const expand=await page.$('article button[aria-expanded=false]');if(expand){await expand.click();report.push({instagramExpanded:await expand.evaluate(e=>e.getAttribute('aria-expanded'))});}
-const trigger=await page.$('button[aria-label^="Ampliar publicação"]');if(trigger){await trigger.click();await page.waitForSelector('[role=dialog]');report.push({instagramDialog:await page.$eval('[role=dialog]',e=>({hasEnd:e.textContent.includes('FIM DA LEGENDA'),contain:!!e.querySelector('.object-contain'),region:!!e.querySelector('[role=region][tabindex="0"]')}))});await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('[role=dialog]'));report.push({dialogClosed:!(await page.$('[role=dialog]'))});}
-const before=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
-const customize=await page.$('button');
-const buttons=await page.$$('button');
-for(const b of buttons){if((await b.evaluate(e=>e.getAttribute('aria-label') || e.textContent)).includes('Personalizar layout')){await b.click();break;}}
-const handles=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
-const down=await page.$('[data-control=down]:not([disabled])');if(down)await down.click();
-const afterMove=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
-for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Salvar layout')){await b.click();break;}}
-await new Promise(r=>setTimeout(r,500));
-await page.reload({waitUntil:'networkidle2'});
-for(const b of await page.$$('button')){if((await b.evaluate(e=>e.getAttribute('aria-label') || e.textContent)).includes('Personalizar layout')){await b.click();break;}}
-const reloaded=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
-report.push({layout:{handleCount:handles.length,moved:handles[0]!==afterMove[0],persistedAfterReload:reloaded[0]===afterMove[0]}});
-for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Restaurar padrão')){await b.click();break;}}
-const restored=await page.$$eval('[data-control=handle]',els=>els.map(e=>e.getAttribute('aria-label')));
-report.push({layoutRestored:restored[0]===handles[0]});
-for(const b of await page.$$('button')){if((await b.evaluate(e=>e.textContent)).includes('Salvar layout')){await b.click();break;}}
-const themeBefore = await page.evaluate(()=>document.documentElement.classList.contains('dark'));
-for(let click=0;click<2;click++){
-const before=await page.evaluate(()=>document.documentElement.classList.contains('dark'));
-await page.evaluate(()=>[...document.querySelectorAll('button[aria-label="Alternar tema claro/escuro"]')].find(e=>e.getBoundingClientRect().width>0)?.click());
-await page.waitForFunction(before=>document.documentElement.classList.contains('dark')!==before,{},before);
-}
-report.push({themeToggleRoundTrip:await page.evaluate(before=>document.documentElement.classList.contains('dark')===before,themeBefore)});
-// Logística tem a mesma autoridade de direção/coordenação; só inspeciona, sem gravar contas.
-await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('3'),domain:'127.0.0.1',path:'/'});
-await page.goto('http://127.0.0.1:3117/admin/users',{waitUntil:'networkidle2'});
-await page.waitForSelector('button[aria-label^="Gerenciar conta de"]');
-const allManageEnabled=await page.$$eval('button[aria-label^="Gerenciar conta de"]',es=>es.length>0&&es.every(e=>!e.disabled));
-const directorName=require('./fixtures.json').tables.profiles.find(p=>p.role==='casal_diretor').full_name;
-for(const button of await page.$$('button[aria-label^="Gerenciar conta de"]')) {
-  if(await button.evaluate((e,name)=>e.getAttribute('aria-label')===`Gerenciar conta de ${name}`,directorName)){await button.click();break;}
-}
-await page.waitForSelector('#acc-role');
-const allRoleOptions=await page.$$eval('#acc-role option',es=>es.length===7);
-report.push({adminRoleAccess:{allManageEnabled,allRoleOptions}});
-await page.keyboard.press('Escape');
-await page.waitForFunction(()=>!document.querySelector('[role="dialog"]'));
-await page.setCookie({name:'sb-127-auth-token',value:session.sessionCookie('1'),domain:'127.0.0.1',path:'/'});
-await page.goto('http://127.0.0.1:3117/admin/media',{waitUntil:'networkidle2'});
-await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(e=>e.textContent.includes('Expandir')));
-let mediaTrigger;
-for(const button of await page.$$('button')){if((await button.evaluate(e=>e.textContent)).includes('Expandir')){mediaTrigger=button;break;}}
-await mediaTrigger.click();
-await page.waitForSelector('[role="dialog"]');
-const adminMediaDialog=await page.$eval('[role="dialog"]',e=>({named:!!e.getAttribute('aria-labelledby'),hasVisibilityAction:/Visível|Oculta/.test(e.textContent)}));
-await page.keyboard.press('Escape');
-await page.waitForFunction(()=>!document.querySelector('[role="dialog"]'));
-adminMediaDialog.closed=true;
-adminMediaDialog.focusRestored=await mediaTrigger.evaluate(e=>document.activeElement===e);
-report.push({adminMediaDialog});
-report.push({runtimeErrors});
-fs.writeFileSync(output('fsy-impeccable-dom.json'),JSON.stringify(detectorReports,null,2));
-fs.writeFileSync(output('fsy-visual-report.json'),JSON.stringify(report,null,2));
-console.log(JSON.stringify(report,null,2));
-}finally{await browser.close();}
-}
-run().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>servers.forEach(p=>p.kill('SIGTERM')));
+
+run().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => servers.forEach((proc) => proc.kill('SIGTERM')));
