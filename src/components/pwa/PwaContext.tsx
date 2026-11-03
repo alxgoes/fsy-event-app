@@ -78,25 +78,10 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
-    // 5. Automatically show install modal pop-up upon entering the site
-    // (if not installed, not recently dismissed, with a gentle delay)
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    if (!runningStandalone) {
-      let dismissedTimestamp: string | null = null;
-      try { dismissedTimestamp = localStorage.getItem("fsy_pwa_dismissed_at"); } catch {}
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-      const shouldPrompt =
-        !dismissedTimestamp || Date.now() - parseInt(dismissedTimestamp, 10) > oneDayInMs;
-
-      if (shouldPrompt) {
-        timer = setTimeout(() => {
-          startTransition(() => { setShowInstallModal(true); });
-        }, 2200); // 2.2s delay for seamless initial page render
-      }
-    }
+    // 5. Sem pop-up automático: a instalação é oferecida em /instalar e no menu do perfil,
+    // para não interromper a tarefa nem cobrir conteúdo.
 
     return () => {
-      clearTimeout(timer);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);

@@ -34,10 +34,10 @@ export function GooeyPillTabs({
   );
 
   const activePillColors: Record<NonNullable<GooeyPillTabsProps["variant"]>, string> = {
-    brand: "bg-[#007DA5] text-white shadow-tactile-pill border-2 border-slate-950 dark:border-slate-700",
+    brand: "bg-[#007DA5] text-white shadow-tactile-pill border border-slate-200 dark:border-slate-700",
     "tactile-dark":
-      "bg-[#182030] dark:bg-[#131927] text-white shadow-tactile-pill border-2 border-slate-950 dark:border-slate-700",
-    gold: "bg-[#FFE48A] text-slate-950 shadow-tactile-pill border-2 border-slate-900",
+      "bg-[#182030] dark:bg-[#131927] text-white shadow-tactile-pill border border-slate-200 dark:border-slate-700",
+    gold: "bg-[#FFE48A] text-slate-950 shadow-tactile-pill border border-slate-200",
   };
 
   const activePillClass = activePillColors[variant] || activePillColors.brand;

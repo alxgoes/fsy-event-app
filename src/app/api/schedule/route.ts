@@ -2,18 +2,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireIdentity, json, serverError, pick } from "@/lib/auth/guard";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { scheduleItemSchema } from "@/lib/validations/schemas";
+import { EVENT_DAY_DATES } from "@/lib/event/identity";
 
 export const dynamic = "force-dynamic";
-
-// Standard conference dates mapping (FSY 2027: 05 a 10 de Fevereiro)
-const DAY_DEFAULT_DATES: Record<string, string> = {
-  dia0: "2027-02-05",
-  dia1: "2027-02-06",
-  dia2: "2027-02-07",
-  dia3: "2027-02-08",
-  dia4: "2027-02-09",
-  dia5: "2027-02-10",
-};
 
 const SCHEDULE_FIELDS = ["title", "start_time", "end_time", "location", "description", "category", "day", "date", "is_highlight"] as const;
 
@@ -66,7 +57,7 @@ export async function POST(request: Request) {
       }> = [];
 
       for (const [dayKey, dayData] of Object.entries(OFFICIAL_FSY_SCHEDULE)) {
-        const defaultDate = DAY_DEFAULT_DATES[dayKey] || "2027-02-05";
+        const defaultDate = EVENT_DAY_DATES[dayKey] || EVENT_DAY_DATES.dia0;
         for (const event of dayData.events) {
           itemsToInsert.push({
             day: dayKey,
@@ -109,7 +100,7 @@ export async function POST(request: Request) {
     }
 
     const validated = parseResult.data;
-    const assignedDate = validated.date || DAY_DEFAULT_DATES[validated.day] || "2027-02-05";
+    const assignedDate = validated.date || EVENT_DAY_DATES[validated.day] || EVENT_DAY_DATES.dia0;
 
     const payload = {
       title: validated.title,
@@ -159,7 +150,7 @@ export async function PUT(request: Request) {
 
     // If date is missing or empty, ensure a valid date is assigned
     if (typeof updates.day === "string" && !updates.date) {
-      updates.date = DAY_DEFAULT_DATES[updates.day] || "2027-02-05";
+      updates.date = EVENT_DAY_DATES[updates.day] || EVENT_DAY_DATES.dia0;
     }
 
     updates.updated_at = new Date().toISOString();

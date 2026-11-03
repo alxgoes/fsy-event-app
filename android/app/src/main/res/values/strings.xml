@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FSY RP2 2027</string>
+    <string name="widget_next_activity_name">FSY · Próxima atividade</string>
+    <string name="widget_next_activity_desc">O que acontece agora e o que vem a seguir.</string>
+    <string name="widget_event_calendar_name">FSY · Contagem e calendário</string>
+    <string name="widget_event_calendar_desc">Quanto falta e os cinco dias da sessão (06 a 10/02/2027).</string>
+    <string name="widget_day_agenda_name">FSY · Agenda do dia</string>
+    <string name="widget_day_agenda_desc">As próximas atividades do dia, a partir de agora.</string>
+    <string name="widget_highlights_name">FSY · Destaques</string>
+    <string name="widget_highlights_desc">Contagem, próxima atividade e tema, com setas para trocar.</string>
+    <string name="widget_announcements_name">FSY · Avisos</string>
+    <string name="widget_announcements_desc">Quantos avisos há e quantos são urgentes. Sem conteúdo na tela inicial.</string>
+</resources>

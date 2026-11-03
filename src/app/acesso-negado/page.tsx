@@ -2,66 +2,47 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { ShieldX, ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
+import { PermissionState } from "@/components/ui/states";
+import { EVENT_DATES } from "@/lib/event/identity";
 
 export default function AcessoNegadoPage() {
   return (
-    <div className="min-h-screen bg-fsy-watermark flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ type: "spring", stiffness: 280, damping: 24 }}
-        className="w-full max-w-md"
-      >
-        <div className="rounded-3xl border-2 border-slate-900 bg-white dark:bg-slate-900 p-10 text-center shadow-brutal-md space-y-6">
-          {/* Icon */}
-          <div className="flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-red-100 dark:bg-red-950/50 border-2 border-red-400 dark:border-red-700">
-              <ShieldX className="h-10 w-10 text-red-500" />
-            </div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <h1 className="font-heading text-3xl font-black text-slate-900 dark:text-white">
-              Acesso Negado
-            </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium leading-relaxed">
-              Seu perfil não tem permissão para acessar esta área da gestão.
-            </p>
-          </div>
-
-          {/* Info box */}
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 text-left space-y-1">
-            <p><strong>Área restrita</strong> — Painel de Gestão FSY</p>
-            <p>Se você acredita que deveria ter acesso, entre em contato com um coordenador ou com o Casal Diretor da sessão.</p>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/dashboard"
-              className="fsy-action-link flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#007DA5] text-white px-4 py-3 text-sm font-black border-2 border-slate-900 shadow-sm hover:bg-[#005E7C] transition-colors min-h-[44px]"
-            >
-              <Home className="h-4 w-4" />
-              Meu Painel
-            </Link>
-            <button
-              onClick={() => history.back()}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-3 text-sm font-black border-2 border-slate-300 dark:border-slate-600 hover:border-slate-900 dark:hover:border-slate-400 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </button>
-          </div>
-        </div>
-
-        {/* Footer note */}
-        <p className="mt-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 dark:text-slate-600">
-          FSY Sessão Ribeirão Preto 2 • 2027 (05 a 10 de Fevereiro)
-        </p>
-      </motion.div>
-    </div>
+    <main className="min-h-screen bg-fsy-watermark flex flex-col items-center justify-center gap-4 px-4 py-10">
+      <div className="fsy-fade-in w-full max-w-md">
+        <PermissionState
+          headingLevel="h1"
+          title="Área restrita"
+          description={
+            <>
+              <p>Seu cargo não tem permissão para esta área do Painel de Gestão.</p>
+              <p className="mt-2">Se você deveria ter acesso, fale com um coordenador ou com o Casal Diretor da sessão para revisar seu cargo.</p>
+            </>
+          }
+          actions={
+            <>
+              <Link
+                href="/dashboard"
+                className="fsy-action-link flex-1 justify-center gap-2 rounded-2xl bg-[#007DA5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#005E7C] dark:bg-[#01B6D1] dark:text-slate-950"
+              >
+                <Home className="h-4 w-4" aria-hidden="true" />
+                Ir para meu painel
+              </Link>
+              <button
+                type="button"
+                onClick={() => history.back()}
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 hover:border-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-400"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Voltar
+              </button>
+            </>
+          }
+        />
+      </div>
+      <p className="text-center text-xs font-semibold text-slate-600 dark:text-slate-300">
+        FSY Sessão Ribeirão Preto 2 · {EVENT_DATES}
+      </p>
+    </main>
   );
 }

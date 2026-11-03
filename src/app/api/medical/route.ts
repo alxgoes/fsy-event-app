@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserAndRole } from "@/lib/supabase/server";
 import { medicalRecordSchema, medicalRecordUpdateSchema } from "@/types/medical";
+import { matchesCompany } from "@/lib/companies/match";
 import { z } from "zod";
 
 /** Respostas com dados pessoais/saúde: nunca em cache compartilhado (site e app). */
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store, max-age=0", Vary: "Cookie, Authorization" };
 function privateJson(body: unknown, init: { status?: number; headers?: Record<string, string> } = {}) {
   return NextResponse.json(body, { ...init, headers: { ...init.headers, ...PRIVATE_HEADERS } });
+}
+
+function serverError(context: string, error?: unknown) {
+  const code = (error as { code?: string } | undefined)?.code;
+  console.error(`[api] ${context}`, code ?? "");
+  return privateJson({ error: "Não foi possível concluir a operação. Tente novamente." }, { status: 500 });
 }
 
 
@@ -21,7 +28,9 @@ interface ExtraContactsPayload {
   bishop?: { name?: string; phone?: string; ward?: string };
 }
 
-function parseRecord(record: Record<string, unknown>) {
+type CompanyName = { id: string; name: string };
+
+function parseRecord(record: Record<string, unknown>, companies: CompanyName[] = []) {
   let extra: ExtraContactsPayload = {};
   if (record.emergency_contact_alt_phone && typeof record.emergency_contact_alt_phone === "string") {
     try {
@@ -33,6 +42,7 @@ function parseRecord(record: Record<string, unknown>) {
 
   return {
     ...record,
+    company_name: companies.find((company) => matchesCompany(record.company_id as string | null, company))?.name ?? null,
     contact_2_name: extra.contact2?.name || "",
     contact_2_phone: extra.contact2?.phone || "",
     contact_2_relationship: extra.contact2?.relationship || "",
@@ -69,18 +79,19 @@ export async function GET() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.get", error);
     }
 
     const filteredRaw = (data ?? []).filter(
       (r) => r.emergency_contact_name !== "A registrar"
     );
-    const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>));
+    const { data: companies, error: companiesError } = await supabase.from("companies").select("id, name");
+    if (companiesError) return serverError("medical.get.companies", companiesError);
+    const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>, companies ?? []));
 
     return privateJson({ data: parsed });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.get", err);
   }
 }
 
@@ -181,13 +192,13 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.post", error);
     }
 
-    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    const { data: companies } = await supabase.from("companies").select("id, name");
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>, companies ?? []) });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.post", err);
   }
 }
 
@@ -222,7 +233,7 @@ export async function PUT(request: Request) {
     const supabase = createAdminClient();
     const { data: existing, error: readError } = await supabase.from("medical_records")
       .select("emergency_contact_alt_phone").eq("id", id).maybeSingle();
-    if (readError) return privateJson({ error: "Não foi possível consultar a ficha médica." }, { status: 500 });
+    if (readError) return serverError("medical.put.read", readError);
     if (!existing) return privateJson({ error: "Ficha médica não encontrada." }, { status: 404 });
     let oldContacts: ExtraContactsPayload = {};
     try { oldContacts = JSON.parse(existing.emergency_contact_alt_phone || "{}"); } catch { /* Legacy plain text. */ }
@@ -258,13 +269,13 @@ export async function PUT(request: Request) {
       .single();
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.put", error);
     }
 
-    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    const { data: companies } = await supabase.from("companies").select("id, name");
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>, companies ?? []) });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.put", err);
   }
 }
 
@@ -288,12 +299,11 @@ export async function DELETE(request: Request) {
 
     if (error) {
       if (error.code === "23503") return privateJson({ error: "Esta ficha possui acompanhamento vinculado. Arquive o acompanhamento para preservar o histórico; a ficha não pode ser excluída." }, { status: 409 });
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("medical.delete", error);
     }
 
     return privateJson({ success: true });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("medical.delete", err);
   }
 }

@@ -106,14 +106,20 @@ const config: Config = {
         "4xl": "2.5rem",
       },
       boxShadow: {
-        "brutal-sm": "4px 4px 0px 0px rgba(0,0,0,1)",
-        "brutal-md": "6px 6px 0px 0px rgba(0,0,0,1)",
-        "brutal-soft": "0 10px 0px 0px rgba(0, 125, 165, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.05)",
+        // Nomes antigos mantidos por compatibilidade; agora seguem as camadas suaves do DESIGN.md.
+        "brutal-sm": "0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05)",
+        "brutal-md": "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
+        "brutal-soft": "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
+        float: "0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        heading: ["var(--font-heading)", "var(--font-serif)", "Cinzel", "Cormorant Garamond", "serif"],
-        serif: ["var(--font-serif)", "var(--font-heading)", "Cormorant Garamond", "Cinzel", "serif"],
+        // Títulos (Libre Baskerville). `serif` é o mesmo papel; itálico serifado vira escritura em globals.css.
+        heading: ["var(--font-heading)", "Georgia", "serif"],
+        serif: ["var(--font-heading)", "Georgia", "serif"],
+        scripture: ["var(--font-scripture)", "Georgia", "serif"],
+        // Exclusivo do lockup "Alegrar-se em Cristo"; não usar em títulos de tela.
+        lockup: ["var(--font-lockup)", "Georgia", "serif"],
       },
       keyframes: {
         "accordion-down": {

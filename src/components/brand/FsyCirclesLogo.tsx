@@ -179,7 +179,7 @@ export function FsyCirclesLogo({
     return (
       <div
         className={cn(
-          "relative flex items-center justify-center rounded-3xl bg-[#0B1528] p-3 border-2 border-slate-900 dark:border-slate-700 shadow-brutal-md overflow-hidden",
+          "relative flex items-center justify-center rounded-3xl bg-[#0B1528] p-3 border border-slate-200 dark:border-slate-700 shadow-brutal-md overflow-hidden",
           className
         )}
       >

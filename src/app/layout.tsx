@@ -1,6 +1,7 @@
 import { EVENT_THEME } from "@/lib/event/identity";
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Cinzel, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ProfileProvider } from "@/lib/supabase/useProfile";
@@ -8,17 +9,30 @@ import { SeigaihaBackground } from "@/components/ui/SeigaihaBackground";
 import { PwaProvider } from "@/components/pwa/PwaContext";
 import { PwaManager } from "@/components/pwa/PwaManager";
 
+// Títulos e letreiro FSY: Libre Baskerville (SIL OFL 1.1), escolhida pelo usuário.
+const libreBaskerville = localFont({
+  src: "./fonts/LibreBaskerville-VariableFont_wght.ttf",
+  weight: "400 700",
+  variable: "--font-heading",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
+  fallback: ["Georgia", "serif"],
+});
+
+// Somente o lockup tipográfico do tema, preservando a forma em caixa alta já aprovada.
 const cinzel = Cinzel({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-heading",
+  weight: ["400", "700"],
+  variable: "--font-lockup",
   display: "swap",
 });
 
+// Voz das escrituras e lemas (itálico verdadeiro, sem itálico sintético).
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-serif",
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-scripture",
   display: "swap",
 });
 
@@ -68,7 +82,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${inter.variable} ${cinzel.variable} ${cormorant.variable}`}
+      className={`${inter.variable} ${libreBaskerville.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
       <body
         suppressHydrationWarning
@@ -76,7 +90,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >

@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { WifiOff, Download } from "lucide-react";
+import { WifiOff } from "lucide-react";
 import { usePwa } from "./PwaContext";
 import { PwaInstallModal } from "./PwaInstallModal";
 
 export function PwaManager() {
-  const { isOffline, isInstalled, openInstallModal } = usePwa();
+  const { isOffline } = usePwa();
 
   return (
     <>
@@ -22,25 +22,7 @@ export function PwaManager() {
         </aside>
       )}
 
-      {/* 2. Floating Quick Install App Button on Mobile & Desktop (if not installed) */}
-      {!isInstalled && (
-        <aside
-          role="region"
-          aria-label="Instalação do Aplicativo"
-          className="fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white border-2 border-slate-900 shadow-brutal-md transition-all cursor-pointer select-none active:translate-x-[1px] active:translate-y-[1px]"
-        >
-          <button
-            type="button"
-            onClick={openInstallModal}
-            className="flex min-h-[44px] min-w-[44px] items-center gap-2 p-2.5 pr-3.5 text-xs font-black"
-          >
-            <div className="p-1 rounded-xl bg-white/20">
-              <Download className="h-3.5 w-3.5 text-white" />
-            </div>
-            <span>Instalar App</span>
-          </button>
-        </aside>
-      )}
+      {/* 2. Instalação: acesso contextual (menu do perfil e /instalar), sem pílula flutuante sobre o conteúdo. */}
 
       {/* 3. Universal Install Modal (automatic pop-up or manual trigger) */}
       <PwaInstallModal />

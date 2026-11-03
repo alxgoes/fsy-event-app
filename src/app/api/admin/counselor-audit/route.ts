@@ -71,7 +71,7 @@ export async function GET(request: Request) {
           notice: "Tabela counselor_audit_logs pendente de criação no Supabase.",
         });
       }
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("audit.get", error);
     }
 
     let logs: CounselorAuditLog[] = data || [];
@@ -95,8 +95,7 @@ export async function GET(request: Request) {
       }
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("audit.get", err);
   }
 }
 
@@ -164,7 +163,7 @@ export async function DELETE(request: Request) {
         .neq("id", "00000000-0000-0000-0000-000000000000"); // Deletes all rows
 
       if (error) {
-        return privateJson({ error: error.message }, { status: 500 });
+        return serverError("audit.deleteAll", error);
       }
 
       return privateJson({
@@ -187,7 +186,7 @@ export async function DELETE(request: Request) {
       .eq("id", id);
 
     if (error) {
-      return privateJson({ error: error.message }, { status: 500 });
+      return serverError("audit.delete", error);
     }
 
     return privateJson({
@@ -195,7 +194,6 @@ export async function DELETE(request: Request) {
       message: "Registro de auditoria removido com sucesso.",
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    return privateJson({ error: message }, { status: 500 });
+    return serverError("audit.delete", err);
   }
 }

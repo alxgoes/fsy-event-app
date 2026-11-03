@@ -5,6 +5,7 @@ import { isBearerApiPath, parseAuthorization } from "@/lib/auth/bearer";
 
 const PUBLIC_PREFIXES = ["/login", "/auth", "/acesso-negado", "/offline", "/icons", "/redefinir-senha"];
 const PUBLIC_EXACT = new Set([
+  "/instalar",
   "/api/auth/recover",
   "/api/instagram",
   "/icon.svg",
@@ -13,8 +14,11 @@ const PUBLIC_EXACT = new Set([
   "/manifest.json",
 ]);
 
-function isPublicPath(pathname: string) {
+function isPublicPath(pathname: string, method = "GET") {
   if (process.env.NODE_ENV !== "production" && pathname.startsWith("/loading-preview")) return true;
+  if (pathname === "/api/app-release") {
+    return method === "GET" || method === "HEAD";
+  }
   return PUBLIC_EXACT.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
@@ -37,14 +41,14 @@ export async function proxy(request: NextRequest) {
 
   // Sem configuração não há como validar sessão: falha fechada fora das rotas públicas.
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (isPublicPath(request.nextUrl.pathname)) return supabaseResponse;
+    if (isPublicPath(request.nextUrl.pathname, request.method)) return supabaseResponse;
     return NextResponse.json(
       { error: "Serviço temporariamente indisponível: configuração de autenticação ausente." },
       { status: 503 }
     );
   }
 
-  // App iOS: `Authorization: Bearer` só nas APIs permitidas, validado no Auth. Inválido falha fechado e
+  // App iOS/Android: `Authorization: Bearer` só nas APIs permitidas, validado no Auth. Inválido falha fechado e
   // nunca recorre ao cookie. Cargo, suspensão e escopo continuam conferidos em cada rota.
   const authorization = parseAuthorization(request.headers.get("authorization"));
   if (authorization.kind !== "none" && request.nextUrl.pathname.startsWith("/api")) {
@@ -89,7 +93,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // 1. Unauthenticated users: protect every internal page and API.
-  const isPublicRoute = isPublicPath(pathname);
+  const isPublicRoute = isPublicPath(pathname, request.method);
 
   if (!user && !isPublicRoute) {
     if (pathname.startsWith("/api")) {
@@ -129,10 +133,11 @@ export async function proxy(request: NextRequest) {
       .single();
     const role = profileError ? null : profile?.role;
 
-    // JOVEM: blocked entirely — show access denied page
+    // JOVEM: volta ao Início sem nenhuma página que revele a existência da gestão.
     if (!role || !["midia", "medico", "consultor", "logistica", "coordenador", "casal_diretor"].includes(role)) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/acesso-negado";
+      redirectUrl.pathname = "/dashboard";
+      redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
 
@@ -181,7 +186,8 @@ export async function proxy(request: NextRequest) {
       role !== "logistica"
     ) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/acesso-negado";
+      redirectUrl.pathname = role === "jovem" || !role ? "/dashboard" : "/acesso-negado";
+      redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
   }

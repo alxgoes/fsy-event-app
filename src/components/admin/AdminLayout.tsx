@@ -23,6 +23,8 @@ import {
   Compass,
   ChevronDown,
   Loader2,
+  ClipboardList,
+  Smartphone,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -30,8 +32,8 @@ import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
-import { GooeyButton } from "@/components/ui/GooeyButton";
 import styles from "./AdminLayout.module.css";
+import { EVENT_DATES } from "@/lib/event/identity";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -47,55 +49,61 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
-    name: "Visão Geral",
+    name: "Visão geral",
     href: "/admin",
     icon: LayoutDashboard,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Auditoria dos Consultores",
+    name: "Atividade dos consultores",
     href: "/admin/counselor-audit",
     icon: ShieldAlert,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Registros & Atendimentos",
+    name: "Saúde e inclusão",
     href: "/admin/medical",
     icon: Stethoscope,
     allowedRoles: ["medico", "coordenador", "casal_diretor", "logistica"],
   },
   {
-    name: "Companhias do FSY",
+    name: "Companhias",
     href: "/admin/companies",
     icon: Building2,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Programação Oficial",
+    name: "Programação",
     href: "/admin/schedule",
     icon: Calendar,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Logística & Ônibus",
+    name: "Logística",
     href: "/admin/logistics",
     icon: Truck,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Comunicados Oficiais",
+    name: "Avisos",
     href: "/admin/announcements",
     icon: Megaphone,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Fotos & Mídia",
+    name: "Fotos",
     href: "/admin/media",
     icon: Camera,
     allowedRoles: ["midia", "casal_diretor", "coordenador", "logistica"],
   },
   {
-    name: "Gestão de Usuários",
+    name: "Inscrições",
+    href: "/admin/inscricoes",
+    icon: ClipboardList,
+    allowedRoles: ["casal_diretor", "coordenador", "logistica"],
+  },
+  {
+    name: "Contas e acessos",
     href: "/admin/users",
     icon: Users,
     allowedRoles: ["casal_diretor", "coordenador", "logistica"],
@@ -224,7 +232,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
     medico: { label: "Equipe Multidisciplinar", color: "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" },
     logistica: { label: "Logística", color: "bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800" },
     midia: { label: "Equipe de Mídia", color: "bg-pink-50 dark:bg-pink-950/70 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800" },
-    coordenador: { label: "Coordenação Geral", color: "bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800" },
+    coordenador: { label: "Coordenação Geral", color: "bg-sky-50 dark:bg-sky-950/70 text-[#005E7C] dark:text-cyan-300 border-sky-200 dark:border-sky-800" },
     casal_diretor: { label: "Casal Diretor", color: "bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
   };
 
@@ -265,21 +273,21 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-            <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+            <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
-            <FsyFloatingLetters size="xs" className="hidden sm:inline-flex shrink-0" />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                <span className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white truncate max-w-[125px] xs:max-w-[170px] sm:max-w-none">
+            <FsyFloatingLetters size="xs" className="hidden lg:inline-flex shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                <span className="font-heading font-bold text-sm text-slate-900 dark:text-white truncate">
                   {currentRole === "midia"
                     ? "Painel de Mídia"
                     : currentRole === "medico"
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-xs font-black uppercase text-amber-950 border border-amber-500/40 hidden md:inline shrink-0">
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-xs font-bold uppercase text-amber-950 border border-amber-500/40 hidden lg:inline shrink-0">
                   2027
                 </span>
               </div>
@@ -293,22 +301,11 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
 
           <Badge
             variant="outline"
-            className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
+            className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
           >
             <Shield className="h-3 w-3" />
             <span>{roleLabels[currentRole]?.label || roleLabel}</span>
           </Badge>
-
-          <GooeyButton
-            variant="tactile-dark"
-            size="sm"
-            href="/dashboard"
-            icon={<Compass className="h-3.5 w-3.5" />}
-            iconColor="text-[#005E7C] dark:text-cyan-400"
-            className="hidden md:inline-flex"
-          >
-            Portal Jovem
-          </GooeyButton>
 
           {/* Interactive Profile Dropdown (Mobile & Desktop) */}
           <div className="relative" ref={dropdownRef}>
@@ -324,13 +321,13 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                   <Loader2 className="h-4 w-4 animate-spin text-slate-500 dark:text-slate-300" />
                 </div>
               ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-xs border border-slate-900 shrink-0">
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#FFE48A] text-slate-950 font-bold text-xs border border-slate-900 shrink-0">
                   {avatarLetter}
                 </div>
               )}
 
               <div className="hidden sm:block text-left text-xs leading-tight">
-                <p className="font-black text-slate-900 dark:text-white truncate max-w-[90px]">
+                <p className="font-bold text-slate-900 dark:text-white truncate max-w-[90px]">
                   {loading ? "..." : displayName.split(" ")[0]}
                 </p>
                 <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400">
@@ -356,17 +353,17 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#06D6A0] text-slate-950 font-black text-base border-2 border-slate-900 dark:border-slate-700 shrink-0">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFE48A] text-slate-950 font-bold text-base border border-slate-200 dark:border-slate-700 shrink-0">
                         {avatarLetter}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           {displayName}
                         </p>
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 truncate">
                           {displayEmail}
                         </p>
-                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-black text-[#005E7C] dark:text-cyan-300">
+                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-bold text-[#005E7C] dark:text-cyan-300">
                           {roleLabels[currentRole]?.label || roleLabel}
                         </span>
                       </div>
@@ -375,46 +372,15 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
 
                   {/* Menu Items */}
                   <div className="py-2">
-                    {/* Portal do Jovem (Primary Action) */}
                     <Link
-                      href="/dashboard"
-                      onClick={() => setDropdownOpen(false)}
-                      className="fsy-action-link min-h-[44px] w-full flex items-center justify-between px-4 py-2.5 text-sm font-black text-[#005E7C] dark:text-[#7DE3F4] hover:bg-sky-50 dark:hover:bg-sky-950/30 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Compass className="h-4 w-4" />
-                        <span>Portal do Jovem</span>
-                      </div>
-                      <span className="text-xs font-black bg-[#007DA5] text-white px-2 py-0.5 rounded-md">
-                        Acessar
-                      </span>
-                    </Link>
-
-                    {/* Painel de Gestão (Current Active) */}
-                    <Link
-                      href="/admin"
+                      href="/instalar"
                       onClick={() => setDropdownOpen(false)}
                       className="fsy-action-link min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
-                      <Shield className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                      <span>Painel de Gestão (Início)</span>
+                      <Smartphone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                      <span>Instalar o app</span>
                     </Link>
 
-                    <div className="mx-3 my-1.5 border-t border-slate-100 dark:border-slate-800" />
-
-                    {/* Sign Out */}
-                    <button
-                      onClick={handleSignOut}
-                      disabled={signingOut}
-                      className="min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-60 text-left"
-                    >
-                      {signingOut ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <LogOut className="h-4 w-4" />
-                      )}
-                      <span>{signingOut ? "Saindo..." : "Sair da conta"}</span>
-                    </button>
                   </div>
                 </motion.div>
               )}
@@ -455,7 +421,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                 <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
               </div>
               <FsyFloatingLetters size="xs" className="inline-flex" />
-              <span className="font-heading font-black text-xs text-slate-900 dark:text-white">
+              <span className="font-heading font-bold text-xs text-slate-900 dark:text-white">
                 Painel de Gestão
               </span>
             </div>
@@ -473,7 +439,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <div className="space-y-4">
               <div className="px-3 pt-2 pb-1">
                 <p className="font-heading text-lg font-bold leading-tight text-slate-900 dark:text-white">FSY Ribeirão Preto 2</p>
-                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">05–10 de fevereiro de 2027</p>
+                <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400">{EVENT_DATES}</p>
               </div>
 
               <Link href="/dashboard" onClick={() => setIsSidebarOpen(false)} className={"fsy-action-link " + (styles.portal)}>

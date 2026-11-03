@@ -41,6 +41,7 @@ test('admin proxy ignores forged role cookie and metadata', async () => {
   const modules = { ...f.common, '@/lib/security/origin': { isSameOriginRequest: () => true }, 'next/server': { NextResponse: { next: () => ({ cookies: { set() {} }, type: 'next' }), redirect: url => ({ pathname: url.pathname }), json: () => ({}) } } };
   const { proxy } = load('src/proxy.ts', modules);
   const request = { method: 'GET', headers: { get: () => null }, cookies: { getAll: () => [], get: () => ({ value: 'coordenador' }) }, nextUrl: { pathname: '/admin/medical', clone: () => ({ pathname: '', searchParams: new URLSearchParams() }) } };
-  assert.equal((await proxy(request)).pathname, '/acesso-negado');
+  // Jovem volta ao Início: nada indica que a gestão existe.
+  assert.equal((await proxy(request)).pathname, '/dashboard');
   assert.equal(f.reads(), 1);
 });

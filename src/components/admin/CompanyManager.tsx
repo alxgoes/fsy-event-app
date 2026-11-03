@@ -55,9 +55,9 @@ interface CompanyItem {
 const PRESET_COLORS = [
   { name: "Azul Índigo Oceânico", value: "#007DA5" },
   { name: "Coral Vivo Festivo", value: "#FC4E6D" },
-  { name: "Verde Esmeralda", value: "#06D6A0" },
+  { name: "Verde FSY", value: "#93C742" },
   { name: "Ouro Solar Radiante", value: "#FFE48A" },
-  { name: "Roxo Real", value: "#7209B7" },
+  { name: "Azul FSY", value: "#007DA5" },
   { name: "Laranja Solar", value: "#F77F00" },
   { name: "Ciano Marinho", value: "#4CC9F0" },
   { name: "Rubi Intenso", value: "#E63946" },
@@ -239,11 +239,11 @@ export function CompanyManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#007DA5] text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#007DA5] text-white border border-slate-200 dark:border-slate-700 shadow-sm">
             <Building2 className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="font-heading text-2xl font-black text-slate-900 dark:text-white">
+            <h2 className="font-heading text-2xl font-bold text-slate-900 dark:text-white">
               Gestão de Companhias do FSY
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
@@ -255,14 +255,14 @@ export function CompanyManager() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={loadData}
-            className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2.5 text-xs font-black shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
+            className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
           >
             <RefreshCw className="h-4 w-4" />
             Atualizar
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 rounded-2xl bg-[#06D6A0] text-emerald-950 border-2 border-slate-900 dark:border-slate-700 px-4 py-2.5 text-xs font-black shadow-sm hover:opacity-90 transition-opacity min-h-[36px]"
+            className="flex items-center gap-2 rounded-2xl bg-[#93C742] text-emerald-950 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-xs font-bold shadow-sm hover:opacity-90 transition-opacity min-h-[36px]"
           >
             <Plus className="h-4 w-4" />
             Nova Companhia
@@ -301,11 +301,11 @@ export function CompanyManager() {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
+          <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Total de Companhias
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">
               {companies.length}
             </span>
             <Building2 className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -313,23 +313,23 @@ export function CompanyManager() {
         </div>
 
         <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
+          <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Consultores Designados
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">
               {totalAssignedCounselors} / {counselors.length}
             </span>
-            <UserCheck className="h-5 w-5 text-[#06D6A0]" />
+            <UserCheck className="h-5 w-5 text-[#93C742]" />
           </div>
         </div>
 
         <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-          <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
+          <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-300 dark:text-slate-400">
             Jovens Alocados
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-3xl font-black text-slate-900 dark:text-white">
+            <span className="text-3xl font-bold text-slate-900 dark:text-white">
               {totalYouth}
             </span>
             <Users className="h-5 w-5 text-[#FC4E6D]" />
@@ -359,7 +359,7 @@ export function CompanyManager() {
       ) : filteredCompanies.length === 0 ? (
         <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
           <Building2 className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-          <h3 className="font-heading text-lg font-black text-slate-700 dark:text-slate-300">
+          <h3 className="font-heading text-lg font-bold text-slate-700 dark:text-slate-300">
             Nenhuma companhia encontrada
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-1 max-w-sm mx-auto">
@@ -375,13 +375,13 @@ export function CompanyManager() {
               key={comp.id}
               whileHover={{ y: -3 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md flex flex-col justify-between"
+              className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md flex flex-col justify-between"
             >
               <div>
                 {/* Color Pill & Actions */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-white font-black text-xs border border-slate-900/40 shadow-sm"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-white font-bold text-xs border border-slate-900/40 shadow-sm"
                     style={{ backgroundColor: comp.color || "#007DA5", color: contrastText(comp.color || "#007DA5") }}
                   >
                     <span className="h-2 w-2 rounded-full bg-white/80" />
@@ -409,7 +409,7 @@ export function CompanyManager() {
                 </div>
 
                 {/* Company Name */}
-                <h3 className="font-heading text-xl font-black text-slate-900 dark:text-white leading-snug">
+                <h3 className="font-heading text-xl font-bold text-slate-900 dark:text-white leading-snug">
                   {comp.name}
                 </h3>
 
@@ -422,7 +422,7 @@ export function CompanyManager() {
 
                 {/* Counselors Section */}
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1.5">
                     Consultores Designados
                   </span>
                   {comp.counselors && comp.counselors.length > 0 ? (
@@ -451,7 +451,7 @@ export function CompanyManager() {
                 <span className="text-slate-500 dark:text-slate-300 dark:text-slate-400 font-bold">
                   Jovens registrados:
                 </span>
-                <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-black text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700">
+                <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-bold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700">
                   {comp.youth_count || 0} jovens
                 </span>
               </div>
@@ -462,9 +462,9 @@ export function CompanyManager() {
 
       {/* Create / Edit Modal */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="fsy-panel sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <DialogContent className="fsy-panel sm:max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <DialogTitle className="font-heading text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Building2 className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
               {editingCompany ? "Editar Companhia" : "Criar Nova Companhia"}
             </DialogTitle>
@@ -477,7 +477,7 @@ export function CompanyManager() {
             {/* ID & Name */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label htmlFor="field-companymanager-1" className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="field-companymanager-1" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Identificador (ID)
                 </label>
                 <Input id="field-companymanager-1"
@@ -490,7 +490,7 @@ export function CompanyManager() {
               </div>
 
               <div className="sm:col-span-2">
-                <label htmlFor="field-companymanager-2" className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="field-companymanager-2" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Nome da Companhia *
                 </label>
                 <Input id="field-companymanager-2"
@@ -504,7 +504,7 @@ export function CompanyManager() {
 
             {/* Motto */}
             <div>
-              <label htmlFor="field-companymanager-3" className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="field-companymanager-3" className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Lema / Escritura da Companhia (Opcional)
               </label>
               <Input id="field-companymanager-3"
@@ -517,7 +517,7 @@ export function CompanyManager() {
 
             {/* Color Selector */}
             <div>
-              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <Palette className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                 Cor da Companhia
               </label>
@@ -543,7 +543,7 @@ export function CompanyManager() {
             {/* Counselor Assignment Multi-select */}
             <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                   <UserCheck className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
                   Designar Consultores ({selectedCounselorIds.length} selecionados)
                 </label>
@@ -601,7 +601,7 @@ export function CompanyManager() {
 
                           {isAssignedOther && !isSelected && (
                             <span className="text-xs text-amber-800 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
-                              Na {c.company_id}
+                              Na {companies.find((company) => company.id === c.company_id)?.name ?? "outra companhia"}
                             </span>
                           )}
                         </label>
@@ -617,7 +617,7 @@ export function CompanyManager() {
               type="button"
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              className="rounded-2xl border-2 border-slate-900 dark:border-slate-700 text-xs font-black min-h-[36px]"
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold min-h-[36px]"
             >
               Cancelar
             </Button>
@@ -625,7 +625,7 @@ export function CompanyManager() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-xs shadow-sm min-h-[36px]"
+              className="rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold text-xs shadow-sm min-h-[36px]"
             >
               {saving ? (
                 <>
@@ -648,9 +648,9 @@ export function CompanyManager() {
         open={!!companyToDelete}
         onOpenChange={(open) => !open && setCompanyToDelete(null)}
       >
-        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
+        <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
-            <DialogTitle className="font-heading text-lg font-black text-red-600 dark:text-red-400 flex items-center gap-2">
+            <DialogTitle className="font-heading text-lg font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Confirmar Exclusão de Companhia
             </DialogTitle>
@@ -665,7 +665,7 @@ export function CompanyManager() {
               type="button"
               variant="outline"
               onClick={() => setCompanyToDelete(null)}
-              className="rounded-2xl text-xs font-black"
+              className="rounded-2xl text-xs font-bold"
             >
               Cancelar
             </Button>
@@ -673,7 +673,7 @@ export function CompanyManager() {
               type="button"
               onClick={handleDelete}
               disabled={!!deletingId}
-              className="rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-black"
+              className="rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
             >
               {deletingId ? (
                 <>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget Destaques. @android:id/background habilita a transição de abertura do launcher (Android 12+). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/fsy_widget_bg"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="14dp" android:layout_height="28dp" android:src="@drawable/fsy_official_temple_only" android:scaleType="fitCenter" android:importantForAccessibility="no" />
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="Sessão Ribeirão Preto 2" android:textSize="12sp" android:textColor="@color/fsy_widget_muted" android:maxLines="1" android:ellipsize="end" />
+    </LinearLayout>
+
+    <ViewFlipper
+        android:id="@+id/fsy_highlights_flipper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="6dp"
+        android:autoStart="false">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical">
+            <TextView android:id="@+id/fsy_hl_countdown" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="22sp" android:textColor="@color/fsy_widget_ink" android:textStyle="bold" android:fontFamily="@font/libre_baskerville" android:maxLines="2" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="06–10 fev 2027 · Ipê Park Hotel" android:textSize="12sp" android:textColor="@color/fsy_widget_muted" android:maxLines="2" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical">
+            <TextView android:id="@+id/fsy_hl_next_label" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="A seguir" android:textSize="12sp" android:textStyle="bold" android:textColor="@color/fsy_widget_primary" />
+            <TextView android:id="@+id/fsy_hl_next_time" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textColor="@color/fsy_widget_primary" android:textStyle="bold" />
+            <TextView android:id="@+id/fsy_hl_next_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="15sp" android:textColor="@color/fsy_widget_ink" android:maxLines="2" android:ellipsize="end" />
+            <TextView android:id="@+id/fsy_hl_next_place" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/fsy_widget_muted" android:maxLines="1" android:ellipsize="end" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Alegrar-se em Cristo" android:textSize="20sp" android:textStyle="bold" android:fontFamily="@font/libre_baskerville" android:textColor="@color/fsy_widget_ink" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Filipenses 4:4" android:textSize="12sp" android:textColor="@color/fsy_widget_muted" />
+        </LinearLayout>
+    </ViewFlipper>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end">
+        <ImageButton android:id="@+id/fsy_hl_prev" android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/fsy_widget_pill" android:src="@drawable/fsy_widget_chevron_left" android:contentDescription="Destaque anterior" />
+        <ImageButton android:id="@+id/fsy_hl_next" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/fsy_widget_pill" android:src="@drawable/fsy_widget_chevron_right" android:contentDescription="Próximo destaque" />
+    </LinearLayout>
+</LinearLayout>

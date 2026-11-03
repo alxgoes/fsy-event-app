@@ -11,6 +11,7 @@ function load(file, identity, db) {
     'next/server': { NextResponse: { json: (body, options) => ({ body, status: options?.status || 200 }) } },
     '@/lib/supabase/server': { getCurrentUserAndRole: async () => identity },
     '@/lib/supabase/admin': { createAdminClient: () => { dbCalls++; if (db) return db; throw Error('unauthorized database access'); } },
+    '@/lib/companies/match': { matchesCompany: () => false },
     zod: require('zod'),
   };
   const loadDependency = name => {

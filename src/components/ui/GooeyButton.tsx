@@ -25,15 +25,15 @@ export interface GooeyButtonProps {
 const VARIANT_STYLES: Record<NonNullable<GooeyButtonProps["variant"]>, string> = {
   // Exact user screenshot style: Dark capsule with high contrast border & hard tactile shadow
   "tactile-dark":
-    "bg-[#182030] dark:bg-[#131927] text-white border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#222c42] dark:hover:bg-[#1c2438]",
+    "bg-[#182030] dark:bg-[#131927] text-white border border-slate-200 dark:border-slate-700 shadow-tactile-pill hover:bg-[#222c42] dark:hover:bg-[#1c2438]",
   primary:
-    "bg-[#007DA5] text-white border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#006a8c]",
+    "bg-[#007DA5] text-white border border-slate-200 dark:border-slate-700 shadow-tactile-pill hover:bg-[#006a8c]",
   gold:
-    "bg-[#FFE48A] text-slate-950 border-2 border-slate-900 shadow-tactile-pill hover:bg-[#fedd74]",
+    "bg-[#FFE48A] text-slate-950 border border-slate-200 shadow-tactile-pill hover:bg-[#fedd74]",
   coral:
-    "bg-[#FC4E6D] text-slate-950 border-2 border-slate-950 dark:border-slate-700 shadow-tactile-pill hover:bg-[#e63c5b]",
+    "bg-[#FC4E6D] text-slate-950 border border-slate-200 dark:border-slate-700 shadow-tactile-pill hover:bg-[#e63c5b]",
   outline:
-    "bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-tactile-pill hover:bg-slate-100 dark:hover:bg-slate-700",
+    "bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-tactile-pill hover:bg-slate-100 dark:hover:bg-slate-700",
   ghost:
     "bg-transparent text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-transparent",
 };

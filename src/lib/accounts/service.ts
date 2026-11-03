@@ -128,6 +128,8 @@ export function allowedActions(actor: Identity, target: AccountSummary): Account
   const targetRole: Role = target.role ?? "jovem";
   const self = actor.user.id === target.id;
   return (Object.keys(ACTION_PERMISSION) as AccountActionName[]).filter((action) => {
+    // Essas ações usam PATCH de perfil e não podem reparar um cadastro sem perfil.
+    if (target.status === "sem_perfil" && ["edit", "role", "suspend", "reactivate"].includes(action)) return false;
     if (self && ["role", "suspend", "reactivate", "delete", "set_password"].includes(action)) return false;
     if (action === "suspend" && target.suspended) return false;
     if (action === "reactivate" && !target.suspended) return false;

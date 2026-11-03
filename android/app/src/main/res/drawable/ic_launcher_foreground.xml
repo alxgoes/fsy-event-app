@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone pequeno de notificação (monocromático, só alfa): silhueta de arco do tema 2027
+     com porta. Não reproduz o identificador oficial (que não pode ser redesenhado);
+     o ícone do aplicativo usa a arte oficial em drawable-xxxhdpi/ic_launcher_temple.png. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M12,2.5C8.4,2.5 5.5,5.4 5.5,9L5.5,21.5L18.5,21.5L18.5,9C18.5,5.4 15.6,2.5 12,2.5ZM10.25,21.5L10.25,16.5C10.25,15.5 11.05,14.75 12,14.75C12.95,14.75 13.75,15.5 13.75,16.5L13.75,21.5Z" />
+</vector>
