@@ -134,7 +134,7 @@ function PhotoEditor({ name }: { name: string }) {
         onClick={() => input.current?.click()}
         disabled={busy}
         className="group relative rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30"
-        aria-label={`${state?.approved_url ? "Trocar foto de perfil" : "Adicionar foto de perfil"} (${avatarInitials(name)})`}
+        aria-label={`${state?.approved_url ? "Trocar foto de perfil" : "Adicionar foto de perfil"} — ${avatarInitials(name)}`}
       >
         <motion.span
           key={shown ?? "none"}

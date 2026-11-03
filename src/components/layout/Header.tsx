@@ -331,7 +331,7 @@ export function Header() {
               />
             </div>
             {profile && (
-              <Link href="/mais" aria-label={`Meu perfil (${avatarInitials(name)})`} className="hidden h-11 w-11 items-center justify-center rounded-full md:flex">
+              <Link href="/mais" aria-label={`Meu perfil — ${avatarInitials(name)}`} className="hidden h-11 w-11 items-center justify-center rounded-full md:flex">
                 <MeAvatar size={36} name={name} active={pathname.startsWith("/mais")} />
               </Link>
             )}
