@@ -64,7 +64,7 @@ function Post({ item, unread, onLike }: { item: FeedItem; unread: boolean; onLik
             {item.target_company_id ? " · sua companhia" : ""}
           </p>
         </div>
-        {unread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FC4E6D]" aria-label="Novo" />}
+        {unread && <span role="img" className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FC4E6D]" aria-label="Novo" />}
       </header>
 
       {(urgent || important) && (

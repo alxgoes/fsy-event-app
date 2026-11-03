@@ -11,7 +11,7 @@ function toneFor(name: string) {
   return TONES[h % TONES.length];
 }
 
-function initials(name: string) {
+export function avatarInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "?";
   const first = parts[0][0] ?? "";
@@ -62,10 +62,10 @@ export function Avatar({
       ) : (
         <span
           aria-hidden
-          className="fsy-figure font-semibold text-white"
-          style={{ fontSize: Math.max(11, Math.round(size * 0.38)) }}
+          className="fsy-figure font-semibold"
+          style={{ fontSize: Math.max(11, Math.round(size * 0.38)), color: tone === "#007DA5" ? "#FFFFFF" : "#0F172A" }}
         >
-          {initials(name)}
+          {avatarInitials(name)}
         </span>
       )}
     </span>

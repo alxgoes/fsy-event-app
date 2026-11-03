@@ -8,7 +8,7 @@ import { Bell, CalendarDays, House, Megaphone, Stethoscope } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { FsyTempleMark } from "@/components/brand/FsyLogo";
-import { Avatar } from "@/components/profile/Avatar";
+import { Avatar, avatarInitials } from "@/components/profile/Avatar";
 import { useOwnPhoto } from "@/lib/profile-photo/useOwnPhoto";
 import { markNoticesRead, NOTICES_UPDATED_EVENT, readNoticeIds } from "@/lib/notifications/readState";
 import { relativeTime } from "@/lib/ui/relativeTime";
@@ -83,11 +83,12 @@ function useNotices() {
 
 function Brand() {
   return (
-    <Link href="/dashboard" className="fsy-action-link group flex min-w-0 items-center gap-2.5" aria-label="FSY Ribeirão Preto 2 — Início">
+    <Link href="/dashboard" className="fsy-action-link group flex min-w-0 items-center gap-2.5">
       <FsyTempleMark className="h-9 w-auto shrink-0" />
       <span className="min-w-0 leading-none">
         <span className="block font-heading text-lg font-bold text-slate-950 dark:text-white">FSY</span>
         <span className="block truncate text-xs font-medium text-slate-600 dark:text-slate-300">Ribeirão Preto 2</span>
+        <span className="sr-only"> — Início</span>
       </span>
     </Link>
   );
@@ -330,7 +331,7 @@ export function Header() {
               />
             </div>
             {profile && (
-              <Link href="/mais" aria-label="Meu perfil" className="hidden rounded-full md:block">
+              <Link href="/mais" aria-label={`Meu perfil (${avatarInitials(name)})`} className="hidden h-11 w-11 items-center justify-center rounded-full md:flex">
                 <MeAvatar size={36} name={name} active={pathname.startsWith("/mais")} />
               </Link>
             )}

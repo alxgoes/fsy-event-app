@@ -20,7 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Avatar } from "@/components/profile/Avatar";
+import { Avatar, avatarInitials } from "@/components/profile/Avatar";
 import { useProfile, canAccessAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { prepareSquarePhoto, useOwnPhoto } from "@/lib/profile-photo/useOwnPhoto";
 import { getCompany, type CompanyData } from "@/services/companyService";
@@ -134,7 +134,7 @@ function PhotoEditor({ name }: { name: string }) {
         onClick={() => input.current?.click()}
         disabled={busy}
         className="group relative rounded-full focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30"
-        aria-label={state?.approved_url ? "Trocar foto de perfil" : "Adicionar foto de perfil"}
+        aria-label={`${state?.approved_url ? "Trocar foto de perfil" : "Adicionar foto de perfil"} (${avatarInitials(name)})`}
       >
         <motion.span
           key={shown ?? "none"}
@@ -149,7 +149,7 @@ function PhotoEditor({ name }: { name: string }) {
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
         </span>
       </button>
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={onPick} tabIndex={-1} />
+      <input ref={input} type="file" aria-label="Selecionar foto de perfil" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={onPick} tabIndex={-1} />
 
       {state?.status === "pending" && (
         <div className="mt-3 flex flex-col items-center gap-1">

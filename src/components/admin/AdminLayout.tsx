@@ -277,7 +277,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
             <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
-            <FsyFloatingLetters size="xs" className="hidden sm:inline-flex shrink-0" />
+            <FsyFloatingLetters size="xs" className="hidden lg:inline-flex shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                 <span className="font-heading font-bold text-sm text-slate-900 dark:text-white truncate">
@@ -287,7 +287,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                     ? "Equipe Multidisciplinar"
                     : "Painel de Gestão"}
                 </span>
-                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-xs font-bold uppercase text-amber-950 border border-amber-500/40 hidden md:inline shrink-0">
+                <span className="rounded-md bg-[#FFE48A] px-1 py-0.2 text-xs font-bold uppercase text-amber-950 border border-amber-500/40 hidden lg:inline shrink-0">
                   2027
                 </span>
               </div>
@@ -301,7 +301,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
 
           <Badge
             variant="outline"
-            className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
+            className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
           >
             <Shield className="h-3 w-3" />
             <span>{roleLabels[currentRole]?.label || roleLabel}</span>
