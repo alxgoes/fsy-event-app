@@ -34,7 +34,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClient } from "@/lib/supabase/client";
-import { GooeyButton } from "@/components/ui/GooeyButton";
 import { GooeyPillTabs } from "@/components/ui/GooeyPillTabs";
 import { EVENT_DATES, STAFF_DAY_DATE, EVENT_DAY_DATES } from "@/lib/event/identity";
 
@@ -334,12 +333,12 @@ export function ScheduleManager() {
   };
 
   return (
-    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+    <div className="min-w-0 space-y-6 text-slate-900 dark:text-slate-100">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+      <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h1 className="min-w-0 break-words font-heading text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
               Gestão do Cronograma Oficial
             </h1>
             <Badge className="bg-[#007DA5] text-white text-xs font-bold uppercase">
@@ -351,59 +350,54 @@ export function ScheduleManager() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div data-schedule-actions className="grid min-w-0 gap-2 sm:grid-cols-3 xl:max-w-xl xl:flex-1">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
+            <span role="status" className="flex min-w-0 items-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 sm:col-span-3">
               <CheckCircle2 className="h-4 w-4" /> Atualizado!
             </span>
           )}
 
-          <GooeyButton
-            variant="gold"
-            size="sm"
+          <Button
             onClick={() => setIsSyncModalOpen(true)}
             disabled={seeding}
-            loading={seeding}
-            icon={<Database className="h-3.5 w-3.5 text-amber-900 dark:text-amber-300" />}
+            className="h-auto min-h-11 min-w-0 gap-2 whitespace-normal break-words rounded-xl bg-[#FFE48A] px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-[#fedd74]"
           >
-            {seeding ? "Sincronizando..." : "Sincronizar Oficial"}
-          </GooeyButton>
+            {seeding ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Database className="h-4 w-4 shrink-0" />}
+            <span className="min-w-0 break-words">{seeding ? "Sincronizando..." : "Sincronizar oficial"}</span>
+          </Button>
 
-          <GooeyButton
+          <Button
             variant="outline"
-            size="sm"
             onClick={loadSchedule}
-            loading={loading}
-            icon={<RefreshCw className="h-3.5 w-3.5" />}
-            iconColor="text-emerald-800 dark:text-emerald-300 dark:text-emerald-400"
+            disabled={loading}
+            className="h-auto min-h-11 min-w-0 gap-2 whitespace-normal break-words rounded-xl px-3 py-2 text-sm font-semibold"
           >
-            Atualizar
-          </GooeyButton>
+            {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <RefreshCw className="h-4 w-4 shrink-0" />}
+            <span className="min-w-0 break-words">Atualizar</span>
+          </Button>
 
-          <GooeyButton
-            variant="primary"
-            size="sm"
+          <Button
             onClick={handleOpenCreateModal}
-            icon={<Plus className="h-4 w-4" />}
-            iconColor="text-white"
+            className="h-auto min-h-11 min-w-0 gap-2 whitespace-normal break-words rounded-xl bg-[#007DA5] px-3 py-2 text-sm font-semibold text-white hover:bg-[#005E7C]"
           >
-            Adicionar Evento
-          </GooeyButton>
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 break-words">Adicionar evento</span>
+          </Button>
         </div>
       </div>
 
       {error && (
-        <div className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div role="alert" className="fsy-panel flex min-w-0 flex-col gap-2 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+            <span className="min-w-0 break-words">{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="underline text-xs">fechar</button>
+          <button onClick={() => setError(null)} className="min-h-11 min-w-11 self-end px-2 text-sm underline">Fechar</button>
         </div>
       )}
 
       {/* Day Tabs using Liquid Gooey Pill Tabs */}
-      <div className="pt-1">
+      <div className="min-w-0 pt-1">
         <GooeyPillTabs
           tabs={DAY_TABS.map((day) => ({
             id: day.key,
@@ -413,12 +407,13 @@ export function ScheduleManager() {
           activeTab={selectedDayTab}
           onChange={(key) => setSelectedDayTab(key)}
           variant="brand"
+          ariaLabel="Dias da programação"
         />
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(16rem,1fr)_minmax(0,2fr)]">
+        <div className="relative min-w-0">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
           <Input
             aria-label="Buscar por título, local ou descrição"
@@ -429,15 +424,17 @@ export function ScheduleManager() {
           />
         </div>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div role="group" aria-label="Filtrar atividades por categoria" className="flex min-w-0 max-w-full gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {["all", "Espiritual", "Atividade", "Alimentação", "Show", "Baile", "Logística", "Equipe"].map((cat) => (
             <button
               key={cat}
+              type="button"
+              aria-pressed={selectedCategory === cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
+              className={`min-h-11 flex-none whitespace-nowrap rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors ${
                 selectedCategory === cat
-                  ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-                  : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
+                  ? "bg-[#007DA5] text-white border-[#007DA5]"
+                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               }`}
             >
               {cat === "all" ? "Todas Categorias" : cat}
@@ -456,7 +453,7 @@ export function ScheduleManager() {
           <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
           <p className="font-bold text-base text-slate-700 dark:text-slate-300">Nenhuma atividade encontrada</p>
           <p className="text-xs max-w-sm mx-auto">
-            Clique no botão &ldquo;Adicionar Evento&rdquo; ou &ldquo;Sincronizar Oficial (82)&rdquo; para carregar a grade completa.
+            Use &ldquo;Adicionar evento&rdquo; ou &ldquo;Sincronizar oficial&rdquo; para carregar a programação.
           </p>
         </div>
       ) : (
@@ -468,8 +465,8 @@ export function ScheduleManager() {
                 item.is_highlight ? "border-amber-400/80 dark:border-amber-500/80 bg-amber-50/20 dark:bg-amber-950/10 ring-1 ring-amber-400/40" : ""
               }`}
             >
-              <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-2 flex-1">
+              <CardContent className="flex min-w-0 flex-col justify-between gap-4 p-4 sm:p-5 lg:flex-row lg:items-center">
+                <div className="min-w-0 flex-1 space-y-2 [overflow-wrap:anywhere]">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white">
                       <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
@@ -494,7 +491,7 @@ export function ScheduleManager() {
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                    <h3 className="break-words text-base font-semibold text-slate-900 dark:text-white">
                       {item.title}
                     </h3>
                     <p className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
@@ -511,12 +508,12 @@ export function ScheduleManager() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <div data-schedule-item-actions className="grid w-full min-w-0 gap-2 sm:grid-cols-2 lg:w-auto lg:shrink-0">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenEditModal(item)}
-                    className="h-8 px-3 text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700"
+                    className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700"
                   >
                     <Edit2 className="h-3.5 w-3.5 mr-1" /> Editar
                   </Button>
@@ -524,7 +521,7 @@ export function ScheduleManager() {
                     variant="outline"
                     size="sm"
                     onClick={() => setItemToDelete(item)}
-                    className="h-8 px-3 text-xs font-bold rounded-xl border-rose-200 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                    className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl border-rose-200 px-3 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/50"
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-1" /> Remover
                   </Button>
@@ -564,7 +561,7 @@ export function ScheduleManager() {
               )}
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
               <div>
                 <label htmlFor="field-schedulemanager-2" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Dia do Evento *</label>
                 <NativeSelect id="field-schedulemanager-2"
@@ -608,7 +605,7 @@ export function ScheduleManager() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor="field-schedulemanager-5" className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Local *</label>
                 <Input id="field-schedulemanager-5"
@@ -695,19 +692,19 @@ export function ScheduleManager() {
               </div>
             </div>
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="grid min-w-0 gap-2 pt-2 sm:flex sm:flex-wrap">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="text-xs font-bold rounded-xl"
+                className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl px-4 py-2 text-sm font-semibold"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold rounded-xl border border-slate-200 shadow-sm min-h-[36px]"
+                className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl border border-slate-200 bg-[#007DA5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#005E7C]"
               >
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {saving ? "Salvando..." : "Salvar no Cronograma"}
@@ -728,18 +725,18 @@ export function ScheduleManager() {
               Tem certeza que deseja remover <strong className="text-slate-900 dark:text-white">&ldquo;{itemToDelete?.title}&rdquo;</strong> do cronograma oficial?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="pt-4 flex gap-2">
+          <DialogFooter className="grid min-w-0 gap-2 pt-4 sm:grid-cols-2">
             <Button
               variant="outline"
               onClick={() => setItemToDelete(null)}
-              className="flex-1 rounded-xl text-xs font-bold"
+              className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl px-3 py-2 text-sm font-semibold"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirmDelete}
               disabled={!!deleting}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs"
+              className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700"
             >
               {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
               {deleting ? "Excluindo..." : "Sim, Excluir"}
@@ -759,18 +756,18 @@ export function ScheduleManager() {
               Toda a programação atual será substituída pela agenda oficial de 2027. Alterações e atividades criadas pela gestão serão perdidas. Dia da equipe: {STAFF_DAY_DATE}. Participantes: {EVENT_DATES}. Deseja continuar?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="pt-4 flex gap-2">
+          <DialogFooter className="grid min-w-0 gap-2 pt-4 sm:grid-cols-2">
             <Button
               variant="outline"
               onClick={() => setIsSyncModalOpen(false)}
-              className="flex-1 rounded-xl text-xs font-bold min-h-[36px]"
+              className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl px-3 py-2 text-sm font-semibold"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleSyncOfficial}
               disabled={seeding}
-              className="flex-1 bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold rounded-xl text-xs min-h-[36px]"
+              className="h-auto min-h-11 min-w-0 whitespace-normal break-words rounded-xl bg-[#007DA5] px-3 py-2 text-sm font-semibold text-white hover:bg-[#005E7C]"
             >
               {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Database className="h-4 w-4 mr-1" />}
               {seeding ? "Sincronizando..." : "Sincronizar Agora"}

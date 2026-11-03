@@ -207,22 +207,22 @@ export function CounselorPanel() {
           </section>
         ) : (
           <>
-            <section aria-label="Minha companhia" className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+            <section aria-label="Minha companhia" className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Painel do consultor</p>
-                <h1 className="font-heading text-3xl font-bold text-slate-950 dark:text-white">{company?.name}</h1>
+                <h1 data-counselor-company-title="" className="break-words font-heading text-3xl font-bold text-slate-950 [overflow-wrap:anywhere] dark:text-white">{company?.name}</h1>
                 <button
                   type="button"
                   onClick={() => {
                     setMotto(company?.motto ?? "");
                     setMottoOpen(true);
                   }}
-                  className="group mt-1 inline-flex min-h-11 items-center gap-2 text-left"
+                  className="group mt-1 inline-flex min-h-11 max-w-full items-center gap-2 text-left"
                 >
-                  <span className={cn("font-scripture text-lg italic", company?.motto ? "text-slate-800 dark:text-slate-200" : "text-slate-500")}>
+                  <span className={cn("min-w-0 break-words font-scripture text-lg italic [overflow-wrap:anywhere]", company?.motto ? "text-slate-800 dark:text-slate-200" : "text-slate-500")}>
                     {company?.motto ? `“${company.motto}”` : "Definir lema da companhia"}
                   </span>
-                  <Pencil className="h-4 w-4 text-slate-500 transition-transform group-hover:-rotate-12" />
+                  <Pencil className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-hover:-rotate-12" />
                 </button>
               </div>
               <button
@@ -243,7 +243,7 @@ export function CounselorPanel() {
 
             <PhotoReviews />
 
-            <div role="tablist" aria-label="Seções do painel" className="inline-grid grid-cols-2 rounded-full bg-slate-200/60 p-1 dark:bg-slate-800">
+            <div role="tablist" aria-label="Seções do painel" className="grid w-full min-w-0 max-w-md grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-1 rounded-2xl bg-slate-200/60 p-1 dark:bg-slate-800">
               {([
                 ["jovens", `Jovens (${youth.length})`],
                 ["recados", `Recados (${notices.length})`],
@@ -254,7 +254,7 @@ export function CounselorPanel() {
                   type="button"
                   aria-selected={tab === key}
                   onClick={() => setTab(key)}
-                  className={cn("relative min-h-11 rounded-full px-5 text-sm font-medium", tab === key ? "text-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300")}
+                  className={cn("relative min-h-11 min-w-0 whitespace-normal break-words rounded-full px-3 py-2 text-sm font-medium", tab === key ? "text-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300")}
                 >
                   {tab === key && (
                     <motion.span layoutId="counselor-tab" className="absolute inset-0 rounded-full bg-white shadow-sm dark:bg-slate-950" transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 44 }} />

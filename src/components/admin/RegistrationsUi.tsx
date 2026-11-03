@@ -48,8 +48,8 @@ export function Metric({ label, value, tone = "neutral" }: { label: string; valu
     danger: "text-[#B91C1C] dark:text-red-300",
   };
   return (
-    <div className="rounded-2xl border border-slate-200 bg-[#FAF8F5] p-3 dark:border-slate-700 dark:bg-slate-800/60">
-      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">{label}</p>
+    <div data-registration-stat-card="" className="min-w-0 rounded-2xl border border-slate-200 bg-[#FAF8F5] p-3 dark:border-slate-700 dark:bg-slate-800/60">
+      <p className="break-words text-xs font-semibold text-slate-700 [overflow-wrap:anywhere] dark:text-slate-300">{label}</p>
       <p data-kpi="" className={cn("fsy-figure mt-1 text-2xl font-bold", tones[tone])}>{value}</p>
     </div>
   );

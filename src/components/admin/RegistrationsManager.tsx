@@ -189,25 +189,25 @@ export function RegistrationsManager() {
       <div className="space-y-5 text-slate-900 dark:text-slate-100">
         <header className="fsy-panel rounded-3xl bg-white p-5 dark:bg-slate-900 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 flex-1 flex-col items-start gap-3 sm:flex-row">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#007DA5] text-white dark:bg-[#01B6D1] dark:text-slate-950">
                 <ClipboardList className="h-6 w-6" aria-hidden="true" />
               </span>
-              <div>
-                <h1 className="font-heading text-2xl font-bold text-slate-900 dark:text-white">Inscrições e autorizações</h1>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+              <div className="min-w-0">
+                <h1 className="break-words font-heading text-2xl font-bold text-slate-900 [overflow-wrap:anywhere] dark:text-white">Inscrições e autorizações</h1>
+                <p className="mt-1 break-words text-sm text-slate-700 [overflow-wrap:anywhere] dark:text-slate-300">
                   {data?.activeBatch
                     ? <>Lote ativo: <span className="font-semibold">{data.activeBatch.filename}</span> · revisão <span className="fsy-figure">{data.currentRevision}</span></>
                     : "Lista isolada da planilha oficial. Não altera contas, fichas médicas nem companhias."}
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2"><button type="button" className={btn.primary} onClick={() => setTab("pdf")}><FileDown className="h-4 w-4" aria-hidden="true" /> Baixar autorizações</button><button type="button" className={btn.secondary} onClick={() => void load(filters)} disabled={loading}>
-              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} aria-hidden="true" /> Atualizar
+            <div className="flex min-w-0 flex-wrap gap-2"><button type="button" className={cn(btn.primary, "min-w-0 whitespace-normal break-words py-2")} onClick={() => setTab("pdf")}><FileDown className="h-4 w-4 shrink-0" aria-hidden="true" /> <span className="min-w-0">Baixar autorizações</span></button><button type="button" className={cn(btn.secondary, "min-w-0 whitespace-normal break-words py-2")} onClick={() => void load(filters)} disabled={loading}>
+              <RefreshCw className={cn("h-4 w-4 shrink-0", loading && "animate-spin")} aria-hidden="true" /> <span className="min-w-0">Atualizar</span>
             </button></div>
           </div>
           {metrics && (
-            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mt-5 grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3">
               <Metric label="Inscritos" value={metrics.totalCount} />
               <Metric label="Participantes" value={metrics.participantCount} />
               <Metric label="Consultores" value={metrics.counselorCount} />
@@ -220,7 +220,7 @@ export function RegistrationsManager() {
 
         <OfflineBanner />
 
-        <div role="tablist" aria-label="Seções de inscrições" className="grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800 sm:flex">
+        <div role="tablist" aria-label="Seções de inscrições" className="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800">
           {TABS.map((item, index) => (
             <button
               key={item.id}
@@ -236,7 +236,7 @@ export function RegistrationsManager() {
               onClick={() => setTab(item.id)}
               onKeyDown={(event) => onTabKey(event, index)}
               className={cn(
-                "min-h-11 shrink-0 rounded-xl px-4 text-sm font-semibold transition-colors",
+                "min-h-11 min-w-0 whitespace-normal break-words rounded-xl px-3 py-2 text-sm font-semibold transition-colors",
                 tab === item.id ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
               )}
             >

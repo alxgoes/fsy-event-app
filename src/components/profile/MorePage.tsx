@@ -107,13 +107,13 @@ function AppearancePicker() {
   );
 }
 
-function PhotoEditor({ name }: { name: string }) {
+function PhotoEditor({ name, requiresReview }: { name: string; requiresReview: boolean }) {
   const { state, busy, error, upload, remove } = useOwnPhoto(true);
   const input = useRef<HTMLInputElement>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const reduce = useReducedMotion();
 
-  const shown = state?.status === "pending" ? state.pending_url : state?.approved_url;
+  const shown = requiresReview && state?.status === "pending" ? state.pending_url : state?.approved_url;
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -128,7 +128,7 @@ function PhotoEditor({ name }: { name: string }) {
   }
 
   return (
-    <div className="flex flex-col items-center text-center">
+    <div className="flex min-w-0 max-w-full flex-col items-center text-center">
       <button
         type="button"
         onClick={() => input.current?.click()}
@@ -141,7 +141,7 @@ function PhotoEditor({ name }: { name: string }) {
           initial={reduce ? false : { scale: 0.92, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 380, damping: 40 }}
-          className={cn("block rounded-full", state?.status === "pending" && "opacity-80")}
+          className={cn("block rounded-full", requiresReview && state?.status === "pending" && "opacity-80")}
         >
           <Avatar name={name} src={shown} size={112} ring />
         </motion.span>
@@ -151,10 +151,10 @@ function PhotoEditor({ name }: { name: string }) {
       </button>
       <input ref={input} type="file" aria-label="Selecionar foto de perfil" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={onPick} tabIndex={-1} />
 
-      {state?.status === "pending" && (
+      {requiresReview && state?.status === "pending" && (
         <div className="mt-3 flex flex-col items-center gap-1">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFE48A] px-3 py-1 text-sm font-medium text-slate-950">
-            <Clock3 className="h-4 w-4" /> Em análise pelo seu consultor
+          <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-[#FFE48A] px-3 py-1 text-sm font-medium text-slate-950">
+            <Clock3 className="h-4 w-4 shrink-0" /> <span className="min-w-0 break-words">Em análise pelo seu consultor</span>
           </span>
           <button
             type="button"
@@ -166,13 +166,13 @@ function PhotoEditor({ name }: { name: string }) {
           </button>
         </div>
       )}
-      {state?.status === "rejected" && (
+      {requiresReview && state?.status === "rejected" && (
         <p className="mt-3 max-w-xs rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/50 dark:text-red-200">
           Sua última foto não foi aprovada{state.review_note ? `: ${state.review_note}` : "."} Toque na foto para enviar outra.
         </p>
       )}
       {(!state || state.status === "none") && (
-        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Toque para adicionar sua foto. Ela aparece depois da aprovação do seu consultor.</p>
+        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{requiresReview ? "Toque para adicionar sua foto. Ela aparece depois da aprovação do seu consultor." : "Toque para adicionar sua foto. Ela aparece assim que o envio termina."}</p>
       )}
       {(error || localError) && (
         <p role="alert" className="mt-2 text-sm font-medium text-red-700 dark:text-red-300">
@@ -229,8 +229,8 @@ export function MorePage() {
         <section aria-label="Meu perfil" className="rounded-3xl bg-white px-4 pb-5 pt-6 dark:bg-slate-900">
           {profile ? (
             <>
-              <PhotoEditor name={name} />
-              <h1 className="mt-4 text-center font-heading text-2xl font-bold text-slate-950 dark:text-white">{name}</h1>
+              <PhotoEditor name={name} requiresReview={role === "jovem"} />
+              <h1 className="mt-4 break-words text-center font-heading text-2xl font-bold text-slate-950 [overflow-wrap:anywhere] dark:text-white">{name}</h1>
               <p className="mt-1 text-center text-[15px] text-slate-700 dark:text-slate-200">
                 {role === "jovem" ? details.join(" · ") || "Companhia a definir" : ROLE_LABELS[role]}
               </p>
