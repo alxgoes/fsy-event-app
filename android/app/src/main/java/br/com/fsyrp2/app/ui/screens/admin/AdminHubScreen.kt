@@ -68,6 +68,7 @@ import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.TabularTextStyle
+import br.com.fsyrp2.app.ui.screens.ProfileAccessAction
 import kotlinx.coroutines.launch
 
 /** Ícone Lucide de cada módulo administrativo (mesma família em toda a app). */
@@ -178,6 +179,7 @@ fun AdminHubScreen(
         FsyTopBar(
             title = activeModule.titlePt,
             subtitle = "Gestão",
+            profileAction = { ProfileAccessAction(appState) },
             onBack = {
                 haptics.tick()
                 if (activeModule != AdminModule.OVERVIEW && availableModules.contains(AdminModule.OVERVIEW)) {

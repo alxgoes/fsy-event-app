@@ -1,6 +1,8 @@
 package br.com.fsyrp2.app
 
 import br.com.fsyrp2.app.model.UserSession
+import br.com.fsyrp2.app.model.UserRole
+import br.com.fsyrp2.app.model.ProfilePhotoState
 import br.com.fsyrp2.app.network.PortalApiClient
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*
@@ -10,6 +12,55 @@ import java.net.ServerSocket
 import kotlin.concurrent.thread
 
 class ProfilePhotoContractTest {
+    @Test fun onlyYouthRequiresPhotoApprovalAndUploadFeedbackFollowsTheResponse() {
+        assertTrue(UserRole.JOVEM.requiresProfilePhotoApproval)
+        assertTrue(UserRole.fromWire("cargo_desconhecido").requiresProfilePhotoApproval)
+        val pending = ProfilePhotoState(status = "pending", pendingUrl = "https://example.invalid/pending")
+        val approved = ProfilePhotoState(status = "approved", approvedUrl = "https://example.invalid/approved")
+        assertEquals("Foto enviada para análise do seu consultor.", pending.uploadMessageFor(UserRole.JOVEM))
+        UserRole.entries.filter { it != UserRole.JOVEM }.forEach { role ->
+            assertFalse(role.requiresProfilePhotoApproval)
+            assertEquals("Foto atualizada.", approved.uploadMessageFor(role))
+            assertFalse(pending.uploadMessageFor(role).orEmpty().contains("consultor"))
+        }
+    }
+
+    @Test fun portalApprovedResponseIsUsedImmediatelyForEveryNonYouthRole() = runTest {
+        val server = ServerSocket(0)
+        val worker = thread(isDaemon = true) {
+            while (!server.isClosed) {
+                val client = try { server.accept() } catch (_: Exception) { break }
+                client.use {
+                    val input = it.getInputStream()
+                    val header = StringBuilder()
+                    while (!header.endsWith("\r\n\r\n")) {
+                        val next = input.read()
+                        if (next < 0) return@use
+                        header.append(next.toChar())
+                    }
+                    val length = Regex("Content-Length: (\\d+)", RegexOption.IGNORE_CASE).find(header)?.groupValues?.get(1)?.toInt() ?: 0
+                    input.readNBytes(length)
+                    val response = """{"status":"approved","approved_url":"https://example.invalid/approved","pending_url":null,"review_note":null}""".toByteArray()
+                    it.getOutputStream().apply {
+                        write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: ${response.size}\r\nConnection: close\r\n\r\n".toByteArray())
+                        write(response); flush()
+                    }
+                }
+            }
+        }
+        try {
+            val base = "http://127.0.0.1:${server.localPort}"
+            val api = PortalApiClient(base, "public-test", base)
+            for (role in UserRole.entries.filter { it != UserRole.JOVEM }) {
+                val result = api.uploadProfilePhoto(UserSession("synthetic-${role.wireValue}", "", userId = "synthetic-staff"), byteArrayOf(-1, -40, -1, 0))
+                assertEquals("approved", result.status)
+                assertEquals("https://example.invalid/approved", result.approvedUrl)
+                assertNull(result.pendingUrl)
+                assertFalse(result.isPending)
+            }
+        } finally { server.close(); worker.join(1000) }
+    }
+
     @Test fun photoLifecycleAndSignupFollowPortalContract() = runTest {
         val server = ServerSocket(0)
         val requests = mutableListOf<Triple<String, String, String>>()

@@ -86,6 +86,10 @@ enum class UserRole(val wireValue: String, val displayLabel: String) {
     val isStaff: Boolean
         get() = this != JOVEM
 
+    /** Texto da interface; a API decide a aprovação com o cargo protegido da sessão. */
+    val requiresProfilePhotoApproval: Boolean
+        get() = this == JOVEM
+
     val isManager: Boolean
         get() = this == LOGISTICA || this == COORDENADOR || this == CASAL_DIRETOR
 
@@ -1083,7 +1087,7 @@ data class WidgetSnapshotDto(
 )
 
 
-/** Estado da foto de perfil com moderação (contrato `src/types/profile-photo.ts`). */
+/** Jovem envia para análise; demais cargos recebem foto aprovada imediatamente pela API. */
 @Serializable
 data class ProfilePhotoState(
     val status: String = "none",
@@ -1095,6 +1099,13 @@ data class ProfilePhotoState(
 ) {
     val isPending: Boolean get() = status == "pending"
     val isRejected: Boolean get() = status == "rejected"
+
+    fun uploadMessageFor(role: UserRole): String? = when {
+        status == "approved" && !approvedUrl.isNullOrBlank() -> "Foto atualizada."
+        isPending && role.requiresProfilePhotoApproval -> "Foto enviada para análise do seu consultor."
+        isPending -> "Foto enviada. Atualize o perfil para ver a foto."
+        else -> null
+    }
 }
 
 @Serializable

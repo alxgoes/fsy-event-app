@@ -90,7 +90,7 @@ fun GalleryScreen(appState: FsyAppState) {
     val photos = if (section == 1 && hasAlbums) albums else instagram
 
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars)) {
-        FsyTopBar(title = "Fotos", onBack = {
+        FsyTopBar(title = "Fotos", profileAction = { ProfileAccessAction(appState) }, onBack = {
             haptics.tick()
             appState.closeOverlay()
         })

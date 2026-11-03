@@ -84,7 +84,7 @@ fun NotificationSettingsScreen(appState: FsyAppState) {
     val endValid = quietEnd.isBlank() || EventCalendar.parseLocalTime(quietEnd) != null
 
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars)) {
-        FsyTopBar(title = "Notificações", onBack = {
+        FsyTopBar(title = "Notificações", profileAction = { ProfileAccessAction(appState) }, onBack = {
             haptics.tick()
             appState.closeOverlay()
         })

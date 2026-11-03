@@ -1,17 +1,17 @@
 {
   "applicationId": "br.com.fsyrp2.app",
-  "versionName": "1.2.0",
-  "versionCode": 3,
+  "versionName": "1.2.1",
+  "versionCode": 4,
   "minSdk": 26,
   "targetSdk": 35,
   "compileSdk": 35,
-  "apkFileName": "fsy-rp2-2027-v1.2.0-release.apk",
-  "sizeBytes": 10403399,
-  "sha256": "2545440b6ff5ac483df1bf96e9ad33e0a2ea8ea6eedce640a11cefd730277f8c",
+  "apkFileName": "fsy-rp2-2027-v1.2.1-release.apk",
+  "sizeBytes": 10403395,
+  "sha256": "91692e27f51a95fb814f57a3da28d2022bd397f44c67b5cc5e172eba3781967d",
   "signingSchemes": [
     "v2",
     "v3"
   ],
   "signerCertificateSha256": "c3c9fd79cec0e893c8853344eca458a0f472265caaec3491bfff12367df8852c",
-  "builtAtIso": "2026-11-03T03:05:07.1047002Z"
+  "builtAtIso": "2026-11-03T04:27:45.5310262Z"
 }
