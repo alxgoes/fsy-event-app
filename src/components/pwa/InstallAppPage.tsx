@@ -191,7 +191,7 @@ export function InstallAppPage() {
       <main className="mx-auto w-full max-w-3xl space-y-5 py-6">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex items-center gap-3">
-            <span className="flex h-14 w-10 items-center justify-center overflow-hidden rounded-t-full rounded-b-lg border-2 border-slate-900/50 bg-[#EFEFE7] p-0.5 dark:border-slate-700 dark:bg-slate-800">
+            <span className="flex h-14 w-10 items-center justify-center overflow-hidden rounded-t-full rounded-b-lg border border-slate-200 bg-[#EFEFE7] p-0.5 dark:border-slate-700 dark:bg-slate-800">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </span>
             <FsyFloatingLetters size="sm" />

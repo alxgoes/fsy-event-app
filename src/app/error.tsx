@@ -20,7 +20,7 @@ export default function Error({
     <div className="min-h-screen bg-[#FAF8F5] dark:bg-slate-950 flex items-center justify-center p-4 sm:p-6 text-slate-900 selection:bg-[#FFE48A]">
       <div className="max-w-md w-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-xl text-center space-y-6">
         {/* Error Icon */}
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FC4E6D] text-slate-950 border-2 border-slate-900 shadow-sm">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FC4E6D] text-slate-950 border border-slate-200 shadow-sm">
           <AlertTriangle className="h-8 w-8 text-white" />
         </div>
 
@@ -46,7 +46,7 @@ export default function Error({
         <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
           <button
             onClick={() => reset()}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-xs font-black text-white border-2 border-slate-900 shadow-sm hover:bg-slate-800 transition-colors min-h-[44px]"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-xs font-black text-white border border-slate-200 shadow-sm hover:bg-slate-800 transition-colors min-h-[44px]"
           >
             <RefreshCcw className="h-3.5 w-3.5" />
             <span>Tentar Novamente</span>
@@ -54,7 +54,7 @@ export default function Error({
 
           <Link
             href="/dashboard"
-            className="fsy-action-link w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-3 text-xs font-black text-slate-900 dark:text-white border-2 border-slate-900 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
+            className="fsy-action-link w-full flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-800 px-4 py-3 text-xs font-black text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[44px]"
           >
             <Home className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
             <span>Ir para Início</span>

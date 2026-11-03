@@ -133,10 +133,11 @@ export async function proxy(request: NextRequest) {
       .single();
     const role = profileError ? null : profile?.role;
 
-    // JOVEM: blocked entirely — show access denied page
+    // JOVEM: volta ao Início sem nenhuma página que revele a existência da gestão.
     if (!role || !["midia", "medico", "consultor", "logistica", "coordenador", "casal_diretor"].includes(role)) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/acesso-negado";
+      redirectUrl.pathname = "/dashboard";
+      redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
 
@@ -185,7 +186,8 @@ export async function proxy(request: NextRequest) {
       role !== "logistica"
     ) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/acesso-negado";
+      redirectUrl.pathname = role === "jovem" || !role ? "/dashboard" : "/acesso-negado";
+      redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
   }

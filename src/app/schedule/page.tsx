@@ -1,300 +1,223 @@
 "use client";
-import { startTransition } from "react";
 
-
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, Clock, MapPin, Sparkles, Calendar } from "lucide-react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ChevronDown, MapPin, Shirt } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Badge } from "@/components/ui/badge";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
-import { createClient } from "@/lib/supabase/client";
-import { VoluteLoader } from "@/components/ui/VoluteLoader";
 import { useProfile } from "@/lib/supabase/useProfile";
+import { effectiveEndTime, eventClock, getSchedule, scheduleVisibleTo, type ScheduleItem } from "@/services/scheduleService";
+import { cn } from "@/lib/utils";
 
-interface DbScheduleItem {
-  id: string;
-  day: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  title: string;
-  location: string;
-  description: string | null;
-  category: string;
-  is_highlight: boolean;
+const DAY_DATES: Record<string, string> = {
+  dia0: "2027-02-05",
+  dia1: "2027-02-06",
+  dia2: "2027-02-07",
+  dia3: "2027-02-08",
+  dia4: "2027-02-09",
+  dia5: "2027-02-10",
+};
+const WEEKDAY: Record<string, string> = { dia0: "Sex", dia1: "Sáb", dia2: "Dom", dia3: "Seg", dia4: "Ter", dia5: "Qua" };
+
+/** Uma cor por tipo de atividade, sempre acompanhada do nome (cor nunca é o único sinal). */
+const CATEGORY_DOT: Record<string, string> = {
+  Espiritual: "bg-[#007DA5]",
+  Alimentação: "bg-[#93C742]",
+  Show: "bg-[#FC4E6D]",
+  Baile: "bg-[#FC4E6D]",
+  Atividade: "bg-[#F68D2E]",
+  Logística: "bg-slate-400",
+  Equipe: "bg-slate-400",
+};
+
+function Activity({ item, live, past }: { item: ScheduleItem; live: boolean; past: boolean }) {
+  const [open, setOpen] = useState(false);
+  const end = item.end_time && /^\d{2}:\d{2}$/.test(item.end_time) ? item.end_time : null;
+  return (
+    <li id={`atividade-${item.id}`} className="relative scroll-mt-24 pl-16">
+      <span className={cn("fsy-figure absolute left-0 top-4 w-12 text-right text-[15px] font-semibold", past ? "text-slate-500" : "text-slate-950 dark:text-white")}>
+        {item.start_time}
+      </span>
+      <span
+        aria-hidden
+        className={cn(
+          "absolute left-[3.55rem] top-[1.35rem] h-2.5 w-2.5 -translate-x-1/2 rounded-full ring-4 ring-[#FAF8F5] dark:ring-slate-950",
+          CATEGORY_DOT[item.category] ?? "bg-[#FFB81C]"
+        )}
+      />
+      <div
+        className={cn(
+          "ml-2 rounded-2xl border p-4 transition-colors",
+          live
+            ? "border-[#005E7C] bg-[#005E7C] text-white"
+            : "border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900",
+          past && !live && "opacity-60"
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            {live && <p className="mb-0.5 text-sm font-semibold text-[#FFE48A]">Agora</p>}
+            <h3 className={cn("text-[17px] font-semibold leading-snug", live ? "text-white" : "text-slate-950 dark:text-white")}>{item.title}</h3>
+            <p className={cn("mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm", live ? "text-white/85" : "text-slate-600 dark:text-slate-300")}>
+              {end && <span className="fsy-figure">até {end}</span>}
+              {item.location && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" /> {item.location}
+                </span>
+              )}
+              <span>{item.category}</span>
+            </p>
+          </div>
+          {item.description && (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              aria-label={open ? "Esconder detalhes" : "Ver detalhes"}
+              className={cn("-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors", live ? "hover:bg-white/10" : "hover:bg-slate-100 dark:hover:bg-slate-800")}
+            >
+              <ChevronDown className={cn("h-5 w-5 transition-transform duration-200", open && "rotate-180")} />
+            </button>
+          )}
+        </div>
+        <AnimatePresence initial={false}>
+          {open && item.description && (
+            <motion.p
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className={cn("overflow-hidden text-[15px] leading-relaxed", live ? "text-white/90" : "text-slate-700 dark:text-slate-200")}
+            >
+              <span className="block pt-2">{item.description}</span>
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    </li>
+  );
+}
+
+function ScheduleContent() {
+  const params = useSearchParams();
+  const { profile } = useProfile();
+  const reduce = useReducedMotion();
+  const isStaff = Boolean(profile && profile.role !== "jovem");
+  const dayKeys = useMemo(() => (isStaff ? ["dia0", "dia1", "dia2", "dia3", "dia4", "dia5"] : ["dia1", "dia2", "dia3", "dia4", "dia5"]), [isStaff]);
+
+  const [items, setItems] = useState<ScheduleItem[] | null>(null);
+  const [now, setNow] = useState(() => new Date());
+  const clock = eventClock(now);
+  const todayKey = Object.keys(DAY_DATES).find((k) => DAY_DATES[k] === clock.today);
+  const [chosenDay, setDay] = useState<string>(() => {
+    const requested = params.get("dia");
+    if (requested && DAY_DATES[requested]) return requested;
+    return todayKey && todayKey !== "dia0" ? todayKey : "dia1";
+  });
+  const scrolled = useRef(false);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getSchedule(undefined, controller.signal)
+      .then(({ data }) => setItems(data))
+      .catch(() => setItems([]));
+    return () => controller.abort();
+  }, []);
+
+  // Dia zero é só da equipe.
+  const day = !isStaff && chosenDay === "dia0" ? "dia1" : chosenDay;
+
+  const dayItems = useMemo(
+    () => scheduleVisibleTo(profile?.role ?? "jovem", items ?? []).filter((i) => i.day === day).sort((a, b) => a.start_time.localeCompare(b.start_time)),
+    [items, day, profile?.role]
+  );
+  const isToday = DAY_DATES[day] === clock.today;
+
+  // Abre na atividade pedida pelo link (#atividade-…) ou na que está acontecendo.
+  useEffect(() => {
+    if (!items || scrolled.current) return;
+    scrolled.current = true;
+    const target =
+      (window.location.hash && document.querySelector(window.location.hash)) ||
+      (isToday && dayItems.find((i) => effectiveEndTime(i, dayItems) > clock.now) && document.getElementById(`atividade-${dayItems.find((i) => effectiveEndTime(i, dayItems) > clock.now)!.id}`));
+    if (target instanceof HTMLElement) target.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }, [items, dayItems, isToday, clock.now, reduce]);
+
+  const meta = OFFICIAL_FSY_SCHEDULE[day];
+
+  return (
+    <main className="mx-auto max-w-2xl px-4 pt-6">
+      <h1 className="font-heading text-3xl font-bold text-slate-950 dark:text-white">Agenda</h1>
+
+      <div role="tablist" aria-label="Dias do evento" className="sticky top-14 z-30 -mx-4 mt-4 flex gap-1 overflow-x-auto bg-[#FAF8F5]/95 px-4 py-2 no-scrollbar backdrop-blur-md dark:bg-slate-950/95">
+        {dayKeys.map((key) => {
+          const selected = key === day;
+          const [, , dd] = DAY_DATES[key].split("-");
+          return (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setDay(key)}
+              className={cn(
+                "relative flex min-h-14 min-w-14 flex-1 flex-col items-center justify-center rounded-2xl px-2 transition-colors",
+                selected ? "text-slate-950" : "text-slate-600 hover:bg-slate-900/5 dark:text-slate-300 dark:hover:bg-white/10"
+              )}
+            >
+              {selected && (
+                <motion.span layoutId="agenda-day" className="absolute inset-0 rounded-2xl bg-[#FFE48A]" transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 42 }} />
+              )}
+              <span className="relative text-xs font-medium">{WEEKDAY[key]}</span>
+              <span className="fsy-figure relative text-lg font-semibold leading-tight">{dd}</span>
+              {DAY_DATES[key] === clock.today && <span className="relative mt-0.5 h-1 w-1 rounded-full bg-[#FC4E6D]" aria-label="Hoje" />}
+            </button>
+          );
+        })}
+      </div>
+
+      {meta && (
+        <div className="mt-4">
+          <h2 className="text-lg font-semibold text-slate-950 dark:text-white">{meta.label.replace(/^.*?—\s*/, "")}</h2>
+          {meta.dressCode && (
+            <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+              <Shirt className="h-4 w-4" /> {meta.dressCode}
+            </p>
+          )}
+        </div>
+      )}
+
+      {items === null ? (
+        <div className="mt-5 space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="ml-16 h-20 animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800" />)}</div>
+      ) : dayItems.length === 0 ? (
+        <p className="mt-6 rounded-2xl bg-white px-5 py-8 text-center text-[15px] text-slate-600 dark:bg-slate-900 dark:text-slate-300">A programação deste dia ainda não foi publicada.</p>
+      ) : (
+        <ol className="relative mt-5 space-y-3 before:absolute before:bottom-4 before:left-[3.55rem] before:top-4 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
+          {dayItems.map((item) => {
+            const end = effectiveEndTime(item, dayItems);
+            const live = isToday && item.start_time <= clock.now && end > clock.now;
+            const past = DAY_DATES[day] < clock.today || (isToday && end <= clock.now);
+            return <Activity key={item.id} item={item} live={live} past={past} />;
+          })}
+        </ol>
+      )}
+    </main>
+  );
 }
 
 export default function SchedulePage() {
-  const { profile } = useProfile();
-  const isStaff = Boolean(
-    profile &&
-    ["casal_diretor", "coordenador", "consultor", "logistica", "midia", "medico"].includes(profile.role)
-  );
-
-  // Day zero is staff & counselor preparation only. Youth and general public only see Day 01 (arrival) to Day 05.
-  const dayKeys = isStaff
-    ? ["dia0", "dia1", "dia2", "dia3", "dia4", "dia5"]
-    : ["dia1", "dia2", "dia3", "dia4", "dia5"];
-
-  const [selectedDayKey, setSelectedDayKey] = useState<string>("dia1");
-  const [dbItems, setDbItems] = useState<DbScheduleItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!isStaff && selectedDayKey === "dia0") {
-      startTransition(() => { setSelectedDayKey("dia1"); });
-    }
-  }, [isStaff, selectedDayKey]);
-  const currentDayMeta = OFFICIAL_FSY_SCHEDULE[selectedDayKey] || OFFICIAL_FSY_SCHEDULE["dia1"];
-
-  // Fetch schedule items from Supabase in real time
-  useEffect(() => {
-    async function loadSchedule() {
-      setLoading(true);
-      try {
-        const res = await fetch("/api/schedule");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && json.data.length > 0) {
-            setDbItems(json.data);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fallback to Supabase client
-        const supabase = createClient();
-        const { data } = await supabase
-          .from("schedule_items")
-          .select("*")
-          .order("start_time", { ascending: true });
-
-        if (data && data.length > 0) {
-          setDbItems(data as DbScheduleItem[]);
-        }
-      } catch (err) {
-        console.error("Error loading dynamic schedule:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadSchedule();
-  }, []);
-
-  // Events for selected day: filter from DB if available, else fallback to officialSchedule.ts
-  const dayDbEvents = dbItems.filter((i) => i.day === selectedDayKey);
-  const hasDbEventsForDay = dayDbEvents.length > 0;
-
-  // Normalized list of events to render
-  const eventsToRender = hasDbEventsForDay
-    ? dayDbEvents.map((item) => ({
-        id: item.id,
-        time: item.start_time,
-        endTime: item.end_time || "--",
-        title: item.title,
-        location: item.location,
-        description: item.description,
-        category: item.category || "Geral",
-        isHighlight: Boolean(item.is_highlight),
-        roleBadge: undefined,
-      }))
-    : currentDayMeta.events.map((event) => ({
-        id: event.id,
-        time: event.time,
-        endTime: event.endTime,
-        title: event.title,
-        location: event.location,
-        description: event.description,
-        category: event.category,
-        isHighlight: Boolean(event.isHighlight),
-        roleBadge: event.roleBadge,
-      }));
-
   return (
-    <div className="min-h-screen bg-fsy-watermark text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="min-h-screen pb-28 md:pb-12">
       <Header />
-
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="fsy-action-link inline-flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 px-3.5 py-2 rounded-xl shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar ao Início
-          </Link>
-
-          <div className="flex items-center gap-2 text-xs font-black text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-lg shadow-sm">
-            <Calendar className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
-            <span>Cronograma Oficial da Sessão</span>
-            {hasDbEventsForDay && (
-              <span className="h-2 w-2 rounded-full bg-emerald-500" title="Programação carregada do servidor" />
-            )}
-          </div>
-        </div>
-
-        {/* Header Hero Section */}
-        <div className="bg-white dark:bg-slate-900 border-3 border-slate-900 dark:border-slate-700 rounded-2xl p-5 md:p-6 shadow-[5px_5px_0px_0px_rgba(15,23,42,1)] dark:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Programação do Evento
-            </h1>
-            {loading && <VoluteLoader size={26} variant="brand" className="inline-block" />}
-          </div>
-          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium mt-1">
-            FSY Sessão Ribeirão Preto 2 — Horários oficiais de todas as atividades, refeições e reuniões espirituais.
-          </p>
-
-          {/* Day Switcher Tabs */}
-          <div
-            role="tablist"
-            aria-label="Dias da programação oficial do FSY"
-            onKeyDown={(event) => {
-              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-              event.preventDefault();
-              const index = dayKeys.indexOf(selectedDayKey);
-              const next = event.key === "Home" ? 0 : event.key === "End" ? dayKeys.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + dayKeys.length) % dayKeys.length;
-              setSelectedDayKey(dayKeys[next]);
-              document.getElementById(`tab-${dayKeys[next]}`)?.focus();
-            }}
-            className={`grid gap-2 mt-5 ${
-              isStaff ? "grid-cols-3 sm:grid-cols-6" : "grid-cols-2 sm:grid-cols-5"
-            }`}
-          >
-            {dayKeys.map((key) => {
-              const day = OFFICIAL_FSY_SCHEDULE[key];
-              const isSelected = selectedDayKey === key;
-              const count = dbItems.filter((i) => i.day === key).length || day.events.length;
-              return (
-                <button
-                  key={key}
-                  role="tab"
-                  id={`tab-${key}`}
-                  aria-selected={isSelected}
-                  tabIndex={isSelected ? 0 : -1}
-                  aria-controls="schedule-events-panel"
-                  onClick={() => setSelectedDayKey(key)}
-                  className={`relative flex flex-col items-center justify-center p-2.5 rounded-2xl font-black text-xs transition-all duration-200 border-2 cursor-pointer min-h-[48px] ${
-                    isSelected
-                      ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
-                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
-                  }`}
-                >
-                  <span className="text-xs font-bold">{day.name}</span>
-                  <span className="text-xs font-semibold">{count} ativ.</span>
-                  {key === "dia0" && (
-                    <span className="text-xs font-black tracking-wider uppercase text-amber-950 bg-amber-200 dark:bg-amber-900/80 dark:text-amber-200 px-1.5 py-0.5 rounded mt-0.5 border border-amber-400">
-                      Consultores
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Selected Day Info Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#FFE48A]/20 dark:bg-amber-950/40 border-2 border-slate-900 dark:border-amber-500/40 rounded-xl p-4 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] dark:shadow-none">
-          <div>
-            <h2 className="text-base font-black text-slate-900 dark:text-amber-200">
-              {currentDayMeta.name} — {currentDayMeta.label}
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-              Vestimenta recomendada: <strong className="text-slate-900 dark:text-white">{currentDayMeta.dressCode}</strong>
-            </p>
-          </div>
-          <span className="text-xs font-bold px-3 py-1 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-lg border border-slate-300 dark:border-slate-700 self-start sm:self-center">
-            {eventsToRender.length} Atividades
-          </span>
-        </div>
-
-        {/* Timeline Events List */}
-        <div id="schedule-events-panel" role="tabpanel" aria-labelledby={`tab-${selectedDayKey}`} tabIndex={0} className="relative pl-6 md:pl-8 before:absolute before:left-3 md:before:left-4 before:top-2 before:bottom-2 before:w-1 before:bg-slate-200 dark:before:bg-slate-800 space-y-4">
-          {eventsToRender.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: Math.min(index * 0.02, 0.3), duration: 0.2 }}
-              className="relative group"
-            >
-              {/* Timeline Bullet Indicator */}
-              <div
-                className={`absolute -left-[27px] md:-left-[31px] top-4 h-4 w-4 rounded-full border-2 border-white dark:border-slate-950 ${
-                  event.isHighlight
-                    ? "bg-[#FFE48A] ring-4 ring-amber-200 dark:ring-amber-900/60"
-                    : event.category === "Espiritual"
-                    ? "bg-[#007DA5] ring-2 ring-sky-100 dark:ring-sky-950"
-                    : event.category === "Alimentação"
-                    ? "bg-[#06D6A0] ring-2 ring-emerald-100 dark:ring-emerald-950"
-                    : "bg-slate-400 dark:bg-slate-600"
-                }`}
-              />
-
-              {/* Event Card */}
-              <div
-                className={`border-2 rounded-2xl p-4 md:p-5 transition-all ${
-                  event.isHighlight
-                    ? "bg-white dark:bg-slate-900 border-slate-900 dark:border-amber-400 shadow-md"
-                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:border-slate-400 dark:hover:border-slate-700"
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 font-mono text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700">
-                        <Clock className="h-3 w-3 text-slate-600 dark:text-slate-400" />
-                        {event.time} {event.endTime && event.endTime !== "--" && `- ${event.endTime}`}
-                      </span>
-
-                      <Badge
-                        variant="outline"
-                        className="text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"
-                      >
-                        {event.category}
-                      </Badge>
-
-                      {event.roleBadge && (
-                        <Badge
-                          variant="secondary"
-                          className="text-xs font-black uppercase tracking-wider bg-slate-900 text-white dark:bg-slate-700"
-                        >
-                          {event.roleBadge}
-                        </Badge>
-                      )}
-
-                      {event.isHighlight && (
-                        <Badge className="bg-[#FFE48A] text-amber-950 hover:bg-amber-300 text-xs font-black border border-amber-500/30">
-                          <Sparkles className="mr-1 h-3 w-3" /> Destaque
-                        </Badge>
-                      )}
-                    </div>
-
-                    <h3 className="text-base md:text-lg font-black text-slate-900 dark:text-white pt-0.5">
-                      {event.title}
-                    </h3>
-
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                      <MapPin className="h-3.5 w-3.5 text-[#FC4E6D]" />
-                      <span>{event.location}</span>
-                    </div>
-
-                    {event.description && (
-                      <p className="text-xs md:text-sm text-slate-700 dark:text-slate-200 pt-1 font-medium leading-relaxed">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </main>
+      <Suspense fallback={null}>
+        <ScheduleContent />
+      </Suspense>
     </div>
   );
 }

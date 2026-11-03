@@ -19,7 +19,7 @@ export function PinkOvalSticker({ className = "", size = "md" }: StickerProps) {
   };
   return (
     <div
-      className={`inline-flex flex-col items-center justify-center rounded-full bg-[#FDA192] text-slate-950 font-serif border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none ${sizeMap[size]} ${className}`}
+      className={`inline-flex flex-col items-center justify-center rounded-full bg-[#FDA192] text-slate-950 font-serif border border-slate-200 shadow-sm select-none ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <span className="text-[0.7em] tracking-[0.2em] uppercase font-bold">{EVENT_THEME_LEAD}</span>
@@ -39,7 +39,7 @@ export function OrangeArchSticker({ className = "", size = "md" }: StickerProps)
   };
   return (
     <div
-      className={`inline-flex items-center justify-center rounded-t-full bg-[#F68D2E] border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] overflow-hidden ${sizeMap[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-t-full bg-[#F68D2E] border border-slate-200 shadow-sm overflow-hidden ${sizeMap[size]} ${className}`}
     >
       <FsyTempleMark colorMode="one-color" className="w-full h-full object-contain" />
     </div>
@@ -57,7 +57,7 @@ export function GreenStampSticker({ className = "", size = "md" }: StickerProps)
   };
   return (
     <div
-      className={`relative inline-flex flex-col items-center justify-between rounded-2xl bg-[#93C742] border-2 border-slate-900 shadow-sm select-none text-slate-950 font-black ${sizeMap[size]} ${className}`}
+      className={`relative inline-flex flex-col items-center justify-between rounded-2xl bg-[#93C742] border border-slate-200 shadow-sm select-none text-slate-950 font-black ${sizeMap[size]} ${className}`}
     >
       <div className="w-full flex justify-between px-1">
         <span>20</span>
@@ -84,7 +84,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
   };
   return (
     <div
-      className={`inline-flex flex-col items-center rounded-2xl bg-[#01B6D1] text-white border-2 border-slate-900 shadow-sm select-none text-center ${sizeMap[size]} ${className}`}
+      className={`inline-flex flex-col items-center rounded-2xl bg-[#01B6D1] text-white border border-slate-200 shadow-sm select-none text-center ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <div className="h-10 w-auto mb-1">
@@ -103,7 +103,7 @@ export function TealBadgeSticker({ className = "", size = "md" }: StickerProps) 
 export function BluePennantSticker({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`inline-flex items-center pl-4 pr-12 py-1.5 bg-[#B0EEFC] text-slate-950 border-2 border-slate-900 shadow-sm select-none font-serif ${className}`}
+      className={`inline-flex items-center pl-4 pr-12 py-1.5 bg-[#B0EEFC] text-slate-950 border border-slate-200 shadow-sm select-none font-serif ${className}`}
       style={{
         clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
         minWidth: "260px",
@@ -127,7 +127,7 @@ export function YellowCapsuleSticker({ className = "", size = "md" }: StickerPro
   };
   return (
     <div
-      className={`inline-flex items-center justify-between gap-3 rounded-full bg-[#FFE48A] text-slate-950 border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none font-serif ${sizeMap[size]} ${className}`}
+      className={`inline-flex items-center justify-between gap-3 rounded-full bg-[#FFE48A] text-slate-950 border border-slate-200 shadow-sm select-none font-serif ${sizeMap[size]} ${className}`}
       style={{ fontFamily: "var(--font-lockup), 'Mckay', Georgia, serif" }}
     >
       <div className="flex flex-col text-left">
@@ -153,7 +153,7 @@ export function OrangeCircleSticker({ className = "", size = "md" }: StickerProp
   };
   return (
     <div
-      className={`inline-flex items-center justify-around rounded-full bg-[#F68D2E] text-slate-950 border-2 border-slate-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none p-1.5 ${sizeMap[size]} ${className}`}
+      className={`inline-flex items-center justify-around rounded-full bg-[#F68D2E] text-slate-950 border border-slate-200 shadow-sm select-none p-1.5 ${sizeMap[size]} ${className}`}
     >
       <div className="h-[75%] w-auto flex items-center justify-center">
         <FsyTempleMark colorMode="one-color" className="h-full w-auto" />

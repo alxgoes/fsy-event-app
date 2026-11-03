@@ -9,7 +9,7 @@ import { StatePanel } from "@/components/ui/states";
 export default function OfflinePage() {
   return (
     <main className="min-h-screen bg-fsy-watermark flex flex-col items-center justify-center gap-6 p-4">
-      <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-t-full rounded-b-xl border-2 border-slate-900/60 bg-[#EFEFE7] p-1 dark:border-slate-700 dark:bg-slate-800">
+      <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-t-full rounded-b-xl border border-slate-200 bg-[#EFEFE7] p-1 dark:border-slate-700 dark:bg-slate-800">
         <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
       </div>
       <div className="fsy-fade-in w-full max-w-md">

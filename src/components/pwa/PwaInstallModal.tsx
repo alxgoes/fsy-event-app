@@ -48,7 +48,7 @@ export function PwaInstallModal() {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.92, opacity: 0, y: 20 }}
           transition={{ type: "spring", stiffness: 350, damping: 26 }}
-          className="relative w-full max-w-md rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-[8px_8px_0px_0px_rgba(15,23,42,1)] dark:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] z-10 overflow-hidden"
+          className="relative w-full max-w-md rounded-3xl border-3 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-sm z-10 overflow-hidden"
         >
           {/* Close Button */}
           <button
@@ -62,7 +62,7 @@ export function PwaInstallModal() {
 
           {/* Header Badge & App Icon */}
           <div className="flex flex-col items-center text-center space-y-3 pt-1">
-            <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-[#0B1528] border-2 border-slate-900 dark:border-slate-700 shadow-brutal-sm p-1.5 overflow-hidden">
+            <div className="relative flex items-center justify-center h-16 w-16 rounded-2xl bg-[#0B1528] border border-slate-200 dark:border-slate-700 shadow-brutal-sm p-1.5 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/icons/icon-192.png"
@@ -145,7 +145,7 @@ export function PwaInstallModal() {
                 <button
                   type="button"
                   onClick={triggerInstall}
-                  className="w-full h-12 flex items-center justify-center gap-2.5 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-sm border-2 border-slate-900 shadow-[3px_3px_0px_0px_rgba(15,23,42,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
+                  className="w-full h-12 flex items-center justify-center gap-2.5 rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-black text-sm border border-slate-200 shadow-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   <span>Instalar Aplicativo no Celular</span>

@@ -1,5 +1,5 @@
 "use client";
-import { EVENT_CITY, EVENT_DATES, EVENT_THEME, EVENT_VENUE } from "@/lib/event/identity";
+import { EVENT_DATES, EVENT_THEME } from "@/lib/event/identity";
 import { startTransition } from "react";
 
 
@@ -30,7 +30,6 @@ const KNOWN_LOGIN_ERRORS = new Set([
   "Link inválido ou expirado. Peça um novo.",
   "Código de autorização não encontrado",
 ]);
-const EVENT_PLACE = `${EVENT_VENUE} · ${EVENT_CITY}`;
 const GENERIC_LOGIN_ERROR = "Não foi possível concluir a entrada. Tente novamente ou use e-mail e senha.";
 
 function GoogleIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -302,7 +301,7 @@ function LoginFormContent() {
   const heading = mode === "login" ? "Entrar no Portal" : mode === "register" ? "Criar conta" : "Recuperar acesso";
   const subtitle =
     mode === "login"
-      ? "Portal da Sessão Ribeirão Preto 2"
+      ? "Use sua conta para acompanhar o evento."
       : mode === "register"
         ? "Cadastro de participante. Cargos da equipe são atribuídos pela coordenação."
         : "Enviaremos um link para criar uma nova senha do portal.";
@@ -314,9 +313,6 @@ function LoginFormContent() {
         className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-[0_10px_25px_-5px_rgba(15,23,42,0.08),0_8px_10px_-6px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900 sm:p-8"
       >
         <div className="space-y-2 text-center">
-          <div className="mx-auto flex items-center justify-center pb-1">
-            <FsyFloatingLetters size="md" animated />
-          </div>
           <p className="fsy-reveal inline-flex items-center rounded-full bg-[#FFE48A] px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-950">
             {EVENT_THEME} · 2027
           </p>
@@ -324,12 +320,6 @@ function LoginFormContent() {
             {heading}
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
-          {mode === "login" && (
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-              {EVENT_DATES}
-              <span className="block">{EVENT_PLACE}</span>
-            </p>
-          )}
         </div>
 
         {!isRecover && (
@@ -447,7 +437,7 @@ function LoginFormContent() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field id="register-stake" label="Estaca">
-                {(a) => <Input {...a} autoComplete="off" placeholder="Ex.: Ribeirão Preto Leste" value={regStake} onChange={(e) => setRegStake(e.target.value)} disabled={loading} />}
+                {(a) => <Input {...a} autoComplete="off" placeholder="Ex.: São José do Rio Preto" value={regStake} onChange={(e) => setRegStake(e.target.value)} disabled={loading} />}
               </Field>
               <Field id="register-phone" label="Celular">
                 {(a) => <Input {...a} type="tel" inputMode="tel" autoComplete="tel" placeholder="(16) 99999-0000" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} disabled={loading} />}
@@ -476,7 +466,7 @@ export default function LoginPage() {
       {/* Top Header */}
       <header className="max-w-5xl w-full mx-auto flex items-center justify-between py-2">
         <Link href="/" className="fsy-action-link flex items-center gap-2.5 sm:gap-3 group">
-          <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border-2 border-slate-900/50 dark:border-slate-700 shadow-xs overflow-hidden">
+          <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 flex items-center justify-center p-0.5 border border-slate-200 dark:border-slate-700 shadow-xs overflow-hidden">
             <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
           </div>
           <FsyFloatingLetters size="xs" className="hidden sm:inline-flex" />
@@ -505,8 +495,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <footer className="text-center py-4 text-xs font-semibold text-slate-600 dark:text-slate-400">
-        © 2027 FSY Sessão Ribeirão Preto 2 · {EVENT_THEME}
-        <span className="block font-medium">{EVENT_PLACE}</span>
+        © 2027 FSY · {EVENT_THEME}
         <Link href="/instalar" className="fsy-action-link justify-center font-semibold text-[#005E7C] underline-offset-4 hover:underline dark:text-[#7DE3F4]">
           Instalar o app
         </Link>
