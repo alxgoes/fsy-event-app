@@ -9,16 +9,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Users,
   Building2,
-  ClipboardList,
   Stethoscope,
-  Truck,
-  Calendar,
   Megaphone,
   Camera,
   ShieldCheck,
-  ArrowRight,
   RefreshCw,
-  Compass,
 } from "lucide-react";
 import { fetchJson, HttpStatusError } from "@/lib/requests/client";
 import type { AdminOverview } from "@/types/native-auth";
@@ -27,7 +22,6 @@ import { ScrollIndicator, ScrollSection } from "@/components/ui/scroll-indicator
 
 const DASHBOARD_SECTIONS: ScrollSection[] = [
   { id: "metrics", title: "Métricas", level: 2 },
-  { id: "modules", title: "Módulos", level: 2 },
   { id: "announcements", title: "Comunicados", level: 2 },
 ];
 
@@ -111,14 +105,14 @@ export function ExecutiveDashboard() {
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-black uppercase text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
+                  <span className="rounded-md bg-sky-100 dark:bg-sky-950 px-2 py-0.5 text-xs font-bold uppercase text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
                     Coordenação Geral
                   </span>
                   <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
                     Sessão Ribeirão Preto 2
                   </span>
                 </div>
-                <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
+                <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
                   Visão Geral da Sessão
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
@@ -132,22 +126,13 @@ export function ExecutiveDashboard() {
                 type="button"
                 onClick={loadExecutiveData}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 px-3.5 py-2.5 text-xs font-black text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#FAF8F5] dark:bg-slate-800 px-3.5 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-[#005E7C] dark:text-[#7DE3F4]" : ""}`} />
                 <span>Atualizar Dados</span>
               </button>
 
-              <Link className="fsy-action-link" href="/dashboard">
-                <motion.div
-                  whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-                  whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#007DA5] px-3.5 py-2.5 text-xs font-black text-white shadow-sm hover:bg-[#005E7C] transition-colors"
-                >
-                  <Compass className="h-3.5 w-3.5" />
-                  <span>Ver Portal do Jovem</span>
-                </motion.div>
-              </Link>
+
             </div>
           </div>
         </div>
@@ -183,7 +168,7 @@ export function ExecutiveDashboard() {
             className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Jovens Registrados
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4]">
@@ -204,7 +189,7 @@ export function ExecutiveDashboard() {
             className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Companhias Ativas
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400">
@@ -225,7 +210,7 @@ export function ExecutiveDashboard() {
             className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Prontuários de Saúde
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
@@ -248,7 +233,7 @@ export function ExecutiveDashboard() {
             className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm"
           >
             <div className="flex items-center justify-between gap-2 mb-3">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
                 Fotos em Destaque
               </span>
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-950 text-[#FC4E6D]">
@@ -259,7 +244,7 @@ export function ExecutiveDashboard() {
               {loaded ? metrics.totalPhotos : <><span aria-hidden="true">—</span><span className="sr-only">Carregando</span></>}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <span>Drive & Murais</span>
+              <span>Fotos publicadas</span>
               <Link href="/admin/media" className="fsy-action-link font-bold text-[#005E7C] dark:text-[#7DE3F4] hover:underline">
                 Gerenciar &rarr;
               </Link>
@@ -267,222 +252,13 @@ export function ExecutiveDashboard() {
           </motion.div>) }]} />}
       </div>
 
-      {/* 3. Interactive Management Modules (Bento Action Cards) */}
-      <div data-section-index="1">
-        <div className="mb-4">
-            <h2 className="font-serif text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Módulos de Gestão Rápida
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              Acesso direto às operações estratégicas da conferência FSY 2027.
-            </p>
-          </div>
-
-          <CustomizableGrid pageKey="admin-modules" version={1} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" items={[{ id: "medical", label: "Saúde e inclusão", content: (<Link className="fsy-action-link" href="/admin/medical">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      <Stethoscope className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black px-2 py-0.5">
-                      Saúde & Inclusão
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Prontuários & Saúde
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Alergias severas, celíacos, medicações controladas e agendamentos de consulta médica.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "companies", label: "Companhias", content: (<Link className="fsy-action-link" href="/admin/companies">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 border border-amber-200 dark:border-amber-800">
-                      <Building2 className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-black px-2 py-0.5">
-                      {metrics.totalCompanies} Companhias
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Gestão de Companhias
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Estandartes, atribuição de jovens e vinculação dos casais de consultores.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "schedule", label: "Programação", content: (<Link className="fsy-action-link" href="/admin/schedule">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4] text-xs font-black px-2 py-0.5">
-                      5 Dias
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Programação da Sessão
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Horários, locais, devocionais, gincanas, bailes e atividades diárias.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "logistics", label: "Logística", content: (<Link className="fsy-action-link" href="/admin/logistics">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 border border-purple-200 dark:border-purple-800">
-                      <Truck className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-black px-2 py-0.5">
-                      Transporte
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Logística & Caravanas
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Ônibus por estaca, horários de chegada, líderes de caravana e alojamentos.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "announcements", label: "Avisos", content: (<Link className="fsy-action-link" href="/admin/announcements">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-[#FC4E6D] border border-rose-200 dark:border-rose-800">
-                      <Megaphone className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 text-xs font-black px-2 py-0.5">
-                      Mural Geral
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Comunicados & Avisos
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Emissão de avisos urgentes ou direcionados para jovens e companhias.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "media", label: "Mídia", content: (<Link className="fsy-action-link" href="/admin/media">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-pink-50 dark:bg-pink-950/60 text-[#FC4E6D] border border-pink-200 dark:border-pink-800">
-                      <Camera className="h-5 w-5" />
-                    </div>
-                    <span className="rounded-full bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300 text-xs font-black px-2 py-0.5">
-                      Destaques do Drive
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Fotos em Destaque
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Cadastrar e gerenciar fotos do Drive que aparecem nas caixas de destaque do portal.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) },
-{ id: "registrations", label: "Inscrições", content: (<Link className="fsy-action-link" href="/admin/inscricoes">
-              <motion.div
-                whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-                transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                className="fsy-panel group rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm hover:border-[#007DA5]/50 transition-colors flex flex-col justify-between h-full"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-[#7DE3F4] border border-sky-200 dark:border-sky-800">
-                      <ClipboardList className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <span className="rounded-full bg-sky-100 dark:bg-sky-950 text-[#005E7C] dark:text-[#7DE3F4] text-xs font-black px-2 py-0.5">
-                      Planilha e PDF
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-[#007DA5] transition-colors">
-                    Inscrições & Autorizações
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Importar o Excel oficial, revisar nomes e alertas, exportar e gerar as fichas de autorização em PDF.
-                  </p>
-                </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-[#005E7C] dark:text-[#7DE3F4]">
-                  <span>Abrir módulo</span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </motion.div>
-            </Link>) }]} />
-        </div>
-
         {/* 4. Recent Announcements Feed */}
         {recentAnnouncements.length > 0 && (
           <div data-section-index="2" className="fsy-panel rounded-3xl border-2 border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Megaphone className="h-4 w-4 text-[#005E7C] dark:text-[#7DE3F4]" />
-                <h3 className="font-serif text-base font-bold text-slate-900 dark:text-white">
+                <h3 className="font-heading text-base font-bold text-slate-900 dark:text-white">
                   Últimos Comunicados Publicados
                 </h3>
               </div>
@@ -499,7 +275,7 @@ export function ExecutiveDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-md ${
+                      <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-md ${
                         ann.priority === "urgent"
                           ? "bg-red-700 text-white"
                           : ann.priority === "important"
@@ -512,7 +288,7 @@ export function ExecutiveDashboard() {
                         {new Date(ann.created_at).toLocaleDateString("pt-BR")}
                       </span>
                     </div>
-                    <h4 className="font-serif text-sm font-bold text-slate-900 dark:text-white">
+                    <h4 className="font-heading text-sm font-bold text-slate-900 dark:text-white">
                       {ann.title}
                     </h4>
                     {ann.category && (

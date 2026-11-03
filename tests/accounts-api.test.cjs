@@ -83,6 +83,20 @@ test('account list is denied to participants and counselors', async () => {
   }
 });
 
+test('accounts without a profile only advertise actions supported for the Auth account', async () => {
+  const w = world();
+  w.list.splice(w.list.findIndex((p) => p.id === U(4)), 1);
+  const res = await w.load(LIST).GET(request('/api/admin/accounts'));
+  const account = res.body.data.find((item) => item.id === U(4));
+  assert.equal(account.status, 'sem_perfil');
+  const actions = plain(res.body.permissions[U(4)]);
+  for (const unsupported of ['edit', 'role', 'suspend', 'reactivate']) assert.equal(actions.includes(unsupported), false, unsupported);
+  for (const supported of ['delete', 'set_password', 'recovery_email', 'email']) assert.equal(actions.includes(supported), true, supported);
+  const attempted = await w.load(ONE).PATCH(request(`/api/admin/accounts/${U(4)}`, { method: 'PATCH', body: { action: 'role', role: 'consultor' } }), ctx(U(4)));
+  assert.equal(attempted.status, 404);
+  assert.equal(w.events.length, 0);
+});
+
 test('logistics can promote a participant to coordinator', async () => {
   const w = world({ actor: U(3) });
   const res = await w.load(ONE).PATCH(request(`/api/admin/accounts/${U(4)}`, { method: 'PATCH', body: { action: 'role', role: 'coordenador' } }), ctx(U(4)));
@@ -126,9 +140,26 @@ test('the last enabled administrator cannot be demoted, suspended or deleted', a
 test('nobody suspends, deletes or changes the role of their own account', async () => {
   const w = world({ actor: U(1) });
   const route = w.load(ONE);
+  assert.equal((await route.PATCH(request(`/api/admin/accounts/${U(1)}`, { method: 'PATCH', body: { action: 'role', role: 'jovem' } }), ctx(U(1)))).status, 409);
   assert.equal((await route.PATCH(request(`/api/admin/accounts/${U(1)}`, { method: 'PATCH', body: { action: 'suspend' } }), ctx(U(1)))).status, 409);
   assert.equal((await route.DELETE(request(`/api/admin/accounts/${U(1)}`, { method: 'DELETE', body: { confirm: 'dir@fsy.test' } }), ctx(U(1)))).status, 409);
   assert.equal(w.adminCalls.length, 0);
+  assert.equal(w.events.length, 0);
+  assert.equal(w.list.find((p) => p.id === U(1)).role, 'casal_diretor');
+});
+
+test('participants cannot change roles and invalid roles never reach storage', async () => {
+  const participant = world({ actor: U(4) });
+  const denied = await participant.load(ONE).PATCH(request(`/api/admin/accounts/${U(5)}`, { method: 'PATCH', body: { action: 'role', role: 'coordenador' } }), ctx(U(5)));
+  assert.equal(denied.status, 403);
+  assert.equal(participant.list.find((p) => p.id === U(5)).role, 'jovem');
+  assert.equal(participant.events.length, 0);
+
+  const manager = world();
+  const invalid = await manager.load(ONE).PATCH(request(`/api/admin/accounts/${U(4)}`, { method: 'PATCH', body: { action: 'role', role: 'inventado' } }), ctx(U(4)));
+  assert.equal(invalid.status, 400);
+  assert.equal(manager.events.length, 0);
+  assert.equal(manager.list.find((p) => p.id === U(4)).role, 'jovem');
 });
 
 test('suspension bans in Auth, marks the profile and is reversible', async () => {

@@ -88,6 +88,19 @@ test('without Authorization the site cookie flow is unchanged', async () => {
   assert.equal(seen.cookieChecks, 1);
 });
 
+test('role changes apply to the next request with the same cookie or Bearer token', async () => {
+  for (const authorization of [null, `Bearer ${TOKEN}`]) {
+    const id = authorization ? 'u-log' : 'u-cookie';
+    const profiles = { [id]: { role: 'coordenador' } };
+    const { mod, seen } = server({ authorization, profiles });
+    assert.equal((await mod.getCurrentIdentity()).role, 'coordenador');
+    profiles[id].role = 'jovem';
+    assert.equal((await mod.getCurrentIdentity()).role, 'jovem');
+    assert.equal((await mod.getCurrentUserAndRole()).role, 'jovem');
+    assert.deepEqual(seen.profileReads, [id, id, id]);
+  }
+});
+
 test('database client for a Bearer request carries only that token, no cookies', async () => {
   const { mod, seen } = server({ authorization: `Bearer ${TOKEN}` });
   await mod.createAuthenticatedServerClient();

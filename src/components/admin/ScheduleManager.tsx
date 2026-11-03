@@ -36,6 +36,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { GooeyButton } from "@/components/ui/GooeyButton";
 import { GooeyPillTabs } from "@/components/ui/GooeyPillTabs";
+import { EVENT_DATES, STAFF_DAY_DATE, EVENT_DAY_DATES } from "@/lib/event/identity";
 
 interface ScheduleItem {
   id: string;
@@ -52,22 +53,15 @@ interface ScheduleItem {
 
 const DAY_TABS = [
   { key: "all", label: "Todos os Dias" },
-  { key: "dia0", label: "Dia Zero (Sexta 05/02 • Consultores)", defaultDate: "2027-02-05" },
-  { key: "dia1", label: "1º Dia (Sábado 06/02 • Chegada Jovens)", defaultDate: "2027-02-06" },
-  { key: "dia2", label: "2º Dia (Domingo 07/02)", defaultDate: "2027-02-07" },
-  { key: "dia3", label: "3º Dia (Segunda 08/02)", defaultDate: "2027-02-08" },
-  { key: "dia4", label: "4º Dia (Terça 09/02)", defaultDate: "2027-02-09" },
-  { key: "dia5", label: "5º Dia (Quarta 10/02)", defaultDate: "2027-02-10" },
+  { key: "dia0", label: "Dia da equipe", defaultDate: EVENT_DAY_DATES.dia0 },
+  { key: "dia1", label: "1º dia", defaultDate: EVENT_DAY_DATES.dia1 },
+  { key: "dia2", label: "2º dia", defaultDate: EVENT_DAY_DATES.dia2 },
+  { key: "dia3", label: "3º dia", defaultDate: EVENT_DAY_DATES.dia3 },
+  { key: "dia4", label: "4º dia", defaultDate: EVENT_DAY_DATES.dia4 },
+  { key: "dia5", label: "5º dia", defaultDate: EVENT_DAY_DATES.dia5 },
 ];
 
-const DAY_DEFAULT_DATES: Record<string, string> = {
-  dia0: "2027-02-05",
-  dia1: "2027-02-06",
-  dia2: "2027-02-07",
-  dia3: "2027-02-08",
-  dia4: "2027-02-09",
-  dia5: "2027-02-10",
-};
+const DAY_DEFAULT_DATES: Record<string, string> = EVENT_DAY_DATES;
 
 export function ScheduleManager() {
   const [items, setItems] = useState<ScheduleItem[]>([]);
@@ -96,7 +90,7 @@ export function ScheduleManager() {
   const [formDescription, setFormDescription] = useState("");
   const [formCategory, setFormCategory] = useState("Atividade");
   const [formDay, setFormDay] = useState("dia1");
-  const [formDate, setFormDate] = useState("2027-02-06");
+  const [formDate, setFormDate] = useState(EVENT_DAY_DATES.dia1);
   const [formIsHighlight, setFormIsHighlight] = useState(false);
 
   const handleDayChange = (newDay: string) => {
@@ -158,7 +152,7 @@ export function ScheduleManager() {
     setFormDescription("");
     setFormCategory("Atividade");
     setFormDay(dayKey);
-    setFormDate(DAY_DEFAULT_DATES[dayKey] || "2027-02-06");
+    setFormDate(DAY_DEFAULT_DATES[dayKey] || EVENT_DAY_DATES.dia1);
     setFormIsHighlight(false);
     setIsDialogOpen(true);
   };
@@ -173,7 +167,7 @@ export function ScheduleManager() {
     setFormDescription(item.description || "");
     setFormCategory(item.category || "Atividade");
     setFormDay(item.day);
-    setFormDate(item.date || DAY_DEFAULT_DATES[item.day] || "2027-02-06");
+    setFormDate(item.date || DAY_DEFAULT_DATES[item.day] || EVENT_DAY_DATES.dia1);
     setFormIsHighlight(Boolean(item.is_highlight));
     setIsDialogOpen(true);
   };
@@ -318,7 +312,7 @@ export function ScheduleManager() {
   const getCategoryColor = (category: string | null) => {
     switch (category) {
       case "Espiritual":
-        return "bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800";
+        return "bg-sky-100 dark:bg-sky-950/80 text-[#005E7C] dark:text-cyan-300 border-sky-200 dark:border-sky-800";
       case "Alimentação":
         return "bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800";
       case "Show":
@@ -345,21 +339,21 @@ export function ScheduleManager() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               Gestão do Cronograma Oficial
             </h1>
-            <Badge className="bg-[#007DA5] text-white text-xs font-black uppercase">
+            <Badge className="bg-[#007DA5] text-white text-xs font-bold uppercase">
               FSY 2027
             </Badge>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-300 dark:text-slate-400 font-medium">
-            Dia da equipe 05/02 · Participantes 06 a 10 de fevereiro de 2027. As alterações aparecem no portal dos jovens na próxima atualização da página.
+            Dia da equipe: {STAFF_DAY_DATE}. Participantes: {EVENT_DATES}. As alterações aparecem no portal dos jovens na próxima atualização da página.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {savedMsg && (
-            <span className="flex items-center gap-1 text-sm font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
+            <span className="flex items-center gap-1 text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 fsy-fade-in">
               <CheckCircle2 className="h-4 w-4" /> Atualizado!
             </span>
           )}
@@ -440,7 +434,7 @@ export function ScheduleManager() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
+              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all duration-200 border-2 cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-[#007DA5] text-white border-slate-950 dark:border-slate-700 shadow-tactile-pill -translate-y-0.5"
                   : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-900/20 dark:border-slate-700 hover:border-slate-950 dark:hover:border-slate-500 hover:bg-[#007DA5]/10 hover:text-[#005E7C] dark:hover:text-[#01B6D1] hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
@@ -460,7 +454,7 @@ export function ScheduleManager() {
       ) : filteredItems.length === 0 ? (
         <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2">
           <Clock className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
-          <p className="font-black text-base text-slate-700 dark:text-slate-300">Nenhuma atividade encontrada</p>
+          <p className="font-bold text-base text-slate-700 dark:text-slate-300">Nenhuma atividade encontrada</p>
           <p className="text-xs max-w-sm mx-auto">
             Clique no botão &ldquo;Adicionar Evento&rdquo; ou &ldquo;Sincronizar Oficial (82)&rdquo; para carregar a grade completa.
           </p>
@@ -477,30 +471,30 @@ export function ScheduleManager() {
               <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-black text-slate-900 dark:text-white">
+                    <span className="flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-900 dark:text-white">
                       <Clock className="h-3.5 w-3.5 text-[#005E7C] dark:text-[#7DE3F4]" />
                       {item.start_time} {item.end_time && item.end_time !== "--" ? `— ${item.end_time}` : ""}
                     </span>
 
-                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-black uppercase text-slate-500 dark:text-slate-300">
-                      {item.day.toUpperCase()}
+                    <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-bold uppercase text-slate-500 dark:text-slate-300">
+                      {DAY_TABS.find((day) => day.key === item.day)?.label ?? "Dia do evento"}
                     </span>
 
                     {item.category && (
-                      <Badge variant="outline" className={`text-xs font-black px-2 py-0.5 ${getCategoryColor(item.category)}`}>
+                      <Badge variant="outline" className={`text-xs font-bold px-2 py-0.5 ${getCategoryColor(item.category)}`}>
                         {item.category}
                       </Badge>
                     )}
 
                     {item.is_highlight && (
-                      <Badge className="bg-amber-400 text-amber-950 font-black text-xs flex items-center gap-1 border border-amber-500 shadow-sm">
+                      <Badge className="bg-amber-400 text-amber-950 font-bold text-xs flex items-center gap-1 border border-amber-500 shadow-sm">
                         <Sparkles className="h-3 w-3" /> Destaque
                       </Badge>
                     )}
                   </div>
 
                   <div>
-                    <h3 className="font-black text-base text-slate-900 dark:text-white">
+                    <h3 className="font-bold text-base text-slate-900 dark:text-white">
                       {item.title}
                     </h3>
                     <p className="flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
@@ -543,13 +537,13 @@ export function ScheduleManager() {
 
       {/* CREATE / EDIT DIALOG */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="fsy-panel sm:max-w-[560px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="fsy-panel sm:max-w-[560px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black text-slate-900 dark:text-white">
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
               {editingItem ? "Editar Atividade no Cronograma" : "Nova Atividade no Cronograma"}
             </DialogTitle>
             <DialogDescription className="text-slate-500 dark:text-slate-300 dark:text-slate-400 text-xs">
-              Salvo imediatamente no Supabase e refletido para todos os jovens.
+              Ao salvar, a atividade fica disponível na agenda de todos os jovens.
             </DialogDescription>
           </DialogHeader>
 
@@ -680,9 +674,9 @@ export function ScheduleManager() {
                   <Star className="h-4 w-4 fill-current" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     Marcar como Destaque
-                    {formIsHighlight && <span className="text-xs font-black text-amber-800 dark:text-amber-300 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
+                    {formIsHighlight && <span className="text-xs font-bold text-amber-800 dark:text-amber-300 dark:text-amber-400 uppercase tracking-wider">(Ativo)</span>}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-300">Exibido com card dourado no mural e no feed dos jovens</p>
                 </div>
@@ -713,7 +707,7 @@ export function ScheduleManager() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl border-2 border-slate-900 shadow-sm min-h-[36px]"
+                className="text-xs bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold rounded-xl border border-slate-200 shadow-sm min-h-[36px]"
               >
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {saving ? "Salvando..." : "Salvar no Cronograma"}
@@ -725,9 +719,9 @@ export function ScheduleManager() {
 
       {/* CONFIRM DELETE DIALOG */}
       <Dialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
-        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
+        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Atividade?
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
@@ -745,7 +739,7 @@ export function ScheduleManager() {
             <Button
               onClick={handleConfirmDelete}
               disabled={!!deleting}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-xs"
+              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs"
             >
               {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Trash2 className="h-4 w-4 mr-1" />}
               {deleting ? "Excluindo..." : "Sim, Excluir"}
@@ -756,13 +750,13 @@ export function ScheduleManager() {
 
       {/* CONFIRM SYNC DIALOG */}
       <Dialog open={isSyncModalOpen} onOpenChange={setIsSyncModalOpen}>
-        <DialogContent className="fsy-panel sm:max-w-[460px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6">
+        <DialogContent className="fsy-panel sm:max-w-[460px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-[#005E7C] dark:text-[#7DE3F4]">
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 text-[#005E7C] dark:text-[#7DE3F4]">
               <Database className="h-5 w-5" /> Sincronizar Cronograma 2027
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">
-              Isso atualizará todas as 82 atividades oficiais dos 6 dias (05/02, dia da equipe, e 06 a 10 de fevereiro de 2027) no banco de dados. Deseja continuar?
+              Toda a programação atual será substituída pela agenda oficial de 2027. Alterações e atividades criadas pela gestão serão perdidas. Dia da equipe: {STAFF_DAY_DATE}. Participantes: {EVENT_DATES}. Deseja continuar?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="pt-4 flex gap-2">
@@ -776,7 +770,7 @@ export function ScheduleManager() {
             <Button
               onClick={handleSyncOfficial}
               disabled={seeding}
-              className="flex-1 bg-[#007DA5] hover:bg-[#005E7C] text-white font-black rounded-xl text-xs min-h-[36px]"
+              className="flex-1 bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold rounded-xl text-xs min-h-[36px]"
             >
               {seeding ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Database className="h-4 w-4 mr-1" />}
               {seeding ? "Sincronizando..." : "Sincronizar Agora"}

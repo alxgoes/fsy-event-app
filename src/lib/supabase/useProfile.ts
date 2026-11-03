@@ -53,13 +53,17 @@ function useInternalProfile(enabled: boolean): UseProfileReturn {
     let isMounted = true;
     let requestVersion = 0;
     let currentUserId: string | null = null;
+    let currentRole: UserRole | null = null;
+    let fetching = false;
     let authTimer: ReturnType<typeof setTimeout> | undefined;
     const supabase = createClient();
 
-    async function fetchProfile() {
+    async function fetchProfile(background = false) {
+      if (background && fetching) return;
       const version = ++requestVersion;
       const isCurrent = () => isMounted && version === requestVersion;
-      setLoading(true);
+      fetching = true;
+      if (!background) setLoading(true);
       setError(null);
 
       try {
@@ -70,8 +74,19 @@ function useInternalProfile(enabled: boolean): UseProfileReturn {
 
         if (!isCurrent()) return;
 
-        if (userError || !user) {
+        if (userError) {
+          setError("Erro ao verificar a sessão.");
+          if (!background) {
+            currentUserId = null;
+            currentRole = null;
+            setProfile(null);
+          }
+          return;
+        }
+
+        if (!user) {
           currentUserId = null;
+          currentRole = null;
           setProfile(null);
           return;
         }
@@ -87,21 +102,38 @@ function useInternalProfile(enabled: boolean): UseProfileReturn {
 
         if (profileError) {
           setError("Erro ao carregar perfil.");
-          setProfile(null);
+          if (!background) setProfile(null);
         } else {
           setProfile({ ...data, email: user.email });
+          const roleChanged = currentRole !== null && currentRole !== data.role;
+          currentRole = data.role;
+          // A página nova aplica o redirecionamento do cargo e descarta dados da tela anterior.
+          if (roleChanged) window.location.reload();
         }
       } catch {
         if (isCurrent()) {
-          setProfile(null);
+          if (!background) setProfile(null);
           setError("Erro inesperado ao carregar perfil.");
         }
       } finally {
-        if (isCurrent()) setLoading(false);
+        if (isCurrent()) {
+          fetching = false;
+          if (!background) setLoading(false);
+        }
       }
     }
 
     void fetchProfile();
+
+    // Alterações administrativas não disparam eventos do Auth para a outra pessoa.
+    // Revalida sem desmontar formulários; as APIs já consultam o cargo a cada chamada.
+    const refreshVisibleProfile = () => {
+      if (!isMounted || !currentUserId || document.visibilityState === "hidden") return;
+      void fetchProfile(true);
+    };
+    const refreshInterval = window.setInterval(refreshVisibleProfile, 60_000);
+    window.addEventListener("focus", refreshVisibleProfile);
+    document.addEventListener("visibilitychange", refreshVisibleProfile);
 
     const {
       data: { subscription },
@@ -113,21 +145,29 @@ function useInternalProfile(enabled: boolean): UseProfileReturn {
         ++requestVersion;
         clearTimeout(authTimer);
         currentUserId = null;
+        currentRole = null;
         setProfile(null);
         setError(null);
         setLoading(false);
       } else if (
         event === "USER_UPDATED" ||
+        event === "TOKEN_REFRESHED" ||
         (event === "SIGNED_IN" && session?.user.id !== currentUserId)
       ) {
         const nextUserId = session?.user.id ?? null;
-        if (nextUserId !== currentUserId) setProfile(null);
+        if (nextUserId !== currentUserId) {
+          currentRole = null;
+          setProfile(null);
+        }
+        const background = event === "TOKEN_REFRESHED" && nextUserId === currentUserId;
         currentUserId = nextUserId;
-        ++requestVersion;
         clearTimeout(authTimer);
-        setLoading(true);
+        if (!background) {
+          ++requestVersion;
+          setLoading(true);
+        }
         // Auth callbacks run under the client's lock. Fetch after it is released.
-        authTimer = setTimeout(() => void fetchProfile(), 0);
+        authTimer = setTimeout(() => void fetchProfile(background), 0);
       }
     });
 
@@ -135,6 +175,9 @@ function useInternalProfile(enabled: boolean): UseProfileReturn {
       isMounted = false;
       ++requestVersion;
       clearTimeout(authTimer);
+      window.clearInterval(refreshInterval);
+      window.removeEventListener("focus", refreshVisibleProfile);
+      document.removeEventListener("visibilitychange", refreshVisibleProfile);
       subscription.unsubscribe();
     };
   }, [enabled, tick]);

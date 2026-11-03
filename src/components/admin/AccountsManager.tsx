@@ -100,7 +100,9 @@ export function AccountsManager() {
     if (role) params.set("role", role);
     if (status) params.set("status", status);
     try {
-      setResult(await api<AccountListResponse>(`/api/admin/accounts?${params}`));
+      const updated = await api<AccountListResponse>(`/api/admin/accounts?${params}`);
+      setResult(updated);
+      setSelected((current) => current ? updated.data.find((account) => account.id === current.id) ?? null : null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao carregar as contas.");
     } finally {
@@ -523,7 +525,7 @@ function AccessTab({ account, can, busy, run, patch, onDeleted }: {
             Remove o login e o perfil de <strong>{account.full_name}</strong> de forma definitiva. Fichas médicas permanecem, sem vínculo com a conta.
             Se houver registros que precisam ser preservados (inclusão, atendimentos, fotos), a exclusão é recusada: suspenda o acesso.
           </p>
-          <Field id="acc-delete-confirm" label={<>Digite <span className="font-mono">{expected}</span> para confirmar</>}>
+          <Field id="acc-delete-confirm" label={<>Digite <span className="fsy-figure">{expected}</span> para confirmar</>}>
             {(a) => <Input {...a} value={confirmDelete} onChange={(e) => setConfirmDelete(e.target.value)} autoComplete="off" />}
           </Field>
           <Button type="submit" variant="destructive" className="h-11 rounded-xl px-4" disabled={busy === "delete" || confirmDelete.trim().toLowerCase() !== expected.trim().toLowerCase()}>

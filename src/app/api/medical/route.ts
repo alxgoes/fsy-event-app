@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUserAndRole } from "@/lib/supabase/server";
 import { medicalRecordSchema, medicalRecordUpdateSchema } from "@/types/medical";
+import { matchesCompany } from "@/lib/companies/match";
 import { z } from "zod";
 
 /** Respostas com dados pessoais/saúde: nunca em cache compartilhado (site e app). */
@@ -27,7 +28,9 @@ interface ExtraContactsPayload {
   bishop?: { name?: string; phone?: string; ward?: string };
 }
 
-function parseRecord(record: Record<string, unknown>) {
+type CompanyName = { id: string; name: string };
+
+function parseRecord(record: Record<string, unknown>, companies: CompanyName[] = []) {
   let extra: ExtraContactsPayload = {};
   if (record.emergency_contact_alt_phone && typeof record.emergency_contact_alt_phone === "string") {
     try {
@@ -39,6 +42,7 @@ function parseRecord(record: Record<string, unknown>) {
 
   return {
     ...record,
+    company_name: companies.find((company) => matchesCompany(record.company_id as string | null, company))?.name ?? null,
     contact_2_name: extra.contact2?.name || "",
     contact_2_phone: extra.contact2?.phone || "",
     contact_2_relationship: extra.contact2?.relationship || "",
@@ -81,7 +85,9 @@ export async function GET() {
     const filteredRaw = (data ?? []).filter(
       (r) => r.emergency_contact_name !== "A registrar"
     );
-    const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>));
+    const { data: companies, error: companiesError } = await supabase.from("companies").select("id, name");
+    if (companiesError) return serverError("medical.get.companies", companiesError);
+    const parsed = filteredRaw.map((r) => parseRecord(r as Record<string, unknown>, companies ?? []));
 
     return privateJson({ data: parsed });
   } catch (err: unknown) {
@@ -189,7 +195,8 @@ export async function POST(request: Request) {
       return serverError("medical.post", error);
     }
 
-    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    const { data: companies } = await supabase.from("companies").select("id, name");
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>, companies ?? []) });
   } catch (err: unknown) {
     return serverError("medical.post", err);
   }
@@ -265,7 +272,8 @@ export async function PUT(request: Request) {
       return serverError("medical.put", error);
     }
 
-    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>) });
+    const { data: companies } = await supabase.from("companies").select("id, name");
+    return privateJson({ success: true, data: parseRecord(data as Record<string, unknown>, companies ?? []) });
   } catch (err: unknown) {
     return serverError("medical.put", err);
   }

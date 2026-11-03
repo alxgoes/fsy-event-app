@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+/** Nome exibido ao lado do vínculo persistido com a companhia. */
+export interface MedicalCompanyInfo {
+  company_id: string | null;
+  company_name: string | null;
+}
+
 const optionalText = z.string().trim().max(6000).nullish();
 export const medicalRecordSchema = z.object({
   full_name: z.string().trim().min(2).max(160),

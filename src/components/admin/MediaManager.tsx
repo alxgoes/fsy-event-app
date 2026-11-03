@@ -289,10 +289,10 @@ export function MediaManager() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between p-5 rounded-3xl bg-white/90 dark:bg-slate-900/90 border-2 border-slate-900/10 dark:border-slate-800 shadow-xl backdrop-blur-md">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-black font-heading tracking-tight text-slate-900 dark:text-white">
-              Gestão de Fotos & Mídia
+            <h1 className="text-xl sm:text-2xl font-bold font-heading tracking-tight text-slate-900 dark:text-white">
+              Fotos
             </h1>
-            <span className="rounded-full bg-[#FC4E6D]/15 text-[#FC4E6D] dark:text-[#ff6b87] border border-[#FC4E6D]/30 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider">
+            <span className="rounded-full bg-[#FC4E6D]/15 text-[#FC4E6D] dark:text-[#ff6b87] border border-[#FC4E6D]/30 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider">
               FSY 2027
             </span>
           </div>
@@ -317,6 +317,9 @@ export function MediaManager() {
             Adicionar Foto
           </GooeyButton>
 
+          <details className="relative">
+            <summary className="flex min-h-[44px] cursor-pointer items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-[#005E7C] dark:border-slate-700 dark:text-cyan-300">Mais ações</summary>
+            <div className="absolute right-0 z-20 flex min-w-48 flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
           <GooeyButton
             variant="tactile-dark"
             size="sm"
@@ -339,6 +342,8 @@ export function MediaManager() {
           >
             Atualizar
           </GooeyButton>
+            </div>
+          </details>
         </div>
       </header>
 
@@ -353,7 +358,7 @@ export function MediaManager() {
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="underline text-xs font-black cursor-pointer">
+          <button onClick={() => setError(null)} className="underline text-xs font-bold cursor-pointer">
             Fechar
           </button>
         </motion.div>
@@ -369,9 +374,9 @@ export function MediaManager() {
             transition={{ type: "spring", stiffness: 400, damping: 26 }}
           >
             <ShakeBox shakeTrigger={shakeCount}>
-              <div className="fsy-panel rounded-3xl border-2 border-slate-900 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
+              <div className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <h2 className="font-heading font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <h2 className="font-heading font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-[#005E7C] dark:text-[#7DE3F4]" />
                     Cadastrar Nova Foto Oficial do Google Drive
                   </h2>
@@ -386,7 +391,7 @@ export function MediaManager() {
                 <form onSubmit={handleAddPhoto} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="field-mediamanager-1" className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                      <label htmlFor="field-mediamanager-1" className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                         Título da Foto *
                       </label>
                       <Input id="field-mediamanager-1"
@@ -398,7 +403,7 @@ export function MediaManager() {
                     </div>
 
                     <div>
-                      <label htmlFor="field-mediamanager-2" className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                      <label htmlFor="field-mediamanager-2" className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                         Categoria
                       </label>
                       <NativeSelect id="field-mediamanager-2"
@@ -416,7 +421,7 @@ export function MediaManager() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block mb-1">
                       Link de Compartilhamento do Google Drive *
                     </label>
                     <div className="relative">
@@ -448,7 +453,7 @@ export function MediaManager() {
                         className="h-16 w-16 object-cover rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm"
                       />
                       <div>
-                        <p className="text-xs font-black text-emerald-800 dark:text-emerald-300 dark:text-emerald-400">
+                        <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 dark:text-emerald-400">
                           Miniatura de alta definição detectada!
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
@@ -506,7 +511,7 @@ export function MediaManager() {
       ) : filteredPhotos.length === 0 ? (
         <div className="fsy-panel rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white/60 dark:bg-slate-900/60 p-12 text-center text-slate-600 dark:text-slate-300 space-y-2 backdrop-blur-sm">
           <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-30 text-[#005E7C] dark:text-[#7DE3F4]" />
-          <p className="font-heading font-black text-base text-slate-700 dark:text-slate-300">
+          <p className="font-heading font-bold text-base text-slate-700 dark:text-slate-300">
             Nenhuma foto encontrada nesta categoria
           </p>
           <p className="text-xs max-w-sm mx-auto">
@@ -550,20 +555,20 @@ export function MediaManager() {
                   )}
 
                   {/* Category Badge */}
-                  <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 text-white text-xs font-black px-2.5 py-0.5 backdrop-blur-md border border-white/20">
+                  <span className="absolute top-2 left-2 rounded-full bg-slate-900/80 text-white text-xs font-bold px-2.5 py-0.5 backdrop-blur-md border border-white/20">
                     {photo.category}
                   </span>
 
                   {/* Visibility Tag */}
                   {!photo.visible && (
-                    <span className="absolute top-2 right-2 rounded-full bg-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 shadow-sm">
+                    <span className="absolute top-2 right-2 rounded-full bg-amber-500 text-amber-950 text-xs font-bold px-2.5 py-0.5 shadow-sm">
                       Oculta
                     </span>
                   )}
 
                   {/* Hover Quick Expand Button */}
                   <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white text-xs font-black shadow-md backdrop-blur-sm">
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-white text-xs font-bold shadow-md backdrop-blur-sm">
                       <Maximize2 className="h-3.5 w-3.5" />
                       Expandir
                     </span>
@@ -573,7 +578,7 @@ export function MediaManager() {
                 {/* Card Content & Action Buttons */}
                 <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
                   <div>
-                    <h2 className="font-heading font-black text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
+                    <h2 className="font-heading font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1">
                       {photo.title}
                     </h2>
                     <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
@@ -586,7 +591,7 @@ export function MediaManager() {
                       href={photo.drive_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="fsy-action-link flex items-center gap-1 text-xs font-black text-[#005E7C] dark:text-cyan-400 hover:underline"
+                      className="fsy-action-link flex items-center gap-1 text-xs font-bold text-[#005E7C] dark:text-cyan-400 hover:underline"
                     >
                       <ExternalLink className="h-3 w-3" />
                       Drive
@@ -646,10 +651,10 @@ export function MediaManager() {
               {/* Top Bar of Modal */}
               <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/70">
                 <div className="flex items-center gap-2.5">
-                  <span className="rounded-full bg-[#007DA5] text-white text-xs font-black px-3 py-1">
+                  <span className="rounded-full bg-[#007DA5] text-white text-xs font-bold px-3 py-1">
                     {lightboxPhoto.category}
                   </span>
-                  <DialogTitle className="font-heading font-black text-sm sm:text-base truncate max-w-[280px] sm:max-w-md">
+                  <DialogTitle className="font-heading font-bold text-sm sm:text-base truncate max-w-[280px] sm:max-w-md">
                     {lightboxPhoto.title}
                   </DialogTitle>
                 </div>
@@ -725,9 +730,9 @@ export function MediaManager() {
 
       {/* CONFIRM DELETE MODAL */}
       <Dialog open={!!photoToDelete} onOpenChange={(open) => !open && setPhotoToDelete(null)}>
-        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl p-6 shadow-2xl">
+        <DialogContent className="fsy-panel sm:max-w-[420px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
+            <DialogTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 text-rose-800 dark:text-rose-300">
               <Trash2 className="h-5 w-5" /> Excluir Foto do Mural?
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-2">

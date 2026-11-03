@@ -14,8 +14,21 @@ const compiled = ts.transpileModule(
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 function fixture() {
-  const states = [], effects = [], cleanups = [], timers = new Map();
-  let context, calls = 0, queries = 0, listener, resolveQuery, timerId = 0;
+  const states = [], effects = [], cleanups = [], timers = new Map(), intervals = new Map();
+  const windowListeners = new Map(), documentListeners = new Map();
+  let context, calls = 0, queries = 0, listener, resolveQuery, timerId = 0, reloads = 0;
+  const document = {
+    visibilityState: "visible",
+    addEventListener: (name, callback) => documentListeners.set(name, callback),
+    removeEventListener: (name) => documentListeners.delete(name),
+  };
+  const window = {
+    location: { reload: () => { reloads++; } },
+    setInterval: (callback) => { intervals.set(++timerId, callback); return timerId; },
+    clearInterval: (id) => intervals.delete(id),
+    addEventListener: (name, callback) => windowListeners.set(name, callback),
+    removeEventListener: (name) => windowListeners.delete(name),
+  };
   const react = {
     createContext: () => ({ Provider: "provider" }),
     useContext: () => context,
@@ -53,7 +66,7 @@ function fixture() {
   };
   const exports = {};
   vm.runInNewContext(compiled, {
-    exports,
+    exports, window, document,
     require: (name) => name === "react" ? react : { createClient: () => client },
     setTimeout: (callback) => { timers.set(++timerId, callback); return timerId; },
     clearTimeout: (id) => timers.delete(id),
@@ -75,8 +88,16 @@ function fixture() {
     cleanup: () => cleanups.forEach((fn) => fn()),
     calls: () => calls,
     queries: () => queries,
+    reloads: () => reloads,
+    focus: () => windowListeners.get("focus")?.(),
+    poll: () => [...intervals.values()].forEach((callback) => callback()),
+    visible: (value) => {
+      document.visibilityState = value;
+      documentListeners.get("visibilitychange")?.();
+    },
     event: (...args) => listener(...args),
-    resolve: () => resolveQuery({ data: { id: "alice", role: "jovem" } }),
+    resolve: (role = "jovem") => resolveQuery({ data: { id: "alice", role } }),
+    fail: () => resolveQuery({ data: null, error: { message: "offline" } }),
   };
 }
 
@@ -126,4 +147,73 @@ test("standalone useProfile fetches; auth refresh is deferred and canceled on un
   session.runTimers();
   await flush();
   assert.equal(session.calls(), 1);
+});
+
+test("a role changed by management is refreshed on focus and reloads the previous interface once", async () => {
+  const session = fixture();
+  session.exports.ProfileProvider({ children: null });
+  session.runEffects();
+  await flush();
+  session.resolve("coordenador");
+  await flush();
+  assert.equal(session.reloads(), 0);
+
+  session.focus();
+  session.poll(); // Events during the same request do not create overlapping reads.
+  await flush();
+  assert.equal(session.queries(), 2);
+  assert.equal(session.states[1], false, "background refresh must not hide the page");
+  session.resolve("jovem");
+  await flush();
+  assert.equal(session.states[0].role, "jovem");
+  assert.equal(session.reloads(), 1);
+
+  session.focus();
+  await flush();
+  session.resolve("jovem");
+  await flush();
+  assert.equal(session.reloads(), 1, "unchanged role must not cause a reload loop");
+  session.cleanup();
+});
+
+test("profile polling pauses while hidden, resumes on return, and unsubscribes on cleanup", async () => {
+  const session = fixture();
+  session.exports.ProfileProvider({ children: null });
+  session.runEffects();
+  await flush();
+  session.resolve();
+  await flush();
+  session.visible("hidden");
+  session.poll();
+  await flush();
+  assert.equal(session.queries(), 1);
+  session.visible("visible");
+  await flush();
+  assert.equal(session.queries(), 2);
+  session.fail();
+  await flush();
+  assert.equal(session.states[0].role, "jovem", "temporary background errors preserve the displayed profile");
+  assert.equal(session.states[1], false);
+  session.cleanup();
+  session.focus();
+  session.poll();
+  session.visible("visible");
+  await flush();
+  assert.equal(session.queries(), 2);
+});
+
+test("token refresh during an in-flight profile read does not invalidate or duplicate that read", async () => {
+  const session = fixture();
+  session.exports.ProfileProvider({ children: null });
+  session.runEffects();
+  await flush();
+  session.event("TOKEN_REFRESHED", { user: { id: "alice" } });
+  session.runTimers();
+  await flush();
+  assert.equal(session.queries(), 1);
+  session.resolve();
+  await flush();
+  assert.equal(session.states[0].role, "jovem");
+  assert.equal(session.states[1], false);
+  session.cleanup();
 });
