@@ -1,6 +1,7 @@
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { createClient } from "@/lib/supabase/client";
 import { allowsDirectFallback, cachedRequest, fetchJson, sessionScope } from "@/lib/requests/client";
+import { EVENT_DATES, EVENT_DAY_DATES, EVENT_END_AT, EVENT_START_AT } from "@/lib/event/identity";
 
 export interface ScheduleItem {
   id: string;
@@ -21,17 +22,8 @@ const SCHEDULE_TTL_MS = 60_000;
 /** Helper to generate fallback items from the official static schedule */
 function getOfficialStaticFallback(): ScheduleItem[] {
   const items: ScheduleItem[] = [];
-  const dayDates: Record<string, string> = {
-    dia0: "2027-02-05",
-    dia1: "2027-02-06",
-    dia2: "2027-02-07",
-    dia3: "2027-02-08",
-    dia4: "2027-02-09",
-    dia5: "2027-02-10",
-  };
-
   for (const [dayKey, dayData] of Object.entries(OFFICIAL_FSY_SCHEDULE)) {
-    const assignedDate = dayDates[dayKey] || "2027-02-05";
+    const assignedDate = EVENT_DAY_DATES[dayKey] || EVENT_DAY_DATES.dia0;
     dayData.events.forEach((event, idx) => {
       items.push({
         id: `static-${dayKey}-${idx}`,
@@ -119,6 +111,49 @@ export async function getSchedule(day?: string, signal?: AbortSignal): Promise<{
   return { data: fallback, fromCache: true };
 }
 
+const TIME_RE = /^\d{2}:\d{2}$/;
+
+/**
+ * O que cada pessoa vê na agenda. Jovens não veem o dia zero nem atividades
+ * internas da equipe (reuniões de coordenação, preparação de check-in etc.).
+ */
+export function scheduleVisibleTo(role: string | null | undefined, items: ScheduleItem[]): ScheduleItem[] {
+  if (role && role !== "jovem") return items;
+  return items.filter(
+    (item) =>
+      item.day !== "dia0" &&
+      item.category !== "Equipe" &&
+      // Bancos semeados antes de nov/2026 marcam a preparação da equipe como "Logística".
+      !(item.category === "Logística" && /^Prepara/i.test(item.title))
+  );
+}
+
+function addMinutes(hhmm: string, minutes: number) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = Math.min(23 * 60 + 59, h * 60 + m + minutes);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+/** Data (AAAA-MM-DD) e hora (HH:MM) atuais no fuso do evento. */
+export function eventClock(referenceDate: Date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(referenceDate);
+  const part = (type: string) => parts.find(value => value.type === type)?.value ?? "";
+  return { today: `${part("year")}-${part("month")}-${part("day")}`, now: `${part("hour")}:${part("minute")}` };
+}
+
+/**
+ * Término efetivo: o informado; sem ele, o início da próxima atividade do dia
+ * (ou uma hora depois do início). Assim nada fica eternamente "sem horário".
+ */
+export function effectiveEndTime(item: ScheduleItem, sameDay: ScheduleItem[]): string {
+  if (TIME_RE.test(item.end_time) && item.end_time > item.start_time) return item.end_time;
+  const next = sameDay.find((other) => other.start_time > item.start_time);
+  return next?.start_time ?? addMinutes(item.start_time, 60);
+}
+
 /**
  * Calculates currently active event and next scheduled event
  */
@@ -132,28 +167,23 @@ export function calculateActiveAndNextEvents(
 } {
   const list = items.filter(item => item.day !== "dia0").sort((a, b) =>
     `${a.date}T${a.start_time}`.localeCompare(`${b.date}T${b.start_time}`));
-  const eventStart = new Date("2027-02-06T08:00:00-03:00");
-  const eventEnd = new Date("2027-02-10T23:59:59-03:00");
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-  }).formatToParts(referenceDate);
-  const part = (type: string) => parts.find(value => value.type === type)?.value ?? "";
-  const today = `${part("year")}-${part("month")}-${part("day")}`;
-  const now = `${part("hour")}:${part("minute")}`;
+  const eventStart = new Date(EVENT_START_AT);
+  const eventEnd = new Date(EVENT_END_AT);
+  const { today, now } = eventClock(referenceDate);
   const labels: Record<string, string> = {
-    dia1: "1º Dia (Sábado 06/02)", dia2: "2º Dia (Domingo 07/02)",
-    dia3: "3º Dia (Segunda 08/02)", dia4: "4º Dia (Terça 09/02)", dia5: "5º Dia (Quarta 10/02)",
+    dia1: "1º dia · sábado 06/02", dia2: "2º dia · domingo 07/02",
+    dia3: "3º dia · segunda 08/02", dia4: "4º dia · terça 09/02", dia5: "5º dia · quarta 10/02",
   };
   if (referenceDate < eventStart) return {
     currentEvent: null, nextEvent: list[0] ?? null,
-    activeDayLabel: "Em Breve • 06 a 10 Fev 2027",
+    activeDayLabel: EVENT_DATES,
   };
   if (referenceDate > eventEnd) return {
-    currentEvent: null, nextEvent: null, activeDayLabel: "Edição Concluída • FSY 2027",
+    currentEvent: null, nextEvent: null, activeDayLabel: "Edição concluída",
   };
-  const current = list.find(item => item.date === today && item.start_time <= now && item.end_time > now) ?? null;
+  const todays = list.filter(item => item.date === today);
+  const current = todays.find(item => item.start_time <= now && effectiveEndTime(item, todays) > now) ?? null;
   const next = list.find(item => item.date > today || (item.date === today && item.start_time > now)) ?? null;
-  const day = list.find(item => item.date === today)?.day;
+  const day = todays[0]?.day;
   return { currentEvent: current, nextEvent: next, activeDayLabel: day ? labels[day] : "FSY 2027" };
 }

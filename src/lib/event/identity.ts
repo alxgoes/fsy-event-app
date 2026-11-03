@@ -13,3 +13,13 @@ export const EVENT_CITY = "São José do Rio Preto";
 export const EVENT_STATE = "SP";
 export const EVENT_CITY_UF = `${EVENT_CITY} / ${EVENT_STATE}`;
 export const EVENT_LOCATION_FULL = `${EVENT_VENUE} — ${EVENT_CITY_UF}`;
+export const EVENT_DAY_DATES: Readonly<Record<string, string>> = {
+  dia0: "2027-02-05",
+  dia1: "2027-02-06",
+  dia2: "2027-02-07",
+  dia3: "2027-02-08",
+  dia4: "2027-02-09",
+  dia5: "2027-02-10",
+};
+export const EVENT_START_AT = `${EVENT_DAY_DATES.dia1}T08:00:00-03:00`;
+export const EVENT_END_AT = `${EVENT_DAY_DATES.dia5}T23:59:59-03:00`;

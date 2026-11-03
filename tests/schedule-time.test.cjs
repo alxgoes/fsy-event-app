@@ -25,3 +25,14 @@ test('before and after event do not claim an activity is running', () => {
   assert.equal(after.currentEvent, null);
   assert.equal(after.nextEvent, null);
 });
+test('activity without end time runs until the next one of the same day', () => {
+  const open = [
+    { id: 'abertura', day: 'dia1', date: '2027-02-06', start_time: '09:00', end_time: '--' },
+    { id: 'almoco', day: 'dia1', date: '2027-02-06', start_time: '12:00', end_time: '' },
+  ];
+  // 10:30 em São Paulo = 13:30 UTC
+  assert.equal(calculate(open, new Date('2027-02-06T13:30:00Z')).currentEvent.id, 'abertura');
+  // Última do dia sem término: uma hora a partir do início
+  assert.equal(calculate(open, new Date('2027-02-06T15:30:00Z')).currentEvent.id, 'almoco');
+  assert.equal(calculate(open, new Date('2027-02-06T16:30:00Z')).currentEvent, null);
+});
