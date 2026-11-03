@@ -23,6 +23,7 @@ object PushTokenManager {
         keyStore: KeystoreSessionStore,
         explicitToken: String? = null
     ): RegisteredPushDeviceSummaryDto? = withContext(Dispatchers.IO) {
+        val validSession = runCatching { br.com.fsyrp2.app.security.SessionTokens.valid(keyStore, apiClient, session.userId) }.getOrNull() ?: return@withContext null
         NotificationHelper.ensureChannelsCreated(context)
         val token = explicitToken?.takeIf { it.isNotBlank() } ?: fetchFcmTokenSafely() ?: return@withContext null
         val prefs = keyStore.loadNotificationPreferences(session.userId)
@@ -30,7 +31,7 @@ object PushTokenManager {
 
         try {
             val summary = apiClient.registerPushDevice(
-                session = session,
+                session = validSession,
                 deviceId = initialDeviceId,
                 fcmToken = token,
                 appVersion = BuildConfig.VERSION_NAME,
@@ -52,7 +53,7 @@ object PushTokenManager {
                 val rotatedDeviceId = keyStore.rotateDeviceId(session.userId)
                 return@withContext try {
                     val retried = apiClient.registerPushDevice(
-                        session = session,
+                        session = validSession,
                         deviceId = rotatedDeviceId,
                         fcmToken = rotatedToken,
                         appVersion = BuildConfig.VERSION_NAME,
@@ -83,10 +84,11 @@ object PushTokenManager {
         apiClient: PortalApiClient,
         keyStore: KeystoreSessionStore
     ): NotificationChannelPreferencesDto = withContext(Dispatchers.IO) {
+        val validSession = runCatching { br.com.fsyrp2.app.security.SessionTokens.valid(keyStore, apiClient, session.userId) }.getOrNull() ?: return@withContext preferences
         keyStore.saveNotificationPreferences(session.userId, preferences)
         val deviceId = keyStore.loadBoundDeviceId(session.userId) ?: keyStore.getOrCreateDeviceId(session.userId)
         try {
-            val updated = apiClient.updatePushPreferences(session, deviceId, preferences)
+            val updated = apiClient.updatePushPreferences(validSession, deviceId, preferences)
             if (updated != null) {
                 keyStore.saveNotificationPreferences(session.userId, updated.preferences)
                 return@withContext updated.preferences

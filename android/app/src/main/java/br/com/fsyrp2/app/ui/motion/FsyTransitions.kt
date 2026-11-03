@@ -75,3 +75,26 @@ fun Modifier.fsyPressScale(interactionSource: InteractionSource, enabled: Boolea
         scaleY = scale
     }
 }
+
+/** Duração da troca de tela empilhada (Fotos, Notificações, Conselheiro, Gestão). */
+const val FSY_PUSH_MS = 250
+
+/**
+ * Tela empilhada: a nova entra deslizando 1/5 da largura a partir da direita com fade
+ * (250 ms, desaceleração); ao voltar, o inverso. A tela de baixo só esmaece e recua 1/12,
+ * sem atravessar a tela inteira. Movimento reduzido: só fade de 150 ms.
+ */
+fun <S> AnimatedContentTransitionScope<S>.fsyPushTransition(forward: Boolean, reduceMotion: Boolean): ContentTransform {
+    if (reduceMotion) {
+        return (fadeIn(fsyReducedFade()) togetherWith fadeOut(fsyReducedFade())).using(SizeTransform(clip = false))
+    }
+    val enterSpec = tween<androidx.compose.ui.unit.IntOffset>(FSY_PUSH_MS, easing = FsyMotion.EaseOut)
+    val exitSpec = tween<androidx.compose.ui.unit.IntOffset>(FSY_PUSH_MS - 50, easing = FsyMotion.EaseIn)
+    return if (forward) {
+        (androidx.compose.animation.slideInHorizontally(enterSpec) { it / 5 } + fadeIn(tween(FSY_PUSH_MS, easing = FsyMotion.EaseOut))) togetherWith
+            (androidx.compose.animation.slideOutHorizontally(exitSpec) { -it / 12 } + fadeOut(tween(FSY_PUSH_MS - 50, easing = FsyMotion.EaseIn)))
+    } else {
+        (androidx.compose.animation.slideInHorizontally(enterSpec) { -it / 12 } + fadeIn(tween(FSY_PUSH_MS, easing = FsyMotion.EaseOut))) togetherWith
+            (androidx.compose.animation.slideOutHorizontally(exitSpec) { it / 5 } + fadeOut(tween(FSY_PUSH_MS - 50, easing = FsyMotion.EaseIn)))
+    }.using(SizeTransform(clip = false))
+}

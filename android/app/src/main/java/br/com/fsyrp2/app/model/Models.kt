@@ -24,11 +24,12 @@ enum class AppTab(val wireHost: String, val labelPtBr: String) {
     INICIO("inicio", "Início"),
     AGENDA("agenda", "Agenda"),
     AVISOS("avisos", "Avisos"),
-    PERFIL("perfil", "Perfil");
+    PERFIL("perfil", "Mais");
 
     companion object {
         fun fromHost(host: String?): AppTab? {
             val normalized = host?.trim()?.lowercase() ?: return null
+            if (normalized == "mais") return PERFIL
             return entries.firstOrNull { it.wireHost == normalized }
         }
     }
@@ -160,14 +161,13 @@ data class Profile(
     @SerialName("company_id") val companyId: String? = null,
     val stake: String? = null,
     val room: String? = null,
+    @SerialName("bus_assignment") val busAssignment: String? = null,
     val phone: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null,
     @SerialName("suspended_at") val suspendedAt: String? = null
 ) {
     val roleEnum: UserRole get() = parsedRole
     val unit: String? get() = stake
-    val email: String? get() = null
-    val busAssignment: String? get() = null
     val permissions: Set<String> get() = emptySet()
     val parsedRole: UserRole
         get() = UserRole.fromWire(role)
@@ -193,12 +193,12 @@ data class Company(
     val motto: String? = null,
     val color: String? = null,
     @SerialName("color_hex") val colorHex: String? = null,
+    val room: String? = null,
+    @SerialName("drive_url") val driveUrl: String? = null,
     val counselors: List<String> = emptyList(),
     @SerialName("youth_count") val youthCount: Int? = null,
     @SerialName("counselor_profiles") val counselorProfiles: List<CounselorProfileDto> = emptyList()
 ) {
-    val room: String? get() = null
-    val driveUrl: String? get() = null
     val resolvedColorHex: String
         get() = color ?: colorHex ?: "#007DA5"
 }
@@ -225,13 +225,54 @@ data class ScheduleItem(
     @SerialName("is_highlight") val isHighlight: Boolean = false
 ) {
     val dayKey: String get() = day
+    val normalizedCategory: String get() = ScheduleDays.normalizeCategory(category)
     val timeRange: String
         get() = if (endTime.isBlank() || endTime == "--") startTime else "$startTime – $endTime"
 }
 
+/**
+ * Atividades só da equipe (todo o Dia Zero e a categoria "Equipe") nunca aparecem para jovem,
+ * nem quando o papel ainda é desconhecido. Mesma regra de `scheduleVisibleTo()` na web.
+ */
+object ScheduleVisibility {
+    fun isStaffOnly(item: ScheduleItem): Boolean = item.day == "dia0" || item.normalizedCategory == "Equipe" ||
+        (item.normalizedCategory == "Logística" && item.title.trim().startsWith("Prepara", ignoreCase = true))
+
+    fun visibleTo(items: List<ScheduleItem>, role: UserRole?): List<ScheduleItem> =
+        if (role != null && role.isStaff) items else items.filterNot { isStaffOnly(it) }
+}
+
 object ScheduleDays {
+    fun validTimes(start: String, end: String): Boolean {
+        val format = Regex("[0-2][0-9]:[0-5][0-9]")
+        if (!format.matches(start) || !format.matches(end)) return false
+        val from = br.com.fsyrp2.app.data.EventCalendar.parseLocalTime(start) ?: return false
+        val to = br.com.fsyrp2.app.data.EventCalendar.parseLocalTime(end) ?: return false
+        return to.isAfter(from)
+    }
+
     val keys = listOf("dia0", "dia1", "dia2", "dia3", "dia4", "dia5")
+    /** Categorias gravadas no banco (pt-BR, iguais às da web). */
     val categories = listOf("Espiritual", "Alimentação", "Atividade", "Show", "Baile", "Logística", "Equipe", "Geral")
+
+    /**
+     * Normaliza a categoria vinda do banco (pt-BR) ou de dados antigos (chaves em inglês)
+     * para uma das [categories]. Desconhecida vira "Geral".
+     */
+    fun normalizeCategory(raw: String?): String {
+        val v = raw?.trim().orEmpty()
+        if (v.isEmpty()) return "Geral"
+        categories.firstOrNull { it.equals(v, ignoreCase = true) }?.let { return it }
+        return when (v.lowercase()) {
+            "spiritual", "devocional", "espiritualidade" -> "Espiritual"
+            "meal", "food", "refeição", "refeicao", "alimentacao" -> "Alimentação"
+            "activity", "atividades" -> "Atividade"
+            "logistics", "logistica" -> "Logística"
+            "dance" -> "Baile"
+            "staff", "team" -> "Equipe"
+            else -> "Geral"
+        }
+    }
 
     val dayDates = mapOf(
         "dia0" to "2027-02-05",
@@ -583,6 +624,7 @@ data class AdminAccountDto(
     @SerialName("company_name") val companyName: String? = null,
     val stake: String? = null,
     val room: String? = null,
+    @SerialName("bus_assignment") val busAssignment: String? = null,
     val phone: String? = null,
     val providers: List<String> = emptyList(),
     @SerialName("has_password") val hasPassword: Boolean = false,
@@ -592,7 +634,6 @@ data class AdminAccountDto(
     val status: String = "ativo"
 ) {
     val unit: String? get() = stake
-    val busAssignment: String? get() = null
     val permissions: List<String> get() = emptyList()
     val parsedRole: UserRole
         get() = UserRole.fromWire(role)
@@ -620,6 +661,26 @@ data class AccountListResponseDto(
 }
 
 data class AccountListMetrics(val total: Int = 0, val activeCount: Int = 0, val pendingEmailCount: Int = 0, val suspendedCount: Int = 0)
+
+/** Espelha permissions.ts; a API continua autorizando cada mutação e protegendo o último gestor. */
+object AccountPermissions {
+    private val actions = setOf("edit", "role", "suspend", "reactivate", "delete", "recovery_email", "set_password", "email")
+    private val selfRestricted = setOf("role", "suspend", "reactivate", "delete", "set_password")
+
+    fun allowedActions(
+        actorRole: UserRole?, actorId: String?, target: AdminAccountDto, serverActions: List<String>
+    ): Set<String> {
+        if (actorRole?.isManager != true || actorId.isNullOrBlank()) return emptySet()
+        return serverActions.filterTo(linkedSetOf()) { action ->
+            action in actions && !(actorId == target.id && action in selfRestricted) &&
+                !(action == "suspend" && target.suspended) && !(action == "reactivate" && !target.suspended) &&
+                !(action in setOf("email", "recovery_email") && target.email.isNullOrBlank())
+        }
+    }
+
+    fun assignableRoles(actorRole: UserRole?, allowedActions: Set<String>): List<UserRole> =
+        if (actorRole?.isManager == true && "role" in allowedActions) UserRole.entries.toList() else emptyList()
+}
 
 typealias AccountListResponse = AccountListResponseDto
 typealias AdminAccountRecord = AdminAccountDto
@@ -680,10 +741,18 @@ data class CounselorAuditEntryDto(
 data class RegistrationValidationIssueDto(
     val severity: String,
     val code: String,
-    val sheetName: String,
+    val sheetName: String? = null,
     val rowNumber: Int? = null,
     val columnKey: String? = null,
     val message: String
+)
+
+@Serializable
+data class RegistrationAuthorizationAdjustmentsDto(
+    val values: Map<String, String> = emptyMap(),
+    val editedByUserId: String = "",
+    val editedByName: String = "",
+    val editedAt: String = ""
 )
 
 @Serializable
@@ -742,11 +811,91 @@ data class RegistrationRecordDto(
     val hasHealthAlert: Boolean = false,
     val hasMissingGuardianForMinor: Boolean = false,
     val hasDocumentWarning: Boolean = false,
+    val hasAuthorizationAdjustments: Boolean = false,
+    val authorizationAdjustments: RegistrationAuthorizationAdjustmentsDto? = null,
     val issues: List<RegistrationValidationIssueDto> = emptyList(),
     val rawColumns: Map<String, String> = emptyMap(),
     val createdAt: String = "",
     val updatedAt: String = ""
 )
+
+/** Projeção só da autorização; mantém a planilha importada e a identidade intactas. */
+fun RegistrationRecordDto.authorizationValues(): Map<String, String> {
+    val importedSex = sex.orEmpty().trim().lowercase().removePrefix("sexo ")
+    val values = linkedMapOf(
+        "firstName" to firstNameRaw, "lastName" to lastNameRaw,
+        "birthDate" to (birthDateIso?.split("-")?.reversed()?.joinToString("/") ?: birthDateRaw.orEmpty()),
+        "sex" to when (importedSex) {
+            "m", "masc", "masculino" -> "Masculino"
+            "f", "fem", "feminino" -> "Feminino"
+            else -> ""
+        },
+        "phone" to phoneRaw.orEmpty(), "cpf" to cpfRaw.orEmpty(),
+        "documentRgOrPassport" to documentRgOrPassportRaw.orEmpty(), "issuingAgency" to issuingAgencyRaw.orEmpty(),
+        "tshirtSize" to tshirtSize.orEmpty(), "guardianName" to guardianNameRaw.orEmpty(),
+        "guardianPhone" to guardianPhoneRaw.orEmpty(), "stakeName" to stakeName.orEmpty(),
+        "wardName" to wardName.orEmpty(), "bishopName" to bishopNameRaw.orEmpty(), "bishopEmail" to bishopEmail.orEmpty(),
+        "medicalInfo" to medicalInfoRaw.orEmpty(), "dietaryInfo" to dietaryInfoRaw.orEmpty(),
+        "healthConditionsSummary" to healthConditionsSummaryRaw.orEmpty(),
+        "healthConditionsDetails" to healthConditionsDetailsRaw.orEmpty()
+    )
+    authorizationAdjustments?.values?.filterKeys { it in values }?.let(values::putAll)
+    return values
+}
+
+/** Envia só campos alterados: avisos em dados importados não bloqueiam outra correção. */
+fun RegistrationRecordDto.authorizationChanges(draft: Map<String, String>): Map<String, String> {
+    val initial = authorizationValues()
+    return draft.filter { (key, value) -> key in initial && value.trim() != initial[key]?.trim() }
+        .mapValues { it.value.trim() }
+}
+
+fun authorizationAdjustmentErrors(
+    changes: Map<String, String>,
+    today: java.time.LocalDate = java.time.LocalDate.now(java.time.ZoneOffset.UTC)
+): Map<String, String> = buildMap {
+    changes.forEach { (key, value) ->
+        if (value.length > 2000) put(key, "Use no máximo 2.000 caracteres.")
+        when (key) {
+            "firstName" -> if (value.isBlank()) put(key, "Informe o nome.")
+            "birthDate" -> if (value.isNotEmpty()) {
+                val valid = runCatching {
+                    val date = java.time.LocalDate.parse(value, java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu")
+                        .withResolverStyle(java.time.format.ResolverStyle.STRICT))
+                    date.year >= 1920 && !date.isAfter(today)
+                }.getOrDefault(false)
+                if (!valid) put(key, "Informe uma data de nascimento válida em dd/mm/aaaa.")
+            }
+            "sex" -> if (value !in listOf("", "Masculino", "Feminino")) put(key, "Escolha uma das opções de sexo.")
+            "phone", "guardianPhone" -> if (value.isNotEmpty()) {
+                val digits = value.filter(Char::isDigit).replace(Regex("^55(?=\\d{10,11}$)"), "")
+                if (!Regex("[\\d\\s()+.\\-]+").matches(value) || !Regex("[1-9]\\d{9,10}").matches(digits))
+                    put(key, "Informe um telefone com DDD e 10 ou 11 dígitos.")
+            }
+            "cpf" -> if (value.isNotEmpty()) {
+                val digits = value.filter(Char::isDigit)
+                val valid = Regex("[\\d.\\s\\-]+").matches(value) && digits.length == 11 && digits.toSet().size > 1 &&
+                    listOf(9, 10).all { length ->
+                        val sum = digits.take(length).mapIndexed { index, char -> (char - '0') * (length + 1 - index) }.sum()
+                        ((sum * 10) % 11) % 10 == digits[length] - '0'
+                    }
+                if (!valid) put(key, "Informe um CPF com dígitos verificadores válidos.")
+            }
+            "bishopEmail" -> if (value.isNotEmpty() && !Regex("[^\\s@]+@[^\\s@]+\\.[^\\s@]+").matches(value))
+                put(key, "Informe um e-mail válido.")
+        }
+    }
+}
+
+fun RegistrationRecordDto.isCancelledRegistration(): Boolean = status.trim().startsWith("cancelad", ignoreCase = true)
+
+fun RegistrationRecordDto.authorizationFilename(): String {
+    val values = authorizationValues()
+    val name = listOf(values["firstName"], values["lastName"]).filterNotNull().filter(String::isNotBlank).joinToString("-")
+    val ascii = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
+        .lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(100).ifBlank { "inscrito" }
+    return "autorizacao-$ascii.pdf"
+}
 
 @Serializable
 data class RegistrationImportBatchSummaryDto(
@@ -825,6 +974,12 @@ data class RegistrationSheetSummaryDto(
 )
 
 @Serializable
+data class AuthorizationAdjustmentImpactDto(
+    val retainedCount: Int = 0,
+    val removedCountOnReplaceAll: Int = 0
+)
+
+@Serializable
 data class RegistrationPreviewSummaryDto(
     val previewId: String,
     val baseRevision: Int,
@@ -840,6 +995,7 @@ data class RegistrationPreviewSummaryDto(
     val missingGuardianMinorCount: Int = 0,
     val documentWarningCount: Int = 0,
     val diffSummary: RegistrationPreviewDiffDto = RegistrationPreviewDiffDto(),
+    val authorizationAdjustmentImpact: AuthorizationAdjustmentImpactDto = AuthorizationAdjustmentImpactDto(),
     val sheets: List<RegistrationSheetSummaryDto> = emptyList(),
     val issues: List<RegistrationValidationIssueDto> = emptyList(),
     val sampleRows: List<RegistrationRecordDto> = emptyList(),
@@ -871,7 +1027,8 @@ data class DeleteRegistrationBatchResponseDto(
 data class NotificationChannelPreferencesDto(
     val announcementsEnabled: Boolean = true,
     val urgentOnly: Boolean = false,
-    val scheduleRemindersEnabled: Boolean = true,
+    /** Desligado por padrão: o "Lembrar" de cada atividade é a escolha explícita da pessoa. */
+    val scheduleRemindersEnabled: Boolean = false,
     val personalRemindersEnabled: Boolean = true,
     val quietHoursStart: String? = "22:30",
     val quietHoursEnd: String? = "06:30"
@@ -909,7 +1066,8 @@ data class WidgetActivitySummaryDto(
     val startTime: String,
     val endTime: String,
     val title: String,
-    val location: String? = null
+    val location: String? = null,
+    val category: String = "Geral",
 )
 
 @Serializable
@@ -920,5 +1078,46 @@ data class WidgetSnapshotDto(
     val activities: List<WidgetActivitySummaryDto> = emptyList(),
     val visibleAnnouncementCount: Int? = null,
     val urgentAnnouncementCount: Int? = null,
+    /** Só equipe vê atividades "Equipe" no widget; o atualizador em segundo plano respeita isto. */
+    val isStaff: Boolean = false,
 )
 
+
+/** Estado da foto de perfil com moderação (contrato `src/types/profile-photo.ts`). */
+@Serializable
+data class ProfilePhotoState(
+    val status: String = "none",
+    @SerialName("approved_url") val approvedUrl: String? = null,
+    @SerialName("pending_url") val pendingUrl: String? = null,
+    @SerialName("submitted_at") val submittedAt: String? = null,
+    @SerialName("reviewed_at") val reviewedAt: String? = null,
+    @SerialName("review_note") val reviewNote: String? = null,
+) {
+    val isPending: Boolean get() = status == "pending"
+    val isRejected: Boolean get() = status == "rejected"
+}
+
+@Serializable
+data class ProfilePhotoReview(
+    @SerialName("user_id") val userId: String,
+    @SerialName("full_name") val fullName: String = "Participante",
+    @SerialName("company_id") val companyId: String? = null,
+    @SerialName("company_name") val companyName: String? = null,
+    @SerialName("pending_url") val pendingUrl: String = "",
+    @SerialName("current_url") val currentUrl: String? = null,
+    @SerialName("submitted_at") val submittedAt: String = "",
+)
+
+@Serializable
+data class ProfilePhotoReviewList(val data: List<ProfilePhotoReview> = emptyList())
+
+/** Cópia local honesta dos últimos dados vistos (cache offline, apagada ao sair). */
+@Serializable
+data class OfflineSnapshot(
+    val userId: String,
+    val savedAtEpochMs: Long = 0L,
+    val profile: Profile? = null,
+    val company: Company? = null,
+    val scheduleItems: List<ScheduleItem> = emptyList(),
+    val announcements: List<Announcement> = emptyList(),
+)

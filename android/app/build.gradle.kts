@@ -67,8 +67,8 @@ android {
         applicationId = "br.com.fsyrp2.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -165,6 +165,16 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+// Os testes deste projeto são JVM/Robolectric. Evita criar uma variante de
+// instrumentação vazia e resolver suas dependências no lint. Ao adicionar fontes
+// androidTest, a variante volta a ser habilitada automaticamente.
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        variant.enableAndroidTest = file("src").listFiles().orEmpty()
+            .any { it.isDirectory && it.name.startsWith("androidTest") }
     }
 }
 

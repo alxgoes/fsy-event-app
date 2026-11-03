@@ -20,6 +20,15 @@ class ApiException(
     val requiresTokenRotation: Boolean = false
 ) : Exception(message)
 
+/** O reset usa exclusivamente sua própria chave, como exige o contrato estrito da API. */
+internal fun authorizationAdjustmentsRequestBody(adjustments: Map<String, String>, resetAdjustments: Boolean): String {
+    require(resetAdjustments || adjustments.isNotEmpty()) { "Informe ao menos um ajuste." }
+    return buildJsonObject {
+        if (resetAdjustments) put("resetAdjustments", true)
+        else put("adjustments", buildJsonObject { adjustments.forEach { (key, value) -> put(key, value) } })
+    }.toString()
+}
+
 /**
  * Cliente HTTP nativo para Supabase Auth/PostgREST e rotas autenticadas do Portal.
  * utilizando `Authorization: Bearer <accessToken>`, sem cache em disco de dados sensíveis.
@@ -60,14 +69,18 @@ class PortalApiClient(
         email: String,
         password: String,
         fullName: String,
-        unit: String
+        stake: String
     ): SignUpResult = withContext(Dispatchers.IO) {
+        // O gatilho do banco (`handle_new_user`) lê `full_name`, `name`, `stake` e `phone`
+        // de raw_user_meta_data — os mesmos campos que o cadastro da web envia.
         val payload = buildJsonObject {
             put("email", email.trim().lowercase())
             put("password", password)
             putJsonObject("data") {
                 put("full_name", fullName.trim())
-                put("unit", unit.trim())
+                put("name", fullName.trim())
+                val cleanStake = stake.trim()
+                if (cleanStake.isNotEmpty()) put("stake", cleanStake)
             }
         }.toString()
 
@@ -275,6 +288,104 @@ class PortalApiClient(
             val arr = root["data"] ?: JsonArray(emptyList())
             json.decodeFromJsonElement(arr)
         }
+
+    // -------------------------------------------------------------------------
+    // Foto de perfil com aprovação do consultor (`src/types/profile-photo.ts`)
+    // -------------------------------------------------------------------------
+
+    suspend fun fetchProfilePhoto(session: UserSession): ProfilePhotoState =
+        withContext(Dispatchers.IO) {
+            val text = executeJsonRequest(
+                url = "$portalBaseUrl/api/profile/photo",
+                method = "GET",
+                body = null,
+                bearerToken = session.accessToken,
+                includeApiKey = false
+            )
+            json.decodeFromString(text)
+        }
+
+    /** Envia a foto já recortada e comprimida (JPEG) como multipart, campo "file". */
+    suspend fun uploadProfilePhoto(session: UserSession, jpegBytes: ByteArray): ProfilePhotoState =
+        withContext(Dispatchers.IO) {
+            val boundary = "fsy" + UUID.randomUUID().toString().replace("-", "")
+            val crlf = "\r\n"
+            val conn = (URL("$portalBaseUrl/api/profile/photo").openConnection() as HttpURLConnection).apply {
+                requestMethod = "POST"
+                connectTimeout = 20000
+                readTimeout = 45000
+                useCaches = false
+                doOutput = true
+                setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer ${session.accessToken}")
+                setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+            }
+            try {
+                conn.outputStream.use { out ->
+                    val head = "--$boundary$crlf" +
+                        "Content-Disposition: form-data; name=\"file\"; filename=\"foto.jpg\"$crlf" +
+                        "Content-Type: image/jpeg$crlf$crlf"
+                    out.write(head.toByteArray(Charsets.UTF_8))
+                    out.write(jpegBytes)
+                    out.write("$crlf--$boundary--$crlf".toByteArray(Charsets.UTF_8))
+                }
+                json.decodeFromString(readResponseBody(conn))
+            } finally {
+                conn.disconnect()
+            }
+        }
+
+    suspend fun deleteProfilePhoto(session: UserSession, scope: String): ProfilePhotoState =
+        withContext(Dispatchers.IO) {
+            val safeScope = if (scope == "approved") "approved" else "pending"
+            val text = executeJsonRequest(
+                url = "$portalBaseUrl/api/profile/photo?scope=$safeScope",
+                method = "DELETE",
+                body = null,
+                bearerToken = session.accessToken,
+                includeApiKey = false
+            )
+            json.decodeFromString(text)
+        }
+
+    suspend fun fetchCompanyProfilePhotos(session: UserSession): Map<String, String> = withContext(Dispatchers.IO) {
+        val text = executeJsonRequest(
+            url = "$portalBaseUrl/api/profile/photo/company", method = "GET", body = null,
+            bearerToken = session.accessToken, includeApiKey = false,
+        )
+        val data = json.parseToJsonElement(text).jsonObject["data"] ?: JsonObject(emptyMap())
+        json.decodeFromJsonElement<Map<String, String>>(data)
+    }
+
+    suspend fun fetchPhotoReviews(session: UserSession): List<ProfilePhotoReview> =
+        withContext(Dispatchers.IO) {
+            val text = executeJsonRequest(
+                url = "$portalBaseUrl/api/profile/photo/reviews",
+                method = "GET",
+                body = null,
+                bearerToken = session.accessToken,
+                includeApiKey = false
+            )
+            json.decodeFromString<ProfilePhotoReviewList>(text).data
+        }
+
+    suspend fun reviewProfilePhoto(session: UserSession, userId: String, approve: Boolean, note: String?) {
+        withContext(Dispatchers.IO) {
+            val payload = buildJsonObject {
+                put("user_id", userId)
+                put("decision", if (approve) "approve" else "reject")
+                val clean = note?.trim().orEmpty()
+                if (clean.isNotEmpty()) put("note", clean)
+            }.toString()
+            executeJsonRequest(
+                url = "$portalBaseUrl/api/profile/photo/reviews",
+                method = "POST",
+                body = payload,
+                bearerToken = session.accessToken,
+                includeApiKey = false
+            )
+        }
+    }
 
     // -------------------------------------------------------------------------
     // Notificações Push (FCM HTTP v1 + Preferências por Dispositivo)
@@ -974,12 +1085,42 @@ class PortalApiClient(
         }
     }
 
+    suspend fun saveAuthorizationAdjustments(
+        session: UserSession,
+        registrationId: String,
+        adjustments: Map<String, String> = emptyMap(),
+        resetAdjustments: Boolean = false
+    ): RegistrationRecordDto = withContext(Dispatchers.IO) {
+        val payload = authorizationAdjustmentsRequestBody(adjustments, resetAdjustments)
+        val text = executeJsonRequest(
+            url = "$portalBaseUrl/api/admin/registrations/$registrationId",
+            method = "PATCH", body = payload, bearerToken = session.accessToken, includeApiKey = false
+        )
+        json.decodeFromString(text)
+    }
+
+    suspend fun previewAuthorizationPdf(
+        session: UserSession,
+        registrationId: String,
+        adjustments: Map<String, String> = emptyMap(),
+        useNormalizedNames: Boolean = true
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val payload = if (adjustments.isEmpty()) null else buildJsonObject {
+            put("adjustments", buildJsonObject { adjustments.forEach { (key, value) -> put(key, value) } })
+        }.toString()
+        downloadBinary(
+            url = "$portalBaseUrl/api/admin/registrations/$registrationId/authorization-pdf?download=0&useNormalizedNames=$useNormalizedNames",
+            method = if (payload == null) "GET" else "POST", body = payload, bearerToken = session.accessToken
+        )
+    }
+
     suspend fun commitRegistrationsPreview(
         session: UserSession,
         previewId: String,
         mode: String,
         expectedRevision: Int,
         useNormalizedNames: Boolean = true,
+        acknowledgeAdjustmentRemoval: Boolean = false,
         idempotencyKey: String = UUID.randomUUID().toString()
     ): CommitRegistrationImportResponseDto = withContext(Dispatchers.IO) {
         val payload = buildJsonObject {
@@ -988,6 +1129,7 @@ class PortalApiClient(
             put("expectedRevision", expectedRevision)
             put("idempotencyKey", idempotencyKey)
             put("useNormalizedNames", useNormalizedNames)
+            put("acknowledgeAdjustmentRemoval", acknowledgeAdjustmentRemoval)
         }.toString()
 
         val text = executeJsonRequest(
@@ -1094,7 +1236,9 @@ class PortalApiClient(
         val accessToken = obj["access_token"]?.jsonPrimitive?.contentOrNull
             ?: throw ApiException(401, "Sessão inválida retornada pelo servidor.")
         val refreshToken = obj["refresh_token"]?.jsonPrimitive?.contentOrNull ?: ""
-        val expiresAt = obj["expires_at"]?.jsonPrimitive?.longOrNull ?: 0L
+        val expiresAt = obj["expires_at"]?.jsonPrimitive?.longOrNull
+            ?: obj["expires_in"]?.jsonPrimitive?.longOrNull?.let { System.currentTimeMillis() / 1000L + it }
+            ?: 0L
         val userObj = obj["user"]?.jsonObject
         val userId = userObj?.get("id")?.jsonPrimitive?.contentOrNull
             ?: throw ApiException(401, "Identificador do usuário ausente na sessão.")
@@ -1192,15 +1336,17 @@ class PortalApiClient(
     private fun buildApiException(rawText: String, statusCode: Int): ApiException {
         return try {
             val obj = json.parseToJsonElement(rawText).jsonObject
-            val msg = obj["error"]?.jsonPrimitive?.contentOrNull
-                ?: obj["error_description"]?.jsonPrimitive?.contentOrNull
+            // Frase legível primeiro; o campo "error" do Supabase costuma ser só um código (invalid_grant).
+            val raw = obj["error_description"]?.jsonPrimitive?.contentOrNull
+                ?: obj["message"]?.jsonPrimitive?.contentOrNull
                 ?: obj["msg"]?.jsonPrimitive?.contentOrNull
-                ?: "Não foi possível concluir a operação (HTTP $statusCode)."
+                ?: obj["error"]?.jsonPrimitive?.contentOrNull
             val code = obj["code"]?.jsonPrimitive?.contentOrNull
+                ?: obj["error_code"]?.jsonPrimitive?.contentOrNull
             val rotate = obj["requiresTokenRotation"]?.jsonPrimitive?.booleanOrNull ?: false
-            ApiException(statusCode, msg, code, rotate)
+            ApiException(statusCode, FriendlyErrors.message(raw, statusCode), code, rotate)
         } catch (_: Exception) {
-            ApiException(statusCode, "Não foi possível concluir a operação (HTTP $statusCode).")
+            ApiException(statusCode, FriendlyErrors.byStatus(statusCode))
         }
     }
 }

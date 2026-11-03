@@ -84,7 +84,7 @@ fun AuthScreen(appState: FsyAppState) {
 
     var mode by rememberSaveable { mutableStateOf(AuthMode.LOGIN) }
     var email by rememberSaveable { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
     var fullName by rememberSaveable { mutableStateOf("") }
     var unit by rememberSaveable { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
@@ -308,7 +308,7 @@ fun AuthScreen(appState: FsyAppState) {
                             if (currentMode == AuthMode.LOGIN) {
                                 TextButton(
                                     onClick = { switchMode(AuthMode.RECOVER) },
-                                    modifier = Modifier.align(Alignment.End).height(48.dp),
+                                    modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp),
                                 ) {
                                     Text("Esqueci a senha", color = FsyPalette.Link, style = MaterialTheme.typography.labelLarge)
                                 }

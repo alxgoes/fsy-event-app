@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,6 +38,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.lazy.rememberLazyListState
+import br.com.fsyrp2.app.model.ScheduleDays
+import br.com.fsyrp2.app.ui.components.rememberFsyNow
+import br.com.fsyrp2.app.ui.components.FsyFilterChip
+import br.com.fsyrp2.app.ui.components.FsyNotice
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -87,11 +94,15 @@ private data class DayOption(
 private data class CategoryStyle(val label: String, val color: Color)
 
 @Composable
-private fun categoryStyle(category: String): CategoryStyle = when (category.lowercase()) {
-    "spiritual" -> CategoryStyle("Espiritual", MaterialTheme.colorScheme.primary)
-    "meal" -> CategoryStyle("Refeição", FsyPalette.Success)
-    "logistics" -> CategoryStyle("Logística", FsyPalette.Warning)
-    else -> CategoryStyle("Atividade", MaterialTheme.colorScheme.tertiary)
+private fun categoryStyle(category: String): CategoryStyle {
+    val normalized = ScheduleDays.normalizeCategory(category)
+    val color = when (normalized) {
+        "Espiritual", "Logística", "Equipe" -> MaterialTheme.colorScheme.primary
+        "Alimentação" -> FsyPalette.Success
+        "Show", "Baile" -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    return CategoryStyle(normalized, color)
 }
 
 @Composable
@@ -99,7 +110,8 @@ fun ScheduleScreen(appState: FsyAppState) {
     val context = LocalContext.current
     val haptics = rememberFsyHaptics()
     val reduceMotion = fsyMotionPreferences().reduceMotion
-    val moment = remember(appState.scheduleItems) { EventCalendar.moment(appState.scheduleItems) }
+    val now = rememberFsyNow()
+    val moment = remember(appState.scheduleItems, now) { EventCalendar.moment(appState.scheduleItems, now) }
     val isStaff = (appState.profile?.roleEnum ?: UserRole.JOVEM) != UserRole.JOVEM
 
     val dayOptions = remember(isStaff) {
@@ -115,31 +127,47 @@ fun ScheduleScreen(appState: FsyAppState) {
 
     var selectedDayKey by rememberSaveable(moment.selectedDayKey) { mutableStateOf(moment.selectedDayKey) }
     var selectedCategory by rememberSaveable { mutableStateOf("all") }
-    var pendingActivityIdForPermission by remember { mutableStateOf<String?>(null) }
+    var pendingActivityIdForPermission by rememberSaveable { mutableStateOf<String?>(null) }
+    var denied by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    var highlightedId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { _ ->
+    ) { granted ->
+        denied = !granted
         val pendingId = pendingActivityIdForPermission
         pendingActivityIdForPermission = null
-        if (pendingId != null) {
+        if (granted && pendingId != null) {
             appState.togglePersonalReminder(pendingId)
         }
     }
 
-    val categories = listOf(
-        "all" to "Todas",
-        "spiritual" to "Espiritual",
-        "activity" to "Atividade",
-        "meal" to "Refeição",
-        "logistics" to "Logística"
-    )
+    val categories = listOf("all" to "Todas", "Espiritual" to "Espiritual", "Atividade" to "Atividade", "Alimentação" to "Alimentação")
 
     val filteredItems = remember(appState.scheduleItems, selectedDayKey, selectedCategory) {
         appState.scheduleItems
             .filter { it.dayKey == selectedDayKey }
-            .filter { selectedCategory == "all" || it.category.equals(selectedCategory, ignoreCase = true) }
+            .filter { selectedCategory == "all" || it.normalizedCategory == selectedCategory }
             .sortedBy { it.startTime }
+    }
+
+    LaunchedEffect(appState.focusedScheduleItemId, appState.scheduleItems) {
+        val id = appState.focusedScheduleItemId ?: return@LaunchedEffect
+        val item = appState.scheduleItems.firstOrNull { it.id == id } ?: return@LaunchedEffect
+        selectedDayKey = item.dayKey
+        selectedCategory = "all"
+        highlightedId = id
+    }
+    LaunchedEffect(highlightedId, filteredItems) {
+        val index = filteredItems.indexOfFirst { it.id == highlightedId }
+        if (index >= 0) {
+            listState.scrollToItem(index + 1)
+            appState.consumeFocusedScheduleItem()
+        }
+    }
+    LaunchedEffect(isStaff) {
+        if (!isStaff && selectedDayKey == "dia0") selectedDayKey = moment.selectedDayKey
     }
 
     val onToggleReminder: (ScheduleItem, Boolean) -> Unit = { item, isSet ->
@@ -203,7 +231,7 @@ fun ScheduleScreen(appState: FsyAppState) {
             ) {
                 categories.forEach { (catKey, catLabel) ->
                     val isSelected = selectedCategory == catKey
-                    FilterChip(
+                    FsyFilterChip(
                         selected = isSelected,
                         onClick = {
                             haptics.tick()
@@ -213,24 +241,13 @@ fun ScheduleScreen(appState: FsyAppState) {
                         leadingIcon = if (isSelected) {
                             { Icon(FsyIcons.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         } else null,
-                        shape = br.com.fsyrp2.app.ui.components.FsyPillShape,
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = MaterialTheme.colorScheme.outlineVariant,
-                            selectedBorderColor = Color.Transparent,
-                        ),
-                        modifier = Modifier.height(40.dp).padding(vertical = 0.dp),
+                        modifier = Modifier.heightIn(min = 48.dp),
                     )
                 }
             }
         }
+
+        if (denied) FsyNotice(container = MaterialTheme.colorScheme.errorContainer, content = MaterialTheme.colorScheme.onErrorContainer, icon = FsyIcons.Bell, text = "As notificações estão desativadas. Ative nas configurações do celular para receber lembretes.")
 
         AnimatedContent(
             targetState = selectedDayKey to selectedCategory,
@@ -240,6 +257,7 @@ fun ScheduleScreen(appState: FsyAppState) {
         ) { (dayKey, _) ->
             val day = dayOptions.firstOrNull { it.key == dayKey }
             LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = FsyGutter, end = FsyGutter, top = 14.dp, bottom = 24.dp),
             ) {
@@ -268,6 +286,7 @@ fun ScheduleScreen(appState: FsyAppState) {
                             TimelineEntry(
                                 item = item,
                                 isCurrent = moment.currentItem?.id == item.id,
+                                isFocused = highlightedId == item.id,
                                 isFirst = index == 0,
                                 isLast = index == filteredItems.lastIndex,
                                 isReminderSet = appState.personalReminderIds.contains(item.id),
@@ -308,6 +327,7 @@ fun ScheduleScreen(appState: FsyAppState) {
 private fun TimelineEntry(
     item: ScheduleItem,
     isCurrent: Boolean,
+    isFocused: Boolean,
     isFirst: Boolean,
     isLast: Boolean,
     isReminderSet: Boolean,
@@ -315,6 +335,7 @@ private fun TimelineEntry(
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
+    LaunchedEffect(isFocused) { if (isFocused) expanded = true }
     val cat = categoryStyle(item.category)
     val primary = MaterialTheme.colorScheme.primary
     val rail = MaterialTheme.colorScheme.outlineVariant
@@ -358,7 +379,7 @@ private fun TimelineEntry(
         Surface(
             shape = RoundedCornerShape(18.dp),
             color = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, if (isCurrent) primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
+            border = BorderStroke(if (isFocused) 2.dp else 1.dp, if (isCurrent || isFocused) primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
             modifier = Modifier
                 .weight(1f)
                 .padding(start = 6.dp, bottom = 10.dp),
@@ -450,7 +471,7 @@ private fun ReminderToggle(isSet: Boolean, title: String, onClick: () -> Unit) {
                 contentDescription = "Lembrete 10 minutos antes de $title"
                 stateDescription = if (isSet) "Ativado" else "Desativado"
             }
-            .height(48.dp)
+            .heightIn(min = 48.dp)
             .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),

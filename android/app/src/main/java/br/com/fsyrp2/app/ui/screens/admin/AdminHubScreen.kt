@@ -1,5 +1,9 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
+import br.com.fsyrp2.app.ui.components.*
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,7 +48,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.model.AdminModule
 import br.com.fsyrp2.app.model.AdminOverview
 import br.com.fsyrp2.app.model.UserRole
@@ -57,8 +61,8 @@ import br.com.fsyrp2.app.ui.components.FsyNotice
 import br.com.fsyrp2.app.ui.components.FsySectionCard
 import br.com.fsyrp2.app.ui.components.FsySectionTitle
 import br.com.fsyrp2.app.ui.components.FsyTopBar
-import br.com.fsyrp2.app.ui.components.ReorderableCardItem
-import br.com.fsyrp2.app.ui.components.ReorderableCardSection
+import br.com.fsyrp2.app.ui.components.FsyCardContent
+import br.com.fsyrp2.app.ui.components.FsyCardGroup
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
@@ -110,6 +114,7 @@ fun AdminHubScreen(
     appState: FsyAppState,
     initialModule: AdminModule? = null
 ) {
+    if (!appState.canOpenAdmin) return
     val haptics = rememberFsyHaptics()
     val scope = rememberCoroutineScope()
     val reduceMotion = fsyMotionPreferences().reduceMotion
@@ -121,7 +126,7 @@ fun AdminHubScreen(
         AdminModule.entries.filter { it.canAccess(role, permissions) }
     }
 
-    var activeModule by remember(initialModule, availableModules) {
+    var activeModule by rememberSaveable(initialModule, availableModules) {
         mutableStateOf(
             if (initialModule != null && availableModules.contains(initialModule)) {
                 initialModule
@@ -172,13 +177,13 @@ fun AdminHubScreen(
     ) {
         FsyTopBar(
             title = activeModule.titlePt,
-            subtitle = "Administração",
+            subtitle = "Gestão",
             onBack = {
                 haptics.tick()
                 if (activeModule != AdminModule.OVERVIEW && availableModules.contains(AdminModule.OVERVIEW)) {
                     activeModule = AdminModule.OVERVIEW
                 } else {
-                    appState.overlayDestination = OverlayDestination.None
+                    appState.closeOverlay()
                 }
             },
         )
@@ -225,7 +230,7 @@ fun AdminHubScreen(
                         borderColor = MaterialTheme.colorScheme.outlineVariant,
                         selectedBorderColor = Color.Transparent,
                     ),
-                    modifier = Modifier.height(48.dp),
+                    modifier = Modifier.heightIn(min = 48.dp),
                 )
             }
         }
@@ -278,17 +283,16 @@ private fun AdminOverviewModuleContent(
     onSelectModule: (AdminModule) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val metricsDefaults = CardOrderManager.PAGE_DEFAULT_IDS["admin-metrics"].orEmpty()
-    val metricsOrder = appState.cardOrderFor("admin-metrics")
 
-    val modulesDefaults = CardOrderManager.PAGE_DEFAULT_IDS["admin-modules"].orEmpty()
-    val modulesOrder = appState.cardOrderFor("admin-modules")
+
+
+
 
     val counts = overview
 
     // Os ids persistidos não mudam; os títulos descrevem o que cada cartão mostra.
     val metricCards = listOf(
-        ReorderableCardItem("youth-total", "Jovens") {
+        FsyCardContent("youth-total", "Jovens") {
             val noCompany = ((counts?.totalYouth ?: 0) - (counts?.youthWithCompany ?: 0)).coerceAtLeast(0)
             val noRoom = ((counts?.totalYouth ?: 0) - (counts?.youthWithRoom ?: 0)).coerceAtLeast(0)
             MetricSummaryCard(
@@ -298,19 +302,19 @@ private fun AdminOverviewModuleContent(
                 detail = if (counts != null) "$noCompany sem companhia · $noRoom sem quarto" else null,
             )
         },
-        ReorderableCardItem("companies-total", "Companhias") {
+        FsyCardContent("companies-total", "Companhias") {
             MetricSummaryCard(FsyIcons.Users, "Companhias", counts?.totalCompanies?.toString() ?: "—", null)
         },
-        ReorderableCardItem("counselors-total", "Conselheiros") {
-            MetricSummaryCard(FsyIcons.HandHeart, "Conselheiros", counts?.totalCounselors?.toString() ?: "—", null)
+        FsyCardContent("counselors-total", "Consultores") {
+            MetricSummaryCard(FsyIcons.HandHeart, "Consultores", counts?.totalCounselors?.toString() ?: "—", null)
         },
-        ReorderableCardItem("medical-total", "Fichas de saúde") {
+        FsyCardContent("medical-total", "Fichas de saúde") {
             MetricSummaryCard(FsyIcons.Stethoscope, "Fichas de saúde", counts?.medicalRecords?.toString() ?: "—", "Acesso restrito à equipe autorizada")
         },
-        ReorderableCardItem("inclusion-open", "Fotos") {
+        FsyCardContent("inclusion-open", "Fotos") {
             MetricSummaryCard(FsyIcons.Images, "Álbuns de fotos", counts?.totalPhotos?.toString() ?: "—", null)
         },
-        ReorderableCardItem("announcements-urgent", "Avisos") {
+        FsyCardContent("announcements-urgent", "Avisos") {
             MetricSummaryCard(FsyIcons.Megaphone, "Avisos publicados", counts?.totalAnnouncements?.toString() ?: "—", null)
         }
     )
@@ -329,7 +333,7 @@ private fun AdminOverviewModuleContent(
     ).filterValues { availableModules.contains(it) }
 
     val moduleCards = moduleMap.map { (id, mod) ->
-        ReorderableCardItem(id = id, title = mod.titlePt) {
+        FsyCardContent(id = id, title = mod.titlePt) {
             FsyClickableCard(
                 onClick = { onSelectModule(mod) },
                 onClickLabel = "Abrir ${mod.titlePt}",
@@ -396,25 +400,11 @@ private fun AdminOverviewModuleContent(
         }
 
         FsySectionTitle("Números da sessão")
-        ReorderableCardSection(
-            pageKey = "admin-metrics",
-            defaultIds = metricsDefaults,
-            orderedIds = metricsOrder,
-            onOrderChange = { appState.updateCardOrder("admin-metrics", it) },
-            cards = metricCards,
-            scrollState = scrollState
-        )
+        FsyCardGroup(cards = metricCards)
 
         Spacer(Modifier.height(4.dp))
         FsySectionTitle("Módulos")
-        ReorderableCardSection(
-            pageKey = "admin-modules",
-            defaultIds = modulesDefaults,
-            orderedIds = modulesOrder,
-            onOrderChange = { appState.updateCardOrder("admin-modules", it) },
-            cards = moduleCards,
-            scrollState = scrollState
-        )
+        FsyCardGroup(cards = moduleCards)
     }
 }
 

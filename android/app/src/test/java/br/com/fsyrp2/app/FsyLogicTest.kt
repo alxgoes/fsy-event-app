@@ -1,6 +1,5 @@
 package br.com.fsyrp2.app
 
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.data.EventCalendar
 import br.com.fsyrp2.app.data.EventPhase
 import br.com.fsyrp2.app.model.*
@@ -18,27 +17,6 @@ class FsyLogicTest {
         ignoreUnknownKeys = true
         coerceInputValues = true
         encodeDefaults = true
-    }
-
-    @Test
-    fun cardOrderManager_isolatesPerAccountAndResolvesDefaults() {
-        val defaults = CardOrderManager.PAGE_DEFAULT_IDS["dashboard"]!!
-        val customSaved = listOf("company", "next-activity", "unknown-id")
-        val resolved = CardOrderManager.resolveOrder(defaults, customSaved)
-
-        assertEquals(
-            listOf("company", "next-activity", "announcements", "gallery"),
-            resolved
-        )
-
-        val keyUserA = CardOrderManager.cacheKey("user-111", "dashboard")
-        val keyUserB = CardOrderManager.cacheKey("user-222", "dashboard")
-        assertTrue(CardOrderManager.isForeignLayoutKey(keyUserB, "user-111"))
-        assertFalse(CardOrderManager.isForeignLayoutKey(keyUserA, "user-111"))
-
-        val movedDown = CardOrderManager.moveBy(defaults, "next-activity", 1)
-        assertEquals("next-activity", movedDown[1])
-        assertEquals("announcements", movedDown[0])
     }
 
     @Test

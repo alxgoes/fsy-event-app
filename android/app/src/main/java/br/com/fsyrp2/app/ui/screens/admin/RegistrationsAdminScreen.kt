@@ -3,10 +3,14 @@ package br.com.fsyrp2.app.ui.screens.admin
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 
 import android.net.Uri
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,10 +20,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import br.com.fsyrp2.app.model.*
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.ui.components.*
@@ -27,13 +35,24 @@ import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.FsyPalette
 import br.com.fsyrp2.app.ui.theme.TabularTextStyle
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
 @Composable
 fun RegistrationsAdminScreen(appState: FsyAppState) {
+    if (appState.profile == null || appState.profile?.isSuspended == true || !appState.effectiveRole.canManageRegistrations) return
     SecureScreenEffect()
     val context = LocalContext.current
     val haptics = rememberFsyHaptics()
     val scope = rememberCoroutineScope()
+    DisposableEffect(appState) {
+        onDispose {
+            if ((context as? android.app.Activity)?.isChangingConfigurations != true) {
+                appState.closeRegistrationAuthorizationEditor()
+            }
+        }
+    }
 
     var listState by remember { mutableStateOf(RegistrationListResponseDto()) }
     var selectedBatchId by remember { mutableStateOf<String?>(null) }
@@ -52,6 +71,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
     var activePreview by remember { mutableStateOf<RegistrationPreviewSummaryDto?>(null) }
     var importMode by remember { mutableStateOf("upsert") }
     var isCommitting by remember { mutableStateOf(false) }
+    var acknowledgeAdjustmentRemoval by remember { mutableStateOf(false) }
 
     var batchToDelete by remember { mutableStateOf<RegistrationImportBatchSummaryDto?>(null) }
     var detailRecord by remember { mutableStateOf<RegistrationRecordDto?>(null) }
@@ -102,6 +122,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     filename = filename,
                     xlsxBytes = bytes
                 )
+                acknowledgeAdjustmentRemoval = false
             } catch (e: Exception) {
                 errorMsg = e.message ?: "Falha ao analisar a planilha Excel."
             } finally {
@@ -124,8 +145,8 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
             FsyStatusBadge(
                 text = "Tela protegida",
                 icon = br.com.fsyrp2.app.ui.icons.FsyIcons.Lock,
-                backgroundColor = FsyPalette.PrimarySky.copy(alpha = 0.14f),
-                contentColor = FsyPalette.PrimarySky
+                backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -169,9 +190,10 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f)
                     )
-                    Switch(
+                    FsySwitch(
                         checked = useNormalizedNames,
-                        onCheckedChange = { useNormalizedNames = it }
+                        onCheckedChange = { useNormalizedNames = it },
+                        modifier = Modifier.semantics { contentDescription = "Padronizar nomes nos documentos" }
                     )
                 }
             }
@@ -181,13 +203,13 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
         item {
             FsySectionCard {
                 Text(
-                    text = "Importação Excel & Geração de Documentos",
+                    text = "Planilha e autorizações",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
 
-                Button(
+                FsyButton(
                     onClick = {
                         haptics.confirm()
                         xlsxPickerLauncher.launch("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -199,7 +221,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                 ) {
                     Icon(FsyIcons.Upload, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Importar Planilha Excel (.xlsx — 34 Colunas)", fontWeight = FontWeight.Bold)
+                    Text("Importar planilha Excel", fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -208,7 +230,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = {
                             haptics.confirm()
                             isDownloading = true
@@ -247,7 +269,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         Text("Exportar .xlsx")
                     }
 
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = {
                             haptics.confirm()
                             isDownloading = true
@@ -290,7 +312,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val totalParts = ((metrics.participantCount.coerceAtLeast(1) + 49) / 50).coerceAtLeast(1)
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = {
                             zipPartIndex = if (zipPartIndex >= totalParts) 1 else zipPartIndex + 1
                         },
@@ -302,7 +324,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         )
                     }
 
-                    FilledTonalButton(
+                    FsyButton(
                         onClick = {
                             haptics.confirm()
                             isDownloading = true
@@ -310,7 +332,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             scope.launch {
                                 try {
                                     val s = appState.withValidSession()
-                                    val zipRole = if (roleCategory == "Conselheiro") "Conselheiro" else "Participante"
+                                    val zipRole = if (roleCategory == "Consultor") "Consultor" else "Participante"
                                     val bytes = appState.apiClient.downloadAuthorizationPdfBatchZip(
                                         session = s,
                                         batchId = selectedBatchId,
@@ -380,14 +402,14 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = "UUID: ${batch.id.take(8)}… • ${batch.totalCount} registros (${batch.participantCount} part. / ${batch.counselorCount} cons.)",
+                                            text = "${batch.totalCount} registros (${batch.participantCount} part. / ${batch.counselorCount} cons.)",
                                             style = MaterialTheme.typography.labelSmall.merge(TabularTextStyle),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
 
                                     Row {
-                                        TextButton(
+                                        FsyTextButton(
                                             onClick = {
                                                 selectedBatchId = if (isSelected) null else batch.id
                                                 page = 1
@@ -434,7 +456,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
-                    Button(
+                    FsyButton(
                         onClick = {
                             haptics.tick()
                             page = 1
@@ -457,9 +479,9 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     listOf(
                         "all" to "Todos (${metrics.totalCount})",
                         "Participante" to "Participantes (${metrics.participantCount})",
-                        "Conselheiro" to "Conselheiros (${metrics.counselorCount})"
+                        "Consultor" to "Consultores (${metrics.counselorCount})"
                     ).forEach { (key, label) ->
-                        FilterChip(
+                        FsyFilterChip(
                             selected = roleCategory == key,
                             onClick = {
                                 haptics.tick()
@@ -471,7 +493,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         )
                     }
 
-                    FilterChip(
+                    FsyFilterChip(
                         selected = onlyHealthAlerts,
                         onClick = {
                             haptics.tick()
@@ -482,7 +504,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                     )
 
-                    FilterChip(
+                    FsyFilterChip(
                         selected = onlyIssues,
                         onClick = {
                             haptics.tick()
@@ -537,17 +559,20 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 FsyStatusBadge(
                                     text = item.roleCategory,
-                                    backgroundColor = FsyPalette.PrimarySky.copy(alpha = 0.14f),
-                                    contentColor = FsyPalette.PrimarySky
+                                    backgroundColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 if (item.hasHealthAlert) {
                                     FsyStatusBadge("Saúde", FsyPalette.Danger, MaterialTheme.colorScheme.onError, icon = FsyIcons.HeartPulse)
                                 }
                                 if (item.hasMissingGuardianForMinor) {
                                     FsyStatusBadge("Sem responsável", FsyPalette.Extended.warningContainer, FsyPalette.Extended.onWarningContainer, icon = FsyIcons.TriangleAlert)
+                                }
+                                if (item.hasAuthorizationAdjustments) {
+                                    FsyStatusBadge("Editado", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
                                 }
                             }
                             Spacer(Modifier.height(4.dp))
@@ -575,15 +600,15 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        OutlinedButton(
+                        FsyOutlinedButton(
                             onClick = {
                                 haptics.tick()
                                 scope.launch {
                                     try {
                                         val s = appState.withValidSession()
                                         detailRecord = appState.apiClient.fetchRegistrationDetail(s, item.id)
-                                    } catch (_: Exception) {
-                                        detailRecord = item
+                                    } catch (e: Exception) {
+                                        errorMsg = e.message ?: "Não foi possível abrir os dados da inscrição. Tente novamente."
                                     }
                                 }
                             },
@@ -593,10 +618,10 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         ) {
                             Icon(FsyIcons.Eye, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("34 Colunas")
+                            Text("Ver dados")
                         }
 
-                        FilledTonalButton(
+                        FsyButton(
                             onClick = {
                                 haptics.confirm()
                                 isDownloading = true
@@ -610,7 +635,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                         )
                                         ExternalUrlLauncher.shareOrViewPrivateDocument(
                                             context = context,
-                                            filename = "Autorizacao_${displayName.take(28)}.pdf",
+                                            filename = item.authorizationFilename(),
                                             mimeType = "application/pdf",
                                             bytes = pdfBytes
                                         )
@@ -621,6 +646,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                     }
                                 }
                             },
+                            enabled = !isDownloading && !item.isCancelledRegistration(),
                             modifier = Modifier
                                 .weight(1f)
                                 .defaultMinSize(minHeight = 48.dp)
@@ -630,6 +656,21 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             Text("Ficha PDF")
                         }
                     }
+                    FsyOutlinedButton(
+                        onClick = {
+                            errorMsg = null
+                            scope.launch {
+                                try {
+                                    val session = appState.withValidSession()
+                                    appState.editRegistrationAuthorization(appState.apiClient.fetchRegistrationDetail(session, item.id))
+                                } catch (e: Exception) {
+                                    errorMsg = e.message ?: "Não foi possível abrir a autorização. Tente novamente."
+                                }
+                            }
+                        },
+                        enabled = !isDownloading,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Editar autorização") }
                 }
             }
         }
@@ -641,7 +682,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = { if (page > 1) page-- },
                         enabled = page > 1,
                         modifier = Modifier.defaultMinSize(minHeight = 48.dp)
@@ -652,7 +693,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
                     )
 
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = { if (page < pagination.totalPages) page++ },
                         enabled = page < pagination.totalPages,
                         modifier = Modifier.defaultMinSize(minHeight = 48.dp)
@@ -678,7 +719,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Diffs: +${preview.diffSummary.insertCount} novos • ~${preview.diffSummary.updateCount} atualizados • =${preview.diffSummary.unchangedCount} inalterados",
+                        text = "${preview.diffSummary.insertCount} novos • ${preview.diffSummary.updateCount} atualizados • ${preview.diffSummary.unchangedCount} sem mudanças",
                         style = MaterialTheme.typography.bodySmall.merge(TabularTextStyle)
                     )
                     Text(
@@ -687,20 +728,36 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     )
 
                     HorizontalDivider()
-                    Text("Modo de Gravação", fontWeight = FontWeight.Bold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
+                    Text("Como importar", fontWeight = FontWeight.Bold)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FsyFilterChip(
                             selected = importMode == "upsert",
-                            onClick = { importMode = "upsert" },
-                            label = { Text("Upsert (Atualizar/Inserir)") },
+                            onClick = { importMode = "upsert"; acknowledgeAdjustmentRemoval = false },
+                            label = { Text("Adicionar e atualizar") },
                             modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                         )
-                        FilterChip(
+                        FsyFilterChip(
                             selected = importMode == "replace_all",
-                            onClick = { importMode = "replace_all" },
+                            onClick = { importMode = "replace_all"; acknowledgeAdjustmentRemoval = false },
                             label = { Text("Substituir Tudo") },
                             modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                         )
+                    }
+                    val adjustmentImpact = preview.authorizationAdjustmentImpact
+                    if (adjustmentImpact.retainedCount > 0) Text("${adjustmentImpact.retainedCount} autorizações manterão os ajustes salvos.")
+                    if (importMode == "replace_all" && adjustmentImpact.removedCountOnReplaceAll > 0) {
+                        Text(
+                            "Esta substituição removerá ${adjustmentImpact.removedCountOnReplaceAll} inscrições com autorizações editadas. Os ajustes dessas inscrições serão perdidos.",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            FsySwitch(
+                                checked = acknowledgeAdjustmentRemoval,
+                                onCheckedChange = { acknowledgeAdjustmentRemoval = it },
+                                modifier = Modifier.semantics { contentDescription = "Confirmo a remoção dessas inscrições e de seus ajustes" }
+                            )
+                            Text("Confirmo a remoção dessas inscrições e de seus ajustes.", modifier = Modifier.weight(1f))
+                        }
                     }
 
                     if (preview.issues.isNotEmpty()) {
@@ -717,7 +774,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         isCommitting = true
                         scope.launch {
@@ -728,7 +785,8 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                     previewId = preview.previewId,
                                     mode = importMode,
                                     expectedRevision = preview.baseRevision,
-                                    useNormalizedNames = useNormalizedNames
+                                    useNormalizedNames = useNormalizedNames,
+                                    acknowledgeAdjustmentRemoval = acknowledgeAdjustmentRemoval
                                 )
                                 activePreview = null
                                 feedback = "Importação concluída: ${res.insertedCount} inseridos, ${res.updatedCount} atualizados (revisão ${res.currentRevision})."
@@ -740,14 +798,15 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                             }
                         }
                     },
-                    enabled = preview.canCommit && !isCommitting,
+                    enabled = preview.canCommit && !isCommitting && (importMode != "replace_all" ||
+                        preview.authorizationAdjustmentImpact.removedCountOnReplaceAll == 0 || acknowledgeAdjustmentRemoval),
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) {
                     Text(if (isCommitting) "Gravando..." else "Confirmar importação")
                 }
             },
             dismissButton = {
-                TextButton(
+                FsyTextButton(
                     onClick = { activePreview = null },
                     enabled = !isCommitting,
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
@@ -764,12 +823,12 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
             title = { Text("Excluir Lote Importado") },
             text = {
                 Text(
-                    "Confirma a exclusão do lote '${deletingBatch.filename}' (UUID ${deletingBatch.id})? " +
+                    "Confirma a exclusão do lote '${deletingBatch.filename}'? " +
                         "Todos os registros vinculados exclusivamente a este lote serão removidos."
                 )
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -790,7 +849,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                 ) { Text("Excluir lote") }
             },
             dismissButton = {
-                TextButton(onClick = { batchToDelete = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { batchToDelete = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -800,7 +859,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
     if (detail != null) {
         AlertDialog(
             onDismissRequest = { detailRecord = null },
-            title = { Text("34 Colunas — ${detail.fullNameNormalized}") },
+            title = { Text("Dados da inscrição — ${detail.fullNameNormalized}") },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -819,7 +878,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     }
 
                     HorizontalDivider()
-                    Text("Todas as 34 Colunas da Planilha Oficial", fontWeight = FontWeight.Bold)
+                    Text("Dados originais da planilha", fontWeight = FontWeight.Bold)
                     if (detail.rawColumns.isEmpty()) {
                         Text("Sem colunas brutas adicionais.", style = MaterialTheme.typography.bodySmall)
                     } else {
@@ -847,13 +906,261 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                TextButton(
+                FsyTextButton(
                     onClick = { detailRecord = null },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) { Text("Fechar") }
             }
         )
     }
+
+    appState.registrationAuthorizationEditor?.let { editor ->
+        RegistrationAuthorizationEditorDialog(
+            record = editor.record,
+            appState = appState,
+            useNormalizedNames = useNormalizedNames,
+            onSaved = { saved ->
+                appState.acceptSavedRegistrationAuthorization(saved)
+                listState = listState.copy(items = listState.items.map { if (it.id == saved.id) saved else it })
+                if (detailRecord?.id == saved.id) detailRecord = saved
+            },
+            onDismiss = { appState.closeRegistrationAuthorizationEditor() }
+        )
+    }
+}
+
+private data class AuthorizationField(
+    val key: String,
+    val label: String,
+    val group: String,
+    val multiline: Boolean = false
+)
+
+private val authorizationFields = listOf(
+    AuthorizationField("firstName", "Nome", "Identificação"),
+    AuthorizationField("lastName", "Sobrenome", "Identificação"),
+    AuthorizationField("birthDate", "Data de nascimento (dd/mm/aaaa)", "Identificação"),
+    AuthorizationField("sex", "Sexo", "Identificação"),
+    AuthorizationField("phone", "Telefone com DDD", "Identificação"),
+    AuthorizationField("cpf", "CPF", "Identificação"),
+    AuthorizationField("documentRgOrPassport", "RG, CIN ou passaporte", "Identificação"),
+    AuthorizationField("issuingAgency", "Órgão emissor", "Identificação"),
+    AuthorizationField("tshirtSize", "Tamanho da camiseta", "Identificação"),
+    AuthorizationField("guardianName", "Nome do responsável legal", "Responsável e unidade"),
+    AuthorizationField("guardianPhone", "Telefone do responsável com DDD", "Responsável e unidade"),
+    AuthorizationField("stakeName", "Estaca ou distrito", "Responsável e unidade"),
+    AuthorizationField("wardName", "Ala ou ramo", "Responsável e unidade"),
+    AuthorizationField("bishopName", "Nome do bispo", "Responsável e unidade"),
+    AuthorizationField("bishopEmail", "E-mail do bispo", "Responsável e unidade"),
+    AuthorizationField("medicalInfo", "Informações médicas", "Saúde e alimentação", true),
+    AuthorizationField("dietaryInfo", "Alimentação", "Saúde e alimentação", true),
+    AuthorizationField("healthConditionsSummary", "Condições de saúde selecionadas", "Saúde e alimentação", true),
+    AuthorizationField("healthConditionsDetails", "Detalhes das condições de saúde", "Saúde e alimentação", true)
+)
+
+/** Dados e prévia ficam em memória; a renderização remove imediatamente seu arquivo temporário. */
+@Composable
+private fun RegistrationAuthorizationEditorDialog(
+    record: RegistrationRecordDto,
+    appState: FsyAppState,
+    useNormalizedNames: Boolean,
+    onSaved: (RegistrationRecordDto) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val draft = appState.registrationAuthorizationEditor?.draft ?: record.authorizationValues()
+    val changes = record.authorizationChanges(draft)
+    val fieldErrors = authorizationAdjustmentErrors(changes)
+    var busy by remember { mutableStateOf<String?>(null) }
+    var feedback by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var previewBytes by remember(record) { mutableStateOf<ByteArray?>(null) }
+    var previewBitmap by remember(record) { mutableStateOf<Bitmap?>(null) }
+    var confirmReset by remember { mutableStateOf(false) }
+    var confirmClose by remember { mutableStateOf(false) }
+    val cancelled = record.isCancelledRegistration()
+
+    fun requestClose() {
+        if (busy != null) return
+        if (changes.isNotEmpty()) confirmClose = true else onDismiss()
+    }
+
+    fun save(reset: Boolean = false) {
+        busy = if (reset) "reset" else "save"
+        error = null
+        scope.launch {
+            try {
+                val session = appState.withValidSession()
+                val saved = appState.apiClient.saveAuthorizationAdjustments(session, record.id, changes, reset)
+                confirmReset = false
+                onSaved(saved)
+                feedback = if (reset) "Ajustes desfeitos. A autorização voltou aos dados da planilha." else "Autorização salva. A planilha original foi preservada."
+            } catch (e: Exception) {
+                error = e.message ?: "Não foi possível salvar. Tente novamente."
+            } finally {
+                busy = null
+            }
+        }
+    }
+
+    Dialog(
+        onDismissRequest = ::requestClose,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            securePolicy = androidx.compose.ui.window.SecureFlagPolicy.SecureOn
+        )
+    ) {
+        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).imePadding()
+                    .verticalScroll(rememberScrollState()).padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Editar autorização", style = MaterialTheme.typography.headlineSmall)
+                Text(record.fullNameNormalized.ifBlank { record.fullNameRaw }, style = MaterialTheme.typography.titleMedium)
+                Text("As alterações valem só para a autorização. Os dados originais da planilha permanecem guardados.")
+                record.authorizationAdjustments?.let { adjustments ->
+                    FsyStatusBadge("Editado", MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer)
+                    val at = FsyFormat.parseInstant(adjustments.editedAt)?.atZone(br.com.fsyrp2.app.data.EventCalendar.EVENT_ZONE)
+                        ?.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"))
+                    Text(
+                        "Última edição por ${adjustments.editedByName.ifBlank { "responsável pela gestão" }}${at?.let { " em $it" }.orEmpty()}.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                authorizationFields.groupBy { it.group }.forEach { (group, fields) ->
+                    HorizontalDivider()
+                    Text(group, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    fields.forEach { field ->
+                        if (field.key == "sex") {
+                            Text(field.label, style = MaterialTheme.typography.labelLarge)
+                            listOf("" to "Não informado", "Masculino" to "Masculino", "Feminino" to "Feminino").forEach { (value, label) ->
+                                FsyFilterChip(
+                                    selected = draft[field.key] == value,
+                                    enabled = busy == null,
+                                    onClick = {
+                                        appState.updateRegistrationAuthorizationField(field.key, value)
+                                        previewBytes = null; previewBitmap = null; feedback = null
+                                    },
+                                    label = { Text(label) }, modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            OutlinedTextField(
+                                value = draft[field.key].orEmpty(),
+                                onValueChange = { value ->
+                                    if (value.length <= 2000) {
+                                        appState.updateRegistrationAuthorizationField(field.key, value)
+                                        previewBytes = null; previewBitmap = null; feedback = null
+                                    }
+                                },
+                                label = { Text(field.label) },
+                                enabled = busy == null,
+                                isError = field.key in fieldErrors,
+                                supportingText = fieldErrors[field.key]?.let { message -> { Text(message) } },
+                                minLines = if (field.multiline) 3 else 1,
+                                singleLine = !field.multiline,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider()
+                Text("Pré-visualização do PDF", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                if (cancelled) {
+                    Text("Esta inscrição está cancelada. Você pode salvar ou desfazer ajustes, mas a autorização não pode ser gerada.")
+                } else {
+                    Text("Confira o rascunho antes de salvar. Baixar PDF usa os ajustes já salvos.")
+                    FsyOutlinedButton(
+                        enabled = busy == null && fieldErrors.isEmpty(),
+                        onClick = {
+                            busy = "preview"; error = null
+                            scope.launch {
+                                try {
+                                    val session = appState.withValidSession()
+                                    val bytes = appState.apiClient.previewAuthorizationPdf(session, record.id, changes, useNormalizedNames)
+                                    val bitmap = renderAuthorizationPreview(context, bytes)
+                                    previewBytes = bytes
+                                    previewBitmap = bitmap
+                                } catch (e: Exception) {
+                                    error = e.message ?: "Não foi possível gerar a prévia. Tente novamente."
+                                } finally { busy = null }
+                            }
+                        }, modifier = Modifier.fillMaxWidth()
+                    ) { Text(if (busy == "preview") "Preparando prévia…" else "Atualizar prévia") }
+                    previewBitmap?.let { bitmap ->
+                        Image(bitmap = bitmap.asImageBitmap(), contentDescription = "Prévia da autorização com os ajustes atuais", modifier = Modifier.fillMaxWidth().aspectRatio(bitmap.width.toFloat() / bitmap.height))
+                    }
+                    previewBytes?.let { bytes ->
+                        FsyTextButton(onClick = {
+                            ExternalUrlLauncher.shareOrViewPrivateDocument(context, "previa-${record.authorizationFilename()}", "application/pdf", bytes)
+                        }, enabled = busy == null, modifier = Modifier.fillMaxWidth()) { Text("Abrir prévia ampliada") }
+                    }
+                }
+
+                if (busy != null) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                feedback?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                FsyButton(onClick = { save() }, enabled = busy == null && changes.isNotEmpty() && fieldErrors.isEmpty(), modifier = Modifier.fillMaxWidth()) {
+                    Text(if (busy == "save") "Salvando…" else "Salvar autorização")
+                }
+                if (!cancelled) FsyOutlinedButton(
+                    enabled = busy == null,
+                    onClick = {
+                        busy = "download"; error = null
+                        scope.launch {
+                            try {
+                                val session = appState.withValidSession()
+                                val bytes = appState.apiClient.downloadAuthorizationPdf(session, record.id, useNormalizedNames)
+                                ExternalUrlLauncher.shareOrViewPrivateDocument(context, record.authorizationFilename(), "application/pdf", bytes)
+                            } catch (e: Exception) {
+                                error = e.message ?: "Não foi possível baixar o PDF. Tente novamente."
+                            } finally { busy = null }
+                        }
+                    }, modifier = Modifier.fillMaxWidth()
+                ) { Text("Baixar PDF salvo") }
+                if (record.hasAuthorizationAdjustments || record.authorizationAdjustments != null) {
+                    FsyOutlinedButton(onClick = { confirmReset = true }, enabled = busy == null, modifier = Modifier.fillMaxWidth()) { Text("Desfazer ajustes") }
+                }
+                FsyTextButton(onClick = ::requestClose, enabled = busy == null, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (changes.isEmpty()) "Fechar edição" else "Fechar sem salvar")
+                }
+            }
+        }
+    }
+    if (confirmReset) FsyConfirmDialog(
+        title = "Desfazer os ajustes?",
+        message = "A autorização voltará aos dados originais da planilha. As edições salvas e o rascunho atual serão descartados.",
+        confirmLabel = "Desfazer ajustes", onConfirm = { save(true) }, onDismiss = { confirmReset = false }, busy = busy != null
+    )
+    if (confirmClose) FsyConfirmDialog(
+        title = "Descartar o rascunho?", message = "As alterações que você ainda não salvou serão perdidas.",
+        confirmLabel = "Descartar e fechar", onConfirm = onDismiss, onDismiss = { confirmClose = false }
+    )
+}
+
+private suspend fun renderAuthorizationPreview(context: android.content.Context, bytes: ByteArray): Bitmap = withContext(Dispatchers.IO) {
+    val file = File.createTempFile("authorization-preview-", ".pdf", context.cacheDir)
+    try {
+        file.writeBytes(bytes)
+        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+            PdfRenderer(descriptor).use { renderer ->
+                renderer.openPage(0).use { page ->
+                    val width = 1080
+                    val bitmap = Bitmap.createBitmap(width, (width.toFloat() * page.height / page.width).toInt(), Bitmap.Config.ARGB_8888)
+                    bitmap.eraseColor(android.graphics.Color.WHITE)
+                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    bitmap
+                }
+            }
+        }
+    } catch (e: Exception) {
+        throw IllegalStateException("Não foi possível exibir a prévia. Tente novamente ou baixe o PDF salvo.", e)
+    } finally { file.delete() }
 }
 
 private fun resolveDisplayName(contentResolver: android.content.ContentResolver, uri: Uri): String? {

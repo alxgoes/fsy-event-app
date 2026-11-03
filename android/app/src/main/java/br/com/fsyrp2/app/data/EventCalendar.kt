@@ -99,6 +99,15 @@ object EventCalendar {
         return parseDateTime(resolvedDate, item.endTime)
     }
 
+    /** Sem fim informado, dura até a próxima atividade; no último item, 60 minutos. */
+    fun effectiveEndOf(item: ScheduleItem, items: List<ScheduleItem>): ZonedDateTime? {
+        val start = startOf(item) ?: return null
+        return endOf(item)?.takeIf { it.isAfter(start) }
+            ?: items.asSequence().filter { it.day == item.day }.mapNotNull { startOf(it) }
+                .filter { it.isAfter(start) }.minOrNull()
+            ?: start.plusHours(1)
+    }
+
     fun dayKey(now: Instant = Instant.now()): String =
         now.atZone(TIME_ZONE).format(DATE_KEY_FMT)
 
@@ -147,7 +156,7 @@ object EventCalendar {
 
         val current = list.firstOrNull { item ->
             val s = startOf(item)?.toInstant() ?: return@firstOrNull false
-            val e = endOf(item)?.toInstant() ?: return@firstOrNull false
+            val e = effectiveEndOf(item, list)?.toInstant() ?: return@firstOrNull false
             !s.isAfter(now) && e.isAfter(now)
         }
         val next = list.firstOrNull { item ->
@@ -204,7 +213,7 @@ object EventCalendar {
         return LocalTime.of(h, m)
     }
 
-    fun parseTime(hhMm: String?): LocalTime? = parseLocalTime(hhMm)
+    fun parseTime(hhMm: String?): LocalTime? = parseLocalTime(hhMm?.trim()?.take(5))
 
     fun isWithinQuietHours(now: ZonedDateTime, quietStart: String?, quietEnd: String?): Boolean =
         isWithinQuietHours(now.toInstant(), quietStart, quietEnd)

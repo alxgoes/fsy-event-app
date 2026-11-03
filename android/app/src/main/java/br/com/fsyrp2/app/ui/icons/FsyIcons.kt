@@ -634,6 +634,28 @@ object FsyIcons {
         )
     }
 
+    /** Lucide `menu` */
+    val Menu: ImageVector by lazy {
+        lucide(
+            "Menu",
+            "M4 12h16",
+            "M4 6h16",
+            "M4 18h16",
+        )
+    }
+
+    /** Lucide `image-plus` */
+    val ImagePlus: ImageVector by lazy {
+        lucide(
+            "ImagePlus",
+            "M16 5h6",
+            "M19 2v6",
+            "M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5",
+            "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21",
+            "M7 9a2 2 0 1 0 4 0a2 2 0 1 0-4 0",
+        )
+    }
+
     /** Lucide `plus` */
     val Plus: ImageVector by lazy {
         lucide(

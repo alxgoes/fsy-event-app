@@ -1,313 +1,111 @@
 package br.com.fsyrp2.app.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import android.content.Context
-import android.view.accessibility.AccessibilityManager
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import br.com.fsyrp2.app.model.Announcement
-import br.com.fsyrp2.app.ui.motion.FsyMotion
-import kotlinx.coroutines.delay
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
-import br.com.fsyrp2.app.ui.motion.fsyStateTween
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import br.com.fsyrp2.app.data.CardOrderManager
+import androidx.compose.ui.unit.sp
 import br.com.fsyrp2.app.data.EventCalendar
+import br.com.fsyrp2.app.data.EventMoment
 import br.com.fsyrp2.app.data.EventPhase
+import br.com.fsyrp2.app.model.Announcement
 import br.com.fsyrp2.app.model.ScheduleItem
-import br.com.fsyrp2.app.model.UserRole
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.state.MainTab
 import br.com.fsyrp2.app.state.OverlayDestination
 import br.com.fsyrp2.app.ui.components.*
 import br.com.fsyrp2.app.ui.icons.FsyIcons
+import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.FsyPalette
 import br.com.fsyrp2.app.ui.theme.LibreBaskervilleFontFamily
 import br.com.fsyrp2.app.ui.theme.TabularTextStyle
+import java.time.Duration
+import java.time.Instant
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * Início: o essencial do dia. Um bloco "Agora / A seguir" vivo, a agenda de hoje resumida,
+ * a companhia, os dois avisos mais recentes e uma faixa de fotos. Nada de personalizar.
+ */
 @Composable
 fun HomeScreen(appState: FsyAppState) {
-    val context = LocalContext.current
     val haptics = rememberFsyHaptics()
-    val scrollState = rememberScrollState()
+    val now = rememberFsyNow()
     val profile = appState.profile
-    val moment = remember(appState.scheduleItems) { EventCalendar.moment(appState.scheduleItems) }
-    val daysUntilStart = remember { EventCalendar.daysUntilStart() }
+    val moment = remember(appState.scheduleItems, now) { EventCalendar.moment(appState.scheduleItems, now) }
+    val firstName = profile?.firstName?.takeIf { profile.fullName.isNotBlank() }
 
-    val defaultDashboardOrder = CardOrderManager.PAGE_DEFAULT_IDS["dashboard"].orEmpty()
-    val currentOrder = appState.cardOrderFor("dashboard")
-
-    val goAgenda = {
-        haptics.tick()
-        appState.selectedTab = MainTab.AGENDA
-    }
-
-    val cards = listOf(
-        ReorderableCardItem(id = "next-activity", title = "Programação") {
-            FsySectionCard {
-                FsyCardHeader(
-                    icon = FsyIcons.Clock,
-                    title = "Programação",
-                    actionLabel = "Agenda",
-                    actionDescription = "Abrir a agenda completa",
-                    onAction = goAgenda,
-                )
-                Spacer(Modifier.height(12.dp))
-                val currentItem = moment.currentItem
-                val nextItem = moment.nextItem
-                if (currentItem == null && nextItem == null) {
-                    Text(
-                        text = "Os horários aparecem aqui assim que a programação for publicada.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (currentItem != null) {
-                    MomentRow(item = currentItem, label = "Agora", highlighted = true)
-                }
-                if (currentItem != null && nextItem != null) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
-                    )
-                }
-                if (nextItem != null) {
-                    MomentRow(
-                        item = nextItem,
-                        label = "A seguir · ${EventCalendar.DAY_LABELS[nextItem.dayKey] ?: nextItem.dayKey}",
-                        highlighted = false,
-                    )
-                }
-                DayAgendaDisclosure(
-                    dayKey = moment.selectedDayKey,
-                    items = appState.scheduleItems,
-                    currentId = currentItem?.id,
-                    onOpenAgenda = goAgenda,
-                )
-            }
-        },
-        ReorderableCardItem(id = "announcements", title = "Avisos") {
-            FsySectionCard {
-                FsyCardHeader(
-                    icon = FsyIcons.Megaphone,
-                    title = "Avisos",
-                    actionLabel = if (appState.announcements.isNotEmpty()) "Todos (${appState.announcements.size})" else null,
-                    actionDescription = "Ver todos os ${appState.announcements.size} avisos",
-                    onAction = {
-                        haptics.tick()
-                        appState.selectedTab = MainTab.ANNOUNCEMENTS
-                    },
-                )
-                Spacer(Modifier.height(8.dp))
-                val urgent = appState.announcements.filter { it.isUrgent }.take(3)
-                val others = appState.announcements.filterNot { it.isUrgent }
-                val open: (String) -> Unit = { id ->
-                    haptics.tick()
-                    appState.focusedAnnouncementId = id
-                    appState.selectedTab = MainTab.ANNOUNCEMENTS
-                }
-                if (urgent.isEmpty() && others.isEmpty()) {
-                    Text(
-                        text = "Nenhum aviso por enquanto.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                // Urgentes ficam fixos: nunca entram na rotação.
-                urgent.forEach { ann -> HomeAnnouncementRow(ann = ann, onOpen = { open(ann.id) }) }
-                if (others.isNotEmpty()) {
-                    if (urgent.isNotEmpty()) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 4.dp))
-                    AnnouncementRotator(items = others, onOpen = open)
-                }
-            }
-        },
-        ReorderableCardItem(id = "company", title = "Minha companhia") {
-            val comp = appState.company
-            FsySectionCard {
-                FsyCardHeader(icon = FsyIcons.Users, title = "Minha companhia")
-                Spacer(Modifier.height(12.dp))
-                if (comp != null) {
-                    Text(
-                        text = comp.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    if (!comp.motto.isNullOrBlank()) {
-                        Text(
-                            text = "“${comp.motto}”",
-                            fontFamily = LibreBaskervilleFontFamily,
-                            fontStyle = FontStyle.Italic,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                    val chips = buildList {
-                        comp.room?.takeIf { it.isNotBlank() }?.let { add(FsyIcons.MapPin to "Sala $it") }
-                        profile?.room?.takeIf { it.isNotBlank() }?.let { add(FsyIcons.BedDouble to "Quarto $it") }
-                        profile?.busAssignment?.takeIf { it.isNotBlank() }?.let { add(FsyIcons.Bus to "Ônibus $it") }
-                    }
-                    if (chips.isNotEmpty()) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(top = 12.dp),
-                        ) {
-                            chips.forEach { (icon, text) -> FsyMetaChip(text = text, icon = icon) }
-                        }
-                    }
-                    if (!comp.driveUrl.isNullOrBlank()) {
-                        FsyActionButton(
-                            label = "Fotos da companhia",
-                            icon = FsyIcons.ExternalLink,
-                            tone = FsyButtonTone.Outline,
-                            onClick = {
-                                haptics.confirm()
-                                ExternalUrlLauncher.openExternalUrl(context, comp.driveUrl.orEmpty())
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 12.dp),
-                        )
-                    }
-                } else {
-                    Text(
-                        text = "Aparece aqui quando a coordenação vincular você a uma companhia.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        },
-        ReorderableCardItem(id = "gallery", title = "Galeria") {
-            val openGallery = {
-                haptics.tick()
-                appState.overlayDestination = OverlayDestination.Gallery
-            }
-            FsySectionCard {
-                FsyCardHeader(
-                    icon = FsyIcons.Images,
-                    title = "Galeria",
-                    actionLabel = "Abrir",
-                    actionDescription = "Abrir a galeria",
-                    onAction = openGallery,
-                )
-                val previewPosts = appState.instagramPosts.take(3)
-                if (previewPosts.isNotEmpty()) {
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        previewPosts.forEach { post ->
-                            RemotePublicImage(
-                                url = post.imageUrl,
-                                contentDescription = post.caption.ifBlank { "Publicação do Instagram" },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable(role = Role.Button, onClickLabel = "Abrir galeria", onClick = openGallery),
-                            )
-                        }
-                    }
-                } else if (appState.publicMediaPhotos.isNotEmpty()) {
-                    Text(
-                        text = "${appState.publicMediaPhotos.size} álbuns disponíveis",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            }
-        },
-    )
-
-    val greetingName = profile?.fullName?.substringBefore(" ")?.takeIf { it.isNotBlank() }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        FsyTopBar(
-            title = if (greetingName != null) "Olá, $greetingName" else "Olá",
-            subtitle = FsyEventFacts.SESSION,
-            showMark = false,
-            actions = {
-                FsyIconButton(
-                    icon = FsyIcons.RefreshCw,
-                    contentDescription = "Atualizar",
-                    onClick = {
-                        haptics.tick()
-                        appState.refreshCoreData()
-                    },
-                    enabled = !appState.isLoading,
-                )
-            },
-        )
+    FsyRefreshable(
+        refreshing = appState.isLoading && !appState.isInitialLoading,
+        onRefresh = { appState.refreshCoreData() },
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
+                .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = FsyGutter)
-                .padding(top = 4.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(top = 12.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
+            HomeHeader(
+                name = profile?.fullName ?: "",
+                firstName = firstName,
+                photoUrl = appState.profilePhoto.approvedUrl,
+                onPhotoError = { appState.refreshProfilePhoto() },
+                onAvatar = {
+                    haptics.tick()
+                    appState.selectedTab = MainTab.MORE
+                },
+                modifier = Modifier.fsyHomeEntrance(0),
+            )
+
             FsyConnectivityBanner(
                 isOnline = appState.isOnline,
                 lastSyncedAtLabel = appState.lastSyncedAtLabel,
@@ -315,468 +113,597 @@ fun HomeScreen(appState: FsyAppState) {
                 onRefresh = { appState.refreshCoreData() },
             )
 
-            EventMomentHero(
-                phase = moment.phase,
-                daysUntilStart = daysUntilStart,
-                current = moment.currentItem,
-                onOpenAgenda = goAgenda,
-                modifier = Modifier.fsyHomeEntrance(0),
+            if (appState.isInitialLoading) {
+                FsyLoadingBlock(rows = 1, rowHeight = 196.dp)
+                FsyLoadingBlock(rows = 3, rowHeight = 56.dp)
+                return@Column
+            }
+
+            EventHero(moment = moment, now = now, modifier = Modifier.fsyHomeEntrance(1))
+
+            DayAgendaSection(
+                moment = moment,
+                items = appState.scheduleItems,
+                now = now,
+                onOpenItem = { id ->
+                    haptics.tick()
+                    appState.openAgendaAt(id)
+                },
+                modifier = Modifier.fsyHomeEntrance(2),
             )
 
-            val role = profile?.roleEnum ?: UserRole.JOVEM
-            val hasAdminAccess = role.canAccessAdminHub
-            val isCounselorOrManager = role == UserRole.CONSULTOR || role.isManager
-            if (isCounselorOrManager || hasAdminAccess) QuickActions(
-                modifier = Modifier.fsyHomeEntrance(1),
-                showCounselor = isCounselorOrManager,
-                showAdmin = hasAdminAccess,
-                onAgenda = goAgenda,
-                onAnnouncements = {
+            CompanySection(appState = appState, modifier = Modifier.fsyHomeEntrance(3))
+
+            LatestAnnouncementsSection(
+                items = appState.announcements.sortedByDescending { it.createdAt }.take(2),
+                readIds = appState.readAnnouncementIds,
+                now = now,
+                onOpen = { id ->
+                    haptics.tick()
+                    appState.openAnnouncement(id)
+                },
+                onAll = {
                     haptics.tick()
                     appState.selectedTab = MainTab.ANNOUNCEMENTS
                 },
-                onGallery = {
+                modifier = Modifier.fsyHomeEntrance(4),
+            )
+
+            PhotoStripSection(
+                appState = appState,
+                onOpen = {
                     haptics.tick()
-                    appState.overlayDestination = OverlayDestination.Gallery
+                    appState.open(OverlayDestination.Gallery)
                 },
-                onCounselor = {
-                    haptics.confirm()
-                    appState.overlayDestination = OverlayDestination.CounselorPanel
-                },
-                onAdmin = {
-                    haptics.confirm()
-                    appState.overlayDestination = OverlayDestination.AdminHub()
-                },
+                modifier = Modifier.fsyHomeEntrance(5),
             )
-
-            ReorderableCardSection(
-                pageKey = "dashboard",
-                defaultIds = defaultDashboardOrder,
-                orderedIds = currentOrder,
-                onOrderChange = { appState.updateCardOrder("dashboard", it) },
-                cards = cards,
-                scrollState = scrollState,
-                reveal = { i -> fsyHomeEntrance(i) },
-            )
-
-            ThemeOfTheYearCard()
         }
     }
 }
 
-/**
- * Faixa do momento do evento: o tempo é o assunto da tela inicial.
- * Antes: contagem; durante: o que acontece agora; depois: encerramento. Fatos oficiais só.
- */
 @Composable
-private fun EventMomentHero(
-    phase: EventPhase,
-    daysUntilStart: Int,
-    current: ScheduleItem?,
-    onOpenAgenda: () -> Unit,
+private fun HomeHeader(
+    name: String,
+    firstName: String?,
+    photoUrl: String?,
+    onPhotoError: () -> Unit,
+    onAvatar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val ext = FsyPalette.Extended
-    val title = when (phase) {
-        EventPhase.BEFORE -> when {
-            daysUntilStart <= 0 -> "Começa hoje"
-            daysUntilStart == 1 -> "Falta 1 dia"
-            else -> "Faltam $daysUntilStart dias"
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f).semantics(mergeDescendants = true) { heading() }) {
+            Text(
+                text = if (firstName != null) "Olá, $firstName" else "Olá",
+                style = MaterialTheme.typography.headlineLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = "${FsyEventFacts.THEME} · ${FsyEventFacts.SCRIPTURE}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = LibreBaskervilleFontFamily,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
         }
-        EventPhase.DURING -> current?.title ?: "Sessão em andamento"
-        EventPhase.AFTER -> "Sessão concluída"
-    }
-    val badge = when (phase) {
-        EventPhase.BEFORE -> FsyEventFacts.DATES_SHORT
-        EventPhase.DURING -> current?.let { "Agora · ${it.startTime.take(5)}–${it.endTime.take(5)}" } ?: "Em andamento"
-        EventPhase.AFTER -> FsyEventFacts.THEME
-    }
-    FsyClickableCard(
-        onClick = onOpenAgenda,
-        onClickLabel = "Abrir agenda",
-        containerColor = ext.hero,
-        borderColor = ext.hero,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-        modifier = modifier,
-    ) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                FsyStatusBadge(
-                    text = badge,
-                    backgroundColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
-                )
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = ext.onHero,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(FsyIcons.MapPin, contentDescription = null, tint = ext.onHero, modifier = Modifier.size(16.dp))
-                    Text(
-                        text = if (phase == EventPhase.DURING && !current?.location.isNullOrBlank()) current?.location.orEmpty()
-                        else "${FsyEventFacts.VENUE} · ${FsyEventFacts.CITY}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = ext.onHero,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MomentRow(item: ScheduleItem, label: String, highlighted: Boolean) {
-    if (LocalDensity.current.fontScale >= 1.3f) {
-        // Fonte ampliada: faixa de horário em linha própria, acima do texto (nada de "09:0" + "0").
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .semantics(mergeDescendants = true) {},
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+                .size(56.dp)
+                .clip(CircleShape)
+                .clickable(role = Role.Button, onClickLabel = "Abrir Mais", onClick = onAvatar),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = if (item.endTime.length >= 4 && item.endTime != "--") "${item.startTime.take(5)}–${item.endTime.take(5)}" else item.startTime.take(5),
-                style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle),
-                fontWeight = FontWeight.Bold,
-                color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            )
-            Text(text = item.title, style = MaterialTheme.typography.titleMedium)
-            if (item.location.isNotBlank()) {
-                Text(item.location, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        return
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Column(modifier = Modifier.width(56.dp), horizontalAlignment = Alignment.Start) {
-            Text(
-                text = item.startTime.take(5),
-                style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle),
-                color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-            )
-            if (item.endTime.length >= 4 && item.endTime != "--") {
-                Text(
-                    text = item.endTime.take(5),
-                    style = MaterialTheme.typography.bodySmall.merge(TabularTextStyle),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(text = item.title, style = MaterialTheme.typography.titleMedium)
-            if (item.location.isNotBlank()) {
-                Text(
-                    text = item.location,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            FsyAvatar(name = name.ifBlank { "FSY" }, photoUrl = photoUrl, size = 44.dp, onImageError = onPhotoError)
         }
     }
 }
 
-/** Atalhos em pílula só das funções do perfil (Conselheiro/Administração); destinos comuns ficam na barra. */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun QuickActions(
-    modifier: Modifier,
-    showCounselor: Boolean,
-    showAdmin: Boolean,
-    onAgenda: () -> Unit,
-    onAnnouncements: () -> Unit,
-    onGallery: () -> Unit,
-    onCounselor: () -> Unit,
-    onAdmin: () -> Unit,
-) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (showAdmin) FsyActionButton("Administração", onAdmin, icon = FsyIcons.ShieldCheck, tone = FsyButtonTone.Primary)
-        if (showCounselor) FsyActionButton("Conselheiro", onCounselor, icon = FsyIcons.HandHeart, tone = FsyButtonTone.Tonal)
-    }
-}
-
-/** Tema do ano: identificador oficial horizontal (PNG original) + versículo, como no portal web. */
-@Composable
-private fun ThemeOfTheYearCard(modifier: Modifier = Modifier) {
-    // Placa sempre clara: o PNG oficial tem fundo branco e não pode ser recolorido.
-    FsySectionCard(modifier = modifier, containerColor = Color.White, borderColor = Color(0xFFE5E0D6)) {
-        FsyOfficialMark(
-            horizontal = true,
-            modifier = Modifier
-                .height(84.dp)
-                .align(Alignment.CenterHorizontally),
-        )
-        HorizontalDivider(color = Color(0xFFE5E0D6), modifier = Modifier.padding(vertical = 10.dp))
-        Text(
-            text = "“Regozijai-vos sempre no Senhor; outra vez digo, regozijai-vos.”",
-            fontFamily = LibreBaskervilleFontFamily,
-            fontStyle = FontStyle.Italic,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF0F172A),
-        )
-        Text(
-            text = FsyEventFacts.SCRIPTURE,
-            style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFF475569),
-            modifier = Modifier.padding(top = 4.dp),
-        )
-    }
-}
+// --- Bloco "Agora / A seguir" -------------------------------------------------------------
 
 /**
- * Agenda do dia em revelação progressiva: fechada mostra só a contagem;
- * aberta lista horários com entrada escalonada.
+ * O assunto do Início é o tempo. Antes: contagem e local. Durante: atividade atual com barra
+ * de progresso viva + a seguinte. Entre atividades: a próxima com "começa em X min".
+ * O templo oficial fica à direita, sem recolorir e sem sombra.
  */
 @Composable
-private fun ColumnScope.DayAgendaDisclosure(
-    dayKey: String,
-    items: List<ScheduleItem>,
-    currentId: String?,
-    onOpenAgenda: () -> Unit,
-) {
-    val dayItems = remember(items, dayKey) { items.filter { it.dayKey == dayKey }.sortedBy { it.startTime } }
-    if (dayItems.isEmpty()) return
-    var open by rememberSaveable(dayKey) { mutableStateOf(false) }
-    val reduce = fsyMotionPreferences().reduceMotion
-    val dayLabel = EventCalendar.DAY_LABELS[dayKey] ?: dayKey
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(top = 12.dp))
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(role = Role.Button, onClickLabel = if (open) "Recolher" else "Mostrar o dia") { open = !open }
-            .padding(horizontal = 4.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+private fun EventHero(moment: EventMoment, now: Instant, modifier: Modifier = Modifier) {
+    val ext = FsyPalette.Extended
+    val onHero = ext.onHero
+    val muted = onHero.copy(alpha = 0.82f)
+    val largeText = LocalDensity.current.fontScale >= 1.3f
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = ext.hero,
+        contentColor = onHero,
     ) {
-        Icon(FsyIcons.CalendarDays, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-        Text("$dayLabel · ${dayItems.size} atividades", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        val rotation by animateFloatAsState(
-            targetValue = if (open) 90f else 0f,
-            animationSpec = fsyStateTween(reduce),
-            label = "dayChevron",
-        )
-        Icon(
-            FsyIcons.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.graphicsLayer { rotationZ = rotation },
-        )
-    }
-    AnimatedVisibility(visible = open) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            val largeText = LocalDensity.current.fontScale >= 1.3f
-            dayItems.forEachIndexed { index, item ->
-                val now = item.id == currentId
-                if (largeText) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fsyReveal(index)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (now) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                    ) {
+        Box {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 22.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                when (moment.phase) {
+                    EventPhase.BEFORE -> BeforeEventContent(now = now, muted = muted, reserveEnd = !largeText)
+                    EventPhase.DURING -> DuringEventContent(moment = moment, now = now, muted = muted, reserveEnd = !largeText)
+                    EventPhase.AFTER -> {
+                        HeroPill("Até a próxima")
+                        Text("Sessão concluída", style = MaterialTheme.typography.headlineMedium, color = onHero)
                         Text(
-                            item.startTime.take(5),
-                            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle),
-                            color = if (now) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            item.title,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = if (now) FontWeight.Bold else FontWeight.Normal,
-                            color = if (now) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                            "Obrigado por viver estes dias. ${FsyEventFacts.THEME}.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = muted,
                         )
                     }
-                } else Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fsyReveal(index)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (now) MaterialTheme.colorScheme.primaryContainer else Color.Transparent)
-                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        item.startTime.take(5),
-                        style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle),
-                        color = if (now) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.width(48.dp),
-                    )
-                    Text(
-                        item.title,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (now) FontWeight.Bold else FontWeight.Normal,
-                        color = if (now) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
                 }
             }
-            FsyTextAction(label = "Abrir na agenda", onClick = onOpenAgenda, modifier = Modifier.align(Alignment.End))
+            if (!largeText) {
+                FsyTempleMark(
+                    height = 76.dp,
+                    decorative = true,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 20.dp, end = 20.dp),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun HomeAnnouncementRow(ann: Announcement, onOpen: () -> Unit) {
+private fun HeroPill(text: String) {
+    Surface(color = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary, shape = FsyPillShape) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+        )
+    }
+}
+
+@Composable
+private fun BeforeEventContent(now: Instant, muted: Color, reserveEnd: Boolean) {
+    val onHero = FsyPalette.Extended.onHero
+    val start = EventCalendar.PARTICIPANTS_START.toInstant()
+    val minutesLeft = Duration.between(now, start).toMinutes().coerceAtLeast(0)
+    val days = EventCalendar.daysUntilStart(now)
+    val endPad = if (reserveEnd) Modifier.padding(end = 72.dp) else Modifier
+    Text("Faltam", style = MaterialTheme.typography.titleMedium, color = muted, modifier = endPad)
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(role = Role.Button, onClickLabel = "Abrir aviso", onClick = onOpen)
-            .padding(horizontal = 4.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = endPad.semantics(mergeDescendants = true) {},
+    ) {
+        if (days >= 1) {
+            Text(
+                text = days.toString(),
+                style = TabularTextStyle.copy(fontSize = 64.sp, lineHeight = 64.sp, fontWeight = FontWeight.Bold),
+                color = onHero,
+            )
+            Text(
+                text = if (days == 1) "dia" else "dias",
+                style = MaterialTheme.typography.headlineSmall,
+                color = onHero,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        } else {
+            Text(
+                text = FsyFormat.duration(minutesLeft),
+                style = TabularTextStyle.copy(fontSize = 40.sp, lineHeight = 44.sp, fontWeight = FontWeight.Bold),
+                color = onHero,
+            )
+        }
+    }
+    Text(FsyEventFacts.DATES, style = MaterialTheme.typography.bodyLarge, color = onHero)
+    HeroPlaceLine("${FsyEventFacts.VENUE} · ${FsyEventFacts.CITY.substringBefore(',')}", muted)
+}
+
+@Composable
+private fun HeroPlaceLine(text: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Icon(FsyIcons.MapPin, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = color)
+    }
+}
+
+@Composable
+private fun DuringEventContent(moment: EventMoment, now: Instant, muted: Color, reserveEnd: Boolean) {
+    val onHero = FsyPalette.Extended.onHero
+    val endPad = if (reserveEnd) Modifier.padding(end = 72.dp) else Modifier
+    val current = moment.currentItem
+    val next = moment.nextItem
+    if (current != null) {
+        val start = EventCalendar.startOf(current)?.toInstant()
+        val end = EventCalendar.effectiveEndOf(current, listOfNotNull(current, moment.nextItem))?.toInstant()
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = endPad) {
+            HeroPill("Agora")
+            Text(FsyFormat.timeRange(current), style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle), color = onHero)
+        }
+        Text(current.title, style = MaterialTheme.typography.headlineMedium, color = onHero, modifier = endPad)
+        if (current.location.isNotBlank()) HeroPlaceLine(current.location, muted)
+        if (start != null && end != null && end.isAfter(start)) {
+            val total = Duration.between(start, end).toMillis().toFloat()
+            val done = Duration.between(start, now).toMillis().toFloat()
+            val target = (done / total).coerceIn(0f, 1f)
+            val reduce = fsyMotionPreferences().reduceMotion
+            val progress by animateFloatAsState(
+                targetValue = target,
+                animationSpec = if (reduce) androidx.compose.animation.core.snap() else tween(900),
+                label = "heroProgress",
+            )
+            val minutesLeft = Duration.between(now, end).toMinutes() + 1
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .clearAndSetSemantics { contentDescription = "Termina em ${FsyFormat.duration(minutesLeft)}" },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(FsyPillShape)
+                        .background(onHero.copy(alpha = 0.22f)),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progress)
+                            .fillMaxHeight()
+                            .clip(FsyPillShape)
+                            .background(MaterialTheme.colorScheme.secondary),
+                    )
+                }
+                Text("Termina em ${FsyFormat.duration(minutesLeft)}", style = MaterialTheme.typography.labelLarge, color = muted)
+            }
+        }
+        if (next != null) {
+            HorizontalDivider(color = onHero.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 4.dp))
+            NextLine(next, now, muted)
+        }
+    } else if (next != null) {
+        val startsIn = EventCalendar.startOf(next)?.toInstant()?.let { Duration.between(now, it).toMinutes() + 1 }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = endPad) {
+            HeroPill("A seguir")
+            if (startsIn != null && startsIn < 180) {
+                Text("começa em ${FsyFormat.duration(startsIn)}", style = MaterialTheme.typography.titleMedium, color = onHero)
+            } else {
+                Text("às ${FsyFormat.hhmm(next.startTime)}", style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle), color = onHero)
+            }
+        }
+        Text(next.title, style = MaterialTheme.typography.headlineMedium, color = onHero, modifier = endPad)
+        val nextDay = EventCalendar.DAY_LABELS[next.dayKey]
+        val today = moment.selectedDayKey
+        if (next.dayKey != today && nextDay != null) {
+            Text(nextDay, style = MaterialTheme.typography.bodyLarge, color = muted)
+        }
+        if (next.location.isNotBlank()) HeroPlaceLine(next.location, muted)
+    } else {
+        HeroPill("Sessão em andamento")
+        Text("Por hoje é só", style = MaterialTheme.typography.headlineMedium, color = onHero, modifier = endPad)
+        Text("Descanse bem. A programação de amanhã aparece aqui.", style = MaterialTheme.typography.bodyLarge, color = muted)
+    }
+}
+
+@Composable
+private fun NextLine(next: ScheduleItem, now: Instant, muted: Color) {
+    val onHero = FsyPalette.Extended.onHero
+    val startsIn = EventCalendar.startOf(next)?.toInstant()?.let { Duration.between(now, it).toMinutes() + 1 }
+    Row(
+        modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        FsyDot(
-            color = if (ann.isUrgent) FsyPalette.Danger else MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 7.dp),
+        Text(
+            FsyFormat.hhmm(next.startTime),
+            style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle),
+            fontWeight = FontWeight.Bold,
+            color = onHero,
         )
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.weight(1f)) {
             Text(
-                text = if (ann.isUrgent) "Urgente" else if (ann.companyId != null) "Minha companhia" else "Toda a sessão",
-                style = MaterialTheme.typography.labelMedium,
-                color = if (ann.isUrgent) FsyPalette.Danger else MaterialTheme.colorScheme.onSurfaceVariant,
+                text = if (startsIn != null && startsIn < 180) "A seguir · em ${FsyFormat.duration(startsIn)}" else "A seguir",
+                style = MaterialTheme.typography.labelLarge,
+                color = muted,
             )
-            Text(text = ann.title, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(next.title, style = MaterialTheme.typography.titleMedium, color = onHero)
         }
-        if (ann.likesCount > 0) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = "${ann.likesCount} curtidas" },
-            ) {
-                Icon(
-                    FsyIcons.Heart,
-                    contentDescription = null,
-                    tint = if (ann.likedByMe) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp),
+    }
+}
+
+// --- Agenda do dia ------------------------------------------------------------------------
+
+@Composable
+private fun DayAgendaSection(
+    moment: EventMoment,
+    items: List<ScheduleItem>,
+    now: Instant,
+    onOpenItem: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (moment.phase == EventPhase.AFTER) return
+    val dayKey = if (moment.phase == EventPhase.BEFORE) "dia1" else moment.selectedDayKey
+    val dayItems = remember(items, dayKey) { items.filter { it.dayKey == dayKey }.sortedBy { it.startTime } }
+    val dayLabel = EventCalendar.DAY_LABELS[dayKey].orEmpty()
+    val title = if (moment.phase == EventPhase.BEFORE) "Primeiro dia" else "Hoje"
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        FsySectionTitle(text = "$title · $dayLabel")
+        if (dayItems.isEmpty()) {
+            Text(
+                "Os horários aparecem aqui assim que a programação for publicada.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            return@Column
+        }
+        // Durante o dia, começa pela atividade atual (ou a próxima); no máximo 5 linhas.
+        val anchorId = moment.currentItem?.id ?: moment.nextItem?.id
+        val anchorIndex = dayItems.indexOfFirst { it.id == anchorId }.takeIf { it >= 0 && moment.phase == EventPhase.DURING } ?: 0
+        val visible = dayItems.drop(anchorIndex).take(5)
+        val remaining = dayItems.size - anchorIndex - visible.size
+        FsySectionCard(contentPadding = PaddingValues(vertical = 6.dp, horizontal = 6.dp)) {
+            visible.forEachIndexed { index, item ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 14.dp))
+                AgendaRow(item = item, isNow = item.id == moment.currentItem?.id, isPast = isPast(item, now), onClick = { onOpenItem(item.id) })
+            }
+            if (remaining > 0) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 14.dp))
+                FsyListRow(
+                    title = "Ver o dia todo",
+                    supporting = if (remaining == 1) "Mais 1 atividade" else "Mais $remaining atividades",
+                    onClick = { onOpenItem(dayItems[anchorIndex + visible.size].id) },
                 )
-                Text(ann.likesCount.toString(), style = MaterialTheme.typography.labelMedium.merge(TabularTextStyle))
             }
         }
     }
 }
 
-/**
- * Avisos não urgentes em rotação lenta: 10 s por aviso, troca com deslize curto + fade (350 ms).
- * Pausa sozinha com toque/leitura no cartão, TalkBack ativo, app fora do primeiro plano ou
- * movimento reduzido (aí só controles manuais). Contagem "n de N" e botão Pausar/Retomar.
- */
+private fun isPast(item: ScheduleItem, now: Instant): Boolean {
+    val end = EventCalendar.endOf(item) ?: EventCalendar.startOf(item) ?: return false
+    return end.toInstant().isBefore(now)
+}
+
 @Composable
-private fun AnnouncementRotator(items: List<Announcement>, onOpen: (String) -> Unit) {
-    val context = LocalContext.current
-    val reduce = fsyMotionPreferences().reduceMotion
-    var index by rememberSaveable { mutableIntStateOf(0) }
-    var userPaused by rememberSaveable { mutableStateOf(false) }
-    val safeIndex = if (items.isEmpty()) 0 else index.coerceIn(0, items.lastIndex)
-    val touchExploration = remember(context) {
-        (context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager)?.isTouchExplorationEnabled == true
+private fun AgendaRow(item: ScheduleItem, isNow: Boolean, isPast: Boolean, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val textColor = if (isPast) scheme.onSurfaceVariant else scheme.onSurface
+    val largeText = LocalDensity.current.fontScale >= 1.3f
+    val rowMod = Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(18.dp))
+        .background(if (isNow) scheme.primaryContainer else Color.Transparent)
+        .clickable(role = Role.Button, onClickLabel = "Abrir na agenda", onClick = onClick)
+        .heightIn(min = 56.dp)
+        .padding(horizontal = 14.dp, vertical = 12.dp)
+        .semantics(mergeDescendants = true) {}
+    val time: @Composable () -> Unit = {
+        Text(
+            text = FsyFormat.hhmm(item.startTime),
+            style = MaterialTheme.typography.titleMedium.merge(TabularTextStyle),
+            fontWeight = FontWeight.Bold,
+            color = if (isNow) scheme.onPrimaryContainer else textColor,
+            modifier = if (largeText) Modifier else Modifier.width(56.dp),
+        )
     }
-    val lifecycle = androidx.compose.ui.platform.LocalLifecycleOwner.current.lifecycle
-    var resumed by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) }
-    DisposableEffect(lifecycle) {
-        val observer = LifecycleEventObserver { _, _ -> resumed = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
-    }
-    val canAutoplay = items.size > 1 && !reduce && !touchExploration
-    val playing = canAutoplay && !userPaused && resumed
-
-    LaunchedEffect(playing, safeIndex, items.size) {
-        if (playing) {
-            delay(10_000)
-            index = (safeIndex + 1) % items.size
-        }
-    }
-
-    Column {
-        AnimatedContent(
-            targetState = safeIndex,
-            transitionSpec = {
-                val transform = if (reduce) {
-                    fadeIn(tween(150)) togetherWith fadeOut(tween(150))
-                } else {
-                    val forward = targetState > initialState || (initialState == items.lastIndex && targetState == 0)
-                    val dir = if (forward) 1 else -1
-                    (slideInHorizontally(tween(350, easing = FsyMotion.EaseOut)) { w -> dir * w / 6 } + fadeIn(tween(350))) togetherWith
-                        (slideOutHorizontally(tween(250, easing = FsyMotion.EaseIn)) { w -> -dir * w / 8 } + fadeOut(tween(250)))
-                }
-                transform.using(SizeTransform(clip = true))
-            },
-            label = "announcementRotation",
-            // Toque na área de leitura = leitura: pausa a rotação até "Retomar".
-            modifier = Modifier.pointerInput(Unit) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false)
-                    userPaused = true
-                }
-            },
-        ) { i ->
-            val ann = items.getOrNull(i)
-            if (ann != null) HomeAnnouncementRow(ann = ann, onOpen = { onOpen(ann.id) })
-        }
-        if (items.size > 1) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+    val body: @Composable (Modifier) -> Unit = { m ->
+        Column(m, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            if (isNow) {
+                Text("Agora", style = MaterialTheme.typography.labelLarge, color = scheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+            }
+            Text(item.title, style = MaterialTheme.typography.titleMedium, color = if (isNow) scheme.onPrimaryContainer else textColor)
+            if (item.location.isNotBlank()) {
                 Text(
-                    text = "${safeIndex + 1} de ${items.size}",
-                    style = MaterialTheme.typography.labelMedium.merge(TabularTextStyle),
+                    item.location,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isNow) scheme.onPrimaryContainer.copy(alpha = 0.85f) else scheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+    if (largeText) {
+        Column(rowMod) {
+            time()
+            body(Modifier.fillMaxWidth())
+        }
+    } else {
+        Row(rowMod, horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            time()
+            body(Modifier.weight(1f))
+            Icon(FsyIcons.ChevronRight, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+}
+
+// --- Minha companhia ----------------------------------------------------------------------
+
+@Composable
+private fun CompanySection(appState: FsyAppState, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val comp = appState.company
+    val profile = appState.profile
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        FsySectionTitle("Minha companhia")
+        FsySectionCard(contentPadding = PaddingValues(20.dp)) {
+            if (comp == null) {
+                Text(
+                    text = "Aparece aqui quando a coordenação vincular você a uma companhia.",
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 4.dp),
                 )
-                FsyIconButton(
-                    icon = FsyIcons.ChevronLeft,
-                    contentDescription = "Aviso anterior",
-                    onClick = {
-                        userPaused = true
-                        index = (safeIndex - 1 + items.size) % items.size
-                    },
+                return@FsySectionCard
+            }
+            Text(comp.name, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
+            if (!comp.motto.isNullOrBlank()) {
+                Text(
+                    text = "“${comp.motto}”",
+                    fontFamily = LibreBaskervilleFontFamily,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 4.dp),
                 )
-                if (canAutoplay) {
-                    FsyIconButton(
-                        icon = if (userPaused) FsyIcons.Play else FsyIcons.Pause,
-                        contentDescription = if (userPaused) "Retomar troca automática" else "Pausar troca automática",
-                        onClick = { userPaused = !userPaused },
-                    )
+            }
+            val counselors = counselorContacts(appState)
+            if (counselors.isNotEmpty()) {
+                Spacer(Modifier.height(14.dp))
+                Text(
+                    if (counselors.size == 1) "Consultor(a)" else "Consultores",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                counselors.forEach { (name, phone) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 52.dp)
+                            .padding(top = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        FsyAvatar(name = name, size = 36.dp, containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                        if (!phone.isNullOrBlank()) {
+                            FsyIconButton(
+                                icon = FsyIcons.Phone,
+                                contentDescription = "Ligar para $name",
+                                tint = MaterialTheme.colorScheme.primary,
+                                onClick = { openDialer(context, phone) },
+                            )
+                        }
+                    }
                 }
-                FsyIconButton(
-                    icon = FsyIcons.ChevronRight,
-                    contentDescription = "Próximo aviso",
-                    onClick = {
-                        userPaused = true
-                        index = (safeIndex + 1) % items.size
-                    },
+            }
+            val room = profile?.room?.takeIf { it.isNotBlank() }
+            if (room != null) {
+                Spacer(Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(FsyIcons.BedDouble, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                    Text("Quarto $room", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+        }
+    }
+}
+
+/** Nome e telefone (quando o servidor informar) de quem cuida da companhia. */
+internal fun counselorContacts(appState: FsyAppState): List<Pair<String, String?>> {
+    val comp = appState.company ?: return emptyList()
+    val fromProfiles = comp.counselorProfiles.map { it.fullName to null as String? }
+    val names = if (fromProfiles.isNotEmpty()) fromProfiles else comp.counselors.filter { it.isNotBlank() }.map { it to null }
+    return names.distinctBy { it.first.trim().lowercase() }.take(4)
+}
+
+// --- Avisos recentes ----------------------------------------------------------------------
+
+@Composable
+private fun LatestAnnouncementsSection(
+    items: List<Announcement>,
+    readIds: Set<String>,
+    now: Instant,
+    onOpen: (String) -> Unit,
+    onAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        FsySectionTitle("Avisos") {
+            if (items.isNotEmpty()) FsyTextAction(label = "Ver todos", onClick = onAll, description = "Ver todos os avisos")
+        }
+        if (items.isEmpty()) {
+            Text("Nenhum aviso por enquanto.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            return@Column
+        }
+        FsySectionCard(contentPadding = PaddingValues(6.dp)) {
+            items.forEachIndexed { index, ann ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 14.dp))
+                val author = ann.author?.fullName?.takeIf { it.isNotBlank() } ?: "Coordenação"
+                val unread = ann.id !in readIds
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .clickable(role = Role.Button, onClickLabel = "Abrir aviso") { onOpen(ann.id) }
+                        .padding(horizontal = 12.dp, vertical = 12.dp)
+                        .semantics(mergeDescendants = true) {},
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    FsyAvatar(name = author, size = 40.dp, containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            if (ann.isUrgent) {
+                                Text("Urgente", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                            }
+                            Text(
+                                listOfNotNull(author, FsyFormat.relative(ann.createdAt, now)).joinToString(" · "),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
+                        Text(ann.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(
+                            ann.content,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    if (unread) {
+                        FsyDot(
+                            color = MaterialTheme.colorScheme.tertiary,
+                            size = 10.dp,
+                            modifier = Modifier
+                                .padding(top = 6.dp)
+                                .semantics { contentDescription = "Novo" },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Faixa de fotos -----------------------------------------------------------------------
+
+@Composable
+private fun PhotoStripSection(appState: FsyAppState, onOpen: () -> Unit, modifier: Modifier = Modifier) {
+    val photos = remember(appState.instagramPosts, appState.publicMediaPhotos) {
+        appState.instagramPosts.map { it.imageUrl to it.caption.ifBlank { "Publicação do Instagram" } } +
+            appState.publicMediaPhotos.mapNotNull { p -> p.thumbnailUrl?.takeIf { it.isNotBlank() }?.let { it to p.title } }
+    }.take(8)
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        FsySectionTitle("Fotos") {
+            FsyTextAction(label = "Ver todas", onClick = onOpen, description = "Abrir as fotos")
+        }
+        if (photos.isEmpty()) {
+            FsyClickableCard(onClick = onOpen, onClickLabel = "Abrir as fotos", contentPadding = PaddingValues(20.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Icon(FsyIcons.Camera, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Column(Modifier.weight(1f)) {
+                        Text("As fotos da sessão aparecem aqui", style = MaterialTheme.typography.titleMedium)
+                        Text("@${br.com.fsyrp2.app.model.InstagramPost.OFFICIAL_HANDLE} no Instagram", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            return@Column
+        }
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(end = 4.dp),
+        ) {
+            itemsIndexed(photos, key = { i, p -> "$i-${p.first}" }) { _, (url, caption) ->
+                RemotePublicImage(
+                    url = url,
+                    contentDescription = caption,
+                    maxDimensionPx = 480,
+                    modifier = Modifier
+                        .size(128.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .clickable(role = Role.Button, onClickLabel = "Abrir as fotos", onClick = onOpen),
                 )
             }
         }

@@ -1,8 +1,8 @@
 package br.com.fsyrp2.app.ui.screens
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,8 +31,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,85 +51,80 @@ import br.com.fsyrp2.app.model.Announcement
 import br.com.fsyrp2.app.model.UserRole
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.state.OverlayDestination
-import br.com.fsyrp2.app.ui.components.FsyActionButton
-import br.com.fsyrp2.app.ui.components.FsyButtonTone
-import br.com.fsyrp2.app.ui.components.FsyCardShape
-import br.com.fsyrp2.app.ui.components.FsyConnectivityBanner
-import br.com.fsyrp2.app.ui.components.FsyEmptyStateCard
-import br.com.fsyrp2.app.ui.components.FsyGutter
-import br.com.fsyrp2.app.ui.components.FsyIconButton
-import br.com.fsyrp2.app.ui.components.FsyLoadingBlock
-import br.com.fsyrp2.app.ui.components.FsySegmentedSelector
-import br.com.fsyrp2.app.ui.components.FsyTopBar
-import br.com.fsyrp2.app.ui.components.fsyReveal
+import br.com.fsyrp2.app.ui.components.*
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.icons.FsyIconsFilled
 import br.com.fsyrp2.app.ui.motion.FsyMotion
-import br.com.fsyrp2.app.ui.motion.fsyContentSwap
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.fsyPressScale
 import br.com.fsyrp2.app.ui.motion.fsySettleSpring
 import br.com.fsyrp2.app.ui.motion.rememberFsyHaptics
 import br.com.fsyrp2.app.ui.theme.TabularTextStyle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import java.time.Instant
 
+/**
+ * Avisos como um mural: quem escreveu, quando, o texto e a curtida. Dois filtros
+ * (Todos / Não lidos). O que aparece na tela por um instante conta como lido.
+ */
 @Composable
 fun AnnouncementsScreen(appState: FsyAppState) {
     val haptics = rememberFsyHaptics()
-    val reduceMotion = fsyMotionPreferences().reduceMotion
-    var filterScope by rememberSaveable { mutableStateOf("all") }
-    val profile = appState.profile
-    val role = profile?.roleEnum ?: UserRole.JOVEM
-    val canPublish = role == UserRole.CONSULTOR || role.isManager ||
-        (profile?.permissions?.contains("announcements") == true)
+    val now = rememberFsyNow(60_000L)
+    var showUnreadOnly by rememberSaveable { mutableStateOf(false) }
+    val unreadCount = appState.unreadAnnouncementCount
 
-    val filters = listOf("all" to "Todos", "urgent" to "Urgentes", "global" to "Sessão", "company" to "Companhia")
-    val filterDescriptions = listOf(
-        "Todos os avisos (${appState.announcements.size})",
-        "Somente urgentes",
-        "Avisos para toda a sessão",
-        "Avisos da minha companhia",
-    )
+    // Ao escolher "Não lidos", a lista fica fixa até trocar o filtro (ler não faz o item sumir).
+    val unreadSnapshot = remember(showUnreadOnly) {
+        appState.announcements.filter { it.id !in appState.readAnnouncementIds }.map { it.id }.toSet()
+    }
+    val items = if (showUnreadOnly) appState.announcements.filter { it.id in unreadSnapshot } else appState.announcements
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
-    val filtered = remember(appState.announcements, filterScope, profile?.companyId) {
-        appState.announcements.filter { ann ->
-            when (filterScope) {
-                "urgent" -> ann.isUrgent
-                "global" -> ann.companyId.isNullOrBlank()
-                "company" -> !ann.companyId.isNullOrBlank() && ann.companyId == profile?.companyId
-                else -> true
+    LaunchedEffect(listState, appState.announcements) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String } }
+            .collectLatest { keys ->
+                delay(1200)
+                appState.markAnnouncementsRead(keys.filter { k -> appState.announcements.any { it.id == k } })
             }
+    }
+    val focusedId = appState.focusedAnnouncementId
+    LaunchedEffect(focusedId, items) {
+        if (focusedId == null) return@LaunchedEffect
+        val idx = items.indexOfFirst { it.id == focusedId }
+        if (idx >= 0) {
+            listState.animateScrollToItem(idx)
+            delay(2500)
+            appState.consumeFocusedAnnouncement()
+        } else if (items.isNotEmpty()) {
+            appState.consumeFocusedAnnouncement()
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
         FsyTopBar(
             title = "Avisos",
-            subtitle = "Coordenação e companhia",
             actions = {
-                if (canPublish) {
+                // Publicar só existe para quem pode publicar (perfil carregado e papel de equipe).
+                if (appState.canPublishAnnouncements) {
                     FsyActionButton(
                         label = "Publicar",
                         icon = FsyIcons.Plus,
                         tone = FsyButtonTone.Tonal,
                         onClick = {
                             haptics.confirm()
-                            appState.overlayDestination = if (role == UserRole.CONSULTOR) {
-                                OverlayDestination.CounselorPanel
+                            if (appState.effectiveRole == UserRole.CONSULTOR) {
+                                appState.open(OverlayDestination.CounselorPanel)
                             } else {
-                                OverlayDestination.AdminHub(AdminModule.ANNOUNCEMENTS)
+                                appState.open(OverlayDestination.AdminHub(AdminModule.ANNOUNCEMENTS))
                             }
                         },
+                        modifier = Modifier.padding(end = 8.dp),
                     )
                 }
-                FsyIconButton(
-                    icon = FsyIcons.RefreshCw,
-                    contentDescription = "Atualizar avisos",
-                    onClick = {
-                        haptics.tick()
-                        appState.refreshCoreData()
-                    },
-                    enabled = !appState.isLoading,
-                )
             },
         )
         Column(
@@ -140,52 +138,43 @@ fun AnnouncementsScreen(appState: FsyAppState) {
                 onRefresh = { appState.refreshCoreData() }
             )
             FsySegmentedSelector(
-                options = filters.map { it.second },
-                descriptions = filterDescriptions,
-                selectedIndex = filters.indexOfFirst { it.first == filterScope }.coerceAtLeast(0),
+                options = listOf("Todos", if (unreadCount > 0) "Não lidos ($unreadCount)" else "Não lidos"),
+                selectedIndex = if (showUnreadOnly) 1 else 0,
                 onSelect = { index ->
                     haptics.tick()
-                    filterScope = filters[index].first
+                    showUnreadOnly = index == 1
+                    scope.launch { listState.scrollToItem(0) }
                 },
             )
         }
 
-        AnimatedContent(
-            targetState = filterScope,
-            transitionSpec = { fsyContentSwap(reduceMotion) },
-            label = "AnnouncementFilterSwap",
+        FsyRefreshable(
+            refreshing = appState.isLoading && !appState.isInitialLoading,
+            onRefresh = { appState.refreshCoreData() },
             modifier = Modifier.weight(1f),
-        ) { scope ->
-            val listState = rememberLazyListState()
-            val focusedId = appState.focusedAnnouncementId
-            LaunchedEffect(focusedId, filtered) {
-                val idx = filtered.indexOfFirst { it.id == focusedId }
-                if (idx >= 0) listState.animateScrollToItem(idx)
-            }
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = FsyGutter, end = FsyGutter, top = 14.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(start = FsyGutter, end = FsyGutter, top = 14.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 when {
-                    appState.announcements.isEmpty() && appState.isLoading -> item(key = "loading") {
-                        FsyLoadingBlock(rows = 3, rowHeight = 120.dp)
+                    appState.announcements.isEmpty() && appState.isInitialLoading -> item(key = "loading") {
+                        FsyLoadingBlock(rows = 3, rowHeight = 148.dp)
                     }
-                    filtered.isEmpty() -> item(key = "empty") {
+                    items.isEmpty() -> item(key = "empty") {
                         FsyEmptyStateCard(
                             icon = FsyIcons.Megaphone,
-                            title = when (scope) {
-                                "urgent" -> "Nenhum aviso urgente"
-                                "company" -> "Nada da sua companhia"
-                                else -> "Nenhum aviso por enquanto"
-                            },
-                            description = "Novos avisos aparecem aqui.",
+                            title = if (showUnreadOnly) "Tudo lido por aqui" else "Nenhum aviso por enquanto",
+                            description = if (showUnreadOnly) "Avisos novos aparecem aqui." else "Quando a coordenação publicar, aparece aqui.",
                         )
                     }
-                    else -> itemsIndexed(filtered, key = { _, it -> it.id }) { index, ann ->
-                        AnnouncementCard(
+                    else -> itemsIndexed(items, key = { _, it -> it.id }) { index, ann ->
+                        AnnouncementPost(
                             ann = ann,
+                            now = now,
+                            isUnread = ann.id !in appState.readAnnouncementIds,
                             isFocused = focusedId == ann.id,
                             onLike = {
                                 haptics.confirm()
@@ -200,113 +189,119 @@ fun AnnouncementsScreen(appState: FsyAppState) {
     }
 }
 
-private fun shortDate(iso: String): String? =
-    if (iso.length >= 10 && iso[4] == '-' && iso[7] == '-') "${iso.substring(8, 10)}/${iso.substring(5, 7)}" else null
+internal fun authorRoleLabel(role: String?): String = when (role?.trim()?.lowercase()) {
+    null, "" -> "Coordenação"
+    "coordenador", "casal_diretor", "logistica" -> "Coordenação"
+    else -> UserRole.fromWire(role).displayLabel
+}
 
 @Composable
-private fun AnnouncementCard(
+private fun AnnouncementPost(
     ann: Announcement,
+    now: Instant,
+    isUnread: Boolean,
     isFocused: Boolean,
     onLike: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable(ann.id) { mutableStateOf(isFocused) }
     val scheme = MaterialTheme.colorScheme
-    val container = if (ann.isUrgent) scheme.errorContainer else scheme.surface
-    val border = when {
-        isFocused -> scheme.primary
-        ann.isUrgent -> scheme.error.copy(alpha = 0.45f)
-        else -> scheme.outlineVariant
-    }
-    val onContainer = if (ann.isUrgent) scheme.onErrorContainer else scheme.onSurface
-    val muted = if (ann.isUrgent) scheme.onErrorContainer.copy(alpha = 0.85f) else scheme.onSurfaceVariant
-    val longContent = ann.content.length > 220
-
+    val author = ann.author?.fullName?.takeIf { it.isNotBlank() } ?: "Coordenação"
+    val meta = listOfNotNull(authorRoleLabel(ann.author?.role), FsyFormat.relative(ann.createdAt, now)).joinToString(" · ")
+    val longContent = ann.content.length > 240
     Surface(
         shape = FsyCardShape,
-        color = container,
-        contentColor = onContainer,
-        border = BorderStroke(if (isFocused) 2.dp else 1.dp, border),
+        color = scheme.surface,
+        border = BorderStroke(
+            if (isFocused) 2.dp else 1.dp,
+            when {
+                isFocused -> scheme.primary
+                ann.isUrgent -> scheme.error.copy(alpha = 0.5f)
+                else -> scheme.outlineVariant
+            },
+        ),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(
-            modifier = Modifier
-                .animateContentSize()
-                .padding(start = 16.dp, end = 8.dp, top = 14.dp, bottom = 4.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (ann.isUrgent) {
-                    Icon(FsyIcons.TriangleAlert, contentDescription = null, tint = scheme.error, modifier = Modifier.size(16.dp))
-                    Text("Urgente", style = MaterialTheme.typography.labelMedium, color = scheme.error, fontWeight = FontWeight.Bold)
-                    Text("·", style = MaterialTheme.typography.labelMedium, color = muted)
-                }
-                Text(
-                    text = if (!ann.companyId.isNullOrBlank()) "Companhia" else "Toda a sessão",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = muted,
+        Column(modifier = Modifier.animateContentSize().padding(start = 18.dp, end = 10.dp, top = 16.dp, bottom = 6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                FsyAvatar(
+                    name = author,
+                    size = 44.dp,
+                    containerColor = scheme.primaryContainer,
+                    contentColor = scheme.onPrimaryContainer,
                 )
-                Spacer(Modifier.weight(1f))
-                shortDate(ann.createdAt)?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.labelMedium.merge(TabularTextStyle),
-                        color = muted,
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
+                Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
+                    Text(author, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = Int.MAX_VALUE, overflow = TextOverflow.Clip)
+                    Text(meta, style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
+                }
+                if (isUnread) {
+                    FsyDot(color = scheme.tertiary, size = 10.dp, modifier = Modifier.padding(end = 8.dp).semantics { contentDescription = "Novo" })
+                }
+            }
+            if (ann.isUrgent || !ann.companyId.isNullOrBlank()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 12.dp)) {
+                    if (ann.isUrgent) {
+                        FsyStatusBadge(
+                            text = "Urgente",
+                            icon = FsyIcons.TriangleAlert,
+                            backgroundColor = scheme.errorContainer,
+                            contentColor = scheme.onErrorContainer,
+                        )
+                    }
+                    if (!ann.companyId.isNullOrBlank()) {
+                        FsyStatusBadge(
+                            text = "Sua companhia",
+                            icon = FsyIcons.Users,
+                            backgroundColor = scheme.secondaryContainer,
+                            contentColor = scheme.onSecondaryContainer,
+                        )
+                    }
                 }
             }
             Text(
                 text = ann.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 6.dp, end = 8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 12.dp, end = 8.dp),
             )
             Text(
                 text = ann.content,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = if (expanded || !longContent) Int.MAX_VALUE else 4,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = if (expanded || !longContent) Int.MAX_VALUE else 5,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 6.dp, end = 8.dp),
             )
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val authorLabel = ann.author?.fullName?.takeIf { it.isNotBlank() } ?: "Coordenação"
-                Text(
-                    text = authorLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = muted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                LikeButton(liked = ann.isLikedEffective, count = ann.likesCount, onClick = onLike)
+                Spacer(Modifier.weight(1f))
                 if (longContent) {
                     Text(
-                        text = if (expanded) "Menos" else "Ler tudo",
+                        text = if (expanded) "Mostrar menos" else "Ler tudo",
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (ann.isUrgent) onContainer else scheme.primary,
+                        color = br.com.fsyrp2.app.ui.theme.FsyPalette.Link,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(14.dp))
                             .clickable(role = Role.Button) { expanded = !expanded }
-                            .padding(horizontal = 10.dp, vertical = 14.dp),
+                            .padding(horizontal = 12.dp, vertical = 14.dp),
                     )
                 }
-                LikeButton(liked = ann.likedByMe, count = ann.likesCount, onClick = onLike)
             }
         }
     }
 }
 
-/** Curtir: coração preenche e dá um leve "assentar" de escala (mola sem ultrapassagem). */
+/**
+ * Curtir: o coração cresce até 1,3 em 120 ms e assenta com mola sem ultrapassagem, enche de
+ * coral e o número troca. Retorno tátil de confirmação. Movimento reduzido: só a troca.
+ */
 @Composable
-private fun LikeButton(liked: Boolean, count: Int, onClick: () -> Unit) {
+internal fun LikeButton(liked: Boolean, count: Int, onClick: () -> Unit) {
     val reduce = fsyMotionPreferences().reduceMotion
     val interaction = remember { MutableInteractionSource() }
     val pop = remember { Animatable(1f) }
+    var userToggled by remember { mutableStateOf(false) }
     LaunchedEffect(liked) {
-        if (liked && !reduce) {
-            pop.snapTo(0.8f)
+        if (liked && userToggled && !reduce) {
+            pop.animateTo(1.3f, tween(120, easing = FsyMotion.EaseOut))
             pop.animateTo(1f, fsySettleSpring(snappy = true))
         }
     }
@@ -314,32 +309,36 @@ private fun LikeButton(liked: Boolean, count: Int, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fsyPressScale(interaction)
-            .clip(RoundedCornerShape(14.dp))
-            .clickable(interactionSource = interaction, indication = ripple(), role = Role.Button, onClick = onClick)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(interactionSource = interaction, indication = ripple(), role = Role.Button) {
+                userToggled = true
+                onClick()
+            }
             .semantics(mergeDescendants = true) {
-                contentDescription = "Curtir aviso, $count curtidas"
+                contentDescription = "Curtir, $count curtidas"
                 stateDescription = if (liked) "Curtido" else "Não curtido"
             }
-            .height(48.dp)
-            .padding(horizontal = 12.dp),
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
             imageVector = if (liked) FsyIconsFilled.Heart else FsyIcons.Heart,
             contentDescription = null,
             tint = tint,
             modifier = Modifier
-                .size(20.dp)
+                .size(24.dp)
                 .graphicsLayer {
                     scaleX = pop.value
                     scaleY = pop.value
                 },
         )
         Text(
-            text = count.toString(),
-            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle),
+            text = if (count > 0) count.toString() else "Curtir",
+            style = MaterialTheme.typography.titleSmall.merge(TabularTextStyle),
             fontWeight = FontWeight.Bold,
+            color = if (liked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

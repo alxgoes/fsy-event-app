@@ -47,6 +47,9 @@
                 <data android:scheme="fsyrp2" android:host="agenda" />
                 <data android:scheme="fsyrp2" android:host="avisos" />
                 <data android:scheme="fsyrp2" android:host="perfil" />
+                <data android:scheme="fsyrp2" android:host="mais" />
+                <data android:scheme="fsyrp2" android:host="admin" />
+                <data android:scheme="fsyrp2" android:host="consultor" />
                 <data android:scheme="fsyrp2" android:host="portal" />
             </intent-filter>
         </activity>

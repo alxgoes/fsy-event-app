@@ -28,7 +28,7 @@ sealed class DeepLinkTarget {
  */
 object DeepLinkParser {
     const val SCHEME = "fsyrp2"
-    private val ALLOWED_HOSTS = setOf("auth-callback", "inicio", "agenda", "avisos", "perfil", "portal")
+    private val ALLOWED_HOSTS = setOf("auth-callback", "inicio", "agenda", "avisos", "perfil", "mais", "portal", "admin", "gestao", "gestão", "consultor", "counselor")
 
     fun parse(rawUriString: String?): DeepLinkTarget? {
         val raw = rawUriString?.trim().orEmpty()
@@ -46,6 +46,7 @@ object DeepLinkParser {
         val host = uri.host?.lowercase() ?: return null
         if (host !in ALLOWED_HOSTS) return null
 
+        if (host in setOf("admin", "gestao", "gestão", "consultor", "counselor")) return DeepLinkTarget.Navigation(AppTab.INICIO)
         val path = uri.rawPath.orEmpty()
         if (path.contains("..") || path.contains("\\")) return null
 
@@ -75,6 +76,7 @@ object DeepLinkParser {
                     DeepLinkTarget.Navigation(AppTab.AGENDA, itemId = id?.lowercase())
                 }
                 "perfil", "profile" -> DeepLinkTarget.Navigation(AppTab.PERFIL)
+                "admin", "gestao", "consultor", "counselor" -> DeepLinkTarget.Navigation(AppTab.INICIO)
                 else -> null
             }
         }

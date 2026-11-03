@@ -1,5 +1,9 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
+import br.com.fsyrp2.app.ui.components.*
+
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 
 import androidx.compose.foundation.horizontalScroll
@@ -7,6 +11,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,7 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import br.com.fsyrp2.app.data.EventCalendar
 import br.com.fsyrp2.app.model.*
 import br.com.fsyrp2.app.state.FsyAppState
@@ -30,6 +39,8 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 // =============================================================================
 // 1. CONTAS E PERMISSÕES (`/api/admin/accounts`)
@@ -37,11 +48,13 @@ import kotlinx.serialization.json.put
 
 @Composable
 fun AccountsAdminModuleView(appState: FsyAppState) {
+    if (appState.profile == null || appState.profile?.isSuspended == true || !appState.effectiveRole.isManager) return
     SecureScreenEffect()
     val haptics = rememberFsyHaptics()
     val scope = rememberCoroutineScope()
 
     var accounts by remember { mutableStateOf<List<AdminAccountRecord>>(emptyList()) }
+    var permissions by remember { mutableStateOf<Map<String, List<String>>>(emptyMap()) }
     var metrics by remember { mutableStateOf(AccountListMetrics()) }
     var search by remember { mutableStateOf("") }
     var roleFilter by remember { mutableStateOf("all") }
@@ -52,6 +65,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
     var isLoading by remember { mutableStateOf(false) }
     var feedback by remember { mutableStateOf<String?>(null) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
+    var isMutating by remember { mutableStateOf(false) }
 
     var selectedAccountForEdit by remember { mutableStateOf<AdminAccountRecord?>(null) }
     var selectedAccountForEvents by remember { mutableStateOf<AdminAccountRecord?>(null) }
@@ -71,6 +85,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                     page = page
                 )
                 accounts = res.accounts
+                permissions = res.permissions
                 metrics = res.metrics
                 totalPages = res.totalPages
             } catch (e: Exception) {
@@ -120,7 +135,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                         singleLine = true,
                         modifier = Modifier.weight(1f)
                     )
-                    Button(
+                    FsyButton(
                         onClick = {
                             haptics.tick()
                             page = 1
@@ -141,15 +156,17 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     val roles = listOf(
-                        "all" to "Todos os papéis",
+                        "all" to "Todos os cargos",
                         "jovem" to "Jovens",
-                        "consultor" to "Conselheiros",
+                        "consultor" to "Consultores",
+                        "midia" to "Mídia",
+                        "medico" to "Equipe Multidisciplinar",
                         "logistica" to "Logística",
                         "coordenador" to "Coordenadores",
                         "casal_diretor" to "Casal Diretor"
                     )
                     roles.forEach { (key, label) ->
-                        FilterChip(
+                        FsyFilterChip(
                             selected = roleFilter == key,
                             onClick = {
                                 haptics.tick()
@@ -189,6 +206,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
         }
 
         items(accounts, key = { it.id }) { acc ->
+            val allowedActions = AccountPermissions.allowedActions(appState.effectiveRole, appState.session?.userId, acc, permissions[acc.id].orEmpty())
             FsySectionCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -218,7 +236,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
 
                 Text(
                     text = buildString {
-                        append("Status: ${acc.status}")
+                        append("Acesso: ${acc.statusLabel}")
                         if (!acc.companyName.isNullOrBlank()) append(" • Companhia: ${acc.companyName}")
                         if (!acc.room.isNullOrBlank()) append(" • Quarto: ${acc.room}")
                         if (!acc.busAssignment.isNullOrBlank()) append(" • Ônibus: ${acc.busAssignment}")
@@ -233,9 +251,11 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedButton(
+                    if (allowedActions.isNotEmpty()) FsyOutlinedButton(
                         onClick = {
                             haptics.tick()
+                            errorMsg = null
+                            feedback = null
                             selectedAccountForEdit = acc
                         },
                         modifier = Modifier
@@ -247,7 +267,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                         Text("Gerenciar")
                     }
 
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = {
                             haptics.tick()
                             selectedAccountForEvents = acc
@@ -264,7 +284,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                     ) {
                         Icon(FsyIcons.History, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Auditoria")
+                        Text("Histórico")
                     }
                 }
             }
@@ -277,7 +297,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = { if (page > 1) page-- },
                         enabled = page > 1,
                         modifier = Modifier.defaultMinSize(minHeight = 48.dp)
@@ -288,7 +308,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                         style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
                     )
 
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = { if (page < totalPages) page++ },
                         enabled = page < totalPages,
                         modifier = Modifier.defaultMinSize(minHeight = 48.dp)
@@ -300,67 +320,55 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
 
     val editingAcc = selectedAccountForEdit
     if (editingAcc != null) {
+        val allowedActions = AccountPermissions.allowedActions(appState.effectiveRole, appState.session?.userId, editingAcc, permissions[editingAcc.id].orEmpty())
+        fun mutate(action: String, message: String, closeAfter: Boolean = true, operation: suspend (UserSession) -> Unit) {
+            if (isMutating || action !in allowedActions) return
+            isMutating = true
+            errorMsg = null
+            feedback = null
+            scope.launch {
+                try {
+                    operation(appState.withValidSession())
+                    feedback = message
+                    if (closeAfter) selectedAccountForEdit = null
+                    reload()
+                } catch (e: Exception) {
+                    errorMsg = e.message ?: "Não foi possível concluir a alteração. Tente novamente."
+                } finally { isMutating = false }
+            }
+        }
         AccountEditDialog(
             account = editingAcc,
-            onDismiss = { selectedAccountForEdit = null },
+            actions = allowedActions,
+            actorRole = appState.effectiveRole,
+            busy = isMutating,
+            errorMessage = errorMsg,
+            feedback = feedback,
+            onDismiss = { if (!isMutating) selectedAccountForEdit = null },
             onSavePatch = { patchBody ->
-                scope.launch {
-                    try {
-                        val s = appState.withValidSession()
-                        appState.apiClient.patchAccount(s, editingAcc.id, patchBody)
-                        feedback = "Conta de ${editingAcc.fullName} atualizada."
-                        selectedAccountForEdit = null
-                        reload()
-                    } catch (e: Exception) {
-                        errorMsg = e.message
-                    }
+                val action = patchBody["action"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                mutate(action, if (action == "role") "Cargo alterado." else "Conta de ${editingAcc.fullName} atualizada.") { session ->
+                    appState.apiClient.patchAccount(session, editingAcc.id, patchBody)
                 }
             },
             onSetPassword = { newPassword ->
-                scope.launch {
-                    try {
-                        val s = appState.withValidSession()
-                        appState.apiClient.setAccountPassword(s, editingAcc.id, newPassword)
-                        feedback = "Senha redefinida para ${editingAcc.fullName}."
-                        selectedAccountForEdit = null
-                    } catch (e: Exception) {
-                        errorMsg = e.message
-                    }
+                mutate("set_password", "Senha redefinida para ${editingAcc.fullName}.") { session ->
+                    appState.apiClient.setAccountPassword(session, editingAcc.id, newPassword)
                 }
             },
             onSendRecovery = {
-                scope.launch {
-                    try {
-                        val s = appState.withValidSession()
-                        appState.apiClient.sendAccountRecovery(s, editingAcc.id)
-                        feedback = "Link de recuperação enviado para ${editingAcc.email}."
-                    } catch (e: Exception) {
-                        errorMsg = e.message
-                    }
+                mutate("recovery_email", "Link de recuperação enviado para ${editingAcc.email}.", false) { session ->
+                    appState.apiClient.sendAccountRecovery(session, editingAcc.id)
                 }
             },
             onSendEmail = { subject, body ->
-                scope.launch {
-                    try {
-                        val s = appState.withValidSession()
-                        appState.apiClient.sendAccountEmail(s, editingAcc.id, subject, body)
-                        feedback = "E-mail enviado para ${editingAcc.email}."
-                    } catch (e: Exception) {
-                        errorMsg = e.message
-                    }
+                mutate("email", "Mensagem aceita para envio a ${editingAcc.email}.", false) { session ->
+                    appState.apiClient.sendAccountEmail(session, editingAcc.id, subject, body)
                 }
             },
             onDeleteAccount = { confirmStr ->
-                scope.launch {
-                    try {
-                        val s = appState.withValidSession()
-                        appState.apiClient.deleteAccount(s, editingAcc.id, confirmStr)
-                        feedback = "Conta excluída."
-                        selectedAccountForEdit = null
-                        reload()
-                    } catch (e: Exception) {
-                        errorMsg = e.message
-                    }
+                mutate("delete", "Conta excluída.") { session ->
+                    appState.apiClient.deleteAccount(session, editingAcc.id, confirmStr)
                 }
             }
         )
@@ -370,7 +378,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
     if (eventsAcc != null) {
         AlertDialog(
             onDismissRequest = { selectedAccountForEvents = null },
-            title = { Text("Histórico de Auditoria — ${eventsAcc.fullName}") },
+            title = { Text("Histórico — ${eventsAcc.fullName}") },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -387,7 +395,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                             ) {
                                 Column(modifier = Modifier.padding(8.dp)) {
                                     Text(
-                                        text = "${ev.action} • ${ev.createdAt.take(16)}",
+                                        text = "${ev.actionLabel} • ${ev.createdAt.take(16)}",
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -402,7 +410,7 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                TextButton(
+                FsyTextButton(
                     onClick = { selectedAccountForEvents = null },
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) { Text("Fechar") }
@@ -412,8 +420,13 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
 }
 
 @Composable
-private fun AccountEditDialog(
+internal fun AccountEditDialog(
     account: AdminAccountRecord,
+    actions: Set<String>,
+    actorRole: UserRole,
+    busy: Boolean,
+    errorMessage: String?,
+    feedback: String?,
     onDismiss: () -> Unit,
     onSavePatch: (kotlinx.serialization.json.JsonObject) -> Unit,
     onSetPassword: (String) -> Unit,
@@ -421,96 +434,117 @@ private fun AccountEditDialog(
     onSendEmail: (String, String) -> Unit,
     onDeleteAccount: (String) -> Unit
 ) {
-    var fullName by remember { mutableStateOf(account.fullName) }
-    var role by remember { mutableStateOf(account.role.orEmpty()) }
-    var unit by remember { mutableStateOf(account.unit.orEmpty()) }
-    var room by remember { mutableStateOf(account.room.orEmpty()) }
-
-    var suspended by remember { mutableStateOf(account.status == "suspenso") }
-
-
+    var fullName by remember(account.id) { mutableStateOf(account.fullName) }
+    var selectedRoleValue by rememberSaveable(account.id) { mutableStateOf(account.role ?: "jovem") }
+    val role = UserRole.fromWire(selectedRoleValue)
+    var unit by remember(account.id) { mutableStateOf(account.unit.orEmpty()) }
+    var room by remember(account.id) { mutableStateOf(account.room.orEmpty()) }
     var manualPassword by remember { mutableStateOf("") }
     var emailSubject by remember { mutableStateOf("") }
     var emailBody by remember { mutableStateOf("") }
     var deleteConfirm by remember { mutableStateOf("") }
+    var confirmDelete by remember { mutableStateOf(false) }
+    val assignableRoles = AccountPermissions.assignableRoles(actorRole, actions)
+    val expectedDeleteConfirmation = account.email ?: account.fullName
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Gerenciar Conta: ${account.fullName}") },
+    AccountEditorDialogFrame(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text("Gerenciar conta: ${account.fullName}") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                feedback?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
+                if ("edit" in actions) {
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it },
                     label = { Text("Nome completo") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = role,
-                    onValueChange = { role = it },
-                    label = { Text("Papel (jovem, consultor, logistica, coordenador, casal_diretor)") },
+                    enabled = !busy,
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = unit,
                     onValueChange = { unit = it },
-                    label = { Text("Unidade / Ala / Estaca") },
+                    label = { Text("Estaca ou distrito") },
+                    enabled = !busy,
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = room,
-                        onValueChange = { room = it },
-                        label = { Text("Quarto") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Suspender acesso da conta")
-                    Switch(checked = suspended, onCheckedChange = { suspended = it })
+                OutlinedTextField(
+                    value = room,
+                    onValueChange = { room = it },
+                    label = { Text("Quarto") },
+                    enabled = !busy,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 }
 
+                if (assignableRoles.isNotEmpty()) {
+                    HorizontalDivider()
+                    Text("Cargo no portal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("O cargo define o que a pessoa pode ver e alterar.", style = MaterialTheme.typography.bodySmall)
+                    AccountRolePicker(roles = assignableRoles, selected = role, enabled = !busy, onSelected = { selectedRoleValue = it.wireValue })
+                    FsyOutlinedButton(
+                        onClick = { onSavePatch(buildJsonObject { put("action", "role"); put("role", role.wireValue) }) },
+                        enabled = !busy && role in assignableRoles && role.wireValue != account.role,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Aplicar cargo") }
+                }
+                if ("suspend" in actions || "reactivate" in actions) {
+                    HorizontalDivider()
+                    FsyOutlinedButton(
+                        onClick = { onSavePatch(buildJsonObject { put("action", if (account.suspended) "reactivate" else "suspend") }) },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(if (account.suspended) "Reativar acesso" else "Suspender acesso") }
+                }
+                if ("set_password" in actions || "recovery_email" in actions) {
                 HorizontalDivider()
-                OutlinedButton(onClick = { onSavePatch(buildJsonObject { put("action", "role"); put("role", role.trim()) }) }, modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)) { Text("Alterar cargo") }
-                OutlinedButton(onClick = { onSavePatch(buildJsonObject { put("action", if (suspended) "suspend" else "reactivate") }) }, modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)) { Text("Aplicar estado de acesso") }
-                Text("Segurança e Senha", fontWeight = FontWeight.Bold)
+                Text("Acesso e senha", fontWeight = FontWeight.Bold)
+                if ("set_password" in actions) {
                 OutlinedTextField(
                     value = manualPassword,
                     onValueChange = { manualPassword = it },
-                    label = { Text("Nova senha manual (mín. 8 caracteres)") },
+                    label = { Text("Nova senha (8 a 72 caracteres)") },
+                    enabled = !busy,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
+                    FsyOutlinedButton(
                         onClick = { onSetPassword(manualPassword) },
-                        enabled = manualPassword.length >= 8,
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        enabled = !busy && PasswordPolicy.validate(manualPassword) == null,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(FsyIcons.KeyRound, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
                         Text("Definir senha")
                     }
-                    OutlinedButton(
+                }
+                if ("recovery_email" in actions) {
+                    FsyOutlinedButton(
                         onClick = onSendRecovery,
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Enviar recuperação")
                     }
                 }
+                }
 
+                if ("email" in actions) {
                 HorizontalDivider()
-                Text("Enviar E-mail Direto", fontWeight = FontWeight.Bold)
+                Text("Enviar e-mail", fontWeight = FontWeight.Bold)
                 OutlinedTextField(
                     value = emailSubject,
                     onValueChange = { emailSubject = it },
                     label = { Text("Assunto do e-mail") },
+                    enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
@@ -518,39 +552,44 @@ private fun AccountEditDialog(
                     onValueChange = { emailBody = it },
                     label = { Text("Mensagem") },
                     minLines = 2,
+                    enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedButton(
+                FsyOutlinedButton(
                     onClick = { onSendEmail(emailSubject, emailBody) },
-                    enabled = emailSubject.isNotBlank() && emailBody.isNotBlank(),
+                    enabled = !busy && emailSubject.trim().length in 3..150 && emailBody.trim().length in 10..5000,
                     modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                 ) {
                     Icon(FsyIcons.Mail, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
-                    Text("Disparar e-mail institucional")
+                    Text("Enviar mensagem")
+                }
                 }
 
+                if ("delete" in actions) {
                 HorizontalDivider()
-                Text("Zona de Exclusão Permanente", fontWeight = FontWeight.Bold, color = FsyPalette.Danger)
+                Text("Excluir conta", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                 OutlinedTextField(
                     value = deleteConfirm,
                     onValueChange = { deleteConfirm = it },
-                    label = { Text("Digite EXCLUIR ou ${account.email}") },
+                    label = { Text("Digite $expectedDeleteConfirmation") },
+                    enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedButton(
-                    onClick = { onDeleteAccount(deleteConfirm) },
-                    enabled = deleteConfirm.isNotBlank(),
+                FsyOutlinedButton(
+                    onClick = { confirmDelete = true },
+                    enabled = !busy && deleteConfirm.trim().equals(expectedDeleteConfirmation.trim(), ignoreCase = true),
                     modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                 ) {
                     Icon(FsyIcons.Trash2, contentDescription = null, tint = FsyPalette.Danger)
                     Spacer(Modifier.width(6.dp))
                     Text("Excluir conta permanentemente", color = FsyPalette.Danger)
                 }
+                }
             }
         },
         confirmButton = {
-            Button(
+            if ("edit" in actions) FsyButton(
                 onClick = {
 
                     val patch = buildJsonObject {
@@ -565,18 +604,79 @@ private fun AccountEditDialog(
                     }
                     onSavePatch(patch)
                 },
+                enabled = !busy && fullName.trim().length in 2..160 && unit.trim().length <= 120 && room.trim().length <= 40,
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
             ) {
-                Text("Salvar alterações")
+                Text("Salvar dados")
             }
         },
         dismissButton = {
-            TextButton(
+            FsyTextButton(
                 onClick = onDismiss,
+                enabled = !busy,
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-            ) { Text("Cancelar") }
+            ) { Text("Fechar") }
         }
     )
+    if (confirmDelete) FsyConfirmDialog(
+        title = "Excluir esta conta?",
+        message = "A conta de ${account.fullName} será excluída permanentemente.",
+        confirmLabel = "Excluir conta", busy = busy,
+        onConfirm = { confirmDelete = false; onDeleteAccount(deleteConfirm) }, onDismiss = { confirmDelete = false }
+    )
+}
+
+/** Evita medidas intrínsecas de AlertDialog com campos; título e ações ficam sempre acessíveis. */
+@Composable
+private fun AccountEditorDialogFrame(
+    onDismissRequest: () -> Unit,
+    title: @Composable () -> Unit,
+    text: @Composable () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            securePolicy = androidx.compose.ui.window.SecureFlagPolicy.SecureOn
+        )
+    ) {
+        Surface(
+            modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(0.94f).fillMaxHeight(0.94f),
+            color = MaterialTheme.colorScheme.surface,
+            shape = FsyCardShape
+        ) {
+            Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+                CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.headlineSmall) { title() }
+                Spacer(Modifier.height(16.dp))
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) { text() }
+                Spacer(Modifier.height(16.dp))
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                    confirmButton()
+                    dismissButton()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AccountRolePicker(roles: List<UserRole>, selected: UserRole, enabled: Boolean, onSelected: (UserRole) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().selectableGroup()) {
+        roles.forEach { choice ->
+            Row(
+                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                    .selectable(selected = choice == selected, enabled = enabled, role = Role.RadioButton, onClick = { onSelected(choice) })
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                RadioButton(selected = choice == selected, enabled = enabled, onClick = null)
+                Text(choice.labelPt, modifier = Modifier.weight(1f))
+            }
+        }
+    }
 }
 
 // =============================================================================
@@ -585,6 +685,8 @@ private fun AccountEditDialog(
 
 @Composable
 fun CompaniesAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     val haptics = rememberFsyHaptics()
     val scope = rememberCoroutineScope()
 
@@ -631,7 +733,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Button(
+                FsyButton(
                     onClick = {
                         haptics.confirm()
                         creatingNew = true
@@ -667,9 +769,10 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                             Text("Lema: “${comp.motto}”", style = MaterialTheme.typography.bodySmall)
                         }
                         Text(
-                            text = "Sala: ${comp.room ?: "—"} • Conselheiros: ${
-                                assignedCounselors.joinToString { it.fullName }.ifBlank { "Nenhum vinculado" }
-                            }",
+                            text = buildList {
+                                comp.room?.takeIf { it.isNotBlank() }?.let { add("Sala: $it") }
+                                add("Consultores: ${assignedCounselors.joinToString { it.fullName }.ifBlank { "Nenhum vinculado" }}")
+                            }.joinToString(" · "),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -685,12 +788,14 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
 
                         IconButton(
                             onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        appState.apiClient.deleteCompany(s, comp.id)
-                                        reload()
-                                    }.onFailure { errorMsg = it.message }
+                                confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            appState.apiClient.deleteCompany(s, comp.id)
+                                            reload()
+                                        }.onFailure { errorMsg = it.message }
+                                    }
                                 }
                             },
                             modifier = Modifier.size(48.dp)
@@ -734,7 +839,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -762,7 +867,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingCompany = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingCompany = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -774,6 +879,8 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
 
 @Composable
 fun ScheduleAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     val scope = rememberCoroutineScope()
     var items by remember { mutableStateOf<List<ScheduleItem>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -809,7 +916,7 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Atividades do Cronograma (${items.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Button(
+                FsyButton(
                     onClick = {
                         creatingNew = true
                         editingItem = ScheduleItem(id = "", day = "dia1", startTime = "08:00", endTime = "09:00", title = "")
@@ -855,13 +962,15 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                         ) { Icon(FsyIcons.Pencil, contentDescription = "Editar ${item.title}") }
                         IconButton(
                             onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        appState.apiClient.deleteScheduleItem(s, item.id)
-                                        reload()
-                                        appState.refreshCoreData()
-                                    }.onFailure { errorMsg = it.message }
+                                confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            appState.apiClient.deleteScheduleItem(s, item.id)
+                                            reload()
+                                            appState.refreshCoreData()
+                                        }.onFailure { errorMsg = it.message }
+                                    }
                                 }
                             },
                             modifier = Modifier.size(48.dp)
@@ -874,13 +983,13 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
 
     val target = editingItem
     if (target != null) {
-        var dayKey by remember(target) { mutableStateOf(target.dayKey) }
-        var startTime by remember(target) { mutableStateOf(target.startTime.take(5)) }
-        var endTime by remember(target) { mutableStateOf(target.endTime.take(5)) }
-        var title by remember(target) { mutableStateOf(target.title) }
-        var location by remember(target) { mutableStateOf(target.location.orEmpty()) }
-        var category by remember(target) { mutableStateOf(target.category) }
-        var description by remember(target) { mutableStateOf(target.description.orEmpty()) }
+        var dayKey by rememberSaveable(target.id) { mutableStateOf(target.dayKey) }
+        var startTime by rememberSaveable(target.id) { mutableStateOf(target.startTime.take(5)) }
+        var endTime by rememberSaveable(target.id) { mutableStateOf(target.endTime.take(5)) }
+        var title by rememberSaveable(target.id) { mutableStateOf(target.title) }
+        var location by rememberSaveable(target.id) { mutableStateOf(target.location.orEmpty()) }
+        var category by rememberSaveable(target.id) { mutableStateOf(ScheduleDays.normalizeCategory(target.category)) }
+        var description by rememberSaveable(target.id) { mutableStateOf(target.description.orEmpty()) }
 
         AlertDialog(
             onDismissRequest = { editingItem = null },
@@ -890,19 +999,30 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(value = dayKey, onValueChange = { dayKey = it }, label = { Text("Dia (dia0, dia1, dia2, dia3, dia4, dia5)") }, modifier = Modifier.fillMaxWidth())
+                    Text("Dia da atividade", style = MaterialTheme.typography.titleSmall)
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ScheduleDays.keys.forEach { key ->
+                            FsyFilterChip(selected = dayKey == key, onClick = { dayKey = key }, label = { Text(ScheduleDays.label(key)) })
+                        }
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(value = startTime, onValueChange = { startTime = it }, label = { Text("Início (HH:MM)") }, modifier = Modifier.weight(1f))
                         OutlinedTextField(value = endTime, onValueChange = { endTime = it }, label = { Text("Fim (HH:MM)") }, modifier = Modifier.weight(1f))
                     }
                     OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título da atividade") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text("Local") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Categoria (spiritual, activity, meal, logistics)") }, modifier = Modifier.fillMaxWidth())
+                    Text("Categoria", style = MaterialTheme.typography.titleSmall)
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ScheduleDays.categories.forEach { value ->
+                            FsyFilterChip(selected = category == value, onClick = { category = value }, label = { Text(value) })
+                        }
+                    }
+                    if (!ScheduleDays.validTimes(startTime, endTime)) Text("Use HH:MM. O fim deve ser depois do início.", color = MaterialTheme.colorScheme.error)
                     OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descrição") }, minLines = 2, modifier = Modifier.fillMaxWidth())
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -915,7 +1035,7 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                                     put("end_time", endTime.trim())
                                     put("title", title.trim())
                                     put("location", location.trim().ifBlank { null })
-                                    put("category", category.trim().ifBlank { "activity" })
+                                    put("category", category)
                                     put("description", description.trim().ifBlank { null })
                                 }
                                 appState.apiClient.saveScheduleItem(s, isNew = creatingNew, body = body)
@@ -927,12 +1047,12 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
                             }
                         }
                     },
-                    enabled = title.isNotBlank(),
+                    enabled = title.isNotBlank() && ScheduleDays.validTimes(startTime, endTime),
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingItem = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingItem = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -944,6 +1064,8 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
 
 @Composable
 fun LogisticsAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     val scope = rememberCoroutineScope()
     var buses by remember { mutableStateOf<List<LogisticsBus>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -979,7 +1101,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Frota e Transporte (${buses.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Button(
+                FsyButton(
                     onClick = {
                         creatingNew = true
                         editingBus = LogisticsBus(id = "", busNumber = "", stakeCity = "", driverName = "")
@@ -1023,12 +1145,14 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                         }
                         IconButton(
                             onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        appState.apiClient.deleteLogisticsBus(s, bus.id)
-                                        reload()
-                                    }.onFailure { errorMsg = it.message }
+                                confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            appState.apiClient.deleteLogisticsBus(s, bus.id)
+                                            reload()
+                                        }.onFailure { errorMsg = it.message }
+                                    }
                                 }
                             },
                             modifier = Modifier.size(48.dp)
@@ -1041,11 +1165,11 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
 
     val target = editingBus
     if (target != null) {
-        var name by remember(target) { mutableStateOf(target.name) }
-        var departure by remember(target) { mutableStateOf(target.departureLocation.orEmpty()) }
-        var arrival by remember(target) { mutableStateOf(target.arrivalTime.orEmpty()) }
-        var driverName by remember(target) { mutableStateOf(target.driverName.orEmpty()) }
-        var driverPhone by remember(target) { mutableStateOf(target.driverPhone.orEmpty()) }
+        var name by rememberSaveable(target.id) { mutableStateOf(target.name) }
+        var departure by rememberSaveable(target.id) { mutableStateOf(target.departureLocation.orEmpty()) }
+        var arrival by rememberSaveable(target.id) { mutableStateOf(target.arrivalTime.orEmpty()) }
+        var driverName by rememberSaveable(target.id) { mutableStateOf(target.driverName.orEmpty()) }
+        var driverPhone by rememberSaveable(target.id) { mutableStateOf(target.driverPhone.orEmpty()) }
 
         AlertDialog(
             onDismissRequest = { editingBus = null },
@@ -1060,7 +1184,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -1086,7 +1210,7 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingBus = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingBus = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -1098,6 +1222,8 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
 
 @Composable
 fun AnnouncementsAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     val scope = rememberCoroutineScope()
     var editingAnn by remember { mutableStateOf<Announcement?>(null) }
     var creatingNew by remember { mutableStateOf(false) }
@@ -1119,7 +1245,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Button(
+                FsyButton(
                     onClick = {
                         creatingNew = true
                         editingAnn = Announcement(id = "", title = "", content = "")
@@ -1163,12 +1289,14 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                         }
                         IconButton(
                             onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        appState.apiClient.deleteAnnouncement(s, ann.id)
-                                        appState.refreshCoreData()
-                                    }.onFailure { errorMsg = it.message }
+                                confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            appState.apiClient.deleteAnnouncement(s, ann.id)
+                                            appState.refreshCoreData()
+                                        }.onFailure { errorMsg = it.message }
+                                    }
                                 }
                             },
                             modifier = Modifier.size(48.dp)
@@ -1181,9 +1309,9 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
 
     val target = editingAnn
     if (target != null) {
-        var title by remember(target) { mutableStateOf(target.title) }
-        var content by remember(target) { mutableStateOf(target.content) }
-        var isUrgent by remember(target) { mutableStateOf(target.isUrgent) }
+        var title by rememberSaveable(target.id) { mutableStateOf(target.title) }
+        var content by rememberSaveable(target.id) { mutableStateOf(target.content) }
+        var isUrgent by rememberSaveable(target.id) { mutableStateOf(target.isUrgent) }
 
         AlertDialog(
             onDismissRequest = { editingAnn = null },
@@ -1198,12 +1326,12 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Marcar como urgente (envia alerta prioritário)")
-                        Switch(checked = isUrgent, onCheckedChange = { isUrgent = it })
+                        FsySwitch(checked = isUrgent, onCheckedChange = { isUrgent = it })
                     }
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -1227,7 +1355,7 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                 ) { Text("Publicar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingAnn = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingAnn = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -1239,6 +1367,8 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
 
 @Composable
 fun MediaAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     val scope = rememberCoroutineScope()
     var photos by remember { mutableStateOf<List<MediaPhoto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -1274,7 +1404,7 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("Álbuns e Mídias (${photos.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Button(
+                FsyButton(
                     onClick = {
                         creatingNew = true
                         editingPhoto = MediaPhoto(id = "", title = "", driveUrl = "")
@@ -1312,12 +1442,14 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                         }
                         IconButton(
                             onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        appState.apiClient.deleteMediaPhoto(s, photo.id)
-                                        reload()
-                                    }.onFailure { errorMsg = it.message }
+                                confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            appState.apiClient.deleteMediaPhoto(s, photo.id)
+                                            reload()
+                                        }.onFailure { errorMsg = it.message }
+                                    }
                                 }
                             },
                             modifier = Modifier.size(48.dp)
@@ -1330,10 +1462,10 @@ fun MediaAdminModuleView(appState: FsyAppState) {
 
     val target = editingPhoto
     if (target != null) {
-        var title by remember(target) { mutableStateOf(target.title) }
-        var driveUrl by remember(target) { mutableStateOf(target.driveUrl) }
-        var thumbnailUrl by remember(target) { mutableStateOf(target.thumbnailUrl.orEmpty()) }
-        var visible by remember(target) { mutableStateOf(target.visible) }
+        var title by rememberSaveable(target.id) { mutableStateOf(target.title) }
+        var driveUrl by rememberSaveable(target.id) { mutableStateOf(target.driveUrl) }
+        var thumbnailUrl by rememberSaveable(target.id) { mutableStateOf(target.thumbnailUrl.orEmpty()) }
+        var visible by rememberSaveable(target.id) { mutableStateOf(target.visible) }
 
         AlertDialog(
             onDismissRequest = { editingPhoto = null },
@@ -1349,12 +1481,12 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Visível para todos os participantes")
-                        Switch(checked = visible, onCheckedChange = { visible = it })
+                        FsySwitch(checked = visible, onCheckedChange = { visible = it })
                     }
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -1380,7 +1512,7 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingPhoto = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingPhoto = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }

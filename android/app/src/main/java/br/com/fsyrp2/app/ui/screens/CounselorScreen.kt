@@ -1,5 +1,7 @@
 package br.com.fsyrp2.app.ui.screens
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.icons.FsyIconsFilled
 
@@ -14,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.model.AdminModule
 import br.com.fsyrp2.app.model.Announcement
 import br.com.fsyrp2.app.state.FsyAppState
@@ -31,6 +32,7 @@ import kotlinx.serialization.json.put
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CounselorScreen(appState: FsyAppState) {
+    if (!appState.canOpenCounselorPanel) return
     SecureScreenEffect()
     val context = LocalContext.current
     val haptics = rememberFsyHaptics()
@@ -69,21 +71,19 @@ fun CounselorScreen(appState: FsyAppState) {
         }
     }
 
-    val metricsDefaultOrder = CardOrderManager.PAGE_DEFAULT_IDS["consultor-metrics"].orEmpty()
-    val metricsOrder = appState.cardOrderFor("consultor-metrics")
 
-    val annSectionDefaultOrder = CardOrderManager.PAGE_DEFAULT_IDS["consultor-announcements"].orEmpty()
-    val annSectionOrder = appState.cardOrderFor("consultor-announcements")
+
+
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             FsyTopBar(
-                title = "Conselheiro",
+                title = "Painel do consultor",
                 subtitle = appState.company?.name ?: "Minha companhia",
                 onBack = {
                     haptics.tick()
-                    appState.overlayDestination = OverlayDestination.None
+                    appState.closeOverlay()
                 }
             )
         }
@@ -125,6 +125,8 @@ fun CounselorScreen(appState: FsyAppState) {
                 }
             }
 
+            PhotoReviewsSection(appState)
+
             if (company == null) {
                 FsyEmptyStateCard(
                     title = "Nenhuma companhia vinculada ao seu perfil",
@@ -137,9 +139,9 @@ fun CounselorScreen(appState: FsyAppState) {
                     subtitle = company.motto?.let { "“$it”" } ?: "Sem lema definido"
                 )
 
-                // Métricas reordenáveis do conselheiro (consultor-metrics)
+                // Métricas reordenáveis do consultor (consultor-metrics)
                 val metricCards = listOf(
-                    ReorderableCardItem(
+                    FsyCardContent(
                         id = "youth-count",
                         title = "Jovens da Companhia"
                     ) {
@@ -150,46 +152,50 @@ fun CounselorScreen(appState: FsyAppState) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "${appState.companyYouth.size} jovens",
+                                text = "${appState.companyYouth.size} ${if (appState.companyYouth.size == 1) "jovem" else "jovens"}",
                                 style = MaterialTheme.typography.headlineSmall.merge(TabularTextStyle),
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                     },
-                    ReorderableCardItem(
+                    FsyCardContent(
                         id = "company-room",
                         title = "Sala e Pasta de Fotos"
                     ) {
-                        FsySectionCard {
-                            Text(
-                                text = "Sala de reunião",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = company.room ?: "Em definição",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            if (!company.driveUrl.isNullOrBlank()) {
-                                Spacer(Modifier.height(8.dp))
-                                OutlinedButton(
-                                    onClick = {
-                                        ExternalUrlLauncher.openExternalUrl(context, company.driveUrl.orEmpty())
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .defaultMinSize(minHeight = 48.dp)
-                                ) {
-                                    Icon(FsyIcons.ExternalLink, contentDescription = null)
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("Fotos da companhia")
+                        if (!company.room.isNullOrBlank() || !company.driveUrl.isNullOrBlank()) {
+                            FsySectionCard {
+                                if (!company.room.isNullOrBlank()) {
+                                Text(
+                                    text = "Sala de reunião",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = company.room.orEmpty(),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                }
+                                if (!company.driveUrl.isNullOrBlank()) {
+                                    Spacer(Modifier.height(8.dp))
+                                    FsyOutlinedButton(
+                                        onClick = {
+                                            ExternalUrlLauncher.openExternalUrl(context, company.driveUrl.orEmpty())
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .defaultMinSize(minHeight = 48.dp)
+                                    ) {
+                                        Icon(FsyIcons.ExternalLink, contentDescription = null)
+                                        Spacer(Modifier.width(6.dp))
+                                        Text("Fotos da companhia")
+                                    }
                                 }
                             }
                         }
                     },
-                    ReorderableCardItem(
+                    FsyCardContent(
                         id = "company-motto",
                         title = "Grito de Guerra / Lema"
                     ) {
@@ -204,7 +210,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
-                                TextButton(
+                                FsyTextButton(
                                     onClick = {
                                         haptics.tick()
                                         editingMotto = !editingMotto
@@ -231,7 +237,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                     modifier = Modifier.fillMaxWidth()
                                 )
                                 Spacer(Modifier.height(8.dp))
-                                Button(
+                                FsyButton(
                                     onClick = {
                                         haptics.confirm()
                                         isSavingMotto = true
@@ -268,18 +274,11 @@ fun CounselorScreen(appState: FsyAppState) {
                     }
                 )
 
-                ReorderableCardSection(
-                    pageKey = "consultor-metrics",
-                    defaultIds = metricsDefaultOrder,
-                    orderedIds = metricsOrder,
-                    onOrderChange = { appState.updateCardOrder("consultor-metrics", it) },
-                    cards = metricCards,
-                    scrollState = scrollState
-                )
+                FsyCardGroup(cards = metricCards)
 
                 // Avisos da Companhia reordenáveis (consultor-announcements)
                 val announcementCards = listOf(
-                    ReorderableCardItem(
+                    FsyCardContent(
                         id = "publish-form",
                         title = "Publicar Comunicado para a Companhia"
                     ) {
@@ -318,7 +317,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                     text = "Marcar como urgente",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-                                Switch(
+                                FsySwitch(
                                     checked = newAnnUrgent,
                                     onCheckedChange = { newAnnUrgent = it }
                                 )
@@ -326,7 +325,7 @@ fun CounselorScreen(appState: FsyAppState) {
 
                             Spacer(Modifier.height(8.dp))
 
-                            Button(
+                            FsyButton(
                                 onClick = {
                                     haptics.confirm()
                                     isPublishingAnn = true
@@ -365,7 +364,7 @@ fun CounselorScreen(appState: FsyAppState) {
                             }
                         }
                     },
-                    ReorderableCardItem(
+                    FsyCardContent(
                         id = "published-list",
                         title = "Avisos Publicados na Companhia"
                     ) {
@@ -432,14 +431,7 @@ fun CounselorScreen(appState: FsyAppState) {
                     }
                 )
 
-                ReorderableCardSection(
-                    pageKey = "consultor-announcements",
-                    defaultIds = annSectionDefaultOrder,
-                    orderedIds = annSectionOrder,
-                    onOrderChange = { appState.updateCardOrder("consultor-announcements", it) },
-                    cards = announcementCards,
-                    scrollState = scrollState
-                )
+                FsyCardGroup(cards = announcementCards)
 
                 // Lista de Jovens da Companhia
                 FsySectionCard {
@@ -479,6 +471,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                         modifier = Modifier.padding(12.dp),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
+                                        FsyAvatar(name = youth.fullName, photoUrl = appState.companyProfilePhotos[youth.id], size = 52.dp, onImageError = { appState.refreshCompanyProfilePhotos() })
                                         Text(
                                             text = youth.fullName,
                                             style = MaterialTheme.typography.titleSmall,
@@ -507,11 +500,11 @@ fun CounselorScreen(appState: FsyAppState) {
                 }
             }
 
-            // Atalho para Inclusão e Necessidades Especiais (permitido a conselheiros e gestores)
-            OutlinedButton(
+            // Atalho para Inclusão e Necessidades Especiais (permitido a consultors e gestores)
+            FsyOutlinedButton(
                 onClick = {
                     haptics.confirm()
-                    appState.overlayDestination = OverlayDestination.AdminHub(AdminModule.INCLUSION)
+                    appState.open(OverlayDestination.AdminHub(AdminModule.INCLUSION))
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -547,7 +540,7 @@ fun CounselorScreen(appState: FsyAppState) {
                 )
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         val targetId = deletingAnn.id
                         isDeletingAnnouncement = true
@@ -581,7 +574,7 @@ fun CounselorScreen(appState: FsyAppState) {
                 }
             },
             dismissButton = {
-                TextButton(
+                FsyTextButton(
                     onClick = { announcementToDelete = null },
                     enabled = !isDeletingAnnouncement,
                     modifier = Modifier.defaultMinSize(minHeight = 48.dp)

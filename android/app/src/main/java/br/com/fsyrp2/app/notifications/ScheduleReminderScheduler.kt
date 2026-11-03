@@ -1,6 +1,9 @@
 package br.com.fsyrp2.app.notifications
 
 import android.app.AlarmManager
+import android.os.Build
+import br.com.fsyrp2.app.model.ScheduleVisibility
+import br.com.fsyrp2.app.model.UserRole
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -28,10 +31,12 @@ object ScheduleReminderScheduler {
         val nowEpochMs = System.currentTimeMillis()
         val scheduledIds = mutableSetOf<String>()
 
-        for (item in scheduleItems) {
+        val snapshot = KeystoreSessionStore(context).loadWidgetSnapshot()
+        val role = if (snapshot?.isStaff == true) UserRole.CONSULTOR else UserRole.JOVEM
+        for (item in ScheduleVisibility.visibleTo(scheduleItems, role)) {
             val isPersonal = personalReminderIds.contains(item.id)
             val shouldSchedule = (isPersonal && personalRemindersEnabled) ||
-                (!isPersonal && scheduleRemindersEnabled && item.dayKey != "dia0")
+                (!isPersonal && scheduleRemindersEnabled)
             if (!shouldSchedule) continue
 
             val eventDate = EventCalendar.DAY_DATES[item.dayKey] ?: continue
@@ -54,12 +59,12 @@ object ScheduleReminderScheduler {
                 flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             ) ?: continue
 
-            alarmManager.setWindow(
-                AlarmManager.RTC_WAKEUP,
-                triggerEpochMs,
-                WINDOW_LENGTH_MS,
-                pendingIntent
-            )
+            // Usa precisão exata quando o sistema permite, sem solicitar nova permissão.
+            if (Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerEpochMs, pendingIntent)
+            } else {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerEpochMs, pendingIntent)
+            }
             scheduledIds.add(item.id)
         }
 
@@ -107,7 +112,8 @@ object ScheduleReminderScheduler {
                 startTime = it.startTime,
                 endTime = it.endTime.orEmpty(),
                 title = it.title,
-                location = it.location.orEmpty()
+                location = it.location.orEmpty(),
+                category = it.category
             )
         }
         replanAllReminders(

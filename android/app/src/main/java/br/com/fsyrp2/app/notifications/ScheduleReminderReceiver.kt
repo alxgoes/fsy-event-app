@@ -21,7 +21,7 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
                 val keyStore = KeystoreSessionStore(context)
                 val session = keyStore.loadSession() ?: return
                 val prefs = keyStore.loadNotificationPreferences(session.userId)
-                if (EventCalendar.isWithinQuietHours(
+                if (!intent.getBooleanExtra(EXTRA_IS_PERSONAL, false) && EventCalendar.isWithinQuietHours(
                         quietStart = prefs.quietHoursStart,
                         quietEnd = prefs.quietHoursEnd
                     )
@@ -30,6 +30,9 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
                 }
 
                 val activityId = intent.getStringExtra(EXTRA_ACTIVITY_ID) ?: return
+                // Revalida o item contra a ?ltima agenda filtrada da conta.
+                val snapshot = keyStore.loadWidgetSnapshot()?.takeIf { it.userId == session.userId } ?: return
+                if (snapshot.activities.none { it.id == activityId }) return
                 val startTime = intent.getStringExtra(EXTRA_START_TIME).orEmpty()
                 val title = intent.getStringExtra(EXTRA_TITLE).orEmpty()
                 val location = intent.getStringExtra(EXTRA_LOCATION)

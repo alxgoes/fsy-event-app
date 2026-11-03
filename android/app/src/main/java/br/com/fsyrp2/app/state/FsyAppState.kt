@@ -1,5 +1,6 @@
 package br.com.fsyrp2.app.state
 
+import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
@@ -7,14 +8,15 @@ import android.net.NetworkCapabilities
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import br.com.fsyrp2.app.BuildConfig
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.data.EventCalendar
+import br.com.fsyrp2.app.data.OfflineCache
 import br.com.fsyrp2.app.model.*
 import br.com.fsyrp2.app.network.ApiException
+import br.com.fsyrp2.app.network.FriendlyErrors
 import br.com.fsyrp2.app.network.PortalApiClient
 import br.com.fsyrp2.app.notifications.NotificationHelper
 import br.com.fsyrp2.app.notifications.PushTokenManager
@@ -23,16 +25,22 @@ import br.com.fsyrp2.app.security.DeepLinkParser
 import br.com.fsyrp2.app.security.DeepLinkTarget
 import br.com.fsyrp2.app.security.KeystoreSessionStore
 import br.com.fsyrp2.app.security.PkceAuthHelper
+import br.com.fsyrp2.app.security.SessionTokens
 import br.com.fsyrp2.app.widget.FsyWidgetManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.io.IOException
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -40,14 +48,31 @@ enum class MainTab(val key: String, val label: String) {
     HOME("inicio", "Início"),
     AGENDA("agenda", "Agenda"),
     ANNOUNCEMENTS("avisos", "Avisos"),
-    PROFILE("perfil", "Perfil")
+    MORE("mais", "Mais")
 }
 
+/** Telas empilhadas sobre as abas (entram deslizando; o voltar do sistema retorna). */
 sealed interface OverlayDestination {
     data object None : OverlayDestination
     data object Gallery : OverlayDestination
+    data object NotificationSettings : OverlayDestination
     data object CounselorPanel : OverlayDestination
     data class AdminHub(val initialModule: AdminModule? = null) : OverlayDestination
+}
+
+/** Rascunho sensível retido só em RAM, fora do Bundle, da cópia offline e do disco. */
+data class RegistrationAuthorizationEditorState(
+    val record: RegistrationRecordDto,
+    val draft: Map<String, String> = record.authorizationValues()
+)
+
+/** Mantém o estado do app vivo em rotação, troca de tema e tamanho de fonte. */
+class FsyAppViewModel(application: Application) : AndroidViewModel(application) {
+    val state = FsyAppState(application.applicationContext)
+    override fun onCleared() {
+        state.dispose()
+        super.onCleared()
+    }
 }
 
 class FsyAppState(
@@ -56,8 +81,11 @@ class FsyAppState(
     val keyStore: KeystoreSessionStore = KeystoreSessionStore(appContext)
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val refreshMutex = Mutex()
+    private val offlineCache = OfflineCache(appContext)
     private var activeDataJob: Job? = null
+    private val profileAccessMutex = Mutex()
+    private var profileAccessRevision = 0L
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     var session by mutableStateOf<UserSession?>(null)
         private set
@@ -74,8 +102,13 @@ class FsyAppState(
     var companyYouth by mutableStateOf<List<Profile>>(emptyList())
         private set
 
-    var scheduleItems by mutableStateOf<List<ScheduleItem>>(emptyList())
+    /** Agenda completa como veio do servidor (equipe inclusa). Use [scheduleItems] nas telas. */
+    var rawScheduleItems by mutableStateOf<List<ScheduleItem>>(emptyList())
         private set
+
+    /** Agenda que esta pessoa pode ver: jovem (ou papel desconhecido) não vê Dia Zero nem "Equipe". */
+    val scheduleItems: List<ScheduleItem>
+        get() = ScheduleVisibility.visibleTo(rawScheduleItems, profile?.roleEnum)
 
     var announcements by mutableStateOf<List<Announcement>>(emptyList())
         private set
@@ -83,7 +116,7 @@ class FsyAppState(
     var instagramPosts by mutableStateOf<List<InstagramPost>>(emptyList())
         private set
 
-    var instagramProfileUrl by mutableStateOf("https://www.instagram.com/fsybrasiloficial/")
+    var instagramProfileUrl by mutableStateOf(InstagramPost.OFFICIAL_URL)
         private set
 
     var publicMediaPhotos by mutableStateOf<List<MediaPhoto>>(emptyList())
@@ -95,9 +128,32 @@ class FsyAppState(
     var notificationPreferences by mutableStateOf(NotificationChannelPreferencesDto())
         private set
 
+    /** Avisos já vistos (selo "não lidos" da aba Avisos). */
+    var readAnnouncementIds by mutableStateOf<Set<String>>(emptySet())
+        private set
+
+    var profilePhoto by mutableStateOf(ProfilePhotoState())
+        private set
+
+    var photoReviews by mutableStateOf<List<ProfilePhotoReview>>(emptyList())
+        private set
+
+    var companyProfilePhotos by mutableStateOf<Map<String, String>>(emptyMap())
+        private set
+
+    var registrationAuthorizationEditor by mutableStateOf<RegistrationAuthorizationEditorState?>(null)
+        private set
+
+    var isPhotoBusy by mutableStateOf(false)
+        private set
+
+    var photoError by mutableStateOf<String?>(null)
+
     var selectedTab by mutableStateOf(MainTab.HOME)
     var overlayDestination by mutableStateOf<OverlayDestination>(OverlayDestination.None)
+        private set
     var focusedAnnouncementId by mutableStateOf<String?>(null)
+    var focusedScheduleItemId by mutableStateOf<String?>(null)
 
     var isBootstrapping by mutableStateOf(true)
         private set
@@ -119,12 +175,36 @@ class FsyAppState(
     var lastSyncedAtLabel by mutableStateOf<String?>(null)
         private set
 
-    private val cardOrderCache = mutableStateMapOf<String, List<String>>()
+    // --- Papéis: sem perfil carregado, a pessoa é tratada como jovem (nada de equipe aparece).
+    val effectiveRole: UserRole get() = profile?.roleEnum ?: UserRole.JOVEM
+    val canOpenCounselorPanel: Boolean get() = profile != null && effectiveRole.canAccessCounselorPanel
+    val adminModules: List<AdminModule>
+        get() = if (profile == null || effectiveRole == UserRole.JOVEM) emptyList() else AdminModule.availableFor(effectiveRole)
+    val canOpenAdmin: Boolean get() = adminModules.isNotEmpty()
+    val canPublishAnnouncements: Boolean get() = profile != null && effectiveRole.canPublishAnnouncements
+    val canReviewPhotos: Boolean get() = canOpenCounselorPanel
+
+    val unreadAnnouncementCount: Int
+        get() = announcements.count { it.id !in readAnnouncementIds }
+
+    /** Primeira carga ainda sem nenhum dado (nem da cópia local). */
+    val isInitialLoading: Boolean get() = isLoading && lastSyncedAtLabel == null
 
     init {
+        br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.purgeExpiredPrivateDocuments(appContext)
         NotificationHelper.ensureChannelsCreated(appContext)
         observeConnectivity()
         bootstrapFromKeystore()
+    }
+
+    fun dispose() {
+        closeRegistrationAuthorizationEditor()
+        networkCallback?.let { cb ->
+            val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            runCatching { cm?.unregisterNetworkCallback(cb) }
+        }
+        networkCallback = null
+        scope.cancel()
     }
 
     private fun bootstrapFromKeystore() {
@@ -137,53 +217,127 @@ class FsyAppState(
         sessionGeneration = keyStore.loadLocalSessionGeneration()
         personalReminderIds = keyStore.loadPersonalReminderIds(stored.userId)
         notificationPreferences = keyStore.loadNotificationPreferences(stored.userId)
-        loadCardOrdersForUser(stored.userId)
+        readAnnouncementIds = keyStore.loadReadAnnouncementIds(stored.userId).orEmpty()
+        restoreOfflineSnapshot(stored.userId)
         isBootstrapping = false
         refreshCoreData()
     }
 
-    private fun loadCardOrdersForUser(userId: String) {
-        cardOrderCache.clear()
-        for (pageKey in CardOrderManager.PAGE_DEFAULT_IDS.keys) {
-            cardOrderCache[pageKey] = keyStore.loadCardOrder(userId, pageKey)
+    private fun restoreOfflineSnapshot(userId: String) {
+        val snap = offlineCache.load(userId) ?: return
+        // O papel salvo não concede acesso: precisa ser confirmado nesta sessão pelo servidor.
+        profile = snap.profile?.copy(role = "jovem")
+        company = snap.company
+        rawScheduleItems = snap.scheduleItems
+        announcements = snap.announcements
+        if (snap.savedAtEpochMs > 0L) lastSyncedAtLabel = syncLabel(Instant.ofEpochMilli(snap.savedAtEpochMs))
+    }
+
+    private fun syncLabel(at: Instant): String {
+        val zoned = at.atZone(EventCalendar.EVENT_ZONE)
+        val today = ZonedDateTime.now(EventCalendar.EVENT_ZONE).toLocalDate()
+        return if (zoned.toLocalDate() == today) zoned.format(DateTimeFormatter.ofPattern("HH:mm"))
+        else zoned.format(DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm"))
+    }
+
+    // --- Navegação ---------------------------------------------------------------------------
+
+    /** Abre uma tela empilhada respeitando o papel. Destinos de equipe nunca abrem para jovem. */
+    fun open(destination: OverlayDestination) {
+        val allowed = when (destination) {
+            is OverlayDestination.CounselorPanel -> canOpenCounselorPanel
+            is OverlayDestination.AdminHub -> canOpenAdmin &&
+                (destination.initialModule == null || destination.initialModule in adminModules)
+            else -> true
+        }
+        if (allowed) {
+            overlayDestination = destination
+        } else {
+            overlayDestination = OverlayDestination.None
+            selectedTab = MainTab.HOME
         }
     }
 
-    fun cardOrderFor(pageKey: String): List<String> {
-        val defaults = CardOrderManager.PAGE_DEFAULT_IDS[pageKey] ?: emptyList()
-        return cardOrderCache[pageKey] ?: defaults
+    fun closeOverlay() {
+        closeRegistrationAuthorizationEditor()
+        if (overlayDestination != OverlayDestination.None) selectedTab = MainTab.MORE
+        overlayDestination = OverlayDestination.None
     }
 
-    fun updateCardOrder(pageKey: String, newOrder: List<String>) {
-        val currentSession = session ?: return
-        val defaults = CardOrderManager.PAGE_DEFAULT_IDS[pageKey] ?: emptyList()
-        val resolved = CardOrderManager.resolveOrder(defaults, newOrder)
-        cardOrderCache[pageKey] = resolved
-        keyStore.saveCardOrder(currentSession.userId, pageKey, resolved)
+    /** Abre a Agenda já no dia e na atividade tocada no Início. */
+    fun openAgendaAt(itemId: String?) {
+        focusedScheduleItemId = itemId
+        overlayDestination = OverlayDestination.None
+        selectedTab = MainTab.AGENDA
     }
+
+    fun openAnnouncement(id: String?) {
+        focusedAnnouncementId = id
+        overlayDestination = OverlayDestination.None
+        selectedTab = MainTab.ANNOUNCEMENTS
+    }
+
+    fun consumeFocusedAnnouncement() {
+        focusedAnnouncementId = null
+    }
+
+    fun consumeFocusedScheduleItem() {
+        focusedScheduleItemId = null
+    }
+
+    fun editRegistrationAuthorization(record: RegistrationRecordDto) {
+        if (profile == null || profile?.isSuspended == true || !effectiveRole.canManageRegistrations) return
+        registrationAuthorizationEditor = RegistrationAuthorizationEditorState(record)
+    }
+
+    fun updateRegistrationAuthorizationField(key: String, value: String) {
+        val editor = registrationAuthorizationEditor ?: return
+        if (profile == null || profile?.isSuspended == true || !effectiveRole.canManageRegistrations) {
+            closeRegistrationAuthorizationEditor()
+            return
+        }
+        if (key in editor.draft && value.length <= 2000) {
+            registrationAuthorizationEditor = editor.copy(draft = editor.draft + (key to value))
+        }
+    }
+
+    fun acceptSavedRegistrationAuthorization(record: RegistrationRecordDto) {
+        if (registrationAuthorizationEditor?.record?.id != record.id) return
+        if (profile == null || profile?.isSuspended == true || !effectiveRole.canManageRegistrations) {
+            closeRegistrationAuthorizationEditor()
+            return
+        }
+        registrationAuthorizationEditor = RegistrationAuthorizationEditorState(record)
+    }
+
+    fun closeRegistrationAuthorizationEditor() {
+        registrationAuthorizationEditor = null
+    }
+
+    fun markAnnouncementsRead(ids: Collection<String>) {
+        val current = session ?: return
+        val updated = readAnnouncementIds + ids
+        if (updated.size == readAnnouncementIds.size) return
+        readAnnouncementIds = updated
+        keyStore.saveReadAnnouncementIds(current.userId, updated)
+    }
+
+    // --- Sessão ------------------------------------------------------------------------------
 
     suspend fun withValidSession(): UserSession {
-        return refreshMutex.withLock {
-            val current = session ?: throw ApiException(401, "Sessão encerrada. Faça login novamente.")
-            val nowSec = System.currentTimeMillis() / 1000L
-            if (current.expiresAtEpochSeconds > 0L && current.expiresAtEpochSeconds - nowSec < 90L && current.refreshToken.isNotBlank()) {
-                try {
-                    val refreshed = apiClient.refreshSession(current.refreshToken)
-                    if (refreshed.userId != current.userId) {
-                        throw ApiException(401, "Conflito de titularidade na renovação da sessão.")
-                    }
-                    keyStore.saveSession(refreshed)
-                    session = refreshed
-                    refreshed
-                } catch (e: ApiException) {
-                    if (e.statusCode in listOf(400, 401, 403)) {
-                        performImmediateLogoutCleanup(previousSession = current, revokeAllPush = false)
-                    }
-                    throw e
-                }
-            } else {
-                current
+        val current = session ?: throw ApiException(401, "Sua sessão terminou. Entre novamente.")
+        val expectedGeneration = sessionGeneration
+        if (!SessionTokens.needsRefresh(current)) return current
+        return try {
+            val refreshed = SessionTokens.valid(keyStore, apiClient, current.userId)
+            if (session?.userId == refreshed.userId) session = refreshed
+            refreshed
+        } catch (e: SessionTokens.SessionEndedException) {
+            if (sessionGeneration == expectedGeneration && session?.userId == current.userId) {
+                authError = "Sua sessão terminou. Entre novamente."
+                performImmediateLogoutCleanup(previousSession = current, revokeAllPush = false)
             }
+            throw ApiException(401, "Sua sessão terminou. Entre novamente.")
         }
     }
 
@@ -200,11 +354,10 @@ class FsyAppState(
                 val newSession = apiClient.signInWithPassword(email, password)
                 applyNewAuthenticatedSession(newSession)
             } catch (e: ApiException) {
-                authError = when (e.statusCode) {
-                    400, 401 -> "E-mail ou senha incorretos."
-                    403 -> e.message
-                    else -> e.message
-                }
+                authError = if (e.statusCode == 400 || e.statusCode == 401) {
+                    if (e.message.contains("Confirme", ignoreCase = true) || e.message.contains("Muitas", ignoreCase = true)) e.message
+                    else "E-mail ou senha incorretos."
+                } else e.message
             } catch (_: Exception) {
                 authError = "Sem conexão com o servidor. Verifique sua internet e tente novamente."
             } finally {
@@ -213,7 +366,7 @@ class FsyAppState(
         }
     }
 
-    fun signUp(email: String, password: String, fullName: String, unit: String) {
+    fun signUp(email: String, password: String, fullName: String, stake: String) {
         if (fullName.trim().length < 3) {
             authError = "Informe seu nome completo."
             return
@@ -222,8 +375,8 @@ class FsyAppState(
             authError = "Informe um e-mail válido."
             return
         }
-        if (password.length < 6) {
-            authError = "A senha deve ter pelo menos 6 caracteres."
+        PasswordPolicy.validate(password)?.let {
+            authError = it
             return
         }
         isAuthenticating = true
@@ -231,11 +384,11 @@ class FsyAppState(
         authInfoMessage = null
         scope.launch {
             try {
-                val result = apiClient.signUpWithPassword(email, password, fullName, unit)
+                val result = apiClient.signUpWithPassword(email, password, fullName, stake)
                 if (result.session != null) {
                     applyNewAuthenticatedSession(result.session)
                 } else {
-                    authInfoMessage = "Cadastro registrado! Verifique seu e-mail para confirmar a conta antes de entrar."
+                    authInfoMessage = "Cadastro feito! Confirme pelo link que enviamos ao seu e-mail e depois entre."
                 }
             } catch (e: ApiException) {
                 authError = e.message
@@ -257,12 +410,11 @@ class FsyAppState(
         authInfoMessage = null
         scope.launch {
             try {
-                val msg = apiClient.requestPasswordRecovery(email)
-                authInfoMessage = msg
+                authInfoMessage = apiClient.requestPasswordRecovery(email)
             } catch (e: ApiException) {
                 authError = e.message
             } catch (_: Exception) {
-                authError = "Não foi possível solicitar a recuperação agora. Verifique sua conexão."
+                authError = "Não foi possível pedir o link agora. Verifique sua conexão."
             } finally {
                 isAuthenticating = false
             }
@@ -272,7 +424,7 @@ class FsyAppState(
     fun buildGoogleOAuthUri(): Uri? {
         val base = BuildConfig.SUPABASE_URL.trimEnd('/')
         if (base.isBlank()) {
-            authError = "Configuração de autenticação OAuth indisponível nesta compilação."
+            authError = "A entrada com Google não está disponível nesta versão."
             return null
         }
         val verifier = PkceAuthHelper.generateCodeVerifier()
@@ -291,16 +443,16 @@ class FsyAppState(
         when (target) {
             is DeepLinkTarget.AuthCallback -> {
                 if (!target.error.isNullOrBlank()) {
-                    authError = "O Google não concluiu a entrada: ${target.error}"
+                    authError = "A entrada com Google foi cancelada ou não terminou. Tente de novo."
                     return
                 }
                 val code = target.code?.takeIf { it.isNotBlank() } ?: run {
-                    authError = "O Google não devolveu um código de acesso válido."
+                    authError = "A entrada com Google não terminou. Tente de novo."
                     return
                 }
                 val verifier = keyStore.consumePkceVerifier(target.state)
                 if (verifier == null) {
-                    authError = "Validação de segurança OAuth expirada ou inválida. Tente entrar novamente."
+                    authError = "O pedido de entrada expirou. Toque em Entrar com Google de novo."
                     return
                 }
                 isAuthenticating = true
@@ -312,7 +464,7 @@ class FsyAppState(
                     } catch (e: ApiException) {
                         authError = e.message
                     } catch (_: Exception) {
-                        authError = "Não foi possível concluir o login com Google."
+                        authError = "Não foi possível concluir a entrada com Google."
                     } finally {
                         isAuthenticating = false
                     }
@@ -321,14 +473,11 @@ class FsyAppState(
 
             is DeepLinkTarget.Navigation -> {
                 overlayDestination = OverlayDestination.None
-                selectedTab = when (target.tab) {
-                    AppTab.INICIO -> MainTab.HOME
-                    AppTab.AGENDA -> MainTab.AGENDA
-                    AppTab.AVISOS -> MainTab.ANNOUNCEMENTS
-                    AppTab.PERFIL -> MainTab.PROFILE
-                }
-                if (target.tab == AppTab.AVISOS && !target.itemId.isNullOrBlank()) {
-                    focusedAnnouncementId = target.itemId
+                when (target.tab) {
+                    AppTab.INICIO -> selectedTab = MainTab.HOME
+                    AppTab.AGENDA -> openAgendaAt(target.itemId)
+                    AppTab.AVISOS -> openAnnouncement(target.itemId?.takeIf { it.isNotBlank() })
+                    AppTab.PERFIL -> selectedTab = MainTab.MORE
                 }
             }
         }
@@ -341,6 +490,8 @@ class FsyAppState(
         if (previous != null && previous.userId != newSession.userId) {
             ScheduleReminderScheduler.cancelAllReminders(appContext)
             NotificationHelper.cancelAllNotifications(appContext)
+            offlineCache.clearAll()
+            br.com.fsyrp2.app.ui.components.RemoteImageMemory.clear()
             scope.launch {
                 PushTokenManager.cleanupOnLogoutOrAccountSwitch(
                     context = appContext,
@@ -355,23 +506,107 @@ class FsyAppState(
         session = newSession
         sessionGeneration = keyStore.loadLocalSessionGeneration()
         profile = null
+        closeRegistrationAuthorizationEditor()
+        br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
         company = null
         companyYouth = emptyList()
-        scheduleItems = emptyList()
+        rawScheduleItems = emptyList()
         announcements = emptyList()
+        profilePhoto = ProfilePhotoState()
+        isPhotoBusy = false
+        photoReviews = emptyList()
+        companyProfilePhotos = emptyMap()
+        lastSyncedAtLabel = null
         personalReminderIds = keyStore.loadPersonalReminderIds(newSession.userId)
         notificationPreferences = keyStore.loadNotificationPreferences(newSession.userId)
-        loadCardOrdersForUser(newSession.userId)
+        readAnnouncementIds = keyStore.loadReadAnnouncementIds(newSession.userId).orEmpty()
+        restoreOfflineSnapshot(newSession.userId)
         selectedTab = MainTab.HOME
         overlayDestination = OverlayDestination.None
         FsyWidgetManager.schedulePeriodicSync(appContext)
         refreshCoreData()
     }
 
+    /**
+     * Revalida só o perfil, sem apagar formulários ou acionar a carga completa a cada minuto.
+     * A leitura é do perfil protegido no servidor; metadados do token não concedem cargos.
+     */
+    suspend fun refreshProfileAccess() {
+        if (isBootstrapping || (isLoading && profile == null) || !profileAccessMutex.tryLock()) return
+        try {
+            val current = session ?: return
+            val expectedGeneration = sessionGeneration
+            val expectedUserId = current.userId
+            try {
+                val validSession = withValidSession()
+                val loaded = apiClient.fetchCurrentProfile(validSession)
+                currentCoroutineContext().ensureActive()
+                if (sessionGeneration != expectedGeneration || session?.userId != expectedUserId || loaded.id != expectedUserId) return
+                val previous = profile
+                val accessChanged = previous?.role != loaded.role || previous?.companyId != loaded.companyId
+                if (accessChanged) {
+                    // Impede que respostas iniciadas com a permissão anterior restaurem dados sensíveis.
+                    profileAccessRevision += 1
+                    activeDataJob?.cancel()
+                    companyYouth = emptyList()
+                    photoReviews = emptyList()
+                    companyProfilePhotos = emptyMap()
+                    closeRegistrationAuthorizationEditor()
+                    br.com.fsyrp2.app.ui.components.RemoteImageMemory.clear()
+                    br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
+                    if (previous?.companyId != loaded.companyId) company = null
+                    announcements = emptyList()
+                }
+                profile = loaded
+                if (accessChanged) {
+                    if (!loaded.roleEnum.isStaff) {
+                        rawScheduleItems = ScheduleVisibility.visibleTo(rawScheduleItems, loaded.roleEnum)
+                        personalReminderIds = personalReminderIds.intersect(rawScheduleItems.map { it.id }.toSet())
+                        keyStore.savePersonalReminderIds(expectedUserId, personalReminderIds)
+                    }
+                    // Reaplica o portão de navegação imediatamente, antes de outra resposta de rede.
+                    open(overlayDestination)
+                    NotificationHelper.cancelAllNotifications(appContext)
+                    offlineCache.save(OfflineSnapshot(
+                        userId = expectedUserId,
+                        savedAtEpochMs = Instant.now().toEpochMilli(),
+                        profile = loaded.copy(role = "jovem"),
+                        company = company,
+                        scheduleItems = scheduleItems,
+                        announcements = announcements
+                    ))
+                    try {
+                        updateWidgetsAndReminders(validSession, scheduleItems, announcements, company)
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        // O estado de acesso já foi atualizado; falha do launcher não impede recarregar o app.
+                    }
+                    if (sessionGeneration == expectedGeneration && session?.userId == expectedUserId) refreshCoreData()
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: ApiException) {
+                if (sessionGeneration == expectedGeneration && session?.userId == expectedUserId && e.statusCode in listOf(401, 403)) {
+                    authError = e.message
+                    signOut()
+                }
+                // Falhas transitórias preservam a tela e os dados já conhecidos.
+            } catch (_: Exception) {
+                // A próxima retomada ou verificação periódica tenta novamente, sem interromper a tela.
+            }
+        } finally { profileAccessMutex.unlock() }
+    }
+
+    /**
+     * Atualiza tudo em paralelo. Cada parte é independente: se o perfil falhar, a agenda e os
+     * avisos que chegaram continuam valendo, e o que já estava na tela (ou na cópia local) fica.
+     */
     fun refreshCoreData() {
         val currentSession = session ?: return
         val expectedGen = sessionGeneration
         val expectedUserId = currentSession.userId
+        val expectedAccessRevision = profileAccessRevision
 
         activeDataJob?.cancel()
         activeDataJob = scope.launch {
@@ -382,77 +617,100 @@ class FsyAppState(
                 if (sessionGeneration != expectedGen || session?.userId != expectedUserId) return@launch
 
                 coroutineScope {
-                    val profileDeferred = async { apiClient.fetchCurrentProfile(validSession) }
-                    val scheduleDeferred = async { runCatching { apiClient.fetchSchedule(validSession) }.getOrDefault(emptyList()) }
-                    val announcementsDeferred = async { runCatching { apiClient.fetchAnnouncements(validSession) } }
-                    val instagramDeferred = async { runCatching { apiClient.fetchInstagramFeed() }.getOrNull() }
-                    val mediaDeferred = async { runCatching { apiClient.fetchPublicMedia(validSession) }.getOrDefault(emptyList()) }
+                    val profileD = async { runCatching { apiClient.fetchCurrentProfile(validSession) } }
+                    val scheduleD = async { runCatching { apiClient.fetchSchedule(validSession) } }
+                    val announcementsD = async { runCatching { apiClient.fetchAnnouncements(validSession) } }
+                    val instagramD = async { runCatching { apiClient.fetchInstagramFeed() }.getOrNull() }
+                    val mediaD = async { runCatching { apiClient.fetchPublicMedia(validSession) }.getOrNull() }
+                    val photoD = async { runCatching { apiClient.fetchProfilePhoto(validSession) }.getOrNull() }
 
-                    val loadedProfile = profileDeferred.await()
-                    val loadedSchedule = scheduleDeferred.await()
-                    val loadedAnnouncementsResult = announcementsDeferred.await()
-                    val loadedAnnouncements = loadedAnnouncementsResult.getOrDefault(emptyList())
-                    val loadedInsta = instagramDeferred.await()
-                    val loadedMedia = mediaDeferred.await()
+                    val profileRes = profileD.await()
+                    val scheduleRes = scheduleD.await()
+                    val announcementsRes = announcementsD.await()
+                    val loadedInsta = instagramD.await()
+                    val loadedMedia = mediaD.await()
+                    val loadedPhoto = photoD.await()
 
-                    val loadedCompany = if (!loadedProfile.companyId.isNullOrBlank()) {
-                        runCatching { apiClient.fetchCompany(validSession, loadedProfile.companyId) }.getOrNull()
+                    currentCoroutineContext().ensureActive()
+                    if (sessionGeneration != expectedGen || session?.userId != expectedUserId || profileAccessRevision != expectedAccessRevision) return@coroutineScope
+
+                    // Conta suspensa ou sessão recusada: aí sim encerra.
+                    val profileError = profileRes.exceptionOrNull()
+                    if (profileError is ApiException && profileError.statusCode in listOf(401, 403)) {
+                        authError = profileError.message
+                        signOut()
+                        return@coroutineScope
+                    }
+
+                    val loadedProfile = profileRes.getOrNull() ?: profile
+                    val companyId = loadedProfile?.companyId?.takeIf { it.isNotBlank() }
+                    val loadedCompany = if (companyId != null) {
+                        runCatching { apiClient.fetchCompany(validSession, companyId) }
+                            .getOrElse { company?.takeIf { it.id == companyId } }
                     } else null
-
-                    val loadedCompanyYouth = if (!loadedProfile.companyId.isNullOrBlank() &&
-                        (loadedProfile.roleEnum == UserRole.CONSULTOR || loadedProfile.roleEnum.isManager)
-                    ) {
-                        runCatching { apiClient.fetchCompanyYouth(validSession, loadedProfile.companyId) }.getOrDefault(emptyList())
+                    val staffRole = loadedProfile?.roleEnum?.canAccessCounselorPanel == true
+                    val loadedYouth = if (companyId != null && staffRole) {
+                        runCatching { apiClient.fetchCompanyYouth(validSession, companyId) }.getOrElse { companyYouth }
                     } else emptyList()
+                    val loadedReviews = if (staffRole) {
+                        runCatching { apiClient.fetchPhotoReviews(validSession) }.getOrElse { photoReviews }
+                    } else emptyList()
+                    val approvedPhotos = if (staffRole) {
+                        runCatching { apiClient.fetchCompanyProfilePhotos(validSession) }.getOrElse { companyProfilePhotos }
+                    } else emptyMap()
 
-                    if (sessionGeneration != expectedGen || session?.userId != expectedUserId) return@coroutineScope
+                    currentCoroutineContext().ensureActive()
+                    if (sessionGeneration != expectedGen || session?.userId != expectedUserId || profileAccessRevision != expectedAccessRevision) return@coroutineScope
 
                     profile = loadedProfile
+                    if (loadedProfile == null || loadedProfile.isSuspended || !loadedProfile.roleEnum.canManageRegistrations) {
+                        closeRegistrationAuthorizationEditor()
+                        br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
+                    }
                     company = loadedCompany
-                    companyYouth = loadedCompanyYouth
-                    scheduleItems = loadedSchedule
-                    announcements = loadedAnnouncements
-                    if (loadedInsta != null) {
+                    companyYouth = loadedYouth
+                    photoReviews = loadedReviews
+                    companyProfilePhotos = approvedPhotos
+                    scheduleRes.getOrNull()?.let { rawScheduleItems = it }
+                    announcementsRes.getOrNull()?.let { list ->
+                        if (keyStore.loadReadAnnouncementIds(validSession.userId) == null) {
+                            // Primeiro uso nesta conta: o que já existia não vira "novo".
+                            markAnnouncementsRead(list.map { it.id })
+                        }
+                        announcements = list
+                    }
+                    if (loadedInsta != null && loadedInsta.posts.isNotEmpty()) {
                         instagramPosts = loadedInsta.posts
                         instagramProfileUrl = loadedInsta.profileUrl
                     }
-                    publicMediaPhotos = loadedMedia
+                    loadedMedia?.let { publicMediaPhotos = it }
+                    loadedPhoto?.let { profilePhoto = it }
 
-                    val nowZoned = ZonedDateTime.now(EventCalendar.EVENT_ZONE)
-                    lastSyncedAtLabel = nowZoned.format(DateTimeFormatter.ofPattern("HH:mm"))
+                    val failures = listOfNotNull(profileError, scheduleRes.exceptionOrNull(), announcementsRes.exceptionOrNull())
+                    val anyCoreSuccess = profileRes.isSuccess || scheduleRes.isSuccess || announcementsRes.isSuccess
+                    if (anyCoreSuccess) {
+                        val nowInstant = Instant.now()
+                        lastSyncedAtLabel = syncLabel(nowInstant)
+                        offlineCache.save(
+                            OfflineSnapshot(
+                                userId = validSession.userId,
+                                savedAtEpochMs = nowInstant.toEpochMilli(),
+                                profile = profile?.copy(role = "jovem"),
+                                company = company,
+                                scheduleItems = rawScheduleItems,
+                                announcements = announcements,
+                            )
+                        )
+                    }
+                    if (failures.isNotEmpty()) {
+                        globalBannerError = bannerFor(failures)
+                    }
 
-                    // Atualiza snapshot público seguro do widget e replaneja lembretes locais
-                    val snapshot = WidgetSnapshotDto(
-                        userId = validSession.userId,
-                        companyName = loadedCompany?.name,
-                        updatedAtEpochMs = System.currentTimeMillis(),
-                        visibleAnnouncementCount = loadedAnnouncementsResult.getOrNull()?.size,
-                        urgentAnnouncementCount = loadedAnnouncementsResult.getOrNull()?.count { it.isUrgent },
-                        activities = loadedSchedule
-                            .filter { it.dayKey != "dia0" }
-                            .map {
-                                WidgetActivitySummaryDto(
-                                    id = it.id,
-                                    dayKey = it.dayKey,
-                                    startTime = it.startTime,
-                                    endTime = it.endTime,
-                                    title = it.title,
-                                    location = it.location
-                                )
-                            }
-                    )
-                    keyStore.saveWidgetSnapshot(snapshot)
-                    ScheduleReminderScheduler.replanAllReminders(
-                        context = appContext,
-                        scheduleItems = loadedSchedule,
-                        personalReminderIds = personalReminderIds,
-                        scheduleRemindersEnabled = notificationPreferences.scheduleRemindersEnabled,
-                        personalRemindersEnabled = notificationPreferences.personalRemindersEnabled
-                    )
-                    FsyWidgetManager.updateAllWidgets(appContext)
-                    FsyWidgetManager.schedulePeriodicSync(appContext)
+                    if (scheduleRes.isSuccess) {
+                        updateWidgetsAndReminders(validSession, scheduleItems, announcementsRes.getOrNull(), loadedCompany)
+                    }
 
-                    // Sincroniza registro do dispositivo push em background
+                    // Registro do aparelho para notificações, em segundo plano.
                     launch {
                         val summary = PushTokenManager.syncDeviceRegistration(
                             context = appContext,
@@ -466,20 +724,75 @@ class FsyAppState(
                     }
                 }
             } catch (e: ApiException) {
-                if (e.statusCode in listOf(401, 403)) {
-                    authError = e.message
-                    signOut()
+                if (e.statusCode == 401 && session == null) {
+                    // Sessão já encerrada por withValidSession.
                 } else {
                     globalBannerError = e.message
                 }
+            } catch (_: kotlinx.coroutines.CancellationException) {
+                // Nova atualização começou.
             } catch (_: Exception) {
-                globalBannerError = "Modo offline: não foi possível atualizar todos os dados agora."
+                globalBannerError = if (isOnline) "Não foi possível atualizar agora." else null
             } finally {
-                if (sessionGeneration == expectedGen) {
+                if (sessionGeneration == expectedGen && activeDataJob == coroutineContext[Job]) {
                     isLoading = false
                 }
             }
         }
+    }
+
+    /** Sem rede: a faixa "Sem conexão" já explica; outros erros viram uma frase só. */
+    private fun bannerFor(failures: List<Throwable>): String? {
+        if (failures.all { it is IOException }) {
+            return if (isOnline) "Não foi possível atualizar tudo agora. Mostrando o que já estava salvo." else null
+        }
+        val api = failures.firstOrNull { it is ApiException } as? ApiException
+        return api?.message ?: "Não foi possível atualizar tudo agora."
+    }
+
+    private suspend fun updateWidgetsAndReminders(
+        validSession: UserSession,
+        schedule: List<ScheduleItem>,
+        loadedAnnouncements: List<Announcement>?,
+        loadedCompany: Company?,
+    ) {
+        val snapshot = WidgetSnapshotDto(
+            userId = validSession.userId,
+            companyName = loadedCompany?.name,
+            updatedAtEpochMs = System.currentTimeMillis(),
+            visibleAnnouncementCount = loadedAnnouncements?.size,
+            urgentAnnouncementCount = loadedAnnouncements?.count { it.isUrgent },
+            isStaff = effectiveRole.isStaff,
+            activities = schedule
+                .map {
+                    WidgetActivitySummaryDto(
+                        id = it.id,
+                        dayKey = it.dayKey,
+                        startTime = it.startTime,
+                        endTime = it.endTime,
+                        title = it.title,
+                        location = it.location,
+                        category = it.normalizedCategory,
+                    )
+                }
+        )
+        keyStore.saveWidgetSnapshot(snapshot)
+        replanReminders()
+        FsyWidgetManager.updateAllWidgets(appContext)
+        FsyWidgetManager.schedulePeriodicSync(appContext)
+    }
+
+    private fun replanReminders(
+        reminderIds: Set<String> = personalReminderIds,
+        prefs: NotificationChannelPreferencesDto = notificationPreferences,
+    ) {
+        ScheduleReminderScheduler.replanAllReminders(
+            context = appContext,
+            scheduleItems = scheduleItems,
+            personalReminderIds = reminderIds,
+            scheduleRemindersEnabled = prefs.scheduleRemindersEnabled,
+            personalRemindersEnabled = prefs.personalRemindersEnabled
+        )
     }
 
     fun togglePersonalReminder(activityId: String) {
@@ -491,24 +804,17 @@ class FsyAppState(
         }
         personalReminderIds = updated
         keyStore.savePersonalReminderIds(currentSession.userId, updated)
-        ScheduleReminderScheduler.replanAllReminders(
-            context = appContext,
-            scheduleItems = scheduleItems,
-            personalReminderIds = updated,
-            scheduleRemindersEnabled = notificationPreferences.scheduleRemindersEnabled,
-            personalRemindersEnabled = notificationPreferences.personalRemindersEnabled
-        )
+        replanReminders(reminderIds = updated)
     }
 
     fun toggleAnnouncementLike(announcementId: String) {
         val expectedGen = sessionGeneration
-        // Atualização otimista imediata
         val previousList = announcements
         announcements = announcements.map { item ->
             if (item.id == announcementId) {
-                val nextLiked = !item.likedByMe
+                val nextLiked = !item.isLikedEffective
                 val nextCount = (item.likesCount + if (nextLiked) 1 else -1).coerceAtLeast(0)
-                item.copy(likedByMe = nextLiked, likesCount = nextCount)
+                item.copy(likedByMe = nextLiked, isLiked = nextLiked, likesCount = nextCount)
             } else item
         }
         scope.launch {
@@ -518,7 +824,7 @@ class FsyAppState(
                 if (sessionGeneration != expectedGen) return@launch
                 announcements = announcements.map { item ->
                     if (item.id == announcementId) {
-                        item.copy(likedByMe = res.liked, likesCount = res.likesCount)
+                        item.copy(likedByMe = res.liked, isLiked = res.liked, likesCount = res.likesCount)
                     } else item
                 }
             } catch (_: Exception) {
@@ -535,13 +841,7 @@ class FsyAppState(
         val expectedGen = sessionGeneration
         notificationPreferences = newPrefs
         keyStore.saveNotificationPreferences(currentSession.userId, newPrefs)
-        ScheduleReminderScheduler.replanAllReminders(
-            context = appContext,
-            scheduleItems = scheduleItems,
-            personalReminderIds = personalReminderIds,
-            scheduleRemindersEnabled = newPrefs.scheduleRemindersEnabled,
-            personalRemindersEnabled = newPrefs.personalRemindersEnabled
-        )
+        replanReminders(prefs = newPrefs)
         scope.launch {
             val validSession = runCatching { withValidSession() }.getOrDefault(currentSession)
             val synced = PushTokenManager.updatePreferences(
@@ -556,6 +856,118 @@ class FsyAppState(
         }
     }
 
+    // --- Foto de perfil -----------------------------------------------------------------------
+
+    /** Recorte e envio pertencem ao ViewModel, para sobreviver à rotação. */
+    fun submitProfilePhoto(uri: Uri) {
+        if (isPhotoBusy) return
+        val expectedGen = sessionGeneration
+        isPhotoBusy = true
+        photoError = null
+        scope.launch {
+            try {
+                val bytes = withContext(Dispatchers.IO) {
+                    br.com.fsyrp2.app.data.PhotoProcessor.squareJpeg(appContext, uri)
+                } ?: throw IllegalArgumentException("Imagem inválida")
+                if (sessionGeneration != expectedGen) return@launch
+                val result = apiClient.uploadProfilePhoto(withValidSession(), bytes)
+                if (sessionGeneration == expectedGen) profilePhoto = result
+            } catch (e: Exception) {
+                if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e, "Não foi possível usar essa foto. Tente outra imagem.")
+            } finally {
+                if (sessionGeneration == expectedGen) isPhotoBusy = false
+            }
+        }
+    }
+
+    fun refreshProfilePhoto() {
+        val expectedGen = sessionGeneration
+        scope.launch {
+            runCatching { apiClient.fetchProfilePhoto(withValidSession()) }
+                .onSuccess { if (sessionGeneration == expectedGen) profilePhoto = it }
+        }
+    }
+
+    fun uploadProfilePhoto(jpegBytes: ByteArray) {
+        val expectedGen = sessionGeneration
+        isPhotoBusy = true
+        photoError = null
+        scope.launch {
+            try {
+                val result = apiClient.uploadProfilePhoto(withValidSession(), jpegBytes)
+                if (sessionGeneration == expectedGen) profilePhoto = result
+            } catch (e: Exception) {
+                if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e, "Não foi possível enviar a foto agora.")
+            } finally {
+                isPhotoBusy = false
+            }
+        }
+    }
+
+    fun removeProfilePhoto(scopeName: String) {
+        val expectedGen = sessionGeneration
+        isPhotoBusy = true
+        photoError = null
+        scope.launch {
+            try {
+                val result = apiClient.deleteProfilePhoto(withValidSession(), scopeName)
+                if (sessionGeneration == expectedGen) profilePhoto = result
+            } catch (e: Exception) {
+                if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e)
+            } finally {
+                isPhotoBusy = false
+            }
+        }
+    }
+
+    fun reportPhotoError(message: String) {
+        photoError = message
+    }
+
+    fun refreshPhotoReviews() {
+        if (!canReviewPhotos) return
+        val expectedGen = sessionGeneration
+        val expectedAccessRevision = profileAccessRevision
+        scope.launch {
+            runCatching { apiClient.fetchPhotoReviews(withValidSession()) }
+                .onSuccess { if (sessionGeneration == expectedGen && profileAccessRevision == expectedAccessRevision && canReviewPhotos) photoReviews = it }
+        }
+    }
+
+    fun refreshCompanyProfilePhotos() {
+        if (!canReviewPhotos) return
+        val expectedGen = sessionGeneration
+        val expectedAccessRevision = profileAccessRevision
+        scope.launch {
+            runCatching { apiClient.fetchCompanyProfilePhotos(withValidSession()) }
+                .onSuccess { if (sessionGeneration == expectedGen && profileAccessRevision == expectedAccessRevision && canReviewPhotos) companyProfilePhotos = it }
+        }
+    }
+
+    /** Aprova ou recusa uma foto. [onDone] recebe null em sucesso ou a mensagem de erro. */
+    fun reviewPhoto(userId: String, approve: Boolean, note: String?, onDone: (String?) -> Unit) {
+        if (!canReviewPhotos) {
+            onDone("Você não tem acesso a esta ação.")
+            return
+        }
+        val expectedGen = sessionGeneration
+        scope.launch {
+            try {
+                apiClient.reviewProfilePhoto(withValidSession(), userId, approve, note)
+                if (sessionGeneration == expectedGen) {
+                    photoReviews = photoReviews.filterNot { it.userId == userId }
+                }
+                onDone(null)
+                refreshPhotoReviews()
+                refreshCompanyProfilePhotos()
+            } catch (e: Exception) {
+                onDone(FriendlyErrors.of(e))
+            }
+        }
+    }
+
+    // --- Saída ---------------------------------------------------------------------------------
+
     fun signOut(revokeAllPushDevices: Boolean = false) {
         val previousSession = session
         performImmediateLogoutCleanup(previousSession, revokeAllPushDevices)
@@ -568,21 +980,32 @@ class FsyAppState(
         activeDataJob?.cancel()
         val capturedDeviceId = previousSession?.let { keyStore.loadBoundDeviceId(it.userId) }
         keyStore.clearSession()
+        offlineCache.clearAll()
+        br.com.fsyrp2.app.ui.components.RemoteImageMemory.clear()
         sessionGeneration = keyStore.loadLocalSessionGeneration()
         session = null
         profile = null
+        closeRegistrationAuthorizationEditor()
+        br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
         company = null
         companyYouth = emptyList()
-        scheduleItems = emptyList()
+        rawScheduleItems = emptyList()
         announcements = emptyList()
         publicMediaPhotos = emptyList()
         personalReminderIds = emptySet()
+        readAnnouncementIds = emptySet()
+        profilePhoto = ProfilePhotoState()
+        isPhotoBusy = false
+        photoReviews = emptyList()
+        companyProfilePhotos = emptyMap()
+        photoError = null
         notificationPreferences = NotificationChannelPreferencesDto()
-        cardOrderCache.clear()
         overlayDestination = OverlayDestination.None
         selectedTab = MainTab.HOME
         focusedAnnouncementId = null
+        focusedScheduleItemId = null
         lastSyncedAtLabel = null
+        globalBannerError = null
 
         ScheduleReminderScheduler.cancelAllReminders(appContext)
         FsyWidgetManager.cancelPeriodicSync(appContext)
@@ -610,20 +1033,22 @@ class FsyAppState(
         val caps = activeNet?.let { cm.getNetworkCapabilities(it) }
         isOnline = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
 
-        runCatching {
-            cm.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                scope.launch {
                     val wasOffline = !isOnline
                     isOnline = true
-                    if (wasOffline && session != null) {
-                        scope.launch { refreshCoreData() }
-                    }
+                    if (wasOffline && session != null) refreshCoreData()
                 }
+            }
 
-                override fun onLost(network: Network) {
-                    isOnline = false
-                }
-            })
+            override fun onLost(network: Network) {
+                scope.launch { isOnline = false }
+            }
+        }
+        runCatching {
+            cm.registerDefaultNetworkCallback(callback)
+            networkCallback = callback
         }
     }
 }

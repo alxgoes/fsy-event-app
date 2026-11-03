@@ -276,7 +276,7 @@ fun FsyTopBar(
         ) {
             if (onBack != null) {
                 IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
-                    Icon(FsyIcons.ArrowLeft, contentDescription = "Voltar")
+                    Icon(FsyIcons.ArrowLeft, contentDescription = "Voltar", tint = MaterialTheme.colorScheme.onBackground)
                 }
                 Spacer(Modifier.width(4.dp))
             } else if (showMark) {
@@ -404,8 +404,7 @@ fun FsyStatusBadge(
                 text = text,
                 style = MaterialTheme.typography.labelSmall,
                 color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Clip,
             )
         }
     }
@@ -505,7 +504,7 @@ fun FsyListRow(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     supporting: String? = null,
-    iconContainer: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    iconContainer: Color = Color.Transparent,
     iconTint: Color = MaterialTheme.colorScheme.onSurface,
     onClick: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = if (onClick != null) {
@@ -533,8 +532,7 @@ fun FsyListRow(
                     supporting,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Clip,
                 )
             }
         }

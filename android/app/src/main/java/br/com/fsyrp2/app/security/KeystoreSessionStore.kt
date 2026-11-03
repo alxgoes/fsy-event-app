@@ -4,7 +4,6 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.model.NotificationChannelPreferencesDto
 import br.com.fsyrp2.app.model.UserSession
 import br.com.fsyrp2.app.model.WidgetSnapshotDto
@@ -103,7 +102,8 @@ class KeystoreSessionStore(context: Context) {
             .putLong(KEY_LOCAL_SESSION_GEN, nextGen)
 
         for (k in prefs.all.keys) {
-            if (k.startsWith("fsy:layout:v1:") ||
+            if (k.startsWith(LEGACY_LAYOUT_PREFIX) ||
+                k.startsWith("fsy:read:v1:") ||
                 k.startsWith("fsy:reminders:v1:") ||
                 k.startsWith("fsy:notif_prefs:v1:")
             ) {
@@ -133,18 +133,16 @@ class KeystoreSessionStore(context: Context) {
         return verifier
     }
 
-    fun loadCardOrder(userId: String, pageKey: String): List<String> {
-        val defaults = CardOrderManager.PAGE_DEFAULT_IDS[pageKey] ?: emptyList()
-        val key = CardOrderManager.cacheKey(userId, pageKey)
-        val raw = prefs.getString(key, null) ?: return defaults
-        val saved = raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-        return CardOrderManager.resolveOrder(defaults, saved)
+    /** Avisos já vistos nesta conta (para "Não lidos" e o selo da aba). Null = nunca registrado. */
+    fun loadReadAnnouncementIds(userId: String): Set<String>? {
+        val raw = prefs.getString("fsy:read:v1:$userId", null) ?: return null
+        return raw.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
     }
 
-    fun saveCardOrder(userId: String, pageKey: String, orderedIds: List<String>) {
-        purgeForeignUserKeys(userId)
-        val key = CardOrderManager.cacheKey(userId, pageKey)
-        prefs.edit().putString(key, orderedIds.joinToString(",")).apply()
+    fun saveReadAnnouncementIds(userId: String, ids: Set<String>) {
+        // Limita o tamanho: só os últimos 400 identificadores importam.
+        val trimmed = if (ids.size > 400) ids.toList().takeLast(400) else ids.toList()
+        prefs.edit().putString("fsy:read:v1:$userId", trimmed.joinToString(",")).apply()
     }
 
     fun getOrCreateDeviceId(userId: String): String {
@@ -226,6 +224,8 @@ class KeystoreSessionStore(context: Context) {
             .apply()
     }
 
+    fun clearWidgetSnapshot() { prefs.edit().remove(KEY_WIDGET_SNAPSHOT).apply() }
+
     fun saveWidgetSnapshot(snapshot: WidgetSnapshotDto) {
         val activeUser = activeUserId()
         if (activeUser == null || activeUser != snapshot.userId) return
@@ -246,7 +246,9 @@ class KeystoreSessionStore(context: Context) {
 
     private fun purgeForeignUserKeys(activeUserId: String) {
         val toRemove = prefs.all.keys.filter { key ->
-            CardOrderManager.isForeignLayoutKey(key, activeUserId) ||
+            // Ordem de cartões da versão 1.1 (personalização removida): sempre descartada.
+            key.startsWith(LEGACY_LAYOUT_PREFIX) ||
+                (key.startsWith("fsy:read:v1:") && !key.endsWith(":$activeUserId")) ||
                 (key.startsWith("fsy:reminders:v1:") && !key.endsWith(":$activeUserId")) ||
                 (key.startsWith("fsy:notif_prefs:v1:") && !key.endsWith(":$activeUserId")) ||
                 (key.startsWith("fsy:push:device_id:") && !key.endsWith(":$activeUserId"))
@@ -260,6 +262,7 @@ class KeystoreSessionStore(context: Context) {
 
     companion object {
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        private const val LEGACY_LAYOUT_PREFIX = "fsy:layout:v1:"
         private const val KEY_ALIAS = "fsy_rp2_session_aes_key_v1"
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val PREFS_NAME = "fsy_rp2_secure_store"

@@ -140,9 +140,11 @@ class WidgetSyncWorker(
         }
         return try {
             val api = PortalApiClient()
-            val items = api.fetchSchedule(session)
+            val validSession = br.com.fsyrp2.app.security.SessionTokens.valid(keyStore, api, session.userId)
+            val profile = runCatching { api.fetchCurrentProfile(validSession) }.getOrNull()
+            val items = br.com.fsyrp2.app.model.ScheduleVisibility.visibleTo(api.fetchSchedule(validSession), profile?.roleEnum)
             val previous = keyStore.loadWidgetSnapshot()?.takeIf { it.userId == session.userId }
-            val announcements = runCatching { api.fetchAnnouncements(session) }.getOrNull()
+            val announcements = runCatching { api.fetchAnnouncements(validSession) }.getOrNull()
             val snapshot = WidgetSnapshotDto(
                 userId = session.userId,
                 companyName = previous?.companyName,
@@ -150,8 +152,8 @@ class WidgetSyncWorker(
                 // Contrato: sem leitura nova, contagens ficam nulas (não reapresentar número antigo como atual).
                 visibleAnnouncementCount = announcements?.size,
                 urgentAnnouncementCount = announcements?.count { it.isUrgent },
+                isStaff = profile?.roleEnum?.isStaff == true,
                 activities = items
-                    .filter { it.dayKey != "dia0" }
                     .map {
                         WidgetActivitySummaryDto(
                             id = it.id,
@@ -159,11 +161,17 @@ class WidgetSyncWorker(
                             startTime = it.startTime,
                             endTime = it.endTime,
                             title = it.title,
-                            location = it.location.orEmpty()
+                            location = it.location.orEmpty(),
+                            category = it.normalizedCategory
                         )
                     }
             )
+            if (keyStore.loadSession()?.userId != session.userId) return Result.success()
             keyStore.saveWidgetSnapshot(snapshot)
+            FsyWidgetManager.updateAllWidgets(applicationContext)
+            Result.success()
+        } catch (_: br.com.fsyrp2.app.security.SessionTokens.SessionEndedException) {
+            keyStore.clearWidgetSnapshot()
             FsyWidgetManager.updateAllWidgets(applicationContext)
             Result.success()
         } catch (_: Exception) {
@@ -199,7 +207,8 @@ internal fun loadWidgetSchedule(context: Context): List<ScheduleItem>? {
             startTime = it.startTime,
             endTime = it.endTime.orEmpty(),
             title = it.title,
-            location = it.location.orEmpty()
+            location = it.location.orEmpty(),
+            category = it.category
         )
     }
 }

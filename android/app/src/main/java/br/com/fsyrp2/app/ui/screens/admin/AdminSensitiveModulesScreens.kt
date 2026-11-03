@@ -1,5 +1,7 @@
 package br.com.fsyrp2.app.ui.screens.admin
 
+import androidx.compose.runtime.saveable.rememberSaveable
+
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 
 import androidx.compose.foundation.layout.*
@@ -12,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import br.com.fsyrp2.app.data.CardOrderManager
 import br.com.fsyrp2.app.model.*
 import br.com.fsyrp2.app.state.FsyAppState
 import br.com.fsyrp2.app.ui.components.*
@@ -32,6 +33,8 @@ import kotlinx.serialization.json.putJsonObject
 
 @Composable
 fun MedicalAdminModuleView(appState: FsyAppState) {
+    val confirm = rememberFsyConfirm()
+    confirm.Host()
     SecureScreenEffect()
     val haptics = rememberFsyHaptics()
     val scope = rememberCoroutineScope()
@@ -67,11 +70,10 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
 
     LaunchedEffect(Unit) { reload() }
 
-    val metricsDefaultOrder = CardOrderManager.PAGE_DEFAULT_IDS["medical-metrics"].orEmpty()
-    val metricsOrder = appState.cardOrderFor("medical-metrics")
+
 
     val metricCards = listOf(
-        ReorderableCardItem("total-records", "Total de Fichas") {
+        FsyCardContent("total-records", "Total de Fichas") {
             FsySectionCard {
                 Text("Fichas Médicas Cadastradas", style = MaterialTheme.typography.labelMedium)
                 Text(
@@ -82,7 +84,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 )
             }
         },
-        ReorderableCardItem("allergies", "Alergias") {
+        FsyCardContent("allergies", "Alergias") {
             val allergyCount = records.count { !it.allergies.isNullOrBlank() }
             FsySectionCard {
                 Text("Com Alergias Registradas", style = MaterialTheme.typography.labelMedium)
@@ -94,7 +96,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 )
             }
         },
-        ReorderableCardItem("medications", "Medicações") {
+        FsyCardContent("medications", "Medicações") {
             val medCount = records.count { !it.medications.isNullOrBlank() }
             FsySectionCard {
                 Text("Com Medicação Contínua", style = MaterialTheme.typography.labelMedium)
@@ -106,7 +108,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 )
             }
         },
-        ReorderableCardItem("dietary", "Restrições Alimentares") {
+        FsyCardContent("dietary", "Restrições Alimentares") {
             val dietCount = records.count { !it.dietaryRestrictions.isNullOrBlank() }
             FsySectionCard {
                 Text("Restrição Alimentar", style = MaterialTheme.typography.labelMedium)
@@ -128,19 +130,12 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FsyStatusBadge(
-            text = "TELA PROTEGIDA (FLAG_SECURE • DADOS SOMENTE EM MEMÓRIA)",
+            text = "Dados de saúde · acesso restrito",
             backgroundColor = FsyPalette.PrimarySky.copy(alpha = 0.14f),
             contentColor = FsyPalette.PrimarySky
         )
 
-        ReorderableCardSection(
-            pageKey = "medical-metrics",
-            defaultIds = metricsDefaultOrder,
-            orderedIds = metricsOrder,
-            onOrderChange = { appState.updateCardOrder("medical-metrics", it) },
-            cards = metricCards,
-            scrollState = scrollState
-        )
+        FsyCardGroup(cards = metricCards)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -164,7 +159,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
         if (!errorMsg.isNullOrBlank()) Text(errorMsg.orEmpty(), color = MaterialTheme.colorScheme.error)
 
         if (activeTab == "records") {
-            Button(
+            FsyButton(
                 onClick = {
                     creatingNewRecord = true
                     editingRecord = MedicalRecordSummary(id = "", userId = "", fullName = "")
@@ -206,12 +201,14 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                             ) { Icon(FsyIcons.Pencil, contentDescription = "Editar ficha") }
                             IconButton(
                                 onClick = {
-                                    scope.launch {
-                                        runCatching {
-                                            val s = appState.withValidSession()
-                                            appState.apiClient.deleteMedicalRecord(s, rec.id)
-                                            reload()
-                                        }.onFailure { errorMsg = it.message }
+                                    confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                        scope.launch {
+                                            runCatching {
+                                                val s = appState.withValidSession()
+                                                appState.apiClient.deleteMedicalRecord(s, rec.id)
+                                                reload()
+                                            }.onFailure { errorMsg = it.message }
+                                        }
                                     }
                                 },
                                 modifier = Modifier.size(48.dp)
@@ -221,7 +218,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 }
             }
         } else {
-            Button(
+            FsyButton(
                 onClick = {
                     creatingNewAppointment = true
                     editingAppointment = MedicalAppointment(
@@ -274,12 +271,14 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                             ) { Icon(FsyIcons.Pencil, contentDescription = "Editar consulta") }
                             IconButton(
                                 onClick = {
-                                    scope.launch {
-                                        runCatching {
-                                            val s = appState.withValidSession()
-                                            appState.apiClient.deleteMedicalAppointment(s, appt.id)
-                                            reload()
-                                        }.onFailure { errorMsg = it.message }
+                                    confirm.ask("Excluir este registro?", "Esta ação não pode ser desfeita.") {
+                                        scope.launch {
+                                            runCatching {
+                                                val s = appState.withValidSession()
+                                                appState.apiClient.deleteMedicalAppointment(s, appt.id)
+                                                reload()
+                                            }.onFailure { errorMsg = it.message }
+                                        }
                                     }
                                 },
                                 modifier = Modifier.size(48.dp)
@@ -321,7 +320,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -350,7 +349,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingRecord = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingRecord = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -382,7 +381,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -412,7 +411,7 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar") }
             },
             dismissButton = {
-                TextButton(onClick = { editingAppointment = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { editingAppointment = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -463,7 +462,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FsyStatusBadge(
-            text = "ACOMPANHAMENTO DE INCLUSÃO • TELA PROTEGIDA (FLAG_SECURE)",
+            text = "Acompanhamento de inclusão · acesso restrito",
             backgroundColor = FsyPalette.PrimarySky.copy(alpha = 0.14f),
             contentColor = FsyPalette.PrimarySky
         )
@@ -475,9 +474,9 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Exibir arquivados")
-                Switch(checked = includeArchived, onCheckedChange = { includeArchived = it })
+                FsySwitch(checked = includeArchived, onCheckedChange = { includeArchived = it })
             }
-            Button(
+            FsyButton(
                 onClick = { creatingCase = true },
                 modifier = Modifier.defaultMinSize(minHeight = 48.dp)
             ) {
@@ -531,7 +530,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        OutlinedButton(
+                        FsyOutlinedButton(
                             onClick = {
                                 scope.launch {
                                     runCatching {
@@ -545,7 +544,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                             modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
                         ) { Text("Entrevistas") }
 
-                        OutlinedButton(
+                        FsyOutlinedButton(
                             onClick = { recordingDecisionForCase = c },
                             modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
                         ) {
@@ -584,7 +583,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -616,7 +615,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 ) { Text("Criar caso") }
             },
             dismissButton = {
-                TextButton(onClick = { creatingCase = false }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { creatingCase = false }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -631,7 +630,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(
+                    FsyButton(
                         onClick = { addingInterviewForCase = detailCase },
                         modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                     ) {
@@ -655,7 +654,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = { selectedCaseDetail = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Fechar") }
+                FsyTextButton(onClick = { selectedCaseDetail = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Fechar") }
             }
         )
     }
@@ -677,7 +676,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -704,7 +703,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 ) { Text("Salvar entrevista") }
             },
             dismissButton = {
-                TextButton(onClick = { addingInterviewForCase = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { addingInterviewForCase = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
@@ -755,7 +754,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 }
             },
             confirmButton = {
-                Button(
+                FsyButton(
                     onClick = {
                         scope.launch {
                             try {
@@ -781,7 +780,7 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                 ) { Text("Registrar decisão") }
             },
             dismissButton = {
-                TextButton(onClick = { recordingDecisionForCase = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
+                FsyTextButton(onClick = { recordingDecisionForCase = null }, modifier = Modifier.defaultMinSize(minHeight = 48.dp)) { Text("Cancelar") }
             }
         )
     }
