@@ -81,6 +81,7 @@ fun CounselorScreen(appState: FsyAppState) {
             FsyTopBar(
                 title = "Painel do consultor",
                 subtitle = appState.company?.name ?: "Minha companhia",
+                profileAction = { ProfileAccessAction(appState) },
                 onBack = {
                     haptics.tick()
                     appState.closeOverlay()

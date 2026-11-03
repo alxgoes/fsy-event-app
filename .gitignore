@@ -56,6 +56,9 @@ next-env.d.ts
 .vercel
 .env*
 
+# Cache local da CLI do Supabase
+/supabase/.temp/
+
 # Planilhas de inscrição contêm dados pessoais de menores: nunca versionar.
 # Só a planilha fictícia de testes é permitida.
 *.xlsx

@@ -254,7 +254,7 @@ fun FsySectionTitle(
 
 /**
  * Barra superior própria das telas principais e sobrepostas: aplica o recuo da barra de
- * status, título serifado, voltar com rótulo acessível e até duas ações.
+ * status, título serifado, voltar com rótulo acessível, ações e acesso ao perfil.
  */
 @Composable
 fun FsyTopBar(
@@ -263,49 +263,79 @@ fun FsyTopBar(
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     showMark: Boolean = onBack == null,
-    actions: @Composable RowScope.() -> Unit = {},
+    actions: (@Composable RowScope.() -> Unit)? = null,
+    profileAction: (@Composable () -> Unit)? = null,
 ) {
+    val largeText = LocalDensity.current.fontScale >= 1.3f
     Surface(color = MaterialTheme.colorScheme.background, modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .fillMaxWidth()
-                .heightIn(min = 64.dp)
-                .padding(start = if (onBack != null) 4.dp else FsyGutter, end = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (onBack != null) {
-                IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
-                    Icon(FsyIcons.ArrowLeft, contentDescription = "Voltar", tint = MaterialTheme.colorScheme.onBackground)
-                }
-                Spacer(Modifier.width(4.dp))
-            } else if (showMark) {
-                FsyTempleMark(height = 36.dp, decorative = true)
-                Spacer(Modifier.width(12.dp))
-            }
-            Column(
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .semantics(mergeDescendants = true) { heading() },
+                    .windowInsetsPadding(WindowInsets.statusBars)
+                    .fillMaxWidth()
+                    .heightIn(min = 64.dp)
+                    .padding(start = if (onBack != null) 4.dp else FsyGutter, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (!subtitle.isNullOrBlank()) {
+                if (onBack != null) {
+                    IconButton(onClick = onBack, modifier = Modifier.size(48.dp)) {
+                        Icon(FsyIcons.ArrowLeft, contentDescription = "Voltar", tint = MaterialTheme.colorScheme.onBackground)
+                    }
+                    Spacer(Modifier.width(4.dp))
+                } else if (showMark) {
+                    FsyTempleMark(height = 36.dp, decorative = true)
+                    Spacer(Modifier.width(12.dp))
+                }
+                Column(
+                    modifier = Modifier.weight(1f).semantics(mergeDescendants = true) { heading() },
+                ) {
                     Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = if (largeText) 3 else 2,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (!subtitle.isNullOrBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = if (largeText) 3 else 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
+                if (!largeText && actions != null) Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+                profileAction?.invoke()
             }
-            Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+            if (largeText && actions != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = FsyGutter, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = actions
+                )
+            }
         }
+    }
+}
+
+/** Acesso ao perfil: só recebe a foto aprovada; a miniatura não altera seu enquadramento circular. */
+@Composable
+fun FsyProfileButton(
+    name: String,
+    photoUrl: String?,
+    onClick: () -> Unit,
+    onImageError: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.size(48.dp).clip(CircleShape)
+            .clickable(role = Role.Button, onClickLabel = "Abrir meu perfil", onClick = onClick)
+            .semantics { contentDescription = "Abrir meu perfil" },
+        contentAlignment = Alignment.Center
+    ) {
+        FsyAvatar(name = name.ifBlank { "Participante" }, photoUrl = photoUrl, size = 40.dp, onImageError = onImageError)
     }
 }
 

@@ -50,6 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -130,7 +131,19 @@ fun ScheduleScreen(appState: FsyAppState) {
     var pendingActivityIdForPermission by rememberSaveable { mutableStateOf<String?>(null) }
     var denied by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val daysScroll = rememberScrollState()
+    val density = LocalDensity.current
+    val scrollDays = density.fontScale >= 1.3f
+    val dayWidthPx = with(density) { 72.dp.roundToPx() }
     var highlightedId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(selectedDayKey, scrollDays, dayWidthPx) {
+        if (scrollDays) {
+            withFrameNanos { }
+            val selectedIndex = dayOptions.indexOfFirst { it.key == selectedDayKey }.coerceAtLeast(0)
+            daysScroll.scrollTo((selectedIndex - 1).coerceAtLeast(0) * dayWidthPx)
+        }
+    }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -187,6 +200,7 @@ fun ScheduleScreen(appState: FsyAppState) {
         FsyTopBar(
             title = "Agenda",
             subtitle = "Horário de Brasília",
+            profileAction = { ProfileAccessAction(appState) },
             actions = {
                 FsyIconButton(
                     icon = FsyIcons.RefreshCw,
@@ -211,11 +225,13 @@ fun ScheduleScreen(appState: FsyAppState) {
                 onRefresh = { appState.refreshCoreData() }
             )
             val selectedIndex = dayOptions.indexOfFirst { it.key == selectedDayKey }.coerceAtLeast(0)
-            FsySegmentedSelector(
+            Box(modifier = Modifier.fillMaxWidth().then(if (scrollDays) Modifier.horizontalScroll(daysScroll) else Modifier)) {
+                FsySegmentedSelector(
                 options = dayOptions.map { it.dayNumber },
                 secondaryLines = dayOptions.map { it.weekday },
                 descriptions = dayOptions.map { "${it.spoken}: ${it.title}" },
                 selectedIndex = selectedIndex,
+                modifier = if (scrollDays) Modifier.width(72.dp * dayOptions.size) else Modifier,
                 onSelect = { index ->
                     if (dayOptions[index].key != selectedDayKey) {
                         haptics.tick()
@@ -223,6 +239,7 @@ fun ScheduleScreen(appState: FsyAppState) {
                     }
                 },
             )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -145,9 +145,9 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen pb-28 md:pb-12">
       <Header />
       <main className="mx-auto max-w-xl px-4 pt-6">
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex min-w-0 flex-col items-start gap-3">
           <h1 className="font-heading text-3xl font-bold text-slate-950 dark:text-white">Avisos</h1>
-          <div role="tablist" aria-label="Filtrar avisos" className="grid grid-cols-2 rounded-full bg-slate-200/60 p-1 dark:bg-slate-800">
+          <div role="tablist" aria-label="Filtrar avisos" className="grid w-full min-w-0 max-w-sm grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-1 rounded-2xl bg-slate-200/60 p-1 dark:bg-slate-800">
             {(["todos", "novos"] as const).map((key) => (
               <button
                 key={key}
@@ -156,7 +156,7 @@ export default function AnnouncementsPage() {
                 aria-selected={filter === key}
                 onClick={() => setFilter(key)}
                 className={cn(
-                  "relative min-h-10 rounded-full px-4 text-sm font-medium transition-colors",
+                  "relative min-h-11 min-w-0 whitespace-normal break-words rounded-full px-3 py-2 text-sm font-medium transition-colors",
                   filter === key ? "text-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300"
                 )}
               >

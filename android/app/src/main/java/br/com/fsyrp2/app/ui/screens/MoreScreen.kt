@@ -106,7 +106,7 @@ fun MoreScreen(appState: FsyAppState) {
         ProfileHeader(appState = appState, onEditPhoto = pickPhoto, modifier = Modifier.fsyReveal(0))
 
         PhotoStatusCard(appState = appState, onPickAnother = pickPhoto)
-        if (photo.approvedUrl != null && !photo.isPending) {
+        if (photo.approvedUrl != null && (!photo.isPending || !appState.effectiveRole.requiresProfilePhotoApproval)) {
             FsyTextButton(onClick = { confirm.ask("Remover foto?", "Seu perfil voltará a mostrar suas iniciais.") { appState.removeProfilePhoto("approved") } }, enabled = !appState.isPhotoBusy) { Text("Remover foto") }
         }
 
@@ -304,6 +304,13 @@ private fun ProfileHeader(appState: FsyAppState, onEditPhoto: () -> Unit, modifi
             Spacer(Modifier.size(8.dp))
             Text(if (photo.approvedUrl != null || photo.isPending) "Trocar foto" else "Editar foto", style = MaterialTheme.typography.labelLarge)
         }
+        Text(
+            text = if (role.requiresProfilePhotoApproval) "Sua foto precisa da aprovação do seu consultor."
+                else "Sua foto aparece no perfil assim que o envio termina.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
@@ -318,6 +325,7 @@ private fun joinNames(names: List<String>): String = when (names.size) {
 private fun PhotoStatusCard(appState: FsyAppState, onPickAnother: () -> Unit) {
     val photo = appState.profilePhoto
     val error = appState.photoError
+    val requiresApproval = appState.effectiveRole.requiresProfilePhotoApproval
     AnimatedVisibility(visible = error != null) {
         FsyNotice(
             icon = FsyIcons.CircleAlert,
@@ -326,11 +334,18 @@ private fun PhotoStatusCard(appState: FsyAppState, onPickAnother: () -> Unit) {
             content = MaterialTheme.colorScheme.onErrorContainer,
         )
     }
+    appState.photoSuccessMessage?.let { message ->
+        FsyNotice(
+            icon = FsyIcons.Check, text = message,
+            container = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    }
     when {
-        photo.isPending -> FsySectionCard(contentPadding = PaddingValues(18.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        requiresApproval && photo.isPending -> FsySectionCard(contentPadding = PaddingValues(18.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 FsyAvatar(name = "Foto enviada", photoUrl = photo.pendingUrl, size = 56.dp, onImageError = { appState.refreshProfilePhoto() })
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     FsyStatusBadge(
                         text = "Em análise pelo seu consultor",
                         icon = FsyIcons.Clock,
@@ -350,7 +365,7 @@ private fun PhotoStatusCard(appState: FsyAppState, onPickAnother: () -> Unit) {
                 modifier = Modifier.align(Alignment.End),
             ) { Text("Cancelar envio") }
         }
-        photo.isRejected -> FsySectionCard(contentPadding = PaddingValues(18.dp)) {
+        requiresApproval && photo.isRejected -> FsySectionCard(contentPadding = PaddingValues(18.dp)) {
             Text("Sua foto não foi aprovada", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             val note = photo.reviewNote?.takeIf { it.isNotBlank() }
             if (note != null) {

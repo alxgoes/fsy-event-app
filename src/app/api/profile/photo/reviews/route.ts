@@ -42,6 +42,7 @@ export async function GET() {
     let query = admin
       .from("profiles")
       .select(PHOTO_COLUMNS)
+      .eq("role", "jovem")
       .eq("avatar_status", "pending")
       .not("avatar_pending_path", "is", null)
       .order("avatar_submitted_at", { ascending: true })
@@ -50,7 +51,7 @@ export async function GET() {
     const { data, error } = await query;
     if (error) return serverError("profile-photo.reviews.list", error);
 
-    const rows = (data ?? []) as PhotoProfileRow[];
+    const rows = ((data ?? []) as PhotoProfileRow[]).filter((row) => row.role === "jovem");
     const companyIds = Array.from(new Set(rows.map((r) => r.company_id).filter((id): id is string => Boolean(id))));
     const { data: companies } = companyIds.length
       ? await admin.from("companies").select("id, name").in("id", companyIds)
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
     if (error) return serverError("profile-photo.review.read", error);
     const row = data as PhotoProfileRow | null;
     // Mesma resposta para "não existe" e "fora da sua companhia": não revela quem existe.
-    if (!row || (!scope.all && row.company_id !== scope.companyId)) {
+    if (!row || row.role !== "jovem" || (!scope.all && row.company_id !== scope.companyId)) {
       return json({ error: "Foto não encontrada ou já analisada." }, 404);
     }
     if (row.avatar_status !== "pending" || !row.avatar_pending_path) {
@@ -106,18 +107,15 @@ export async function POST(request: Request) {
     const pendingPath = row.avatar_pending_path;
 
     if (decision === "reject") {
-      const { error: updateError } = await admin
-        .from("profiles")
-        .update({
+      const { data: changed, error: updateError } = await updatePendingReview(admin, row, pendingPath, {
           avatar_status: "rejected",
           avatar_pending_path: null,
           avatar_reviewed_at: reviewedAt,
           avatar_reviewed_by: auth.identity.user.id,
           avatar_review_note: note ?? null,
-        })
-        .eq("id", row.id)
-        .eq("avatar_pending_path", pendingPath);
+        });
       if (updateError) return serverError("profile-photo.review.reject", updateError);
+      if (!changed) return json({ error: "Foto não encontrada ou já analisada." }, 409);
       await removePhotoPaths(admin, [pendingPath]);
       return json({ success: true });
     }
@@ -127,19 +125,17 @@ export async function POST(request: Request) {
     const moved = await admin.storage.from(PROFILE_PHOTO_BUCKET).move(pendingPath, approvedPath);
     if (moved.error) return serverError("profile-photo.review.move", moved.error);
 
-    const { error: updateError } = await admin
-      .from("profiles")
-      .update({
+    const { data: changed, error: updateError } = await updatePendingReview(admin, row, pendingPath, {
         avatar_url: `${STORED_AVATAR_PREFIX}${approvedPath}`,
         avatar_status: "approved",
         avatar_pending_path: null,
         avatar_reviewed_at: reviewedAt,
         avatar_reviewed_by: auth.identity.user.id,
         avatar_review_note: null,
-      })
-      .eq("id", row.id);
-    if (updateError) {
+      });
+    if (updateError || !changed) {
       await admin.storage.from(PROFILE_PHOTO_BUCKET).move(approvedPath, pendingPath);
+      if (!updateError) return json({ error: "Foto não encontrada ou já analisada." }, 409);
       return serverError("profile-photo.review.approve", updateError);
     }
 
@@ -148,4 +144,15 @@ export async function POST(request: Request) {
   } catch (err) {
     return serverError("profile-photo.review", err);
   }
+}
+
+/** Não decide sobre envio novo, mudança de companhia ou promoção ocorrida depois da leitura. */
+function updatePendingReview(
+  admin: ReturnType<typeof createAdminClient>, row: PhotoProfileRow, pendingPath: string,
+  patch: Record<string, string | null>
+) {
+  let query = admin.from("profiles").update(patch).eq("id", row.id).eq("role", "jovem")
+    .eq("avatar_status", "pending").eq("avatar_pending_path", pendingPath);
+  query = row.company_id ? query.eq("company_id", row.company_id) : query.is("company_id", null);
+  return query.select("id").maybeSingle();
 }

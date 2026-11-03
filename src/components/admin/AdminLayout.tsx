@@ -11,7 +11,6 @@ import {
   Stethoscope,
   Megaphone,
   Truck,
-  Shield,
   ShieldAlert,
   Menu,
   X,
@@ -21,14 +20,13 @@ import {
   Building2,
   Camera,
   Compass,
-  ChevronDown,
-  Loader2,
   ClipboardList,
   Smartphone,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useProfile, ROLE_LABELS, UserRole } from "@/lib/supabase/useProfile";
+import { Avatar, avatarInitials } from "@/components/profile/Avatar";
+import { useOwnPhoto } from "@/lib/profile-photo/useOwnPhoto";
 import { createClient } from "@/lib/supabase/client";
 import { FsyTempleMark, FsyFloatingLetters } from "@/components/brand/FsyLogo";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
@@ -120,12 +118,12 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   const sidebarRef = useRef<HTMLElement>(null);
   const sidebarTriggerRef = useRef<HTMLButtonElement>(null);
   const { profile, loading } = useProfile();
+  const { state: ownPhoto } = useOwnPhoto(Boolean(profile?.id));
   const shouldReduceMotion = useReducedMotion();
 
   const currentRole = (profile?.role || activeRole) as UserRole;
   const displayName = profile?.full_name ?? "Equipe";
   const displayEmail = profile?.email ?? "";
-  const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() ?? "A";
   const roleLabel = ROLE_LABELS[currentRole as keyof typeof ROLE_LABELS] || currentRole;
 
   // Media role isolation
@@ -260,7 +258,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
   return (
     <div className="fsy-admin min-h-screen max-w-full overflow-x-hidden bg-fsy-watermark flex flex-col font-sans transition-colors duration-200">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 sm:px-6 flex items-center justify-between transition-colors max-w-full min-w-0">
+      <header className="sticky top-0 z-40 flex min-h-16 min-w-0 max-w-full items-center justify-between gap-2 border-b border-slate-200 bg-white px-2.5 py-2 transition-colors dark:border-slate-800 dark:bg-slate-900 sm:px-6">
         <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2">
           <button
             ref={sidebarTriggerRef}
@@ -274,7 +272,7 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           </button>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
-            <div className="w-6 h-9 sm:w-7 sm:h-10 shrink-0 rounded-t-full rounded-b-lg bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border border-slate-200 dark:border-slate-700 shadow-xs flex items-center justify-center overflow-hidden">
+            <div className="flex h-[36px] w-[24px] shrink-0 items-center justify-center overflow-hidden rounded-b-lg rounded-t-full border border-slate-200 bg-[#EFEFE7] p-0.5 shadow-xs dark:border-slate-700 dark:bg-slate-800 sm:h-[40px] sm:w-[28px]">
               <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
             </div>
             <FsyFloatingLetters size="xs" className="hidden lg:inline-flex shrink-0" />
@@ -295,77 +293,53 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
           </div>
         </div>
 
-        {/* Top Header Right: Theme Toggle, Role Badge, User Info Dropdown */}
+        {/* Foto aprovada e acesso ao perfil, sem comprimir o título ou o menu. */}
         <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          <ThemeToggle />
-
-          <Badge
-            variant="outline"
-            className={`hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold ${roleLabels[currentRole]?.color || "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200"}`}
-          >
-            <Shield className="h-3 w-3" />
-            <span>{roleLabels[currentRole]?.label || roleLabel}</span>
-          </Badge>
+          <ThemeToggle className="min-h-[44px] min-w-[44px]" />
 
           {/* Interactive Profile Dropdown (Mobile & Desktop) */}
           <div className="relative" ref={dropdownRef}>
             <motion.button
+              type="button"
+              data-admin-profile-trigger
               whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
               onClick={() => setDropdownOpen((o) => !o)}
-              className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 min-h-[44px] min-w-[44px] p-1.5 sm:px-2.5 sm:py-1.5 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer"
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white p-1.5 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+              aria-label={`Minha conta — ${avatarInitials(displayName)}`}
               aria-expanded={dropdownOpen}
+              aria-controls="admin-profile-popover"
             >
-              {loading ? (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-200 dark:bg-slate-700">
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-500 dark:text-slate-300" />
-                </div>
-              ) : (
-                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#FFE48A] text-slate-950 font-bold text-xs border border-slate-900 shrink-0">
-                  {avatarLetter}
-                </div>
-              )}
-
-              <div className="hidden sm:block text-left text-xs leading-tight">
-                <p className="font-bold text-slate-900 dark:text-white truncate max-w-[90px]">
-                  {loading ? "..." : displayName.split(" ")[0]}
-                </p>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400">
-                  {roleLabels[currentRole]?.label || roleLabel}
-                </p>
-              </div>
-
-              <ChevronDown
-                className={`h-3.5 w-3.5 text-slate-500 dark:text-slate-300 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
-              />
+              <Avatar name={displayName} src={ownPhoto?.approved_url} size={32} />
             </motion.button>
 
             {/* Dropdown Menu Popover */}
             <AnimatePresence>
               {dropdownOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  id="admin-profile-popover"
+                  role="region"
+                  aria-label="Minha conta"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: -8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden z-50"
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.96 }}
+                  transition={{ duration: shouldReduceMotion ? 0.12 : 0.15 }}
+                  className={`${styles.profilePopover} absolute right-0 top-full z-50 mt-2 rounded-2xl border border-slate-200 bg-white shadow-float dark:border-slate-700 dark:bg-slate-900`}
                 >
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFE48A] text-slate-950 font-bold text-base border border-slate-200 dark:border-slate-700 shrink-0">
-                        {avatarLetter}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                    <div className="flex min-w-0 flex-col items-start gap-3">
+                      <Avatar name={displayName} src={ownPhoto?.approved_url} size={48} />
+                      <div className="min-w-0 max-w-full space-y-1 [overflow-wrap:anywhere]">
+                        <p className="break-words text-sm font-semibold text-slate-900 dark:text-white">
                           {displayName}
                         </p>
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 truncate">
+                        <p className="break-words text-sm text-slate-600 dark:text-slate-300">
                           {displayEmail}
                         </p>
-                        <span className="inline-flex mt-0.5 items-center rounded-md bg-sky-100 dark:bg-sky-950 px-1.5 py-0.5 text-xs font-bold text-[#005E7C] dark:text-cyan-300">
+                        <p className="break-words text-sm font-medium text-[#005E7C] dark:text-cyan-300">
                           {roleLabels[currentRole]?.label || roleLabel}
-                        </span>
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -373,12 +347,20 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
                   {/* Menu Items */}
                   <div className="py-2">
                     <Link
+                      href="/mais"
+                      onClick={() => setDropdownOpen(false)}
+                      className="fsy-action-link flex min-h-[44px] min-w-0 items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                    >
+                      <Camera className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 break-words">Meu perfil e foto</span>
+                    </Link>
+                    <Link
                       href="/instalar"
                       onClick={() => setDropdownOpen(false)}
-                      className="fsy-action-link min-h-[44px] w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      className="fsy-action-link flex min-h-[44px] min-w-0 items-center gap-2.5 px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                     >
-                      <Smartphone className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                      <span>Instalar o app</span>
+                      <Smartphone className="h-4 w-4 shrink-0 text-slate-600 dark:text-slate-300" />
+                      <span className="min-w-0 break-words">Instalar o app</span>
                     </Link>
 
                   </div>
@@ -416,18 +398,17 @@ export function AdminLayout({ children, activeRole = "coordenador" }: AdminLayou
         >
           {/* Mobile Drawer Top Header with Close Button */}
           <div className="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-800 lg:hidden bg-slate-50/80 dark:bg-slate-800/40">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-8 shrink-0 rounded-t-full rounded-b-md bg-[#EFEFE7] dark:bg-slate-800 p-0.5 border border-slate-900/50 dark:border-slate-700 shadow-2xs flex items-center justify-center overflow-hidden">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <div className="flex h-[32px] w-[20px] shrink-0 items-center justify-center overflow-hidden rounded-b-md rounded-t-full border border-slate-900/50 bg-[#EFEFE7] p-0.5 shadow-2xs dark:border-slate-700 dark:bg-slate-800">
                 <FsyTempleMark colorMode="four-color" className="h-full w-auto" />
               </div>
-              <FsyFloatingLetters size="xs" className="inline-flex" />
-              <span className="font-heading font-bold text-xs text-slate-900 dark:text-white">
+              <span className="min-w-0 break-words font-heading text-xs font-bold text-slate-900 dark:text-white">
                 Painel de Gestão
               </span>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-1.5 rounded-xl text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl p-1.5 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
               aria-label="Fechar menu lateral"
             >
               <X className="h-5 w-5" />

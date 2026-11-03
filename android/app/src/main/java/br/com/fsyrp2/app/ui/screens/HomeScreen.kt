@@ -101,7 +101,7 @@ fun HomeScreen(appState: FsyAppState) {
                 onPhotoError = { appState.refreshProfilePhoto() },
                 onAvatar = {
                     haptics.tick()
-                    appState.selectedTab = MainTab.MORE
+                    appState.openProfile()
                 },
                 modifier = Modifier.fsyHomeEntrance(0),
             )
@@ -187,15 +187,7 @@ private fun HomeHeader(
                 modifier = Modifier.padding(top = 2.dp),
             )
         }
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .clickable(role = Role.Button, onClickLabel = "Abrir Mais", onClick = onAvatar),
-            contentAlignment = Alignment.Center,
-        ) {
-            FsyAvatar(name = name.ifBlank { "FSY" }, photoUrl = photoUrl, size = 44.dp, onImageError = onPhotoError)
-        }
+        FsyProfileButton(name = name, photoUrl = photoUrl, onClick = onAvatar, onImageError = onPhotoError)
     }
 }
 

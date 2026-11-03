@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
 export interface GooeyTabItem {
@@ -17,6 +17,7 @@ export interface GooeyPillTabsProps {
   className?: string;
   variant?: "brand" | "tactile-dark" | "gold";
   size?: "sm" | "md";
+  ariaLabel?: string;
 }
 
 export function GooeyPillTabs({
@@ -26,8 +27,43 @@ export function GooeyPillTabs({
   className = "",
   variant = "brand",
   size = "md",
+  ariaLabel = "Opções de exibição",
 }: GooeyPillTabsProps) {
   const shouldReduceMotion = useReducedMotion();
+  const tablistRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = tablistRef.current;
+    const selected = container?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]');
+    if (!container || !selected) return;
+    let current = true;
+    const keepSelectedVisible = () => {
+      if (!current) return;
+      const frame = container.getBoundingClientRect();
+      const button = selected.getBoundingClientRect();
+      const gutter = 8;
+      let next = container.scrollLeft;
+      if (button.width > container.clientWidth - gutter * 2 || button.left < frame.left + gutter) {
+        next += button.left - frame.left - gutter;
+      } else if (button.right > frame.right - gutter) {
+        next += button.right - frame.right + gutter;
+      }
+      if (Math.abs(next - container.scrollLeft) > 1) {
+        container.scrollTo({ left: Math.max(0, next), top: container.scrollTop, behavior: shouldReduceMotion ? "auto" : "smooth" });
+      }
+    };
+    keepSelectedVisible();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(keepSelectedVisible);
+    observer?.observe(container);
+    observer?.observe(selected);
+    window.addEventListener("resize", keepSelectedVisible);
+    document.fonts?.ready.then(keepSelectedVisible);
+    return () => {
+      current = false;
+      observer?.disconnect();
+      window.removeEventListener("resize", keepSelectedVisible);
+    };
+  }, [activeTab, shouldReduceMotion]);
 
   const formattedTabs: GooeyTabItem[] = tabs.map((t) =>
     typeof t === "string" ? { id: t, label: t } : t
@@ -45,8 +81,10 @@ export function GooeyPillTabs({
 
   return (
     <div
-      className={`relative flex items-center gap-1.5 p-1.5 rounded-full bg-slate-100/90 dark:bg-slate-900/90 border-2 border-slate-900/15 dark:border-slate-800 shadow-inner overflow-x-auto scrollbar-none backdrop-blur-sm ${className}`}
+      ref={tablistRef}
+      className={`relative flex min-w-0 max-w-full items-center gap-1.5 p-1.5 rounded-full bg-slate-100/90 dark:bg-slate-900/90 border-2 border-slate-900/15 dark:border-slate-800 shadow-inner overflow-x-auto scrollbar-none backdrop-blur-sm ${className}`}
       role="tablist"
+      aria-label={ariaLabel}
     >
       {formattedTabs.map((tab) => {
         const isActive = activeTab === tab.id;
@@ -54,10 +92,11 @@ export function GooeyPillTabs({
         return (
           <button
             key={tab.id}
+            type="button"
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.id)}
-            className={`group relative z-10 inline-flex items-center justify-center gap-2 rounded-full font-black select-none whitespace-nowrap transition-all duration-200 cursor-pointer min-h-[34px] border-2 ${paddingClass} ${
+            className={`group relative z-10 inline-flex flex-none items-center justify-center gap-2 rounded-full font-semibold select-none whitespace-nowrap transition-all duration-200 cursor-pointer min-h-11 border-2 ${paddingClass} ${
               isActive
                 ? "text-white border-transparent"
                 : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:border-slate-900/30 dark:hover:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-800 hover:shadow-tactile-pill hover:-translate-y-0.5 active:translate-y-0"
@@ -89,12 +128,13 @@ export function GooeyPillTabs({
             )}
 
             {/* Tab title */}
-            <span className="relative z-10">{tab.label}</span>
+            <span data-tab-label className="relative z-10 shrink-0">{tab.label}</span>
 
             {/* Tab count badge */}
             {tab.count !== undefined && (
               <span
-                className={`ml-1 text-xs font-black px-1.5 py-0.2 rounded-full ${
+                data-tab-count
+                className={`fsy-figure ml-1 shrink-0 text-xs font-semibold px-1.5 py-0.2 rounded-full ${
                   isActive
                     ? "bg-white/20 text-white"
                     : "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-300"

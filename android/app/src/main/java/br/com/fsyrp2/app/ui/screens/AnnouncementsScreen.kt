@@ -107,6 +107,7 @@ fun AnnouncementsScreen(appState: FsyAppState) {
     Column(modifier = Modifier.fillMaxSize()) {
         FsyTopBar(
             title = "Avisos",
+            profileAction = { ProfileAccessAction(appState) },
             actions = {
                 // Publicar só existe para quem pode publicar (perfil carregado e papel de equipe).
                 if (appState.canPublishAnnouncements) {

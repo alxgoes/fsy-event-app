@@ -1,8 +1,12 @@
 package br.com.fsyrp2.app.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.unit.dp
@@ -33,7 +37,10 @@ internal fun PhotoReviewsSection(appState: FsyAppState) {
                     RemotePublicImage(
                         url = review.pendingUrl,
                         contentDescription = "Foto enviada por ${review.fullName}",
-                        modifier = Modifier.fillMaxWidth().aspectRatio(1f).padding(vertical = 12.dp),
+                        modifier = Modifier.padding(vertical = 12.dp).widthIn(max = 440.dp).fillMaxWidth()
+                            .aspectRatio(1f).align(Alignment.CenterHorizontally).clip(FsyControlShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        contentScale = ContentScale.Fit,
                         onError = { appState.refreshPhotoReviews() },
                     )
                     FsyButton(

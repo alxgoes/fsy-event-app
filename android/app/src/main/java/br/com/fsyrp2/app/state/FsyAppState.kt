@@ -149,6 +149,9 @@ class FsyAppState(
 
     var photoError by mutableStateOf<String?>(null)
 
+    var photoSuccessMessage by mutableStateOf<String?>(null)
+        private set
+
     var selectedTab by mutableStateOf(MainTab.HOME)
     var overlayDestination by mutableStateOf<OverlayDestination>(OverlayDestination.None)
         private set
@@ -262,6 +265,12 @@ class FsyAppState(
         closeRegistrationAuthorizationEditor()
         if (overlayDestination != OverlayDestination.None) selectedTab = MainTab.MORE
         overlayDestination = OverlayDestination.None
+    }
+
+    fun openProfile() {
+        closeRegistrationAuthorizationEditor()
+        overlayDestination = OverlayDestination.None
+        selectedTab = MainTab.MORE
     }
 
     /** Abre a Agenda já no dia e na atividade tocada no Início. */
@@ -513,6 +522,7 @@ class FsyAppState(
         rawScheduleItems = emptyList()
         announcements = emptyList()
         profilePhoto = ProfilePhotoState()
+        photoSuccessMessage = null
         isPhotoBusy = false
         photoReviews = emptyList()
         companyProfilePhotos = emptyMap()
@@ -552,6 +562,7 @@ class FsyAppState(
                     photoReviews = emptyList()
                     companyProfilePhotos = emptyMap()
                     closeRegistrationAuthorizationEditor()
+                    photoSuccessMessage = null
                     br.com.fsyrp2.app.ui.components.RemoteImageMemory.clear()
                     br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
                     if (previous?.companyId != loaded.companyId) company = null
@@ -864,6 +875,7 @@ class FsyAppState(
         val expectedGen = sessionGeneration
         isPhotoBusy = true
         photoError = null
+        photoSuccessMessage = null
         scope.launch {
             try {
                 val bytes = withContext(Dispatchers.IO) {
@@ -871,7 +883,10 @@ class FsyAppState(
                 } ?: throw IllegalArgumentException("Imagem inválida")
                 if (sessionGeneration != expectedGen) return@launch
                 val result = apiClient.uploadProfilePhoto(withValidSession(), bytes)
-                if (sessionGeneration == expectedGen) profilePhoto = result
+                if (sessionGeneration == expectedGen) {
+                    profilePhoto = result
+                    photoSuccessMessage = result.uploadMessageFor(effectiveRole)
+                }
             } catch (e: Exception) {
                 if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e, "Não foi possível usar essa foto. Tente outra imagem.")
             } finally {
@@ -892,10 +907,14 @@ class FsyAppState(
         val expectedGen = sessionGeneration
         isPhotoBusy = true
         photoError = null
+        photoSuccessMessage = null
         scope.launch {
             try {
                 val result = apiClient.uploadProfilePhoto(withValidSession(), jpegBytes)
-                if (sessionGeneration == expectedGen) profilePhoto = result
+                if (sessionGeneration == expectedGen) {
+                    profilePhoto = result
+                    photoSuccessMessage = result.uploadMessageFor(effectiveRole)
+                }
             } catch (e: Exception) {
                 if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e, "Não foi possível enviar a foto agora.")
             } finally {
@@ -908,10 +927,14 @@ class FsyAppState(
         val expectedGen = sessionGeneration
         isPhotoBusy = true
         photoError = null
+        photoSuccessMessage = null
         scope.launch {
             try {
                 val result = apiClient.deleteProfilePhoto(withValidSession(), scopeName)
-                if (sessionGeneration == expectedGen) profilePhoto = result
+                if (sessionGeneration == expectedGen) {
+                    profilePhoto = result
+                    photoSuccessMessage = if (scopeName == "pending") "Envio cancelado." else "Foto removida."
+                }
             } catch (e: Exception) {
                 if (sessionGeneration == expectedGen) photoError = FriendlyErrors.of(e)
             } finally {
@@ -999,6 +1022,7 @@ class FsyAppState(
         photoReviews = emptyList()
         companyProfilePhotos = emptyMap()
         photoError = null
+        photoSuccessMessage = null
         notificationPreferences = NotificationChannelPreferencesDto()
         overlayDestination = OverlayDestination.None
         selectedTab = MainTab.HOME

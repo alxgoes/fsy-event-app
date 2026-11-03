@@ -23,6 +23,13 @@
 }
 .scroll { scrollbar-width: thin; scrollbar-color: #c5d7da transparent; }
 
+.profilePopover {
+  width: min(22rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .navLink, .portal, .signOut {
   display: flex;
   align-items: center;

@@ -1,14 +1,19 @@
 import { z } from "zod";
 
 /**
- * Foto de perfil com moderação. O jovem envia; a foto fica "em análise" até o
- * consultor da companhia dele (ou a coordenação) aprovar. Nada é publicado antes disso.
+ * Somente o jovem precisa de moderação: seu envio fica "em análise" até o
+ * consultor da própria companhia (ou a gestão) aprovar. A foto aprovada anterior
+ * continua visível enquanto o envio novo é analisado. Todos os outros cargos
+ * publicam a própria foto imediatamente, sem solicitação de aprovação.
  *
  * Contrato HTTP (site e app nativo, cookie ou Bearer):
  *   GET    /api/profile/photo                 → ProfilePhotoState (da própria pessoa)
  *   POST   /api/profile/photo  (multipart, campo "file") → ProfilePhotoState
+ *          jovem: status pending, pending_url; demais cargos: approved, approved_url,
+ *          pending_url null. O servidor decide pelo cargo protegido, nunca pelo cliente.
  *   DELETE /api/profile/photo?scope=pending|approved → ProfilePhotoState
- *   GET    /api/profile/photo/reviews         → { data: ProfilePhotoReview[] }   (consultor e gestão)
+ *   GET    /api/profile/photo/reviews         → { data: ProfilePhotoReview[] }   (só jovens pendentes)
+ *          consultor: própria companhia; gestão: todas. Os demais não moderam.
  *   POST   /api/profile/photo/reviews  { user_id, decision, note? } → { success: true }
  */
 
@@ -24,6 +29,7 @@ export type ProfilePhotoStatus = (typeof PROFILE_PHOTO_STATUSES)[number];
 export const STORED_AVATAR_PREFIX = `${PROFILE_PHOTO_BUCKET}/`;
 
 export interface ProfilePhotoState {
+  /** Não jovens nunca retornam pending/rejected; sem foto, o estado é none. */
   status: ProfilePhotoStatus;
   /** Foto visível para os outros (assinada, expira em ~1 h). */
   approved_url: string | null;
