@@ -6,6 +6,7 @@ import { createRateLimiter } from "@/lib/security/rate-limit";
 import {
   PHOTO_COLUMNS,
   photoStateOf,
+  photoRequiresApproval,
   removePhotoPaths,
   storedAvatarPath,
   type PhotoProfileRow,
@@ -15,6 +16,7 @@ import {
   PROFILE_PHOTO_EXTENSION,
   PROFILE_PHOTO_MAX_BYTES,
   sniffImageType,
+  STORED_AVATAR_PREFIX,
 } from "@/types/profile-photo";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +42,7 @@ export async function GET() {
   }
 }
 
-/** Envia uma foto nova; ela fica em análise até o consultor decidir. */
+/** Só jovens aguardam análise; os demais cargos publicam a própria foto imediatamente. */
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) return json({ error: "Origem não permitida." }, 403);
   const auth = await requireIdentity();
@@ -63,30 +65,39 @@ export async function POST(request: Request) {
     const { admin, row, error } = await loadOwn(userId);
     if (error || !row) return serverError("profile-photo.upload.read", error);
 
-    const path = `pending/${userId}/${randomUUID()}.${PROFILE_PHOTO_EXTENSION[type]}`;
+    const moderated = photoRequiresApproval(row.role);
+    const path = `${moderated ? "pending" : "approved"}/${userId}/${randomUUID()}.${PROFILE_PHOTO_EXTENSION[type]}`;
     const upload = await admin.storage.from(PROFILE_PHOTO_BUCKET).upload(path, bytes, { contentType: type, upsert: false });
     if (upload.error) return serverError("profile-photo.upload.storage", upload.error);
 
     const { data: updated, error: updateError } = await admin
       .from("profiles")
       .update({
-        avatar_status: "pending",
-        avatar_pending_path: path,
+        ...(moderated ? {} : { avatar_url: `${STORED_AVATAR_PREFIX}${path}` }),
+        avatar_status: moderated ? "pending" : "approved",
+        avatar_pending_path: moderated ? path : null,
         avatar_submitted_at: new Date().toISOString(),
-        avatar_reviewed_at: null,
+        avatar_reviewed_at: moderated ? null : new Date().toISOString(),
         avatar_reviewed_by: null,
         avatar_review_note: null,
       })
       .eq("id", userId)
+      // A condição é revalidada pelo Postgres após esperar qualquer alteração concorrente.
+      // Uma demissão para jovem entre a leitura e a gravação não publica a foto direta.
+      .eq("role", row.role)
       .select(PHOTO_COLUMNS)
       .single();
     if (updateError || !updated) {
       await removePhotoPaths(admin, [path]);
+      if (!updateError || updateError.code === "PGRST116") {
+        return json({ error: "Seu perfil mudou durante o envio. Atualize a página e tente novamente." }, 409);
+      }
       return serverError("profile-photo.upload.update", updateError);
     }
 
     // A foto anterior que ainda aguardava análise deixa de existir.
     if (row.avatar_pending_path && row.avatar_pending_path !== path) await removePhotoPaths(admin, [row.avatar_pending_path]);
+    if (!moderated) await removePhotoPaths(admin, [storedAvatarPath(row.avatar_url)]);
 
     return json(await photoStateOf(admin, updated as PhotoProfileRow), 201);
   } catch (err) {
@@ -106,19 +117,30 @@ export async function DELETE(request: Request) {
     const { admin, row, error } = await loadOwn(auth.identity.user.id);
     if (error || !row) return serverError("profile-photo.delete.read", error);
 
-    const patch =
+    const moderated = photoRequiresApproval(row.role);
+    const patch = !moderated && scope === "approved"
+      ? { avatar_url: null, avatar_status: "none", avatar_pending_path: null, avatar_submitted_at: null,
+          avatar_reviewed_at: null, avatar_reviewed_by: null, avatar_review_note: null }
+      :
       scope === "pending"
         ? { avatar_status: row.avatar_url ? "approved" : "none", avatar_pending_path: null, avatar_submitted_at: null }
         : { avatar_url: null, avatar_status: row.avatar_status === "pending" ? "pending" : "none" };
-    const { data: updated, error: updateError } = await admin
+    let deletion = admin
       .from("profiles")
       .update(patch)
       .eq("id", row.id)
-      .select(PHOTO_COLUMNS)
-      .single();
-    if (updateError || !updated) return serverError("profile-photo.delete.update", updateError);
+      .eq("role", row.role);
+    const column = scope === "pending" ? "avatar_pending_path" : "avatar_url";
+    const expected = scope === "pending" ? row.avatar_pending_path : row.avatar_url;
+    deletion = expected ? deletion.eq(column, expected) : deletion.is(column, null);
+    const { data: updated, error: updateError } = await deletion.select(PHOTO_COLUMNS).single();
+    if (updateError || !updated) {
+      if (!updateError || updateError.code === "PGRST116") return json({ error: "A foto mudou durante a operação. Atualize a página e tente novamente." }, 409);
+      return serverError("profile-photo.delete.update", updateError);
+    }
 
-    await removePhotoPaths(admin, [scope === "pending" ? row.avatar_pending_path : storedAvatarPath(row.avatar_url)]);
+    await removePhotoPaths(admin, scope === "pending" ? [row.avatar_pending_path]
+      : [storedAvatarPath(row.avatar_url), ...(!moderated ? [row.avatar_pending_path] : [])]);
     return json(await photoStateOf(admin, updated as PhotoProfileRow));
   } catch (err) {
     return serverError("profile-photo.delete", err);
