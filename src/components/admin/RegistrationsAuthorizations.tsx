@@ -9,93 +9,55 @@ import { downloadAuthorizationZipPart, downloadTemplatePdf, RegistrationsApiErro
 import { Notice, Panel, btn } from "./RegistrationsUi";
 
 type Scope = RegistrationRoleCategory | "all";
+interface Progress { done: number; total: number; generated: number; overflow: number }
 
-interface Progress {
-  done: number;
-  total: number;
-  overflow: number;
-  files: string[];
-}
-
-export function RegistrationsAuthorizations({
-  metrics,
-  selectedIds,
-  onClearSelection,
-}: {
+export function RegistrationsAuthorizations({ metrics, selectedIds, onClearSelection }: {
   metrics: RegistrationListMetrics | null;
   selectedIds: string[];
   onClearSelection: () => void;
 }) {
-  const [scope, setScope] = useState<Scope>("Participante");
+  const [scope, setScope] = useState<Scope>("all");
   const [useNormalizedNames, setUseNormalizedNames] = useState(true);
-  const [running, setRunning] = useState<"all" | "selected" | number | "template" | null>(null);
+  const [running, setRunning] = useState<"all" | "selected" | "template" | null>(null);
   const [progress, setProgress] = useState<Progress | null>(null);
   const [feedback, setFeedback] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const eligible = !metrics ? 0 : scope === "Participante" ? metrics.participantCount : scope === "Consultor" ? metrics.counselorCount : metrics.totalCount;
-  const parts = Math.ceil(eligible / MAX_AUTHORIZATION_PDF_BATCH_SIZE);
-  const range = (part: number) => `${(part - 1) * MAX_AUTHORIZATION_PDF_BATCH_SIZE + 1}–${Math.min(part * MAX_AUTHORIZATION_PDF_BATCH_SIZE, eligible)}`;
-
-  const fail = (error: unknown) => {
-    if ((error as { name?: string })?.name === "AbortError") {
-      setFeedback({ tone: "warn", text: "Geração interrompida. As partes já baixadas continuam no seu aparelho." });
-      return;
-    }
-    setFeedback({ tone: "error", text: error instanceof RegistrationsApiError ? error.message : "Não foi possível gerar as fichas." });
-  };
-
-  const runParts = async (which: number[]) => {
+  const downloadPdfs = async (selected: boolean) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    setRunning(selected ? "selected" : "all");
     setFeedback(null);
-    setRunning(which.length === 1 ? which[0] : "all");
-    const state: Progress = { done: 0, total: which.length, overflow: 0, files: [] };
+    const state: Progress = { done: 0, total: selected ? Math.ceil(selectedIds.length / MAX_AUTHORIZATION_PDF_BATCH_SIZE) : 1, generated: 0, overflow: 0 };
     setProgress({ ...state });
     try {
-      for (const part of which) {
-        const result = await downloadAuthorizationZipPart(
-          // Sem batchId: o servidor usa todas as inscrições atuais (inclusive as que vieram de lotes anteriores).
-          { roleCategory: scope, partIndex: part, partSize: MAX_AUTHORIZATION_PDF_BATCH_SIZE, useNormalizedNames },
-          controller.signal
-        );
-        state.done += 1;
-        state.overflow += Number.isFinite(result.overflowWarnings) ? result.overflowWarnings : 0;
-        state.files.push(result.filename);
-        setProgress({ ...state, files: [...state.files] });
+      for (let part = 1; part <= state.total; part++) {
+        if (controller.signal.aborted) throw new DOMException("Geração interrompida", "AbortError");
+        const ids = selected ? selectedIds.slice((part - 1) * MAX_AUTHORIZATION_PDF_BATCH_SIZE, part * MAX_AUTHORIZATION_PDF_BATCH_SIZE) : undefined;
+        const result = await downloadAuthorizationZipPart({
+          registrationIds: ids,
+          ...(selected ? {} : { roleCategory: scope, partIndex: part, partSize: MAX_AUTHORIZATION_PDF_BATCH_SIZE }),
+          useNormalizedNames,
+        }, controller.signal);
+        // O servidor informa a quantidade real de aprovados: aguardando e cancelados não entram.
+        if (!selected) {
+          if (!Number.isInteger(result.partCount) || result.partCount < 1) throw new Error("Quantidade de pacotes indisponível.");
+          state.total = result.partCount;
+          state.generated = result.totalEligible;
+        } else {
+          state.generated += result.totalEligible;
+        }
+        state.done++;
+        state.overflow += result.overflowWarnings || 0;
+        setProgress({ ...state });
       }
-      setFeedback(
-        state.overflow > 0
-          ? { tone: "warn", text: `${state.files.length} pacote(s) baixado(s). ${state.overflow} ficha(s) tiveram texto reduzido ou cortado; confira o manifesto dentro do ZIP e complete à mão.` }
-          : { tone: "ok", text: `${state.files.length} pacote(s) baixado(s). Campos sem dado na planilha ficaram em branco para preenchimento manual.` }
-      );
+      setFeedback({ tone: state.overflow ? "warn" : "ok", text: `${state.generated} autorização(ões) em ${state.done} pacote(s) baixado(s).${state.overflow ? ` Confira no manifesto ${state.overflow} ficha(s) com campos além do espaço disponível.` : ""}` });
     } catch (error) {
-      fail(error);
-    } finally {
-      setRunning(null);
-    }
-  };
-
-  const runSelected = async () => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setFeedback(null);
-    setRunning("selected");
-    setProgress({ done: 0, total: 1, overflow: 0, files: [] });
-    try {
-      const result = await downloadAuthorizationZipPart({ registrationIds: selectedIds, useNormalizedNames }, controller.signal);
-      setProgress({ done: 1, total: 1, overflow: result.overflowWarnings || 0, files: [result.filename] });
-      setFeedback(
-        result.overflowWarnings > 0
-          ? { tone: "warn", text: `${result.filename} baixado. ${result.overflowWarnings} ficha(s) com texto além do espaço; confira o manifesto.` }
-          : { tone: "ok", text: `${result.filename} baixado com ${selectedIds.length} ficha(s).` }
-      );
-    } catch (error) {
-      fail(error);
+      setFeedback((error as { name?: string })?.name === "AbortError"
+        ? { tone: "warn", text: "Geração interrompida. Os pacotes já baixados continuam no seu aparelho." }
+        : { tone: "error", text: error instanceof RegistrationsApiError ? error.message : "Não foi possível baixar as autorizações. Os pacotes já concluídos continuam no seu aparelho." });
     } finally {
       setRunning(null);
     }
@@ -104,112 +66,29 @@ export function RegistrationsAuthorizations({
   const getTemplate = async () => {
     setRunning("template");
     setFeedback(null);
-    try {
-      await downloadTemplatePdf();
-    } catch (error) {
-      fail(error);
-    } finally {
-      setRunning(null);
-    }
-  };
-
-  const runPartFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
-    void runParts([Number(event.currentTarget.dataset.part)]);
+    try { await downloadTemplatePdf(); }
+    catch (error) { setFeedback({ tone: "error", text: error instanceof RegistrationsApiError ? error.message : "Não foi possível baixar a ficha em branco." }); }
+    finally { setRunning(null); }
   };
 
   const busy = running !== null;
-  const percent = progress && progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
-
   return (
-    <Panel
-      title="Fichas de autorização (PDF oficial)"
-      description={
-        <>
-          Cada pessoa recebe a ficha oficial preenchida com o próprio nome no arquivo. O que não está na planilha fica em branco (responsável 2, parentesco, endereço, assinaturas, foto). Contatos 1 e 2 nunca são usados como responsável legal.
-        </>
-      }
-      actions={
-        <button type="button" className={btn.secondary} onClick={() => void getTemplate()} disabled={busy}>
-          {running === "template" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileDown className="h-4 w-4" aria-hidden="true" />}
-          Ficha em branco
-        </button>
-      }
-    >
-      <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Quem incluir
-            <NativeSelect value={scope} onChange={(event) => setScope(event.target.value as Scope)} disabled={busy} className="mt-1">
-              <option value="Participante">Participantes ({metrics?.participantCount ?? 0})</option>
-              <option value="Consultor">Consultores ({metrics?.counselorCount ?? 0})</option>
-              <option value="all">Todos ({metrics?.totalCount ?? 0})</option>
-            </NativeSelect>
-          </label>
-          <label className="flex min-h-11 items-center gap-3 self-end text-sm font-semibold text-slate-900 dark:text-slate-100">
-            <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={useNormalizedNames} onChange={(event) => setUseNormalizedNames(event.target.checked)} disabled={busy} />
-            Usar nomes revisados nas fichas
-          </label>
-        </div>
-
-        {eligible === 0 ? (
-          <p className="text-sm text-slate-700 dark:text-slate-300">Nenhuma inscrição neste recorte. Importe uma planilha para gerar as fichas.</p>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-slate-800 dark:text-slate-200">
-              <span className="fsy-figure font-semibold">{eligible}</span> ficha(s) em {parts} pacote(s) ZIP de até {MAX_AUTHORIZATION_PDF_BATCH_SIZE}. Seu navegador pode pedir permissão para baixar vários arquivos.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className={btn.primary} disabled={busy} onClick={() => void runParts(Array.from({ length: parts }, (_, i) => i + 1))}>
-                {running === "all" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
-                {parts > 1 ? `Baixar as ${parts} partes em sequência` : "Baixar ZIP"}
-              </button>
-              {parts > 1 &&
-                Array.from({ length: parts }, (_, i) => i + 1).map((part) => (
-                  <button key={part} type="button" data-part={part} className={btn.secondary} disabled={busy} onClick={runPartFromButton}>
-                    {running === part ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-                    Parte {part} ({range(part)})
-                  </button>
-                ))}
-            </div>
-          </div>
-        )}
-
-        {selectedIds.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#007DA5]/30 bg-[#F2F9FC] p-3 dark:border-[#01B6D1]/40 dark:bg-[#0C2733]">
-            <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{selectedIds.length} selecionada(s) na lista</span>
-            <button type="button" className={btn.primary} disabled={busy} onClick={() => void runSelected()}>
-              {running === "selected" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
-              Baixar fichas selecionadas
-            </button>
-            <button type="button" className={btn.ghost} disabled={busy} onClick={onClearSelection}>Limpar seleção</button>
-          </div>
-        )}
-
-        {progress && (running === "all" || typeof running === "number" || running === "selected" || progress.done > 0) && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
-              <span id="zip-progress-label">
-                {running !== null ? `Gerando pacote ${Math.min(progress.done + 1, progress.total)} de ${progress.total}…` : `${progress.done} de ${progress.total} pacote(s) concluído(s)`}
-              </span>
-              {running !== null && running !== "template" && (
-                <button type="button" className={btn.ghost} onClick={() => abortRef.current?.abort()}>
-                  <X className="h-4 w-4" aria-hidden="true" /> Interromper
-                </button>
-              )}
-            </div>
-            <div
-              role="progressbar"
-              aria-labelledby="zip-progress-label"
-              aria-valuemin={0}
-              aria-valuemax={progress.total}
-              aria-valuenow={progress.done}
-              className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
-            >
-              <div className="h-full origin-left rounded-full bg-[#007DA5] transition-transform duration-200 motion-reduce:transition-none dark:bg-[#01B6D1]" style={{ transform: `scaleX(${percent / 100})` }} />
-            </div>
-          </div>
-        )}
-
+    <Panel title="Baixar autorizações" description="Os arquivos usam os dados importados e os ajustes salvos. Cada PDF leva o nome do inscrito."
+      actions={<button type="button" className={btn.secondary} onClick={() => void getTemplate()} disabled={busy}>{running === "template" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileDown className="h-4 w-4" aria-hidden="true" />} Ficha em branco</button>}>
+      <div className="space-y-5">
+        {selectedIds.length > 0 && <section aria-label="Inscritos selecionados" className="space-y-3 rounded-2xl border border-[#007DA5]/30 bg-[#F2F9FC] p-4 dark:bg-[#0C2733]">
+          <p className="text-sm font-semibold">{selectedIds.length} inscrito(s) selecionado(s)</p>
+          <p className="text-sm">Cancelados não entram no download. Os demais selecionados mantêm a situação indicada na lista.</p>
+          <div className="flex flex-wrap gap-2"><button type="button" className={btn.primary} disabled={busy} onClick={() => void downloadPdfs(true)}>{running === "selected" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />} Baixar autorizações dos selecionados</button><button type="button" className={btn.ghost} disabled={busy} onClick={onClearSelection}>Limpar seleção</button></div>
+        </section>}
+        <section aria-label="Todos os aprovados" className="space-y-3">
+          <label className="block max-w-sm text-sm font-semibold">Quem incluir entre os aprovados<NativeSelect value={scope} disabled={busy} onChange={(event) => setScope(event.target.value as Scope)} className="mt-1 min-h-11"><option value="all">Todos os tipos</option><option value="Participante">Participantes</option><option value="Consultor">Consultores</option></NativeSelect></label>
+          <p className="text-sm text-slate-700 dark:text-slate-300">O download de todos inclui apenas aprovados. Aguardando aprovação e lista de espera podem ser baixados pela seleção individual.</p>
+          <button type="button" className={selectedIds.length ? btn.secondary : btn.primary} disabled={busy || !metrics?.totalCount} onClick={() => void downloadPdfs(false)}>{running === "all" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />} Baixar autorizações de todos os aprovados</button>
+        </section>
+        <label className="flex min-h-11 items-center gap-3 text-sm font-semibold"><input type="checkbox" checked={useNormalizedNames} disabled={busy} onChange={(event) => setUseNormalizedNames(event.target.checked)} className="h-5 w-5 accent-[#007DA5]" /> Usar nomes revisados nas fichas</label>
+        <p className="text-sm text-slate-700 dark:text-slate-300">Até {MAX_AUTHORIZATION_PDF_BATCH_SIZE} PDFs por ZIP, baixados em sequência. O navegador pode solicitar permissão para vários arquivos.</p>
+        {progress && <div className="space-y-2"><div className="flex flex-wrap items-center justify-between gap-2"><p id="zip-progress-label" role="status" className="text-sm">{busy ? `Baixando pacote ${Math.min(progress.done + 1, progress.total)} de ${progress.total}…` : `${progress.done} de ${progress.total} pacote(s) concluído(s)`}</p>{busy && running !== "template" && <button type="button" className={btn.ghost} onClick={() => abortRef.current?.abort()}><X className="h-4 w-4" aria-hidden="true" /> Interromper</button>}</div><progress aria-labelledby="zip-progress-label" value={progress.done} max={progress.total} className="h-3 w-full accent-[#007DA5]" /></div>}
         {feedback && <Notice tone={feedback.tone}>{feedback.text}</Notice>}
       </div>
     </Panel>

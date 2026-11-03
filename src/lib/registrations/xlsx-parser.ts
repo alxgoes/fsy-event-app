@@ -184,7 +184,7 @@ function applyExplicitZeroPadFormatCode(rawNumeric: string, formatCode: string |
   return rawNumeric;
 }
 
-function excelSerialToPtBrDateString(serialInput: number, date1904: boolean): string | null {
+function excelSerialToPtBrDateString(serialInput: number, date1904: boolean, includeTime = false): string | null {
   const serial = Math.floor(serialInput);
   if (!Number.isFinite(serial) || serial < 1 || serial > 60000) return null;
 
@@ -200,7 +200,11 @@ function excelSerialToPtBrDateString(serialInput: number, date1904: boolean): st
   const month = dt.getUTCMonth() + 1;
   const day = dt.getUTCDate();
   if (year < 1920 || year > 2035) return null;
-  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+  const dateText = `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+  if (!includeTime) return dateText;
+  const seconds = Math.round((serialInput - serial) * 86400);
+  const time = new Date(utcMs + seconds * 1000).toISOString().slice(11, 19);
+  return `${dateText}, ${time}`;
 }
 
 function columnLettersToIndex(letters: string): number {
@@ -298,7 +302,7 @@ function parseWorksheetXml(
             const numFmtId = styles.cellXfNumFmtIds[styleIdx] ?? 0;
             const formatCode = styles.customNumFmts.get(numFmtId);
             if (isDateFormatCode(numFmtId, formatCode) && /^\d+(?:\.\d+)?$/.test(rawV)) {
-              const formattedDate = excelSerialToPtBrDateString(Number(rawV), date1904);
+              const formattedDate = excelSerialToPtBrDateString(Number(rawV), date1904, colIndex === 17);
               if (formattedDate) {
                 value = formattedDate;
               }
@@ -375,7 +379,22 @@ function resolveWorkbookMetaAndSheets(files: Map<string, Buffer>): {
 }
 
 function normalizeHeaderForComparison(header: string): string {
-  return header.replace(/\s+/g, " ").trim().toLocaleLowerCase("pt-BR");
+  return header
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
+/** Frases longas (termos de compromisso) mudam de redação a cada ano: basta o início coincidir. */
+const LONG_HEADER_PREFIX = 44;
+
+export function headersMatch(actualRaw: string, expectedRaw: string): boolean {
+  const actual = normalizeHeaderForComparison(actualRaw);
+  const expected = normalizeHeaderForComparison(expectedRaw);
+  if (actual === expected) return true;
+  return expected.length > 80 && actual.length > 80 && actual.slice(0, LONG_HEADER_PREFIX) === expected.slice(0, LONG_HEADER_PREFIX);
 }
 
 function isRowCompletelyEmpty(
@@ -410,16 +429,15 @@ function buildRecordFromRow(
   row: ParsedWorksheetRow,
   date1904: boolean,
   nowIso: string
-): { record: RegistrationRecord; blockingIssues: RegistrationValidationIssue[] } {
+): RegistrationRecord {
   const { rowNumber, cells, formulaCols, uncomputedFormulaCols } = row;
   const rawColumns = {} as RegistrationRawColumns;
   const issues: RegistrationValidationIssue[] = [];
-  const blockingIssues: RegistrationValidationIssue[] = [];
 
   for (const colIdx of uncomputedFormulaCols) {
     const colDesc = REGISTRATION_EXCEL_COLUMNS[colIdx];
     const err: RegistrationValidationIssue = {
-      severity: "error",
+      severity: "warning",
       code: "FORMULA_CHARACTER_NEUTRALIZED",
       sheetName,
       rowNumber,
@@ -427,7 +445,6 @@ function buildRecordFromRow(
       message: `Linha ${rowNumber} (${sheetName}), coluna "${colDesc?.headerLabel.trim() ?? colIdx}": fórmula Excel sem valor calculado ou com erro (#REF!/#VALUE!). Salve apenas valores literais.`,
     };
     issues.push(err);
-    blockingIssues.push(err);
   }
 
   for (const colIdx of formulaCols) {
@@ -469,15 +486,14 @@ function buildRecordFromRow(
 
   if (!firstNameRaw || !lastNameRaw) {
     const err: RegistrationValidationIssue = {
-      severity: "error",
+      severity: "warning",
       code: "MISSING_REQUIRED_FIELD",
       sheetName,
       rowNumber,
       columnKey: !firstNameRaw ? "firstName" : "lastName",
-      message: `Linha ${rowNumber} (${sheetName}): Nome e Sobrenome são obrigatórios.`,
+      message: `Linha ${rowNumber} (${sheetName}): ${!firstNameRaw ? "Nome" : "Sobrenome"} ausente; confira antes de gerar a autorização.`,
     };
     issues.push(err);
-    blockingIssues.push(err);
   }
 
   const firstNameNormalized = normalizePtBrPersonName(firstNameRaw);
@@ -514,15 +530,14 @@ function buildRecordFromRow(
   const roleCheck = normalizeRoleCategory(rawColumns.roleCategory, sheetName);
   if (!roleCheck.valid) {
     const err: RegistrationValidationIssue = {
-      severity: "error",
+      severity: "warning",
       code: "INVALID_ROLE_CATEGORY",
       sheetName,
       rowNumber,
       columnKey: "roleCategory",
-      message: `Linha ${rowNumber} (${sheetName}): Tipo inválido "${rawColumns.roleCategory}" (esperado "Participante" ou "Consultor").`,
+      message: `Linha ${rowNumber} (${sheetName}): Tipo "${rawColumns.roleCategory}" não reconhecido; considerado ${roleCheck.role}. Confira o cadastro.`,
     };
     issues.push(err);
-    blockingIssues.push(err);
   }
 
   const birthParsed = parseRegistrationBirthDate(rawColumns.birthDate);
@@ -662,7 +677,34 @@ function buildRecordFromRow(
     updatedAt: nowIso,
   };
 
-  return { record, blockingIssues };
+  return record;
+}
+
+/** Situações oficiais comparadas sem depender de acentos ou caixa. */
+export function isApprovedRegistrationStatus(status: string): boolean {
+  return normalizeHeaderForComparison(status) === "aprovado";
+}
+
+export function isCancelledRegistrationStatus(status: string): boolean {
+  return normalizeHeaderForComparison(status) === "cancelado";
+}
+
+function registrationDateTimestamp(raw: string | null): number {
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/.exec((raw ?? "").trim());
+  if (!match) return Number.NEGATIVE_INFINITY;
+  const [, day, month, year, hour = "0", minute = "0", second = "0"] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), Number(second)));
+  if (date.getUTCFullYear() !== Number(year) || date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day) || Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) {
+    return Number.NEGATIVE_INFINITY;
+  }
+  return date.getTime();
+}
+
+function formatRegistrationDay(raw: string | null): string {
+  const timestamp = registrationDateTimestamp(raw);
+  if (!Number.isFinite(timestamp)) return "data n?o informada";
+  const date = new Date(timestamp);
+  return `${String(date.getUTCDate()).padStart(2, "0")}/${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 export interface ParsedWorkbookPreviewResult {
@@ -697,7 +739,7 @@ export function parseRegistrationsWorkbook(params: {
 
   const workbookIssues: RegistrationValidationIssue[] = [];
   const sheetSummaries: RegistrationSheetSummary[] = [];
-  const canonicalByKey = new Map<string, RegistrationRecord>();
+  const candidatesByKey = new Map<string, RegistrationRecord[]>();
 
   for (const sheetName of EXPECTED_SHEETS) {
     const targetPath = sheetPaths.get(sheetName);
@@ -747,9 +789,7 @@ export function parseRegistrationsWorkbook(params: {
     const headerRow = parsedRows[0];
     let headerMatched = true;
     for (const col of REGISTRATION_EXCEL_COLUMNS) {
-      const actual = normalizeHeaderForComparison(headerRow.cells[col.index] ?? "");
-      const expected = normalizeHeaderForComparison(col.headerLabel);
-      if (actual !== expected) {
+      if (!headersMatch(headerRow.cells[col.index] ?? "", col.headerLabel)) {
         headerMatched = false;
         workbookIssues.push({
           severity: "error",
@@ -770,52 +810,10 @@ export function parseRegistrationsWorkbook(params: {
 
       if (!headerMatched) continue;
 
-      const { record, blockingIssues } = buildRecordFromRow(
-        sheetName,
-        row,
-        date1904,
-        nowIso
-      );
-      workbookIssues.push(...blockingIssues);
-
-      const existing = canonicalByKey.get(record.dedupKey);
-      if (!existing) {
-        canonicalByKey.set(record.dedupKey, record);
-      } else {
-        const sameSheet = existing.sourceSheets.includes(sheetName);
-        const conflictingCols = findConflictingColumnsBetweenRows(
-          existing.rawColumns,
-          record.rawColumns
-        );
-
-        if (sameSheet) {
-          const duplicateIssue: RegistrationValidationIssue = {
-            severity: "error",
-            code: "CONFLICTING_DUPLICATE_KEY",
-            sheetName,
-            rowNumber: row.rowNumber,
-            message:
-              conflictingCols.length > 0
-                ? `Registro duplicado conflitante na aba "${sheetName}" (linha ${row.rowNumber} vs linha ${existing.sourceRowNumbers[sheetName]}): divergência em [${conflictingCols.join(", ")}].`
-                : `Registro duplicado na mesma aba "${sheetName}" (linha ${row.rowNumber} repete a linha ${existing.sourceRowNumbers[sheetName]}). Remova a linha duplicada antes de importar.`,
-          };
-          existing.issues.push(duplicateIssue);
-          workbookIssues.push(duplicateIssue);
-        } else if (conflictingCols.length > 0) {
-          const crossIssue: RegistrationValidationIssue = {
-            severity: "error",
-            code: "CROSS_SHEET_MISMATCH",
-            sheetName,
-            rowNumber: row.rowNumber,
-            message: `Divergência entre abas (${existing.sourceSheets.join("+")} vs ${sheetName}, linha ${row.rowNumber}) para "${record.fullNameNormalized}": colunas [${conflictingCols.join(", ")}] diferem.`,
-          };
-          existing.issues.push(crossIssue);
-          workbookIssues.push(crossIssue);
-        } else {
-          existing.sourceSheets.push(sheetName);
-          existing.sourceRowNumbers[sheetName] = row.rowNumber;
-        }
-      }
+      const record = buildRecordFromRow(sheetName, row, date1904, nowIso);
+      const candidates = candidatesByKey.get(record.dedupKey) ?? [];
+      candidates.push(record);
+      candidatesByKey.set(record.dedupKey, candidates);
     }
 
     sheetSummaries.push({
@@ -826,9 +824,53 @@ export function parseRegistrationsWorkbook(params: {
     });
   }
 
-  const canonicalRows = Array.from(canonicalByKey.values()).sort((a, b) =>
-    a.fullNameNormalized.localeCompare(b.fullNameNormalized, "pt-BR")
-  );
+  const canonicalRows: RegistrationRecord[] = [];
+  for (const candidates of candidatesByKey.values()) {
+    // Todas replica as abas por tipo; una cópias idênticas antes de escolher a versão.
+    const versions: RegistrationRecord[] = [];
+    for (const candidate of candidates) {
+      const identical = versions.find((version) =>
+        findConflictingColumnsBetweenRows(version.rawColumns, candidate.rawColumns).length === 0 &&
+        !version.sourceSheets.some((sheet) => candidate.sourceSheets.includes(sheet))
+      );
+      if (identical) {
+        identical.sourceSheets.push(...candidate.sourceSheets);
+        Object.assign(identical.sourceRowNumbers, candidate.sourceRowNumbers);
+      } else {
+        versions.push(candidate);
+      }
+    }
+    const winner = versions.reduce((best, candidate) => {
+      const bestApproved = isApprovedRegistrationStatus(best.status);
+      const candidateApproved = isApprovedRegistrationStatus(candidate.status);
+      if (bestApproved !== candidateApproved) return candidateApproved ? candidate : best;
+      return registrationDateTimestamp(candidate.registrationDateRaw) > registrationDateTimestamp(best.registrationDateRaw)
+        ? candidate : best;
+    });
+    for (const discarded of versions) {
+      if (discarded === winner) continue;
+      const differingColumns = findConflictingColumnsBetweenRows(winner.rawColumns, discarded.rawColumns);
+      const labels = REGISTRATION_EXCEL_COLUMNS.filter((column) => differingColumns.includes(column.key))
+        .map((column) => column.headerLabel.trim());
+      const sheetName = discarded.sourceSheets[0];
+      const keptDate = formatRegistrationDay(winner.registrationDateRaw);
+      winner.issues.push({
+        severity: "warning",
+        code: "CONFLICTING_DUPLICATE_KEY",
+        sheetName,
+        rowNumber: discarded.sourceRowNumbers[sheetName] ?? null,
+        message: `Inscrição duplicada: mantida a de ${keptDate}${labels.length ? `. Campos diferentes: ${labels.join(", ")}` : ". Dados iguais"}.`,
+      });
+    }
+    for (const candidate of candidates) {
+      for (const sheet of candidate.sourceSheets) {
+        if (!winner.sourceSheets.includes(sheet)) winner.sourceSheets.push(sheet);
+        winner.sourceRowNumbers[sheet] ??= candidate.sourceRowNumbers[sheet];
+      }
+    }
+    canonicalRows.push(winner);
+  }
+  canonicalRows.sort((a, b) => a.fullNameNormalized.localeCompare(b.fullNameNormalized, "pt-BR"));
 
   if (canonicalRows.length === 0) {
     workbookIssues.push({
@@ -947,8 +989,8 @@ export function parseRegistrationsWorkbook(params: {
 
   const blockingErrorCount = allIssues.filter((i) => i.severity === "error").length;
   const warningCount = allIssues.filter((i) => i.severity === "warning").length;
-  const participantCount = canonicalRows.filter((r) => r.roleCategory === "Participante").length;
-  const counselorCount = canonicalRows.filter((r) => r.roleCategory === "Consultor").length;
+  const participantCount = canonicalRows.filter((r) => r.roleCategory === "Participante" && !isCancelledRegistrationStatus(r.status)).length;
+  const counselorCount = canonicalRows.filter((r) => r.roleCategory === "Consultor" && !isCancelledRegistrationStatus(r.status)).length;
   const normalizedNamesChangedCount = canonicalRows.filter((r) => r.wasNameNormalized).length;
   const healthAlertCount = canonicalRows.filter((r) => r.hasHealthAlert).length;
   const missingGuardianMinorCount = canonicalRows.filter(

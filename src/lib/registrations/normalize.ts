@@ -393,47 +393,30 @@ export function computeRegistrationDedupKey(params: {
   fullNameNormalized: string;
   roleCategory: string;
 }): string {
-  if (params.isValidElevenDigitsCpf && params.cpfDigitsOnly) {
+  // E-mail, cargo e grafia dos nomes podem mudar sem criar outra pessoa.
+  if (params.cpfDigitsOnly && /^\d{11}$/.test(params.cpfDigitsOnly)) {
     return `cpf:${params.cpfDigitsOnly}`;
   }
-  const nameKey = params.fullNameNormalized.toLocaleLowerCase("pt-BR").trim();
+  const nameKey = stripDiacritics(params.fullNameNormalized);
   const birthKey = (params.birthDateIso ?? params.birthDateRaw ?? "").trim().toLowerCase();
-  const rgKey = (params.rgOrPassportRaw ?? "").replace(/\s+/g, "").toLowerCase();
-  if (rgKey && rgKey.length >= 4 && birthKey && nameKey) {
-    return `rg:${rgKey}|dob:${birthKey}|name:${nameKey}`;
+  const rgKey = (params.rgOrPassportRaw ?? "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  if (rgKey.length >= 4) {
+    return `rg:${rgKey}|dob:${birthKey}`;
   }
-  const emailKey = (params.email ?? "").trim().toLowerCase();
-  const composite = `${params.roleCategory}|${nameKey}|${birthKey}|${emailKey}|${rgKey}`;
+  const composite = `${nameKey}|${birthKey}`;
   const hash = createHash("sha256").update(composite, "utf8").digest("hex").slice(0, 24);
   return `composite:${hash}`;
 }
 
 /**
  * Compara duas linhas com a mesma chave de deduplicação para verificar se há divergência
- * substancial nos dados (o que gera erro bloqueante na pré-visualização).
+ * nos dados, para revisão dos avisos e cálculo de alterações na importação.
  */
 export function findConflictingColumnsBetweenRows(
   a: RegistrationRawColumns,
   b: RegistrationRawColumns
 ): string[] {
-  const criticalKeys: (keyof RegistrationRawColumns)[] = [
-    "firstName",
-    "lastName",
-    "birthDate",
-    "sex",
-    "roleCategory",
-    "status",
-    "stakeName",
-    "wardName",
-    "documentRgOrPassport",
-    "cpf",
-    "guardianName",
-    "guardianPhone",
-    "medicalInfo",
-    "dietaryInfo",
-    "healthConditionsSummary",
-    "healthConditionsDetails",
-  ];
+  const criticalKeys = Object.keys(a) as (keyof RegistrationRawColumns)[];
 
   const conflicts: string[] = [];
   for (const key of criticalKeys) {

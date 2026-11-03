@@ -11,6 +11,7 @@ import type { RegistrationRoleCategory } from "@/types/registrations";
 export const dynamic = "force-dynamic";
 
 const commitRequestSchema = z.object({
+  acknowledgeAdjustmentRemoval: z.boolean().optional().default(false),
   previewId: z.string().uuid("ID da pré-visualização inválido."),
   mode: z.enum(["upsert", "replace_all"]),
   expectedRevision: z.number().int().min(0, "Revisão esperada inválida."),
@@ -105,6 +106,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await commitRegistrationImportPreview({
+      acknowledgeAdjustmentRemoval: parsed.data.acknowledgeAdjustmentRemoval,
       previewId: parsed.data.previewId,
       actorId: auth.identity.user.id,
       actorName: auth.identity.profile.full_name,

@@ -1,8 +1,9 @@
 const assert = require("node:assert/strict");
-const { execFileSync } = require("node:child_process");
 const zlib = require("node:zlib");
 const { test } = require("node:test");
 const { loadRoute } = require("./helpers/route-harness.cjs");
+const fs = require("node:fs");
+const path = require("node:path");
 
 function loadModules() {
   const regTypes = loadRoute("src/types/registrations.ts");
@@ -18,21 +19,58 @@ function loadModules() {
  * permitindo injetar `date1904`, `styles.xml` customizados (`numFmtId`), `sharedStrings.xml`,
  * células com `<f>` (fórmulas), entidades XML inválidas ou entradas duplicadas.
  */
-function buildIndependentXlsxViaPython(spec) {
-  const pyScript = `
-import sys, json, zipfile, io
-
-spec = json.loads(sys.stdin.read())
-buf = io.BytesIO()
-with zipfile.ZipFile(buf, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-    for entry in spec['entries']:
-        zf.writestr(entry['name'], entry['content'].encode('utf-8'))
-sys.stdout.buffer.write(buf.getvalue())
-`;
-  return execFileSync("python", ["-X", "utf8", "-c", pyScript], {
-    input: JSON.stringify(spec),
-    maxBuffer: 10 * 1024 * 1024,
+function buildIndependentXlsx(spec) {
+  const crcTable = Array.from({ length: 256 }, (_, index) => {
+    let value = index;
+    for (let bit = 0; bit < 8; bit++) value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    return value >>> 0;
   });
+  const crc32 = (bytes) => {
+    let value = 0xffffffff;
+    for (const byte of bytes) value = crcTable[(value ^ byte) & 0xff] ^ (value >>> 8);
+    return (value ^ 0xffffffff) >>> 0;
+  };
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  for (const entry of spec.entries) {
+    const name = Buffer.from(entry.name, "utf8");
+    const content = Buffer.from(entry.content, "utf8");
+    const compressed = zlib.deflateRawSync(content);
+    const checksum = crc32(content);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt32LE(checksum, 14);
+    local.writeUInt32LE(compressed.length, 18);
+    local.writeUInt32LE(content.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    localParts.push(local, name, compressed);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(compressed.length, 20);
+    central.writeUInt32LE(content.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt32LE(offset, 42);
+    centralParts.push(central, name);
+    offset += local.length + name.length + compressed.length;
+  }
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(spec.entries.length, 8);
+  end.writeUInt16LE(spec.entries.length, 10);
+  end.writeUInt32LE(centralSize, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...localParts, ...centralParts, end]);
 }
 
 function buildHeaderCellsXml(columns) {
@@ -124,7 +162,112 @@ function buildStandardOoxmlEntries({
   return entries;
 }
 
-test("planilha independente gerada via Python: suporta date1900, date1904, numFmt 00000000000, sharedStrings com rich-text e inlineStr", () => {
+function syntheticRowXml(rowNumber, overrides = {}) {
+  const values = {
+    A: "ÉRICA", B: "DA CONCEIÇÃO", D: "10/05/2010", R: "01/08/2026, 10:00:00",
+    S: "Aprovado", T: "Participante", Y: "12.345.678-9", AA: "JOSÉ DA CONCEIÇÃO",
+    AB: "16999990000", AD: "02314509820", ...overrides,
+  };
+  const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `<row r="${rowNumber}">${Object.entries(values).map(([column, value]) =>
+    `<c r="${column}${rowNumber}" t="inlineStr"><is><t>${escape(value)}</t></is></c>`
+  ).join("")}</row>`;
+}
+
+function parseSyntheticRows(rows, overrides = {}) {
+  const { regTypes, parser } = loadModules();
+  return parser.parseRegistrationsWorkbook({
+    fileBuffer: buildIndependentXlsx({ entries: buildStandardOoxmlEntries({
+      columns: regTypes.REGISTRATION_EXCEL_COLUMNS, participanteRowsXml: rows, todasRowsXml: rows,
+      ...overrides,
+    }) }),
+    filename: "cenario-ficticio.xlsx", createdByUserId: "33333333-3333-4333-8333-333333333333", baseRevision: 0,
+  });
+}
+
+test("duplicatas mantêm a aprovação mais recente, avisam divergências e aceitam sobrenome vazio", () => {
+  const rows = [
+    syntheticRowXml(2, { R: "01/08/2026, 10:00:00", H: "Alergia antiga" }),
+    syntheticRowXml(3, { R: "02/08/2026, 09:00:00", H: "Alergia revisada", B: "" }),
+    syntheticRowXml(4, { R: "02/08/2026, 11:00:00", S: "Cancelado" }),
+    syntheticRowXml(5, { R: "03/08/2026, 11:00:00", S: "Aguardando aprovação" }),
+  ].join("");
+  const result = parseSyntheticRows(rows);
+  assert.equal(result.summary.canCommit, true);
+  assert.equal(result.summary.blockingErrorCount, 0);
+  assert.equal(result.canonicalRows.length, 1);
+  assert.equal(result.canonicalRows[0].fullNameNormalized, "Érica");
+  assert.equal(result.canonicalRows[0].medicalInfoRaw, "Alergia revisada");
+  assert.equal(result.canonicalRows[0].registrationDateRaw, "02/08/2026, 09:00:00");
+  const duplicates = result.summary.issues.filter((issue) => issue.code === "CONFLICTING_DUPLICATE_KEY");
+  assert.equal(duplicates.length, 3, "cópias da aba Todas não duplicam os avisos");
+  assert.ok(duplicates.every((issue) => issue.severity === "warning" && issue.message.includes("mantida a de 02/08")));
+  assert.ok(duplicates.some((issue) => issue.message.includes("Informações médicas")));
+  assert.ok(result.summary.issues.some((issue) => issue.code === "MISSING_REQUIRED_FIELD" && issue.columnKey === "lastName"));
+});
+
+test("sem aprovação, usa data e hora mais recentes; cancelados persistem fora das contagens", () => {
+  const result = parseSyntheticRows([
+    syntheticRowXml(2, { S: "Aguardando aprovação", R: "10/09/2026, 08:00:00" }),
+    syntheticRowXml(3, { S: "Em lista de espera", R: "10/09/2026, 09:00:01" }),
+    syntheticRowXml(4, { S: "Cancelado", AD: "52998224725", Y: "77.222.333-4" }),
+  ].join(""));
+  assert.equal(result.summary.canCommit, true);
+  assert.equal(result.canonicalRows.length, 2);
+  assert.equal(result.canonicalRows.find((row) => row.cpfDigitsOnly === "02314509820").status, "Em lista de espera");
+  assert.equal(result.summary.participantCount, 1);
+  assert.equal(result.canonicalRows.filter((row) => row.status === "Cancelado").length, 1);
+});
+
+test("homônimos com documentos ou nascimentos diferentes permanecem separados", () => {
+  const result = parseSyntheticRows([
+    syntheticRowXml(2, { AD: "", Y: "", D: "10/05/2010" }),
+    syntheticRowXml(3, { AD: "", Y: "", D: "11/05/2010" }),
+    syntheticRowXml(4, { AD: "", Y: "DOC-123456", D: "10/05/2010" }),
+    syntheticRowXml(5, { AD: "", Y: "DOC-654321", D: "10/05/2010" }),
+  ].join(""));
+  assert.equal(result.summary.canCommit, true);
+  assert.equal(result.canonicalRows.length, 4);
+  assert.equal(new Set(result.canonicalRows.map((row) => row.dedupKey)).size, 4);
+  assert.ok(!result.summary.issues.some((issue) => issue.code === "CROSS_SHEET_MISMATCH"));
+});
+
+test("sem documento, alteração de e-mail, cargo ou acentos não altera a identidade", () => {
+  const { normalize } = loadModules();
+  const params = { cpfDigitsOnly: null, isValidElevenDigitsCpf: false, rgOrPassportRaw: null,
+    email: "antigo@example.test", birthDateIso: "2010-05-10", birthDateRaw: "10/05/2010",
+    fullNameNormalized: "Érica da Conceição", roleCategory: "Participante" };
+  assert.equal(normalize.computeRegistrationDedupKey(params), normalize.computeRegistrationDedupKey({
+    ...params, fullNameNormalized: "Erica da Conceicao", email: "novo@example.test", roleCategory: "Consultor",
+  }));
+});
+
+test("cabeçalho AC alternativo aceita acentos/espaços e compromisso anual; cabeçalho incompatível bloqueia", () => {
+  const { regTypes, parser } = loadModules();
+  const columns = regTypes.REGISTRATION_EXCEL_COLUMNS.map((column) => column.key === "parentAuthorizationAck"
+    ? { ...column, headerLabel: "  ME COMPROMETO A BAIXAR A AUTORIZACAO DOS PAIS, preencher e entregar aos coordenadores para o FSY 2027, conforme orientações deste ano.  " }
+    : column);
+  assert.equal(parseSyntheticRows(syntheticRowXml(2), { columns }).summary.canCommit, true);
+  assert.equal(parser.headersMatch("CPF de terceiro", "CPF"), false);
+  assert.equal(parseSyntheticRows(syntheticRowXml(2), { columns: columns.map((column) =>
+    column.key === "cpf" ? { ...column, headerLabel: "Documento desconhecido" } : column
+  ) }).summary.canCommit, false);
+});
+
+test("fixture fictícia oficial importa sem bloqueio, resolve duplicatas e preserva nome sem sobrenome", () => {
+  const { parser } = loadModules();
+  const result = parser.parseRegistrationsWorkbook({
+    fileBuffer: fs.readFileSync(path.join(__dirname, "fixtures", "inscricoes-2027-sintetica.xlsx")),
+    filename: "inscricoes-2027-sintetica.xlsx", createdByUserId: "33333333-3333-4333-8333-333333333333", baseRevision: 0,
+  });
+  assert.equal(result.summary.canCommit, true);
+  assert.equal(result.summary.blockingErrorCount, 0);
+  assert.equal(result.canonicalRows.length, 38);
+  assert.ok(result.canonicalRows.some((row) => !row.lastNameRaw && row.fullNameNormalized === row.firstNameNormalized));
+  assert.ok(result.summary.issues.some((issue) => issue.code === "CONFLICTING_DUPLICATE_KEY" && issue.severity === "warning"));
+});
+
+test("planilha independente gerada via Node: suporta date1900, date1904, numFmt 00000000000, sharedStrings com rich-text e inlineStr", () => {
   const { regTypes, parser } = loadModules();
   const cols = regTypes.REGISTRATION_EXCEL_COLUMNS;
 
@@ -157,7 +300,7 @@ test("planilha independente gerada via Python: suporta date1900, date1904, numFm
     <c r="AD2" s="2"><v>2314509820</v></c>
   </row>`;
 
-  const xlsx1900 = buildIndependentXlsxViaPython({
+  const xlsx1900 = buildIndependentXlsx({
     entries: buildStandardOoxmlEntries({
       columns: cols,
       date1904: false,
@@ -201,7 +344,7 @@ test("planilha independente gerada via Python: suporta date1900, date1904, numFm
     <c r="AD2" s="0"><v>2314509820</v></c>
   </row>`;
 
-  const xlsx1904 = buildIndependentXlsxViaPython({
+  const xlsx1904 = buildIndependentXlsx({
     entries: buildStandardOoxmlEntries({
       columns: cols,
       date1904: true,
@@ -229,7 +372,7 @@ test("planilha independente gerada via Python: suporta date1900, date1904, numFm
   assert.ok(helena1904.issues.some((i) => i.code === "TRUNCATED_OR_INVALID_CPF"));
 });
 
-test("rejeita Tipo desconhecido, fórmulas sem valor calculado (<f> sem <v>), entidades XML inválidas/DOCTYPE, ZIP duplicado, zip-bomb e ZIP truncado", () => {
+test("avisa Tipo desconhecido e fórmula sem valor calculado; rejeita XML inválido, ZIP duplicado, zip-bomb e ZIP truncado", () => {
   const { regTypes, parser, zip } = loadModules();
   const cols = regTypes.REGISTRATION_EXCEL_COLUMNS;
 
@@ -242,7 +385,7 @@ test("rejeita Tipo desconhecido, fórmulas sem valor calculado (<f> sem <v>), en
     <c r="T2" t="inlineStr"><is><t>Visitante</t></is></c>
   </row>`;
 
-  const badXlsx = buildIndependentXlsxViaPython({
+  const badXlsx = buildIndependentXlsx({
     entries: buildStandardOoxmlEntries({
       columns: cols,
       participanteRowsXml: badRowXml,
@@ -257,11 +400,11 @@ test("rejeita Tipo desconhecido, fórmulas sem valor calculado (<f> sem <v>), en
     baseRevision: 0,
   });
 
-  assert.equal(badParsed.summary.canCommit, false);
+  assert.equal(badParsed.summary.canCommit, true);
   assert.ok(badParsed.summary.issues.some((i) => i.code === "INVALID_ROLE_CATEGORY"));
   assert.ok(
     badParsed.summary.issues.some(
-      (i) => i.code === "FORMULA_CHARACTER_NEUTRALIZED" && i.severity === "error"
+      (i) => i.code === "FORMULA_CHARACTER_NEUTRALIZED" && i.severity === "warning"
     )
   );
 
@@ -270,7 +413,7 @@ test("rejeita Tipo desconhecido, fórmulas sem valor calculado (<f> sem <v>), en
     columns: cols,
     participanteRowsXml: `<row r="2"><c r="A2" t="inlineStr"><is><t>&entidadeMaliciosa;</t></is></c></row>`,
   });
-  const xxeXlsx = buildIndependentXlsxViaPython({ entries: xxeEntries });
+  const xxeXlsx = buildIndependentXlsx({ entries: xxeEntries });
   assert.throws(
     () =>
       parser.parseRegistrationsWorkbook({
@@ -283,7 +426,7 @@ test("rejeita Tipo desconhecido, fórmulas sem valor calculado (<f> sem <v>), en
   );
 
   // 3. Entrada duplicada no ZIP
-  const dupZip = buildIndependentXlsxViaPython({
+  const dupZip = buildIndependentXlsx({
     entries: [
       { name: "xl/workbook.xml", content: "<workbook/>" },
       { name: "xl/workbook.xml", content: "<workbook/>" },
@@ -328,7 +471,7 @@ test("M3 + M4: preserva caixa mista (McDonald) e algarismos romanos (II, III), r
     <c r="T3" t="inlineStr"><is><t>Participante</t></is></c>
   </row>`;
 
-  const xlsx = buildIndependentXlsxViaPython({
+  const xlsx = buildIndependentXlsx({
     entries: buildStandardOoxmlEntries({
       columns: cols,
       participanteRowsXml: rowsXml,

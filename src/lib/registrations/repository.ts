@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isApprovedRegistration, isCancelledRegistration } from "./authorization-adjustments";
 import type {
   CommitRegistrationImportResponse,
   DeleteRegistrationBatchResponse,
@@ -11,6 +12,8 @@ import type {
   RegistrationPreviewSummary,
   RegistrationRawColumns,
   RegistrationRecord,
+  PatchRegistrationRequest,
+  RegistrationAuthorizationAdjustments,
 } from "@/types/registrations";
 
 const MAX_ACTIVE_PREVIEWS_PER_ACTOR = 3;
@@ -82,8 +85,18 @@ function mapBatchRow(
 
 function mapRegistrationRow(row: Record<string, unknown>): RegistrationRecord {
   const payload = (row.record_payload ?? {}) as Partial<RegistrationRecord>;
+  const relation = row.authorization_adjustments as Record<string, unknown> | null | undefined;
+  const values = (relation?.values_json ?? {}) as RegistrationAuthorizationAdjustments["values"];
+  const hasAuthorizationAdjustments = Object.keys(values).length > 0;
   return {
     ...(payload as RegistrationRecord),
+    hasAuthorizationAdjustments,
+    authorizationAdjustments: hasAuthorizationAdjustments ? {
+      values,
+      editedByUserId: String(relation?.edited_by_user_id ?? ""),
+      editedByName: String(relation?.edited_by_name ?? ""),
+      editedAt: String(relation?.edited_at ?? ""),
+    } : null,
     id: String(row.id ?? payload.id ?? ""),
     batchId: row.batch_id ? String(row.batch_id) : payload.batchId ?? null,
     dedupKey: String(row.dedup_key ?? payload.dedupKey ?? ""),
@@ -278,6 +291,7 @@ export function projectRegistrationListItem(
   if (projection === "minimal") {
     return {
       ...record,
+      authorizationAdjustments: null,
       phoneRaw: null,
       email: null,
       guardianNameRaw: null,
@@ -360,7 +374,7 @@ export async function listAllActiveRegistrations(
   const supabase = createAdminClient();
   let query = supabase
     .from("event_registrations")
-    .select("*")
+    .select("*, authorization_adjustments:registration_authorization_adjustments(*)")
     .order("full_name_normalized", { ascending: true });
 
   if (batchId) {
@@ -456,10 +470,12 @@ export function computeRegistrationMetrics(
   let documentWarningCount = 0;
 
   for (const r of records) {
-    if (r.roleCategory === "Participante") participantCount++;
-    else counselorCount++;
+    if (!isCancelledRegistration(r)) {
+      if (r.roleCategory === "Participante") participantCount++;
+      else counselorCount++;
+    }
 
-    if (r.status.toLocaleLowerCase("pt-BR").includes("confirmad")) {
+    if (isApprovedRegistration(r)) {
       confirmedCount++;
     }
     if (r.hasHealthAlert) healthAlertCount++;
@@ -522,7 +538,7 @@ export async function getRegistrationById(id: string): Promise<RegistrationRecor
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("event_registrations")
-    .select("*")
+    .select("*, authorization_adjustments:registration_authorization_adjustments(*)")
     .eq("id", id)
     .maybeSingle();
 
@@ -540,13 +556,29 @@ export async function getRegistrationsByIds(
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("event_registrations")
-    .select("*")
+    .select("*, authorization_adjustments:registration_authorization_adjustments(*)")
     .in("id", [...ids]);
 
   if (error) {
     throwIfRegistrationsNotMigrated(error);
   }
   return (data ?? []).map((r) => mapRegistrationRow(r as Record<string, unknown>));
+}
+
+export async function patchRegistrationAuthorization(
+  id: string, actorId: string, request: PatchRegistrationRequest
+): Promise<RegistrationRecord> {
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("admin_patch_registration_authorization", {
+    p_registration_id: id,
+    p_actor_id: actorId,
+    p_adjustments: "adjustments" in request ? request.adjustments : {},
+    p_reset: "resetAdjustments" in request,
+  });
+  if (error) mapRpcError(error);
+  const record = await getRegistrationById(id);
+  if (!record) throw new RegistrationDomainError("Inscrição não encontrada.", 404, "NOT_FOUND");
+  return record;
 }
 
 export async function saveRegistrationImportPreview(params: {
@@ -626,6 +658,7 @@ function mapRpcError(error: { code?: string; message?: string }): never {
 }
 
 export async function commitRegistrationImportPreview(params: {
+  acknowledgeAdjustmentRemoval?: boolean;
   previewId: string;
   actorId: string;
   actorName: string;
@@ -635,7 +668,8 @@ export async function commitRegistrationImportPreview(params: {
   useNormalizedNames?: boolean;
 }): Promise<CommitRegistrationImportResponse> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("admin_commit_registration_preview", {
+  const { data, error } = await supabase.rpc("admin_commit_registration_preview_with_adjustments", {
+    p_acknowledge_adjustment_removal: params.acknowledgeAdjustmentRemoval ?? false,
     p_preview_id: params.previewId,
     p_actor_id: params.actorId,
     p_actor_name: params.actorName,

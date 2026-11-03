@@ -9,6 +9,7 @@ import {
 } from "@/lib/registrations/repository";
 import { isSameOriginRequest } from "@/lib/security/origin";
 import { MAX_AUTHORIZATION_PDF_BATCH_SIZE } from "@/types/authorizations";
+import { isApprovedRegistration, isCancelledRegistration } from "@/lib/registrations/authorization-adjustments";
 
 export const dynamic = "force-dynamic";
 
@@ -81,14 +82,14 @@ export async function POST(request: Request) {
     let totalEligibleCount = 0;
 
     if (registrationIds && registrationIds.length > 0) {
-      selectedRecords = await getRegistrationsByIds(registrationIds);
+      selectedRecords = (await getRegistrationsByIds([...new Set(registrationIds)])).filter((record) => !isCancelledRegistration(record));
       totalEligibleCount = selectedRecords.length;
     } else {
       const allRecords = await listAllActiveRegistrations(batchId);
       const eligible = filterRegistrationRecords(allRecords, {
         batchId,
         roleCategory,
-      });
+      }).filter(isApprovedRegistration);
       totalEligibleCount = eligible.length;
       const start = (partIndex - 1) * partSize;
       selectedRecords = eligible.slice(start, start + partSize);

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import type { CommitRegistrationImportResponse, RegistrationImportMode, RegistrationPreviewSummary } from "@/types/registrations";
 import { commitImport, newIdempotencyKey, previewImport, RegistrationsApiError } from "./RegistrationsApi";
-import { IssueList, Metric, Notice, Panel, btn, formatBytes } from "./RegistrationsUi";
+import { GroupedIssues, Metric, Notice, Panel, btn, formatBytes } from "./RegistrationsUi";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const REPLACE_WORD = "SUBSTITUIR";
@@ -16,6 +16,7 @@ interface Attempt {
   previewId: string;
   mode: RegistrationImportMode;
   useNormalizedNames: boolean;
+  acknowledgeAdjustmentRemoval: boolean;
 }
 
 type Feedback = { tone: "ok" | "warn" | "error"; text: string; offerRefresh?: boolean } | null;
@@ -27,6 +28,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
   const [mode, setMode] = useState<RegistrationImportMode>("upsert");
   const [useNormalizedNames, setUseNormalizedNames] = useState(true);
   const [confirmText, setConfirmText] = useState("");
+  const [acknowledgeAdjustmentRemoval, setAcknowledgeAdjustmentRemoval] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [now, setNow] = useState(() => Date.now());
   const [dragOver, setDragOver] = useState(false);
@@ -48,10 +50,12 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
   const minutesLeft = Math.max(0, Math.ceil(expiresInMs / 60_000));
 
   const choose = (next: File | null) => {
+    if (busy !== null) return;
     setFeedback(null);
     setPreview(null);
     attempt.current = null;
     setConfirmText("");
+    setAcknowledgeAdjustmentRemoval(false);
     if (!next) return setFile(null);
     if (!next.name.toLowerCase().endsWith(".xlsx")) {
       setFile(null);
@@ -73,6 +77,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
     setFeedback(null);
     attempt.current = null;
     setConfirmText("");
+    setAcknowledgeAdjustmentRemoval(false);
     try {
       const summary = await previewImport(target, controller.signal);
       setPreview(summary);
@@ -94,8 +99,9 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
       attempt.current &&
       attempt.current.previewId === preview.previewId &&
       attempt.current.mode === mode &&
-      attempt.current.useNormalizedNames === useNormalizedNames;
-    if (!same) attempt.current = { key: newIdempotencyKey(), previewId: preview.previewId, mode, useNormalizedNames };
+      attempt.current.useNormalizedNames === useNormalizedNames &&
+      attempt.current.acknowledgeAdjustmentRemoval === acknowledgeAdjustmentRemoval;
+    if (!same) attempt.current = { key: newIdempotencyKey(), previewId: preview.previewId, mode, useNormalizedNames, acknowledgeAdjustmentRemoval };
     setBusy("commit");
     setFeedback(null);
     try {
@@ -105,6 +111,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
         expectedRevision: preview.baseRevision,
         idempotencyKey: attempt.current!.key,
         useNormalizedNames,
+        acknowledgeAdjustmentRemoval: mode === "replace_all" && acknowledgeAdjustmentRemoval,
       });
       attempt.current = null;
       setPreview(null);
@@ -115,7 +122,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
         tone: "ok",
         text: result.idempotentReplay
           ? "Esta importação já tinha sido aplicada; nada foi duplicado."
-          : `Importação aplicada: ${result.insertedCount} nova(s), ${result.updatedCount} atualizada(s)${result.deletedCount ? `, ${result.deletedCount} removida(s)` : ""}. Revisão ${result.currentRevision}.`,
+          : `Importação confirmada: ${result.insertedCount} nova(s), ${result.updatedCount} atualizada(s)${result.deletedCount ? `, ${result.deletedCount} removida(s)` : ""}.`,
       });
       onCommitted(result);
     } catch (error) {
@@ -144,16 +151,18 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
   const [showAllNames, setShowAllNames] = useState(false);
   const visibleNames = showAllNames ? nameChanges : nameChanges.slice(0, 20);
   const replaceNeedsConfirm = mode === "replace_all";
+  const adjustmentsRemoved = preview?.authorizationAdjustmentImpact?.removedCountOnReplaceAll ?? 0;
   const canSubmit =
-    !!preview && preview.canCommit && !expired && busy === null && (!replaceNeedsConfirm || confirmText.trim().toUpperCase() === REPLACE_WORD);
+    !!preview && preview.canCommit && !expired && busy === null && (!replaceNeedsConfirm || (confirmText.trim().toUpperCase() === REPLACE_WORD && (adjustmentsRemoved === 0 || acknowledgeAdjustmentRemoval)));
 
   return (
     <div className="space-y-5">
+      <ol aria-label="Etapas da importação" className="flex flex-wrap gap-3 text-sm font-semibold"><li aria-current={!preview ? "step" : undefined}>1. Escolher planilha</li><li aria-current={preview ? "step" : undefined}>2. Conferir resumo</li><li>3. Confirmar</li></ol>
       <Panel
         title="Importar planilha de inscrições"
         description={
           <>
-            Envie o Excel oficial (abas Consultor, Participante e Todas). Nada é gravado até você revisar e confirmar. A importação não altera contas, perfis, fichas médicas nem companhias.
+            Escolha o Excel exportado das inscrições. Confira o resumo e confirme para salvar.
           </>
         }
       >
@@ -170,7 +179,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
             choose(event.dataTransfer.files?.[0] ?? null);
           }}
           className={cn(
-            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 text-center transition-colors",
+            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-5 text-center transition-colors focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#007DA5]",
             dragOver ? "border-[#007DA5] bg-[#F2F9FC] dark:bg-[#0C2733]" : "border-slate-300 bg-[#FAF8F5] hover:border-[#007DA5] dark:border-slate-600 dark:bg-slate-800/50"
           )}
         >
@@ -185,6 +194,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
             type="file"
             accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="sr-only"
+            disabled={busy !== null}
             onChange={(event) => choose(event.target.files?.[0] ?? null)}
           />
         </label>
@@ -192,7 +202,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" className={btn.primary} disabled={!file || busy !== null} onClick={() => void runPreview()}>
             {busy === "preview" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Upload className="h-4 w-4" aria-hidden="true" />}
-            {busy === "preview" ? "Lendo planilha…" : "Gerar pré-visualização"}
+            {busy === "preview" ? "Lendo planilha…" : "Conferir planilha"}
           </button>
           {busy === "preview" && (
             <button type="button" className={btn.secondary} onClick={() => abortRef.current?.abort()}>
@@ -222,10 +232,10 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
 
       {preview && (
         <Panel
-          title="Revisão antes de aplicar"
+          title="Resumo da importação"
           description={
             <>
-              <span className="font-semibold">{preview.filename}</span> · {formatBytes(preview.fileSizeBytes)} · revisão base {preview.baseRevision}
+              <span className="font-semibold">{preview.filename}</span>
             </>
           }
         >
@@ -244,49 +254,26 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
             )}
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Metric label="Pessoas na planilha" value={preview.totalCanonicalRows} />
-              <Metric label="Novas" value={preview.diffSummary.insertCount} tone="info" />
-              <Metric label="Atualizadas" value={preview.diffSummary.updateCount} tone="info" />
-              <Metric label="Sem mudança" value={preview.diffSummary.unchangedCount} />
+              <Metric label="Inscritos na planilha" value={preview.totalCanonicalRows} />
               <Metric label="Participantes" value={preview.participantCount} />
               <Metric label="Consultores" value={preview.counselorCount} />
-              <Metric label="Erros bloqueantes" value={preview.blockingErrorCount} tone={preview.blockingErrorCount ? "danger" : "neutral"} />
               <Metric label="Avisos" value={preview.warningCount} tone={preview.warningCount ? "warning" : "neutral"} />
             </div>
-
-            <ul className="flex flex-wrap gap-2 text-xs" aria-label="Abas encontradas">
-              {preview.sheets.map((sheet) => (
-                <li
-                  key={sheet.sheetName}
-                  className={cn(
-                    "rounded-full border px-3 py-1 font-semibold",
-                    sheet.present && sheet.headerMatched
-                      ? "border-[#BFE3A0] bg-[#F2FAEA] text-[#2F5413] dark:border-[#3D5A22] dark:bg-[#14210B] dark:text-[#D6F0BC]"
-                      : "border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100"
-                  )}
-                >
-                  {sheet.sheetName}: {sheet.present ? `${sheet.totalRows} linha(s)${sheet.headerMatched ? "" : " · cabeçalho diferente"}` : "ausente"}
-                </li>
-              ))}
-            </ul>
-
-            {(preview.healthAlertCount > 0 || preview.missingGuardianMinorCount > 0 || preview.documentWarningCount > 0) && (
-              <p className="text-sm text-slate-800 dark:text-slate-200">
-                {preview.healthAlertCount} com informação de saúde · {preview.missingGuardianMinorCount} menor(es) sem responsável (AA/AB) · {preview.documentWarningCount} com documento a conferir.
-              </p>
-            )}
+            <p className="text-sm">{preview.diffSummary.insertCount} nova(s) · {preview.diffSummary.updateCount} atualizada(s) · {preview.diffSummary.unchangedCount} sem mudança. Cancelados ficam no histórico e fora das autorizações.</p>
+            {(preview.authorizationAdjustmentImpact?.retainedCount ?? 0) > 0 && <Notice tone="info">Os ajustes de autorização de {preview.authorizationAdjustmentImpact?.retainedCount} inscrito(s) serão preservados após importar.</Notice>}
 
             {preview.issues.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-bold text-slate-900 dark:text-white">Ocorrências</h3>
-                <IssueList issues={preview.issues} />
+                <h3 className="mb-2 text-sm font-bold text-slate-900 dark:text-white">Avisos para conferir</h3>
+                {preview.canCommit && <p className="mb-3 text-sm">Você pode confirmar a importação. Os avisos abaixo ficam disponíveis para revisão.</p>}
+                <GroupedIssues issues={preview.issues} />
               </div>
             )}
 
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Nomes revisados</h3>
+            <details>
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-slate-900 dark:text-white">Conferir nomes revisados ({preview.normalizedNamesChangedCount})</summary>
               <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-                {preview.normalizedNamesChangedCount} nome(s) ajustados para maiúsculas e minúsculas. Confira abaixo: nomes com grafia própria (ex.: McDonald, II) podem ser alterados indevidamente.
+                Confira os ajustes de maiúsculas e minúsculas antes de usar os nomes revisados.
               </p>
               {nameChanges.length > 0 ? (
                 <div className="mt-2 overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700" tabIndex={0} role="region" aria-label="Nomes originais e revisados (role para os lados no celular)">
@@ -311,7 +298,7 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
                     <span>
                       {fullNameList
                         ? `Mostrando ${visibleNames.length} de ${nameChanges.length}.`
-                        : `Amostra de ${visibleNames.length} de ${preview.normalizedNamesChangedCount}; o servidor não enviou a lista completa.`}
+                        : `Amostra de ${visibleNames.length} de ${preview.normalizedNamesChangedCount}.`}
                     </span>
                     {nameChanges.length > 20 && (
                       <button type="button" className={btn.ghost} onClick={() => setShowAllNames((v) => !v)}>
@@ -334,13 +321,13 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
                 />
                 Usar os nomes revisados (o original continua guardado)
               </label>
-            </div>
+            </details>
 
             <fieldset>
               <legend className="text-sm font-bold text-slate-900 dark:text-white">Como aplicar</legend>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <label className={cn("flex min-h-11 cursor-pointer gap-3 rounded-2xl border p-3 text-sm", mode === "upsert" ? "border-[#007DA5] bg-[#F2F9FC] dark:border-[#01B6D1] dark:bg-[#0C2733]" : "border-slate-200 dark:border-slate-700")}>
-                  <input type="radio" name="import-mode" value="upsert" className="mt-0.5 h-5 w-5 accent-[#007DA5]" checked={mode === "upsert"} onChange={() => { setMode("upsert"); setConfirmText(""); }} />
+                  <input type="radio" name="import-mode" value="upsert" className="mt-0.5 h-5 w-5 accent-[#007DA5]" checked={mode === "upsert"} onChange={() => { setMode("upsert"); setConfirmText(""); setAcknowledgeAdjustmentRemoval(false); }} />
                   <span>
                     <span className="block font-semibold text-slate-900 dark:text-white">Adicionar e atualizar</span>
                     <span className="text-slate-700 dark:text-slate-300">Inclui novas pessoas e atualiza as existentes. Quem não está na planilha permanece.</span>
@@ -366,20 +353,21 @@ export function RegistrationsImport({ onCommitted }: { onCommitted: (result: Com
                     autoComplete="off"
                     value={confirmText}
                     onChange={(event) => setConfirmText(event.target.value)}
-                    className="mt-1"
+                    className="mt-1 min-h-11"
                   />
                 </div>
               )}
+              {replaceNeedsConfirm && adjustmentsRemoved > 0 && <div className="mt-3"><Notice tone="warn"><p>A substituição removerá {adjustmentsRemoved} inscrito(s) com ajustes de autorização.</p><label className="mt-2 flex min-h-11 cursor-pointer items-center gap-3 font-semibold"><input type="checkbox" className="h-5 w-5 shrink-0 accent-[#007DA5]" checked={acknowledgeAdjustmentRemoval} onChange={(event) => setAcknowledgeAdjustmentRemoval(event.target.checked)} /> Entendo que esses inscritos e seus ajustes serão apagados.</label></Notice></div>}
             </fieldset>
 
             {!preview.canCommit && (
-              <Notice tone="error">A planilha tem erros bloqueantes. Corrija o arquivo e gere outra pré-visualização; nada foi gravado.</Notice>
+              <Notice tone="error">Não foi possível importar esta planilha. Confira os problemas indicados e envie o arquivo novamente.</Notice>
             )}
 
             <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
               <button type="button" className={mode === "replace_all" ? btn.danger : btn.primary} disabled={!canSubmit} onClick={() => void commit()}>
                 {busy === "commit" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
-                {busy === "commit" ? "Aplicando…" : mode === "replace_all" ? "Substituir inscrições" : "Aplicar importação"}
+                {busy === "commit" ? "Confirmando…" : mode === "replace_all" ? "Confirmar substituição" : "Confirmar importação"}
               </button>
               <button type="button" className={btn.secondary} disabled={busy !== null} onClick={() => choose(null)}>
                 Descartar pré-visualização

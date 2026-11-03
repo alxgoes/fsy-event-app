@@ -11,6 +11,7 @@ import {
   isPositiveHealthText,
   parseRegistrationBirthDate,
 } from "@/lib/registrations/normalize";
+import { applyAuthorizationAdjustments } from "@/lib/registrations/authorization-adjustments";
 import { createZipArchive, type ZipWriteEntry } from "@/lib/registrations/zip-archive";
 import {
   MAX_AUTHORIZATION_PDF_BATCH_SIZE,
@@ -73,9 +74,28 @@ export function slugifyFilenamePart(input: string): string {
   return ascii.slice(0, 64) || "participante";
 }
 
+export function formatAuthorizationCpf(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  const digits = value.replace(/\D/g, "");
+  return digits.length === 11 ? digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4") : value;
+}
+
+export function formatAuthorizationPhone(raw: string | null | undefined): string {
+  const value = (raw ?? "").trim();
+  let digits = value.replace(/\D/g, "");
+  let prefix = "";
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+    digits = digits.slice(2);
+    prefix = "+55 ";
+  }
+  if (digits.length === 11) return prefix + digits.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
+  if (digits.length === 10) return prefix + digits.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+  return value;
+}
+
 function parseSexCheckbox(rawSex: string | null | undefined): "M" | "F" | null {
   if (!rawSex) return null;
-  const cleaned = rawSex.trim().toLocaleLowerCase("pt-BR");
+  const cleaned = rawSex.trim().toLocaleLowerCase("pt-BR").replace(/^sexo\s+/, "");
   if (cleaned === "m" || cleaned === "masculino" || cleaned === "masc") {
     return "M";
   }
@@ -212,14 +232,22 @@ export function extractStructuredMedicalCheckboxes(
 
 const FONT_SIZE_CANDIDATES = [9, 8.5, 8, 7.5, 7, 6.5, 6] as const;
 
+// Larguras AFM conservadoras de Helvetica/Helvetica-Bold; acentos usam a base.
+const HELVETICA_WIDTHS = [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,1015,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,334,280,334,584];
+
 function estimateTextWidthPt(text: string, fontSizePt: number): number {
-  return text.length * fontSizePt * 0.52;
+  let units = 0;
+  for (const char of text.normalize("NFD").replace(/[\u0300-\u036f]/g, "")) {
+    const code = char.charCodeAt(0);
+    units += code >= 32 && code <= 126 ? HELVETICA_WIDTHS[code - 32] : 1000;
+  }
+  return units * fontSizePt / 1000;
 }
 
 function fitSingleLineText(
   text: string,
   maxWidthPt: number
-): { fittedText: string; fontSizePt: number; overflowed: boolean } {
+): { fittedText: string; fontSizePt: number; overflowed: boolean; horizontalScale?: number } {
   const clean = text.replace(/\s+/g, " ").trim();
   if (!clean) {
     return { fittedText: "", fontSizePt: 9, overflowed: false };
@@ -229,12 +257,11 @@ function fitSingleLineText(
       return { fittedText: clean, fontSizePt: size, overflowed: false };
     }
   }
-  // Mesmo em 6pt excede a largura: ajusta até o limite máximo do campo em 6pt e sinaliza overflow explícito
-  const minSize = 6;
-  const maxChars = Math.max(1, Math.floor(maxWidthPt / (minSize * 0.52)));
+  // Mantém todos os caracteres, inclusive quando a fonte mínima exige escala.
   return {
-    fittedText: clean.slice(0, maxChars).trimEnd(),
-    fontSizePt: minSize,
+    fittedText: clean,
+    fontSizePt: 6,
+    horizontalScale: Math.min(100, maxWidthPt / estimateTextWidthPt(clean, 6) * 100),
     overflowed: true,
   };
 }
@@ -244,7 +271,15 @@ function splitIntoTwoLines(
   lineMaxWidthPt: number,
   fontSizePt: number
 ): { line1: string; line2: string; fits: boolean } {
-  const maxCharsPerLine = Math.max(10, Math.floor(lineMaxWidthPt / (fontSizePt * 0.52)));
+  let maxCharsPerLine = 0;
+  let lineWidth = 0;
+  for (const char of text) {
+    const charWidth = estimateTextWidthPt(char, fontSizePt);
+    if (lineWidth + charWidth > lineMaxWidthPt) break;
+    lineWidth += charWidth;
+    maxCharsPerLine += char.length;
+  }
+  maxCharsPerLine = Math.max(1, maxCharsPerLine);
   if (text.length <= maxCharsPerLine) {
     return { line1: text, line2: "", fits: true };
   }
@@ -257,12 +292,12 @@ function splitIntoTwoLines(
   const line1 = text.slice(0, splitIdx).trim();
   const remainder = text.slice(splitIdx).trim();
 
-  if (remainder.length <= maxCharsPerLine) {
+  if (estimateTextWidthPt(remainder, fontSizePt) <= lineMaxWidthPt) {
     return { line1, line2: remainder, fits: true };
   }
   return {
     line1,
-    line2: remainder.slice(0, maxCharsPerLine).trimEnd(),
+    line2: remainder,
     fits: false,
   };
 }
@@ -322,6 +357,7 @@ export function buildAuthorizationPdfPayload(
   record: RegistrationRecord,
   options: { useNormalizedNames?: boolean } = {}
 ): AuthorizationPdfPayload {
+  record = applyAuthorizationAdjustments(record);
   const useNormalizedNames = options.useNormalizedNames ?? true;
   const fullName = useNormalizedNames
     ? record.fullNameNormalized || record.fullNameRaw
@@ -332,7 +368,7 @@ export function buildAuthorizationPdfPayload(
     : record.guardianNameRaw ?? record.guardianNameNormalized ?? "";
 
   // EXCLUSIVAMENTE de AB1 (Telefone do Responsável) — jamais usa Contato 1 ou Contato 2
-  const guardian1Phone = (record.guardianPhoneRaw ?? "").trim();
+  const guardian1Phone = formatAuthorizationPhone(record.guardianPhoneRaw);
 
   const birthParsed = parseRegistrationBirthDate(record.birthDateRaw);
   const birthDateFormatted = birthParsed.formattedPtBr ?? "";
@@ -364,7 +400,7 @@ export function buildAuthorizationPdfPayload(
 
   if (overflowFields.length > 0) {
     warnings.push(
-      `Texto muito extenso ajustado ao limite da página única nos campos: ${overflowFields.join(", ")}. Confira a ficha impressa e complemente manualmente se necessário.`
+      `Texto muito extenso preservado com redução de escala na página única nos campos: ${overflowFields.join(", ")}. Confira a legibilidade antes de imprimir.`
     );
   }
 
@@ -374,7 +410,7 @@ export function buildAuthorizationPdfPayload(
     );
   }
 
-  const suggestedFilename = `ficha-autorizacao-${slugifyFilenamePart(fullName)}.pdf`;
+  const suggestedFilename = `autorizacao-${slugifyFilenamePart(fullName)}.pdf`;
 
   return {
     registrationId: record.id,
@@ -391,8 +427,11 @@ export function buildAuthorizationPdfPayload(
       birthDateFormatted,
       rgOrPassport: (record.documentRgOrPassportRaw ?? "").trim(),
       issuingAgency: (record.issuingAgencyRaw ?? "").trim(),
+      cpfFormatted: formatAuthorizationCpf(record.cpfRaw),
+      bishopName: (useNormalizedNames ? record.bishopNameNormalized ?? record.bishopNameRaw : record.bishopNameRaw ?? record.bishopNameNormalized) ?? "",
+      tshirtSize: record.tshirtSize ?? "",
       sexCheckbox: parseSexCheckbox(record.sex),
-      phone: (record.phoneRaw ?? "").trim(),
+      phone: formatAuthorizationPhone(record.phoneRaw),
       wardName: (record.wardName ?? "").trim(),
       stakeName: (record.stakeName ?? "").trim(),
     },
@@ -471,14 +510,14 @@ function pdfTextOp(
   maxWidthPt: number,
   fontRef: "/F1" | "/F2" = "/F1"
 ): string {
-  const { fittedText, fontSizePt } = fitSingleLineText(text, maxWidthPt);
+  const { fittedText, fontSizePt, horizontalScale = 100 } = fitSingleLineText(text, maxWidthPt);
   if (!fittedText) return "";
-  return `BT ${fontRef} ${fontSizePt.toFixed(1)} Tf 1 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)} Tm ${encodePdfWinAnsiLiteral(fittedText)} Tj ET`;
+  return `BT ${fontRef} ${fontSizePt.toFixed(1)} Tf ${horizontalScale.toFixed(3)} Tz 1 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)} Tm ${encodePdfWinAnsiLiteral(fittedText)} Tj ET`;
 }
 
 function pdfMarkCheckboxOp(checked: boolean, x: number, y: number): string {
   if (!checked) return "";
-  return `BT /F2 9.0 Tf 1 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)} Tm (X) Tj ET`;
+  return `BT /F2 9.0 Tf 100 Tz 1 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)} Tm (X) Tj ET`;
 }
 
 /**
@@ -495,6 +534,10 @@ export function renderAuthorizationPdfBuffer(
   const ops: string[] = [
     "q",
     "0.08 0.12 0.20 rg", // Azul-marinho escuro legível para impressão e leitura óptica
+    // Faixa complementar; CPF do jovem não ocupa documento com foto nem CPF de terceiros.
+    pdfTextOp(payload.youth.cpfFormatted ? `CPF do participante: ${payload.youth.cpfFormatted}` : "", 43, 686, 180),
+    pdfTextOp(payload.youth.bishopName ? `Bispo: ${payload.youth.bishopName}` : "", 228, 686, 245),
+    pdfTextOp(payload.youth.tshirtSize ? `Camiseta: ${payload.youth.tshirtSize}` : "", 480, 686, 86),
     // 1. Identificação do Local
     pdfTextOp(payload.header.activityName, 43, 665, 380, "/F2"),
     pdfTextOp(payload.header.validityPeriod, 429, 665, 138, "/F2"),
@@ -526,13 +569,13 @@ export function renderAuthorizationPdfBuffer(
   if (payload.medicalText.line1Text) {
     const sz = payload.medicalText.appliedFontSizePt.toFixed(1);
     ops.push(
-      `BT /F1 ${sz} Tf 1 0 0 1 43.0 254.0 Tm ${encodePdfWinAnsiLiteral(payload.medicalText.line1Text)} Tj ET`
+      `BT /F1 ${sz} Tf 100 Tz 1 0 0 1 43.0 254.0 Tm ${encodePdfWinAnsiLiteral(payload.medicalText.line1Text)} Tj ET`
     );
   }
   if (payload.medicalText.line2Text) {
     const sz = Math.min(payload.medicalText.appliedFontSizePt, 7.0).toFixed(1);
     ops.push(
-      `BT /F1 ${sz} Tf 1 0 0 1 43.0 233.0 Tm ${encodePdfWinAnsiLiteral(payload.medicalText.line2Text)} Tj ET`
+      `BT /F1 ${sz} Tf ${Math.min(100, 520 / estimateTextWidthPt(payload.medicalText.line2Text, Number(sz)) * 100).toFixed(3)} Tz 1 0 0 1 43.0 233.0 Tm ${encodePdfWinAnsiLiteral(payload.medicalText.line2Text)} Tj ET`
     );
   }
   ops.push("Q");
@@ -669,10 +712,9 @@ export function generateAuthorizationPdfBatchZip(params: {
       overflowWarningCount++;
     }
 
-    const seq = String((partIndex - 1) * partSize + i + 1).padStart(3, "0");
-    let pdfFilename = `ficha-autorizacao-${seq}-${slugifyFilenamePart(payload.youth.fullName)}.pdf`;
+    let pdfFilename = payload.suggestedFilename;
     if (usedNames.has(pdfFilename)) {
-      pdfFilename = `ficha-autorizacao-${seq}-${slugifyFilenamePart(payload.youth.fullName)}-${record.id.slice(0, 6)}.pdf`;
+      pdfFilename = `autorizacao-${slugifyFilenamePart(payload.youth.fullName)}-${record.id}.pdf`;
     }
     usedNames.add(pdfFilename);
 

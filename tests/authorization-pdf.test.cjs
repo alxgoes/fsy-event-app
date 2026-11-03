@@ -158,8 +158,8 @@ test("PDF gerado mantém estritamente 1 página original, não usa Contatos 1/2 
   assert.equal(latin1.includes("Joana"), false);
   assert.equal(latin1.includes("16990001111"), false);
 
-  // 3. CPF NUNCA é gravado na ficha (Outro Documento com Foto fica em branco)
-  assert.equal(latin1.includes("023.145.098-35"), false);
+  // 3. CPF é identificado na faixa complementar; documento com foto segue reservado ao RG.
+  assert.equal(payload.youth.cpfFormatted, "023.145.098-35");
   assert.equal(latin1.includes("02314509835"), false);
 
   // 4. Dados confirmados do evento e do participante estão presentes
@@ -255,4 +255,61 @@ test("lote ZIP aplica limite máximo de 50 PDFs e inclui manifesto-autorizacoes.
     })
   );
   assert.throws(() => pdf.generateAuthorizationPdfBatchZip({ records: fiftyOne }), /limite máximo de 50/);
+});
+
+test("cada PDF da fixture sintética preserva texto extraído, acentos e campos obrigatórios", () => {
+  const { fixtureRecords, extractOverlayText, OUTPUT } = require('./helpers/pdf-fixture.cjs');
+  const { pdf } = loadPdfModules();
+  const records = fixtureRecords();
+  assert.ok(records.length > 0);
+  for (const record of records) {
+    const { pdfBuffer, payload } = pdf.renderAuthorizationPdfBuffer(record);
+    const text = extractOverlayText(pdfBuffer);
+    const normalized = text.replace(/\s+/g, ' ');
+    const samplePath = path.join(OUTPUT, payload.suggestedFilename);
+    assert.ok(fs.existsSync(samplePath), `Amostra ausente: ${payload.suggestedFilename}`);
+    assert.equal(extractOverlayText(fs.readFileSync(samplePath)), text);
+    for (const value of [payload.youth.fullName, payload.youth.birthDateFormatted,
+      payload.youth.rgOrPassport, payload.youth.issuingAgency, payload.youth.cpfFormatted,
+      payload.youth.phone, payload.youth.wardName, payload.youth.stakeName,
+      payload.youth.bishopName, payload.youth.tshirtSize,
+      payload.guardian.guardian1FullName, payload.guardian.guardian1Phone]) {
+      if (value) assert.ok(normalized.includes(value), `Campo ausente em ${payload.suggestedFilename}: ${value}`);
+    }
+    for (const value of [record.medicalInfoRaw, record.dietaryInfoRaw, record.healthConditionsDetailsRaw]) {
+      if (value && !/^(nenhum[a]?|não)$/i.test(value)) assert.ok(normalized.includes(value), 'Texto de saúde/alimentação foi cortado');
+    }
+    assert.match(payload.suggestedFilename, /^autorizacao-[a-z0-9-]+\.pdf$/);
+    assert.equal(payload.hasOverflowWarning, false);
+    assert.equal(text.includes('\ufffd'), false);
+    const sex = (record.sex ?? '').replace(/^sexo\s+/i, '').toLowerCase();
+    if (sex === 'feminino' || sex === 'masculino') {
+      assert.equal(payload.youth.sexCheckbox, sex === 'feminino' ? 'F' : 'M');
+      assert.match(pdfBuffer.toString('latin1'), sex === 'feminino' ? /112\.0 492\.5 Tm \(X\) Tj/ : /43\.5 492\.5 Tm \(X\) Tj/);
+    }
+  }
+});
+
+test("PDF conserva nome longo, saúde extensa e ajustes sem modificar a origem importada", () => {
+  const { extractOverlayText } = require('./helpers/pdf-fixture.cjs');
+  const { normalize, pdf } = loadPdfModules();
+  const firstName = 'JÚLIA MARIA CONCEIÇÃO';
+  const lastName = 'ALBUQUERQUE ' + 'VASCONCELLOS '.repeat(16) + 'GONÇALVES';
+  const record = buildRecord(normalize);
+  const original = JSON.stringify(record.rawColumns);
+  const details = 'Alergia grave à proteína do leite e ação médica orientada. '.repeat(20).trim();
+  record.authorizationAdjustments = {
+    values: { firstName, lastName, cpf: '52998224725', phone: '5516991112233',
+      healthConditionsDetails: details }, editedByUserId: 'gestor',
+    editedByName: 'Gestor fictício', editedAt: '2026-11-02T12:00:00Z',
+  };
+  const { pdfBuffer, payload } = pdf.renderAuthorizationPdfBuffer(record);
+  const text = extractOverlayText(pdfBuffer).replace(/\s+/g, ' ');
+  assert.ok(text.includes(normalize.normalizePtBrPersonName(firstName + ' ' + lastName)));
+  assert.ok(text.includes(details));
+  assert.ok(text.includes('529.982.247-25'));
+  assert.ok(text.includes('+55 (16) 99111-2233'));
+  assert.equal(JSON.stringify(record.rawColumns), original);
+  assert.equal(record.firstNameRaw, 'GABRIELA');
+  assert.equal(payload.hasOverflowWarning, true);
 });

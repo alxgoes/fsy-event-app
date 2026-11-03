@@ -12,6 +12,8 @@ import type {
   RegistrationListResponse,
   RegistrationPreviewSummary,
   RegistrationRecord,
+  PatchRegistrationRequest,
+  AuthorizationAdjustmentValues,
 } from "@/types/registrations";
 import type { AuthorizationPdfBatchRequest } from "@/types/authorizations";
 
@@ -117,6 +119,23 @@ export function listRegistrations(filters: RegistrationListFilterParams, signal?
 
 export function getRegistration(id: string, signal?: AbortSignal) {
   return sendJson<RegistrationRecord>(`${BASE}/${encodeURIComponent(id)}`, {}, signal);
+}
+
+export function patchRegistration(id: string, body: PatchRegistrationRequest) {
+  return sendJson<RegistrationRecord>(`${BASE}/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function previewAuthorizationPdf(id: string, adjustments: AuthorizationAdjustmentValues, useNormalizedNames: boolean, signal?: AbortSignal) {
+  const response = await send(`${BASE}/${encodeURIComponent(id)}/authorization-pdf${query({ useNormalizedNames, download: "0" })}`, Object.keys(adjustments).length ? {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/pdf" },
+    body: JSON.stringify({ adjustments }),
+  } : { headers: { Accept: "application/pdf" } }, signal);
+  return { blob: await response.blob(), headers: response.headers };
 }
 
 export function listBatches(signal?: AbortSignal) {

@@ -33,6 +33,9 @@ export interface AuthorizationPdfYouthFields {
   birthDateFormatted: string; // DD/MM/AAAA se válido, ou "" se ausente
   rgOrPassport: string; // Y1 (em branco se ausente)
   issuingAgency: string; // Z1 (em branco se ausente)
+  cpfFormatted: string; // Faixa complementar identificada, nunca documento com foto
+  bishopName: string;
+  tshirtSize: string;
   sexCheckbox: "M" | "F" | null; // M = Masculino, F = Feminino, null = ambos em branco
   phone: string; // F1 (em branco se ausente)
   wardName: string; // V1 (em branco se ausente)
@@ -64,7 +67,7 @@ export interface AuthorizationPdfMedicalText {
 export interface AuthorizationPdfPayload {
   registrationId: string;
   roleCategory: RegistrationRoleCategory;
-  suggestedFilename: string; // Ex: "ficha-autorizacao-joao-silva-santos.pdf"
+  suggestedFilename: string; // Ex: "autorizacao-joao-silva-santos.pdf"
   header: AuthorizationPdfHeaderFields;
   youth: AuthorizationPdfYouthFields;
   guardian: AuthorizationPdfGuardianFields;

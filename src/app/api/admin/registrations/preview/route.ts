@@ -113,6 +113,12 @@ export async function POST(request: Request) {
       return json({ error: msg, code: "INVALID_XLSX" }, 400);
     }
 
+    const importedKeys = new Set(parsed.canonicalRows.map((record) => record.dedupKey));
+    const adjustedRecords = existingRecords.filter((record) => record.hasAuthorizationAdjustments);
+    parsed.summary.authorizationAdjustmentImpact = {
+      retainedCount: adjustedRecords.filter((record) => importedKeys.has(record.dedupKey)).length,
+      removedCountOnReplaceAll: adjustedRecords.filter((record) => !importedKeys.has(record.dedupKey)).length,
+    };
     await saveRegistrationImportPreview({
       summary: parsed.summary,
       canonicalRows: parsed.canonicalRows,

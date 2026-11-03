@@ -55,3 +55,10 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# Planilhas de inscrição contêm dados pessoais de menores: nunca versionar.
+# Só a planilha fictícia de testes é permitida.
+*.xlsx
+*.xls
+*.csv
+!tests/fixtures/*-sintetica.xlsx

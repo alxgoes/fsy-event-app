@@ -17,7 +17,69 @@
  *    e NUNCA promove lotes históricos antigos para ativo.
  */
 
+import { z } from "zod";
+
 export type RegistrationSheetName = "Consultor" | "Participante" | "Todas";
+
+const authorizationText = z.string().trim().max(2000, "Use no máximo 2.000 caracteres.");
+const authorizationPhone = authorizationText.refine((value) => {
+  const digits = value.replace(/\D/g, "").replace(/^55(?=\d{10,11}$)/, "");
+  return !value || (/^[\d\s()+.-]+$/.test(value) && /^[1-9]\d{9,10}$/.test(digits));
+}, "Informe um telefone com DDD e 10 ou 11 dígitos.");
+const authorizationCpf = authorizationText.refine((value) => {
+  if (!value) return true;
+  if (!/^[\d.\s-]+$/.test(value)) return false;
+  const digits = value.replace(/\D/g, "");
+  if (!/^\d{11}$/.test(digits) || /^(\d)\1{10}$/.test(digits)) return false;
+  return [9, 10].every((length) => {
+    const sum = [...digits.slice(0, length)].reduce((acc, digit, i) => acc + Number(digit) * (length + 1 - i), 0);
+    return ((sum * 10) % 11) % 10 === Number(digits[length]);
+  });
+}, "Informe um CPF com dígitos verificadores válidos.");
+const authorizationDate = authorizationText.refine((value) => {
+  if (!value) return true;
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) return false;
+  const [, dd, mm, yyyy] = match;
+  const date = new Date(Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd)));
+  return Number(yyyy) >= 1920 && date <= new Date() && date.getUTCFullYear() === Number(yyyy) && date.getUTCMonth() === Number(mm) - 1 && date.getUTCDate() === Number(dd);
+}, "Informe uma data de nascimento válida em dd/mm/aaaa.");
+
+/** Ajustes exclusivos da autorização; nunca alteram identidade, situação ou dados importados. */
+export const AuthorizationAdjustmentsSchema = z.object({
+  firstName: authorizationText.min(1, "Informe o nome."),
+  lastName: authorizationText,
+  birthDate: authorizationDate,
+  sex: z.enum(["", "Masculino", "Feminino"]),
+  phone: authorizationPhone,
+  cpf: authorizationCpf,
+  documentRgOrPassport: authorizationText,
+  issuingAgency: authorizationText,
+  guardianName: authorizationText,
+  guardianPhone: authorizationPhone,
+  stakeName: authorizationText,
+  wardName: authorizationText,
+  bishopName: authorizationText,
+  bishopEmail: z.union([z.literal(""), z.email("Informe um e-mail válido.")]),
+  tshirtSize: authorizationText,
+  medicalInfo: authorizationText,
+  dietaryInfo: authorizationText,
+  healthConditionsSummary: authorizationText,
+  healthConditionsDetails: authorizationText,
+}).partial().strict();
+
+export type AuthorizationAdjustmentValues = z.infer<typeof AuthorizationAdjustmentsSchema>;
+export interface RegistrationAuthorizationAdjustments {
+  values: AuthorizationAdjustmentValues;
+  editedByUserId: string;
+  editedByName: string;
+  editedAt: string;
+}
+export const PatchRegistrationRequestSchema = z.union([
+  z.object({ adjustments: AuthorizationAdjustmentsSchema.refine((value) => Object.keys(value).length > 0, "Informe ao menos um ajuste.") }).strict(),
+  z.object({ resetAdjustments: z.literal(true) }).strict(),
+]);
+export type PatchRegistrationRequest = z.infer<typeof PatchRegistrationRequestSchema>;
 
 export type RegistrationRoleCategory = "Participante" | "Consultor";
 
@@ -190,6 +252,8 @@ export interface RegistrationNormalizedNameFields {
 }
 
 export interface RegistrationRecord extends RegistrationNormalizedNameFields {
+  authorizationAdjustments?: RegistrationAuthorizationAdjustments | null;
+  hasAuthorizationAdjustments?: boolean;
   id: string;
   batchId: string | null;
   dedupKey: string;
@@ -284,6 +348,7 @@ export interface RegistrationImportBatchSummary {
 }
 
 export interface RegistrationPreviewSummary {
+  authorizationAdjustmentImpact?: { retainedCount: number; removedCountOnReplaceAll: number };
   previewId: string;
   createdByUserId: string;
   baseRevision: number;
@@ -350,6 +415,7 @@ export interface RegistrationListResponse {
 }
 
 export interface CommitRegistrationImportRequest {
+  acknowledgeAdjustmentRemoval?: boolean;
   previewId: string;
   mode: RegistrationImportMode;
   expectedRevision: number;

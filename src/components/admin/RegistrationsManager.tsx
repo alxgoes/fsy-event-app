@@ -9,14 +9,13 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { EmptyState, ErrorState, OfflineBanner, PermissionState } from "@/components/ui/states";
 import { PrivacyShield } from "@/components/privacy/PrivacyShield";
-import { MAX_AUTHORIZATION_PDF_BATCH_SIZE } from "@/types/authorizations";
 import type { RegistrationListResponse, RegistrationRecord, RegistrationRoleCategory } from "@/types/registrations";
 import { downloadAuthorizationPdf, downloadExportXlsx, listRegistrations, RegistrationsApiError, USER_MANAGER_ROLES } from "./RegistrationsApi";
 import { RegistrationsImport } from "./RegistrationsImport";
 import { RegistrationsBatches } from "./RegistrationsBatches";
 import { RegistrationsAuthorizations } from "./RegistrationsAuthorizations";
 import { RegistrationsDetail } from "./RegistrationsDetail";
-import { Metric, Notice, RecordFlags, btn, displayName } from "./RegistrationsUi";
+import { Metric, Notice, RecordFlags, StatusBadge, btn, displayName, isCancelledRegistration } from "./RegistrationsUi";
 
 type Tab = "list" | "import" | "pdf" | "batches";
 const TABS: { id: Tab; label: string }[] = [
@@ -119,9 +118,6 @@ export function RegistrationsManager() {
 
   const toggleSelected = (id: string) => {
     if (selected.includes(id)) return setSelected(selected.filter((value) => value !== id));
-    if (selected.length >= MAX_AUTHORIZATION_PDF_BATCH_SIZE) {
-      return setNotice({ tone: "warn", text: `Selecione no máximo ${MAX_AUTHORIZATION_PDF_BATCH_SIZE} inscrições por pacote.` });
-    }
     setSelected([...selected, id]);
   };
 
@@ -206,9 +202,9 @@ export function RegistrationsManager() {
                 </p>
               </div>
             </div>
-            <button type="button" className={btn.secondary} onClick={() => void load(filters)} disabled={loading}>
+            <div className="flex flex-wrap gap-2"><button type="button" className={btn.primary} onClick={() => setTab("pdf")}><FileDown className="h-4 w-4" aria-hidden="true" /> Baixar autorizações</button><button type="button" className={btn.secondary} onClick={() => void load(filters)} disabled={loading}>
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} aria-hidden="true" /> Atualizar
-            </button>
+            </button></div>
           </div>
           {metrics && (
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -298,15 +294,15 @@ export function RegistrationsManager() {
               ) : (
                 <>
                   <section aria-label="Filtros" className="fsy-panel rounded-3xl bg-white p-4 dark:bg-slate-900">
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <label className="text-sm font-semibold lg:col-span-2">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <label className="text-sm font-semibold sm:col-span-2 lg:col-span-3">
                         <span className="flex items-center gap-1.5"><Search className="h-4 w-4" aria-hidden="true" /> Buscar</span>
                         <Input
                           type="search"
                           value={searchDraft}
                           onChange={(event) => setSearchDraft(event.target.value)}
                           placeholder="Nome, e-mail, CPF, RG, estaca ou responsável"
-                          className="mt-1"
+                          className="mt-1 min-h-11"
                           autoComplete="off"
                         />
                       </label>
@@ -319,26 +315,10 @@ export function RegistrationsManager() {
                         </NativeSelect>
                       </label>
                       <label className="text-sm font-semibold">
-                        Alertas
-                        <NativeSelect value={filters.alert} onChange={(event) => update({ alert: event.target.value as Filters["alert"] })} className="mt-1">
-                          <option value="all">Todos</option>
-                          <option value="health">Com informação de saúde</option>
-                          <option value="issues">Com ocorrências</option>
-                          <option value="clean">Sem ocorrências</option>
-                        </NativeSelect>
-                      </label>
-                      <label className="text-sm font-semibold">
                         Estaca/distrito
                         <NativeSelect value={filters.stakeName} onChange={(event) => update({ stakeName: event.target.value, wardName: "" })} className="mt-1">
                           <option value="">Todas</option>
                           {metrics?.stakes.map((stake) => <option key={stake} value={stake}>{stake}</option>)}
-                        </NativeSelect>
-                      </label>
-                      <label className="text-sm font-semibold">
-                        Ala/ramo
-                        <NativeSelect value={filters.wardName} onChange={(event) => update({ wardName: event.target.value })} className="mt-1">
-                          <option value="">Todas</option>
-                          {metrics?.wards.map((ward) => <option key={ward} value={ward}>{ward}</option>)}
                         </NativeSelect>
                       </label>
                       <label className="text-sm font-semibold">
@@ -348,23 +328,20 @@ export function RegistrationsManager() {
                           {metrics?.statuses.map((status) => <option key={status} value={status}>{status}</option>)}
                         </NativeSelect>
                       </label>
-                      <label className="flex min-h-11 items-center gap-3 self-end text-sm font-semibold">
-                        <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={normalizedNames} onChange={(event) => setNormalizedNames(event.target.checked)} />
-                        Mostrar nomes revisados
-                      </label>
                     </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+                    <details className="mt-4 border-t border-slate-200 pt-1 dark:border-slate-700"><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Mais opções e exportação</summary><div className="flex flex-wrap items-center gap-3 pb-3">
+                      <label className="text-sm font-semibold">Alertas<NativeSelect value={filters.alert} onChange={(event) => update({ alert: event.target.value as Filters["alert"] })} className="mt-1 min-h-11"><option value="all">Todos</option><option value="health">Com informação de saúde</option><option value="issues">Com avisos</option><option value="clean">Sem avisos</option></NativeSelect></label>
+                      <label className="text-sm font-semibold">Ala ou ramo<NativeSelect value={filters.wardName} onChange={(event) => update({ wardName: event.target.value })} className="mt-1 min-h-11"><option value="">Todas</option>{metrics?.wards.map((ward) => <option key={ward} value={ward}>{ward}</option>)}</NativeSelect></label>
+                      <label className="flex min-h-11 items-center gap-3 text-sm font-semibold"><input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={normalizedNames} onChange={(event) => setNormalizedNames(event.target.checked)} /> Mostrar nomes revisados</label>
                       <button type="button" className={btn.secondary} onClick={() => void exportXlsx()} disabled={exporting}>
                         {exporting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
                         Exportar Excel
                       </button>
-                      {filtersActive && (
-                        <button type="button" className={btn.ghost} onClick={() => { setSearchDraft(""); setFilters(INITIAL); }}>Limpar filtros</button>
-                      )}
                       <p className="text-xs text-slate-600 dark:text-slate-400">
                         {filtersActive ? "A exportação usa os filtros aplicados." : "A exportação inclui todas as inscrições atuais."}
                       </p>
-                    </div>
+                    </div></details>
+                    {filtersActive && <button type="button" className={btn.ghost} onClick={() => { setSearchDraft(""); setFilters(INITIAL); }}>Limpar filtros</button>}
                   </section>
 
                   <section aria-label="Lista de inscritos" aria-busy={loading} className="fsy-panel overflow-hidden rounded-3xl bg-white dark:bg-slate-900">
@@ -372,11 +349,12 @@ export function RegistrationsManager() {
                       <p aria-live="polite">
                         {loading && !data ? "Carregando…" : <><span className="fsy-figure font-semibold">{pagination?.totalFiltered ?? 0}</span> resultado(s){filtersActive ? " com os filtros" : ""}</>}
                       </p>
+                      <button type="button" className={btn.ghost} disabled={loading || !items.some((item) => !isCancelledRegistration(item))} onClick={() => setSelected((current) => [...new Set([...current, ...items.filter((item) => !isCancelledRegistration(item)).map((item) => item.id)])])}>Selecionar página</button>
                       {selected.length > 0 && (
                         <p className="text-sm">
                           <span className="font-semibold">{selected.length}</span> selecionada(s) ·{" "}
-                          <button type="button" className="font-semibold text-[#005E7C] underline-offset-4 hover:underline dark:text-[#7DE3F4]" onClick={() => setTab("pdf")}>
-                            gerar fichas
+                          <button type="button" className={btn.ghost} onClick={() => setTab("pdf")}>
+                            Baixar autorizações
                           </button>
                         </p>
                       )}
@@ -389,7 +367,7 @@ export function RegistrationsManager() {
                     ) : items.length === 0 ? (
                       <div className="p-6 text-center text-sm text-slate-700 dark:text-slate-300">
                         Nenhuma inscrição corresponde aos filtros.{" "}
-                        <button type="button" className="font-semibold text-[#005E7C] underline dark:text-[#7DE3F4]" onClick={() => { setSearchDraft(""); setFilters(INITIAL); }}>Limpar filtros</button>
+                        <button type="button" className={btn.ghost} onClick={() => { setSearchDraft(""); setFilters(INITIAL); }}>Limpar filtros</button>
                       </div>
                     ) : (
                       <>
@@ -399,7 +377,7 @@ export function RegistrationsManager() {
                             <caption className="sr-only">Inscrições, página {pagination?.page} de {pagination?.totalPages}</caption>
                             <thead className="bg-slate-50 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">
                               <tr>
-                                <th scope="col" className="w-12 px-3 py-2"><span className="sr-only">Selecionar</span></th>
+                                <th scope="col" className="w-12 px-1 py-1"><label className="flex h-11 w-11 cursor-pointer items-center justify-center"><input type="checkbox" className="h-5 w-5 accent-[#007DA5]" aria-label="Selecionar todos os inscritos desta página, exceto cancelados" checked={items.some((item) => !isCancelledRegistration(item)) && items.filter((item) => !isCancelledRegistration(item)).every((item) => selected.includes(item.id))} onChange={(event) => { const ids = items.filter((item) => !isCancelledRegistration(item)).map((item) => item.id); setSelected((current) => event.target.checked ? [...new Set([...current, ...ids])] : current.filter((id) => !ids.includes(id))); }} /></label></th>
                                 <th scope="col" className="px-3 py-2 font-semibold">Nome</th>
                                 <th scope="col" className="px-3 py-2 font-semibold">Tipo</th>
                                 <th scope="col" className="px-3 py-2 font-semibold">Estaca · ala</th>
@@ -415,7 +393,7 @@ export function RegistrationsManager() {
                                   <tr key={record.id} className={cn(selected.includes(record.id) && "bg-[#F2F9FC] dark:bg-[#0C2733]")}>
                                     <td className="px-1 py-1">
                                       <label className="flex h-11 w-11 cursor-pointer items-center justify-center">
-                                        <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={selected.includes(record.id)} onChange={() => toggleSelected(record.id)} aria-label={`Selecionar ${name}`} />
+                                        <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={selected.includes(record.id)} disabled={isCancelledRegistration(record)} onChange={() => toggleSelected(record.id)} aria-label={`Selecionar ${name}`} />
                                       </label>
                                     </td>
                                     <td className="px-3 py-2">
@@ -426,12 +404,12 @@ export function RegistrationsManager() {
                                     </td>
                                     <td className="px-3 py-2">{record.roleCategory}</td>
                                     <td className="px-3 py-2">{[record.stakeName, record.wardName].filter(Boolean).join(" · ") || "—"}</td>
-                                    <td className="px-3 py-2">{record.status}</td>
+                                    <td className="px-3 py-2"><StatusBadge status={record.status} /></td>
                                     <td className="px-3 py-2"><RecordFlags record={record} compact /></td>
                                     <td className="px-3 py-2">
                                       <div className="flex justify-end gap-1">
                                         <button type="button" className={btn.ghost} onClick={() => setDetail(record)} aria-label={`Ver detalhes de ${name}`}>Detalhes</button>
-                                        <button type="button" className={btn.ghost} onClick={() => void rowPdf(record)} disabled={rowBusy === record.id} aria-label={`Baixar ficha de autorização de ${name}`}>
+                                        <button type="button" className={btn.ghost} onClick={() => void rowPdf(record)} disabled={rowBusy === record.id || isCancelledRegistration(record)} aria-label={`Baixar ficha de autorização de ${name}`}>
                                           {rowBusy === record.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileDown className="h-4 w-4" aria-hidden="true" />}
                                           Ficha
                                         </button>
@@ -452,12 +430,12 @@ export function RegistrationsManager() {
                               <li key={record.id} className={cn("space-y-2 p-4", selected.includes(record.id) && "bg-[#F2F9FC] dark:bg-[#0C2733]")}>
                                 <div className="flex items-start gap-3">
                                   <label className="-m-3 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">
-                                    <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={selected.includes(record.id)} onChange={() => toggleSelected(record.id)} aria-label={`Selecionar ${name}`} />
+                                    <input type="checkbox" className="h-5 w-5 accent-[#007DA5]" checked={selected.includes(record.id)} disabled={isCancelledRegistration(record)} onChange={() => toggleSelected(record.id)} aria-label={`Selecionar ${name}`} />
                                   </label>
                                   <div className="min-w-0">
                                     <p className="break-words font-semibold text-slate-900 dark:text-white">{name}</p>
                                     <p className="text-xs text-slate-700 dark:text-slate-300">
-                                      {record.roleCategory} · {record.status}
+                                      {record.roleCategory} · <StatusBadge status={record.status} />
                                       {record.stakeName ? ` · ${record.stakeName}` : ""}
                                     </p>
                                   </div>
@@ -465,7 +443,7 @@ export function RegistrationsManager() {
                                 <RecordFlags record={record} />
                                 <div className="flex gap-2">
                                   <button type="button" className={cn(btn.secondary, "flex-1")} onClick={() => setDetail(record)}>Detalhes</button>
-                                  <button type="button" className={cn(btn.secondary, "flex-1")} onClick={() => void rowPdf(record)} disabled={rowBusy === record.id} aria-label={`Baixar ficha de autorização de ${name}`}>
+                                  <button type="button" className={cn(btn.secondary, "flex-1")} onClick={() => void rowPdf(record)} disabled={rowBusy === record.id || isCancelledRegistration(record)} aria-label={`Baixar ficha de autorização de ${name}`}>
                                     {rowBusy === record.id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileDown className="h-4 w-4" aria-hidden="true" />}
                                     Ficha
                                   </button>
@@ -505,7 +483,7 @@ export function RegistrationsManager() {
           )}
         </div>
 
-        <RegistrationsDetail record={detail} useNormalizedNames={normalizedNames} onClose={() => setDetail(null)} />
+        <RegistrationsDetail record={detail} useNormalizedNames={normalizedNames} onClose={() => setDetail(null)} onChanged={() => void load(filters)} />
       </div>
     </PrivacyShield>
   );

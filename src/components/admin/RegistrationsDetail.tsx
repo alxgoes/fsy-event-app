@@ -1,11 +1,12 @@
 "use client";
 
 import React, { startTransition, useEffect, useState } from "react";
-import { Eye, EyeOff, FileDown, HeartPulse, Loader2 } from "lucide-react";
+import { Eye, EyeOff, FileDown, HeartPulse, Loader2, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { RegistrationRecord } from "@/types/registrations";
 import { downloadAuthorizationPdf, getRegistration, RegistrationsApiError } from "./RegistrationsApi";
-import { IssueList, Notice, RecordFlags, btn, displayName } from "./RegistrationsUi";
+import { IssueList, Notice, RecordFlags, StatusBadge, btn, displayName, isCancelledRegistration } from "./RegistrationsUi";
+import { RegistrationAuthorizationEditor } from "./RegistrationAuthorizationEditor";
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   const empty = value === null || value === undefined || value === "";
@@ -34,11 +35,13 @@ export function RegistrationsDetail({
   record: summary,
   useNormalizedNames,
   onClose,
+  onChanged,
 }: {
   /** Item da lista (projeção mínima, sem documentos nem saúde). */
   record: RegistrationRecord | null;
   useNormalizedNames: boolean;
   onClose: () => void;
+  onChanged?: () => void;
 }) {
   // Detalhe completo vem de GET [id] só quando o diálogo abre; fica apenas em memória.
   const [full, setFull] = useState<RegistrationRecord | null>(null);
@@ -70,12 +73,14 @@ export function RegistrationsDetail({
   const record = full ?? summary;
   const [showDocs, setShowDocs] = useState(false);
   const [showHealth, setShowHealth] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(null);
 
   const close = () => {
     setShowDocs(false);
     setShowHealth(false);
+    setEditing(false);
     setFeedback(null);
     setFull(null);
     onClose();
@@ -105,7 +110,7 @@ export function RegistrationsDetail({
 
   return (
     <Dialog open={!!record} onOpenChange={(open) => { if (!open) close(); }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className={`max-h-[90vh] overflow-y-auto ${editing ? "sm:max-w-4xl" : "sm:max-w-2xl"}`}>
         {record && (
           <>
             <DialogHeader>
@@ -118,13 +123,18 @@ export function RegistrationsDetail({
 
             <div className="space-y-3">
               <RecordFlags record={record} />
+              <StatusBadge status={record.status} />
 
               <div className="flex flex-wrap gap-2">
-                <button type="button" className={btn.primary} onClick={() => void getPdf()} disabled={downloading}>
+                <button type="button" className={btn.primary} onClick={() => void getPdf()} disabled={downloading || isCancelledRegistration(record)}>
                   {downloading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <FileDown className="h-4 w-4" aria-hidden="true" />}
                   Baixar ficha de autorização
                 </button>
+                <button type="button" className={btn.secondary} disabled={detailState !== "ready"} onClick={() => setEditing((value) => !value)} aria-expanded={editing} aria-controls={`authorization-editor-${record.id}`}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" /> Editar dados da autorização
+                </button>
               </div>
+              {isCancelledRegistration(record) && <Notice tone="info">Inscrição cancelada. Ela permanece no histórico e não entra nas autorizações.</Notice>}
               {feedback && <Notice tone={feedback.tone}>{feedback.text}</Notice>}
               {detailState === "loading" && (
                 <p className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300" aria-live="polite">
@@ -132,6 +142,8 @@ export function RegistrationsDetail({
                 </p>
               )}
               {detailState === "error" && <Notice tone="error">{detailError} Documentos e saúde não foram carregados.</Notice>}
+
+              {editing && full && <RegistrationAuthorizationEditor key={full.id} record={full} useNormalizedNames={useNormalizedNames} onCancel={() => setEditing(false)} onSaved={(value) => { setFull(value); onChanged?.(); }} />}
 
               <Section title="Identificação">
                 <Row label="Nome (revisado)" value={record.fullNameNormalized} />
