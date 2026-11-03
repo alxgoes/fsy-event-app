@@ -1,0 +1,100 @@
+# Capturas Android — 1.2.0 (3) · 02/11/2026
+
+90 PNGs finais desta retomada, com identidades fictícias. Incluem cargos e edição de conta, claro/escuro, 360 dp, fonte 200%, widgets e quadros de movimento.
+
+Cópia final: `D:/Projects/PC/FSY/_trabalho/capturas/android-depois/retomada-2026-11-02`.
+
+As prévias de erro usam PDF deliberadamente inválido. Capturas não comprovam renderização bem-sucedida do PDF, TalkBack ou comportamento em aparelho.
+
+## Arquivos
+
+- `accounts-role-editor-font200.png`
+- `admin-accounts-empty.png`
+- `admin-registrations-empty.png`
+- `agenda-focused-from-home.png`
+- `appearance-manual-dark-more.png`
+- `appearance-manual-light-more.png`
+- `appearance-persisted-dark-auth.png`
+- `authorization-editor-360.png`
+- `authorization-preview-error-360.png`
+- `counselor-photo-reason.png`
+- `dark-agenda-360.png`
+- `dark-announcements-360.png`
+- `dark-gallery-360.png`
+- `dark-home-360.png`
+- `dark-more-pending-360.png`
+- `empty-announcements.png`
+- `gallery-empty.png`
+- `gallery-fullscreen.png`
+- `gallery-grid.png`
+- `home-before-event.png`
+- `home-between-activities.png`
+- `home-static-notices.png`
+- `light-agenda.png`
+- `light-announcements.png`
+- `light-auth.png`
+- `light-home.png`
+- `light-more.png`
+- `light-profile.png`
+- `more-photo-pending.png`
+- `motion-home-00.png`
+- `motion-home-01.png`
+- `motion-home-02.png`
+- `motion-home-03.png`
+- `motion-home-04.png`
+- `motion-home-05.png`
+- `motion-home-06.png`
+- `motion-home-07.png`
+- `motion-home-08.png`
+- `motion-home-09.png`
+- `motion-home-10.png`
+- `motion-home-11.png`
+- `motion-home-12.png`
+- `motion-home-13.png`
+- `motion-home-14.png`
+- `motion-home-15.png`
+- `motion-home-16.png`
+- `motion-home-17.png`
+- `motion-home-18.png`
+- `motion-home-19.png`
+- `motion-home-20.png`
+- `motion-home-21.png`
+- `motion-home-22.png`
+- `motion-home-23.png`
+- `motion-nav-00.png`
+- `motion-nav-01.png`
+- `motion-nav-02.png`
+- `motion-nav-03.png`
+- `motion-nav-04.png`
+- `motion-nav-05.png`
+- `motion-nav-06.png`
+- `motion-nav-07.png`
+- `motion-nav-08.png`
+- `motion-nav-09.png`
+- `motion-nav-10.png`
+- `motion-nav-11.png`
+- `motion-nav-12.png`
+- `motion-nav-13.png`
+- `motion-nav-14.png`
+- `motion-nav-15.png`
+- `navigation-avisos.png`
+- `notification-settings.png`
+- `registration-badges-360.png`
+- `staff-admin.png`
+- `staff-counselor.png`
+- `staff-home.png`
+- `staff-more-photo-count.png`
+- `text200-agenda.png`
+- `text200-announcements.png`
+- `text200-auth.png`
+- `text200-dark-agenda.png`
+- `text200-dark-announcements.png`
+- `text200-dark-auth.png`
+- `text200-dark-authorization-editor.png`
+- `text200-dark-authorization-preview-error.png`
+- `text200-dark-home.png`
+- `text200-dark-more-pending.png`
+- `text200-gallery.png`
+- `text200-home.png`
+- `text200-more-pending.png`
+- `text200-notifications.png`

@@ -1,3 +1,5 @@
+> **Atualização 1.2.0 (novembro/2026):** veja [REDESIGN-2026-11.md](REDESIGN-2026-11.md). O conteúdo abaixo é histórico da 1.1.0: reordenação, aba Perfil e rotação de avisos foram removidas; a navegação atual é Início · Agenda · Avisos · Mais.
+
 # Matriz de Paridade Nativa Android — FSY Sessão Ribeirão Preto 2 (2027)
 
 > **Checkpoint verificado em 31/10/2026:** o conjunto nativo compila em release assinado, com 7 testes JVM aprovados e lint sem erros. As linhas abaixo inventariam código; não provam execução das telas em aparelho. Não houve aparelho/emulador conectado, teste visual nativo nem entrega real de push. As referências antigas a "aguardando compilação" ficam superadas por este checkpoint. A autorização é por cargo real do backend, e a ordenação Android é local por conta. Veja [BUILD-E-ENTREGA.md](BUILD-E-ENTREGA.md) para evidências e limites.

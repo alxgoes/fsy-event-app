@@ -1,3 +1,5 @@
+> **Atualização 1.2.0 (novembro/2026):** veja [REDESIGN-2026-11.md](REDESIGN-2026-11.md). O conteúdo abaixo é histórico da 1.1.0: reordenação, aba Perfil e rotação de avisos foram removidas; a navegação atual é Início · Agenda · Avisos · Mais.
+
 # Motion design nativo — FSY Sessão Ribeirão Preto 2
 
 Projeto de movimento do app Android (Compose) e dos widgets. Tudo abaixo está **chamado em telas reais**, não só definido. Tokens em `ui/motion/FsyMotion.kt` (os mesmos da web, `src/lib/motion.ts`).

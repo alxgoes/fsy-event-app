@@ -1,3 +1,5 @@
+> **Atualização 1.2.0 (novembro/2026):** veja [REDESIGN-2026-11.md](REDESIGN-2026-11.md). O conteúdo abaixo é histórico da 1.1.0: reordenação, aba Perfil e rotação de avisos foram removidas; a navegação atual é Início · Agenda · Avisos · Mais.
+
 # Design nativo Android: FSY Sessão Ribeirão Preto 2
 
 Redesenho nativo "Papel e Arco" (Claude Opus 5.5, 01/11/2026), dentro do mundo visual oficial já fixado (DESIGN.md web + guia oficial 2027). Movimento detalhado em [MOTION-DESIGN.md](MOTION-DESIGN.md). Estado: código salvo, **compilação e capturas a cargo do parent** (não compilado por este agente).

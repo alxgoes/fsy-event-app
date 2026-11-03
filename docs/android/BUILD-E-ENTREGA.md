@@ -1,3 +1,5 @@
+> **Atualização 1.2.0 (novembro/2026):** veja [REDESIGN-2026-11.md](REDESIGN-2026-11.md). O conteúdo abaixo é histórico da 1.1.0: reordenação, aba Perfil e rotação de avisos foram removidas; a navegação atual é Início · Agenda · Avisos · Mais.
+
 # Compilação e entrega Android — 1.1.0 (01/11/2026)
 
 Versão 1.1.0, código 2: interface nativa redesenhada com Claude Opus 5.5 e revisão independente com GPT-6.1 Sol/Impeccable. Identidade oficial em português, 84 ícones Lucide, seleções arredondadas, início com agenda/avisos/companhia, aparência Automático/Claro/Escuro e cinco widgets. A entrada da home e a rotação pausável de avisos reais são automáticas; urgentes permanecem fixos. Projeto: `MOTION-DESIGN.md`.
