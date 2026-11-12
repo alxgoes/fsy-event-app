@@ -126,7 +126,12 @@ async function run() {
         for (const element of await page.$$(selector)) {
           try {
             const box = await element.boundingBox();
-            if (box?.width && box?.height) { await element.click(); return element; }
+            if (box?.width && box?.height) {
+              // Centraliza antes de clicar: na borda de baixo o clique cairia na barra de navegação fixa.
+              await element.evaluate((node) => node.scrollIntoView({ block: 'center', inline: 'nearest' }));
+              await element.click();
+              return element;
+            }
           } catch (error) {
             lastError = error;
           }

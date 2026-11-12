@@ -9,8 +9,8 @@ assert.equal(matrix.length, 64, 'Esperadas 16 rotas × 2 tamanhos × 2 temas.');
 assert.equal(new Set(matrix.map((item) => `${item.route}:${item.mobile}:${item.dark}`)).size, 64, 'As 64 combinações devem ser distintas.');
 assert.deepEqual([...new Set(matrix.map((item) => item.route))].sort(), expectedRoutes.sort());
 assert.ok(matrix.every((item) => item.axe), 'Axe precisa executar em todas as telas da matriz.');
-assert.equal(report.filter((item) => item.textScale200).length, 18, 'Esperados nove destinos em dois tamanhos com fonte 200%.');
-assert.equal(report.filter((item) => item.mobileLayoutRegression).length, 8, 'Esperados cartões e abas em 320/360px, com fonte normal e 200%.');
+assert.equal(report.filter((item) => item.textScale200).length, 30, 'Esperados dez destinos em três tamanhos (1280, 768 e 390 px) com fonte 200%.');
+assert.equal(report.filter((item) => item.mobileLayoutRegression).length, 24, 'Esperadas seis telas em 320/360px, com fonte normal e 200%.');
 
 for (const item of report) {
   const context = `${item.route || 'interação'} ${item.mobile ? 'celular' : 'desktop'} ${item.dark ? 'escuro' : 'claro'}${item.textScale200 ? ' fonte200%' : ''}`;
