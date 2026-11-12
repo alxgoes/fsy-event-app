@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -122,28 +123,57 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
                 )
                 Spacer(Modifier.height(10.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = search,
-                        onValueChange = { search = it },
-                        label = { Text("Buscar por nome, e-mail ou ala") },
-                        leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    FsyButton(
-                        onClick = {
-                            haptics.tick()
-                            page = 1
-                            reload()
-                        },
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                val compactSearch = isCompactActionLayout()
+                if (compactSearch) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Buscar")
+                        OutlinedTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = { Text("Buscar por nome, e-mail ou ala") },
+                            leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        FsyButton(
+                            onClick = {
+                                haptics.tick()
+                                page = 1
+                                reload()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Text("Buscar")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = { Text("Buscar por nome, e-mail ou ala") },
+                            leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FsyButton(
+                            onClick = {
+                                haptics.tick()
+                                page = 1
+                                reload()
+                            },
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Text("Buscar")
+                        }
                     }
                 }
 
@@ -247,44 +277,88 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
 
                 Spacer(Modifier.height(10.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (allowedActions.isNotEmpty()) FsyOutlinedButton(
-                        onClick = {
-                            haptics.tick()
-                            errorMsg = null
-                            feedback = null
-                            selectedAccountForEdit = acc
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
+                val compactAccountActions = isCompactActionLayout()
+                if (compactAccountActions) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(FsyIcons.Pencil, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Gerenciar")
-                    }
+                        if (allowedActions.isNotEmpty()) FsyOutlinedButton(
+                            onClick = {
+                                haptics.tick()
+                                errorMsg = null
+                                feedback = null
+                                selectedAccountForEdit = acc
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.Pencil, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Gerenciar")
+                        }
 
-                    FsyOutlinedButton(
-                        onClick = {
-                            haptics.tick()
-                            selectedAccountForEvents = acc
-                            scope.launch {
-                                runCatching {
-                                    val s = appState.withValidSession()
-                                    accountEvents = appState.apiClient.fetchAccountEvents(s, acc.id)
+                        FsyOutlinedButton(
+                            onClick = {
+                                haptics.tick()
+                                selectedAccountForEvents = acc
+                                scope.launch {
+                                    runCatching {
+                                        val s = appState.withValidSession()
+                                        accountEvents = appState.apiClient.fetchAccountEvents(s, acc.id)
+                                    }
                                 }
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Histórico")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(FsyIcons.History, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Histórico")
+                        if (allowedActions.isNotEmpty()) FsyOutlinedButton(
+                            onClick = {
+                                haptics.tick()
+                                errorMsg = null
+                                feedback = null
+                                selectedAccountForEdit = acc
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.Pencil, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Gerenciar")
+                        }
+
+                        FsyOutlinedButton(
+                            onClick = {
+                                haptics.tick()
+                                selectedAccountForEvents = acc
+                                scope.launch {
+                                    runCatching {
+                                        val s = appState.withValidSession()
+                                        accountEvents = appState.apiClient.fetchAccountEvents(s, acc.id)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.History, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Histórico")
+                        }
                     }
                 }
             }
@@ -292,27 +366,61 @@ fun AccountsAdminModuleView(appState: FsyAppState) {
 
         if (totalPages > 1) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FsyOutlinedButton(
-                        onClick = { if (page > 1) page-- },
-                        enabled = page > 1,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    ) { Text("Anterior") }
+                val compactPagination = isCompactActionLayout()
+                if (compactPagination) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Página $page de $totalPages",
+                            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FsyOutlinedButton(
+                                onClick = { if (page > 1) page-- },
+                                enabled = page > 1,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Anterior") }
 
-                    Text(
-                        text = "Página $page de $totalPages",
-                        style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
-                    )
+                            FsyOutlinedButton(
+                                onClick = { if (page < totalPages) page++ },
+                                enabled = page < totalPages,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Próxima") }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FsyOutlinedButton(
+                            onClick = { if (page > 1) page-- },
+                            enabled = page > 1,
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) { Text("Anterior") }
 
-                    FsyOutlinedButton(
-                        onClick = { if (page < totalPages) page++ },
-                        enabled = page < totalPages,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    ) { Text("Próxima") }
+                        Text(
+                            text = "Página $page de $totalPages",
+                            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
+                        )
+
+                        FsyOutlinedButton(
+                            onClick = { if (page < totalPages) page++ },
+                            enabled = page < totalPages,
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) { Text("Próxima") }
+                    }
                 }
             }
         }
@@ -685,6 +793,7 @@ internal fun AccountRolePicker(roles: List<UserRole>, selected: UserRole, enable
 
 @Composable
 fun CompaniesAdminModuleView(appState: FsyAppState) {
+    val context = LocalContext.current
     val confirm = rememberFsyConfirm()
     confirm.Host()
     val haptics = rememberFsyHaptics()
@@ -692,10 +801,12 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
 
     var companies by remember { mutableStateOf<List<Company>>(emptyList()) }
     var counselors by remember { mutableStateOf<List<CounselorSummary>>(emptyList()) }
+    var whatsappByCompany by remember { mutableStateOf<Map<String, CompanyWhatsappLink>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
     var editingCompany by remember { mutableStateOf<Company?>(null) }
+    var editingWhatsappCompany by remember { mutableStateOf<Company?>(null) }
     var creatingNew by remember { mutableStateOf(false) }
 
     fun reload() {
@@ -707,6 +818,11 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                 val payload = appState.apiClient.fetchCompaniesPayload(s)
                 companies = payload.companies
                 counselors = payload.counselors
+                val waList = runCatching { appState.apiClient.fetchCompanyWhatsapp(s) }.getOrNull()
+                if (waList != null) {
+                    whatsappByCompany = waList.associateBy { it.companyId }
+                    appState.allCompaniesWhatsapp = waList
+                }
             } catch (e: Exception) {
                 errorMsg = e.message
             } finally {
@@ -717,33 +833,114 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
 
     LaunchedEffect(Unit) { reload() }
 
+    val withoutCounselorCount = companies.count { comp ->
+        val assigned = counselors.any { it.companyId == comp.id }
+        val wa = whatsappByCompany[comp.id] ?: appState.allCompaniesWhatsapp.firstOrNull { it.companyId == comp.id }
+        !assigned || wa?.hasCounselor == false
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         contentPadding = PaddingValues(vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Companhias (${companies.size})",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                FsyButton(
-                    onClick = {
-                        haptics.confirm()
-                        creatingNew = true
-                        editingCompany = Company(id = "", name = "")
-                    },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            val compactHeader = isCompactActionLayout()
+            if (compactHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(FsyIcons.Plus, contentDescription = null)
-                    Spacer(Modifier.width(6.dp))
-                    Text("Nova companhia")
+                    Text(
+                        text = "Companhias (${companies.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    FsyButton(
+                        onClick = {
+                            haptics.confirm()
+                            creatingNew = true
+                            editingCompany = Company(id = "", name = "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Nova companhia")
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Companhias (${companies.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FsyButton(
+                        onClick = {
+                            haptics.confirm()
+                            creatingNew = true
+                            editingCompany = Company(id = "", name = "")
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Nova companhia")
+                    }
+                }
+            }
+        }
+
+        if (withoutCounselorCount > 0) {
+            item {
+                Surface(
+                    color = FsyPalette.Warning.copy(alpha = 0.16f),
+                    shape = MaterialTheme.shapes.medium,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = FsyIcons.TriangleAlert,
+                                contentDescription = null,
+                                tint = FsyPalette.Warning,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = if (withoutCounselorCount == 1) {
+                                    "1 companhia sem consultor"
+                                } else {
+                                    "$withoutCounselorCount companhias sem consultor"
+                                },
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text(
+                            text = if (withoutCounselorCount == 1) {
+                                "1 companhia ainda está sem consultor designado."
+                            } else {
+                                "$withoutCounselorCount companhias ainda estão sem consultor designado."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -754,17 +951,40 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
         if (!errorMsg.isNullOrBlank()) {
             item { Text(errorMsg.orEmpty(), color = MaterialTheme.colorScheme.error) }
         }
+        if (!appState.companyWhatsappFeedback.isNullOrBlank()) {
+            item {
+                Surface(color = FsyPalette.Success.copy(alpha = 0.15f), shape = MaterialTheme.shapes.medium) {
+                    Text(appState.companyWhatsappFeedback.orEmpty(), modifier = Modifier.padding(12.dp))
+                }
+            }
+        }
 
         items(companies, key = { it.id }) { comp ->
             val assignedCounselors = counselors.filter { it.companyId == comp.id }
+            val waLink = whatsappByCompany[comp.id] ?: appState.allCompaniesWhatsapp.firstOrNull { it.companyId == comp.id }
+            val hasCounselor = assignedCounselors.isNotEmpty() && (waLink?.hasCounselor ?: true)
+            val validWhatsappUrl = waLink?.validInviteUrl
+            val compactCardActions = isCompactActionLayout()
+
             FsySectionCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Text(comp.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (!hasCounselor) {
+                            FsyStatusBadge(
+                                text = "Sem consultor designado",
+                                backgroundColor = FsyPalette.Warning.copy(alpha = 0.18f),
+                                contentColor = FsyPalette.Warning,
+                                icon = FsyIcons.TriangleAlert
+                            )
+                        }
                         if (!comp.motto.isNullOrBlank()) {
                             Text("Lema: “${comp.motto}”", style = MaterialTheme.typography.bodySmall)
                         }
@@ -804,8 +1024,142 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                         }
                     }
                 }
+
+                Spacer(Modifier.height(10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                Spacer(Modifier.height(10.dp))
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = FsyIcons.MessageCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Grupo do WhatsApp",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        FsyStatusBadge(
+                            text = if (validWhatsappUrl != null) "Link cadastrado" else "Sem link cadastrado",
+                            backgroundColor = if (validWhatsappUrl != null) {
+                                FsyPalette.Success.copy(alpha = 0.16f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            contentColor = if (validWhatsappUrl != null) {
+                                FsyPalette.Success
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+
+                    if (validWhatsappUrl != null) {
+                        Text(
+                            text = validWhatsappUrl,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    @Composable
+                    fun openGroupBtn(modifier: Modifier) {
+                        if (validWhatsappUrl != null) {
+                            FsyOutlinedButton(
+                                onClick = {
+                                    haptics.tick()
+                                    ExternalUrlLauncher.openWhatsappInvite(context, validWhatsappUrl)
+                                },
+                                modifier = modifier.defaultMinSize(minHeight = 48.dp)
+                            ) {
+                                Icon(FsyIcons.ExternalLink, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Abrir grupo")
+                            }
+                        }
+                    }
+
+                    @Composable
+                    fun editGroupBtn(modifier: Modifier) {
+                        FsyOutlinedButton(
+                            onClick = {
+                                haptics.tick()
+                                appState.clearCompanyWhatsappMessages()
+                                editingWhatsappCompany = comp
+                            },
+                            modifier = modifier.defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.Pencil, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text(if (validWhatsappUrl != null) "Trocar link" else "Adicionar link")
+                        }
+                    }
+
+                    if (compactCardActions || validWhatsappUrl == null) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (validWhatsappUrl != null) {
+                                openGroupBtn(Modifier.fillMaxWidth())
+                            }
+                            editGroupBtn(Modifier.fillMaxWidth())
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            openGroupBtn(Modifier.weight(1f))
+                            editGroupBtn(Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
+    }
+
+    val waTargetComp = editingWhatsappCompany
+    if (waTargetComp != null) {
+        val currentWaUrl = (whatsappByCompany[waTargetComp.id]
+            ?: appState.allCompaniesWhatsapp.firstOrNull { it.companyId == waTargetComp.id })?.validInviteUrl
+        FsyWhatsappLinkDialog(
+            companyName = waTargetComp.name,
+            currentInviteUrl = currentWaUrl,
+            busy = appState.isCompanyWhatsappBusy,
+            errorMessage = appState.companyWhatsappError,
+            onDismiss = {
+                appState.clearCompanyWhatsappMessages()
+                editingWhatsappCompany = null
+            },
+            onSave = { normalizedUrl ->
+                haptics.confirm()
+                appState.saveCompanyWhatsappLink(waTargetComp.id, normalizedUrl) {
+                    editingWhatsappCompany = null
+                    reload()
+                }
+            },
+            onRemove = {
+                haptics.confirm()
+                appState.saveCompanyWhatsappLink(waTargetComp.id, null) {
+                    editingWhatsappCompany = null
+                    reload()
+                }
+            }
+        )
     }
 
     val compTarget = editingCompany
@@ -826,7 +1180,7 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
                     OutlinedTextField(value = motto, onValueChange = { motto = it }, label = { Text("Lema / Grito de guerra") }, modifier = Modifier.fillMaxWidth())
 
                     OutlinedTextField(value = color, onValueChange = { color = it }, label = { Text("Cor Hex (ex: #007DA5)") }, modifier = Modifier.fillMaxWidth())
-                    Text("Conselheiros vinculados", fontWeight = FontWeight.Bold)
+                    Text("Consultores vinculados", fontWeight = FontWeight.Bold)
                     Column(modifier = Modifier.heightIn(max = 200.dp).verticalScroll(rememberScrollState())) {
                         counselors.forEach { counselor ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -910,22 +1264,55 @@ fun ScheduleAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Atividades do Cronograma (${items.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                FsyButton(
-                    onClick = {
-                        creatingNew = true
-                        editingItem = ScheduleItem(id = "", day = "dia1", startTime = "08:00", endTime = "09:00", title = "")
-                    },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            val compactHeader = isCompactActionLayout()
+            if (compactHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(FsyIcons.Plus, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Nova atividade")
+                    Text(
+                        "Atividades do Cronograma (${items.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingItem = ScheduleItem(id = "", day = "dia1", startTime = "08:00", endTime = "09:00", title = "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Nova atividade")
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Atividades do Cronograma (${items.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingItem = ScheduleItem(id = "", day = "dia1", startTime = "08:00", endTime = "09:00", title = "")
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Nova atividade")
+                    }
                 }
             }
         }
@@ -1095,22 +1482,51 @@ fun LogisticsAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Frota e Transporte (${buses.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                FsyButton(
-                    onClick = {
-                        creatingNew = true
-                        editingBus = LogisticsBus(id = "", busNumber = "", stakeCity = "", driverName = "")
-                    },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            val compactHeader = isCompactActionLayout()
+            if (compactHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(FsyIcons.Plus, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Novo ônibus")
+                    Text("Frota e Transporte (${buses.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingBus = LogisticsBus(id = "", busNumber = "", stakeCity = "", driverName = "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Novo ônibus")
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Frota e Transporte (${buses.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingBus = LogisticsBus(id = "", busNumber = "", stakeCity = "", driverName = "")
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Novo ônibus")
+                    }
                 }
             }
         }
@@ -1235,26 +1651,55 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Avisos Publicados (${appState.announcements.size})",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                FsyButton(
-                    onClick = {
-                        creatingNew = true
-                        editingAnn = Announcement(id = "", title = "", content = "")
-                    },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            val compactHeader = isCompactActionLayout()
+            if (compactHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(FsyIcons.Plus, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Novo aviso")
+                    Text(
+                        text = "Avisos Publicados (${appState.announcements.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingAnn = Announcement(id = "", title = "", content = "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Novo aviso")
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Avisos Publicados (${appState.announcements.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingAnn = Announcement(id = "", title = "", content = "")
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Novo aviso")
+                    }
                 }
             }
         }
@@ -1325,7 +1770,10 @@ fun AnnouncementsAdminModuleView(appState: FsyAppState) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Marcar como urgente (envia alerta prioritário)")
+                        Text(
+                            "Marcar como urgente (envia alerta prioritário)",
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
                         FsySwitch(checked = isUrgent, onCheckedChange = { isUrgent = it })
                     }
                 }
@@ -1398,22 +1846,51 @@ fun MediaAdminModuleView(appState: FsyAppState) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Álbuns e Mídias (${photos.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                FsyButton(
-                    onClick = {
-                        creatingNew = true
-                        editingPhoto = MediaPhoto(id = "", title = "", driveUrl = "")
-                    },
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+            val compactHeader = isCompactActionLayout()
+            if (compactHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(FsyIcons.Plus, contentDescription = null)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Nova mídia")
+                    Text("Álbuns e Mídias (${photos.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingPhoto = MediaPhoto(id = "", title = "", driveUrl = "")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Nova mídia")
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Álbuns e Mídias (${photos.size})",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FsyButton(
+                        onClick = {
+                            creatingNew = true
+                            editingPhoto = MediaPhoto(id = "", title = "", driveUrl = "")
+                        },
+                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                    ) {
+                        Icon(FsyIcons.Plus, contentDescription = null)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Nova mídia")
+                    }
                 }
             }
         }
@@ -1480,7 +1957,10 @@ fun MediaAdminModuleView(appState: FsyAppState) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Visível para todos os participantes")
+                        Text(
+                            "Visível para todos os participantes",
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
                         FsySwitch(checked = visible, onCheckedChange = { visible = it })
                     }
                 }
@@ -1547,7 +2027,7 @@ fun CounselorAuditAdminModuleView(appState: FsyAppState) {
     ) {
         item {
             Text(
-                text = "Auditoria de Conselheiros (${entries.size})",
+                text = "Auditoria de consultores (${entries.size})",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -1559,7 +2039,7 @@ fun CounselorAuditAdminModuleView(appState: FsyAppState) {
             item {
                 FsyEmptyStateCard(
                     title = "Nenhum registro de auditoria",
-                    description = "Mudanças de lema e avisos dos conselheiros aparecem aqui."
+                    description = "Mudanças de lema e avisos dos consultores aparecem aqui."
                 )
             }
         } else {
@@ -1572,7 +2052,7 @@ fun CounselorAuditAdminModuleView(appState: FsyAppState) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Conselheiro: ${entry.actorName ?: "—"} (${entry.companyName ?: "—"})",
+                        text = "Consultor(a): ${entry.actorName ?: "—"} (${entry.companyName ?: "—"})",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )

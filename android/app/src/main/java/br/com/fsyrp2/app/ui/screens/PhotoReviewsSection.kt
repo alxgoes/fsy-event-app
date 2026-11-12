@@ -41,7 +41,7 @@ internal fun PhotoReviewsSection(appState: FsyAppState) {
                             .aspectRatio(1f).align(Alignment.CenterHorizontally).clip(FsyControlShape)
                             .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                         contentScale = ContentScale.Fit,
-                        onError = { appState.refreshPhotoReviews() },
+                        onError = { appState.refreshPhotoReviews(fromImageError = true) },
                     )
                     FsyButton(
                         onClick = {

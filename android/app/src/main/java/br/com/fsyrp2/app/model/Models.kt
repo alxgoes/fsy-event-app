@@ -1122,6 +1122,55 @@ data class ProfilePhotoReview(
 @Serializable
 data class ProfilePhotoReviewList(val data: List<ProfilePhotoReview> = emptyList())
 
+@Serializable
+data class CompanyWhatsappLink(
+    @SerialName("company_id") val companyId: String = "",
+    @SerialName("company_name") val companyName: String = "",
+    @SerialName("invite_url") val inviteUrl: String? = null,
+    @SerialName("can_edit") val canEdit: Boolean = false,
+    @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("updated_by_name") val updatedByName: String? = null,
+    @SerialName("has_counselor") val hasCounselor: Boolean = true,
+) {
+    val validInviteUrl: String?
+        get() = inviteUrl?.let { WhatsappInviteValidator.normalizeWhatsappInvite(it) }
+}
+
+/**
+ * Validação estrita de convite do grupo de WhatsApp da companhia.
+ * Formato canônico: `^https://chat\.whatsapp\.com/[A-Za-z0-9]{16,32}$`
+ */
+object WhatsappInviteValidator {
+    val CANONICAL_REGEX = Regex("^https://chat\\.whatsapp\\.com/[A-Za-z0-9]{16,32}$")
+    private val CODE_REGEX = Regex("^[A-Za-z0-9]{16,32}$")
+    private const val HOST_PREFIX = "https://chat.whatsapp.com/"
+
+    fun isValidCanonical(url: String?): Boolean {
+        val trimmed = url?.trim().orEmpty()
+        return trimmed.isNotEmpty() && CANONICAL_REGEX.matches(trimmed)
+    }
+
+    fun normalizeWhatsappInvite(raw: String?): String? {
+        val trimmed = raw?.trim().orEmpty()
+        if (trimmed.isEmpty()) return null
+        if (trimmed.any { it.isWhitespace() }) return null
+        if (!trimmed.startsWith(HOST_PREFIX, ignoreCase = true)) return null
+        val afterHost = trimmed.substring(HOST_PREFIX.length)
+            .substringBefore('?')
+            .substringBefore('#')
+            .trimEnd('/')
+        val code = if (afterHost.startsWith("invite/", ignoreCase = true)) {
+            afterHost.substring("invite/".length)
+        } else {
+            afterHost
+        }
+        if (!CODE_REGEX.matches(code)) return null
+        return "$HOST_PREFIX$code"
+    }
+}
+
+fun normalizeWhatsappInvite(raw: String): String? = WhatsappInviteValidator.normalizeWhatsappInvite(raw)
+
 /** Cópia local honesta dos últimos dados vistos (cache offline, apagada ao sair). */
 @Serializable
 data class OfflineSnapshot(
@@ -1131,4 +1180,5 @@ data class OfflineSnapshot(
     val company: Company? = null,
     val scheduleItems: List<ScheduleItem> = emptyList(),
     val announcements: List<Announcement> = emptyList(),
+    val companyWhatsapp: CompanyWhatsappLink? = null,
 )

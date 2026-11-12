@@ -43,6 +43,10 @@ fun CounselorScreen(appState: FsyAppState) {
     var mottoInput by remember(company?.motto) { mutableStateOf(company?.motto.orEmpty()) }
     var editingMotto by remember { mutableStateOf(false) }
     var isSavingMotto by remember { mutableStateOf(false) }
+    val initialEditWhatsapp = (context as? android.app.Activity)?.intent?.getBooleanExtra("edit_whatsapp", false) == true
+    var editingWhatsapp by rememberSaveable { mutableStateOf(initialEditWhatsapp) }
+    val confirmWhatsappRemove = rememberFsyConfirm()
+    confirmWhatsappRemove.Host("Remover link")
 
     var newAnnTitle by remember { mutableStateOf("") }
     var newAnnContent by remember { mutableStateOf("") }
@@ -140,6 +144,104 @@ fun CounselorScreen(appState: FsyAppState) {
                     subtitle = company.motto?.let { "“$it”" } ?: "Sem lema definido"
                 )
 
+                // Grupo do WhatsApp da companhia (logo abaixo do banner)
+                val whatsappInfo = appState.companyWhatsapp
+                val whatsappUrl = whatsappInfo?.validInviteUrl
+                val compactActions = isCompactActionLayout()
+                FsySectionCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        FsyIconTile(icon = FsyIcons.MessageCircle)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Grupo do WhatsApp",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = if (whatsappUrl != null) "Link cadastrado" else "Sem link cadastrado",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (whatsappUrl != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    if (!whatsappInfo?.updatedByName.isNullOrBlank()) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = "Atualizado por ${whatsappInfo?.updatedByName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    if (whatsappUrl != null) {
+                        if (compactActions) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                FsyOutlinedButton(
+                                    onClick = { ExternalUrlLauncher.openWhatsappInvite(context, whatsappUrl) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    FsyButtonIcon(FsyIcons.ExternalLink)
+                                    Text("Abrir grupo")
+                                }
+                                FsyButton(
+                                    onClick = {
+                                        haptics.tick()
+                                        appState.clearCompanyWhatsappMessages()
+                                        editingWhatsapp = true
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    FsyButtonIcon(FsyIcons.Pencil)
+                                    Text("Trocar link")
+                                }
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                FsyOutlinedButton(
+                                    onClick = { ExternalUrlLauncher.openWhatsappInvite(context, whatsappUrl) },
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    FsyButtonIcon(FsyIcons.ExternalLink)
+                                    Text("Abrir grupo")
+                                }
+                                FsyButton(
+                                    onClick = {
+                                        haptics.tick()
+                                        appState.clearCompanyWhatsappMessages()
+                                        editingWhatsapp = true
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    FsyButtonIcon(FsyIcons.Pencil)
+                                    Text("Trocar link")
+                                }
+                            }
+                        }
+                    } else {
+                        FsyButton(
+                            onClick = {
+                                haptics.tick()
+                                appState.clearCompanyWhatsappMessages()
+                                editingWhatsapp = true
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            FsyButtonIcon(FsyIcons.Plus)
+                            Text("Adicionar link")
+                        }
+                    }
+                }
+
                 // Métricas reordenáveis do consultor (consultor-metrics)
                 val metricCards = listOf(
                     FsyCardContent(
@@ -209,7 +311,8 @@ fun CounselorScreen(appState: FsyAppState) {
                                 Text(
                                     text = "Lema",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
                                 )
                                 FsyTextButton(
                                     onClick = {
@@ -316,7 +419,8 @@ fun CounselorScreen(appState: FsyAppState) {
                             ) {
                                 Text(
                                     text = "Marcar como urgente",
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f)
                                 )
                                 FsySwitch(
                                     checked = newAnnUrgent,
@@ -472,7 +576,7 @@ fun CounselorScreen(appState: FsyAppState) {
                                         modifier = Modifier.padding(12.dp),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        FsyAvatar(name = youth.fullName, photoUrl = appState.companyProfilePhotos[youth.id], size = 52.dp, onImageError = { appState.refreshCompanyProfilePhotos() })
+                                        FsyAvatar(name = youth.fullName, photoUrl = appState.companyProfilePhotos[youth.id], size = 52.dp, onImageError = { appState.refreshCompanyProfilePhotos(fromImageError = true) })
                                         Text(
                                             text = youth.fullName,
                                             style = MaterialTheme.typography.titleSmall,
@@ -583,6 +687,37 @@ fun CounselorScreen(appState: FsyAppState) {
                     Text("Cancelar")
                 }
             }
+        )
+    }
+
+    if (editingWhatsapp && company != null) {
+        FsyWhatsappLinkDialog(
+            companyName = company.name,
+            currentInviteUrl = appState.companyWhatsapp?.validInviteUrl,
+            busy = appState.isCompanyWhatsappBusy,
+            errorMessage = appState.companyWhatsappError,
+            onSave = { normalizedUrl ->
+                haptics.confirm()
+                appState.saveCompanyWhatsappLink(company.id, normalizedUrl) { err ->
+                    if (err == null) {
+                        editingWhatsapp = false
+                        actionFeedback = "Link do grupo no WhatsApp salvo."
+                    }
+                }
+            },
+            onRemove = {
+                haptics.reject()
+                appState.saveCompanyWhatsappLink(company.id, null) { err ->
+                    if (err == null) {
+                        editingWhatsapp = false
+                        actionFeedback = "Link do grupo no WhatsApp removido."
+                    }
+                }
+            },
+            onDismiss = {
+                editingWhatsapp = false
+                appState.clearCompanyWhatsappMessages()
+            },
         )
     }
 }

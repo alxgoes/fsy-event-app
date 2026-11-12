@@ -94,11 +94,12 @@ fun HomeScreen(appState: FsyAppState) {
                 .padding(top = 12.dp, bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
+            br.com.fsyrp2.app.update.FsyUpdateBanner(appState = appState)
             HomeHeader(
                 name = profile?.fullName ?: "",
                 firstName = firstName,
-                photoUrl = appState.profilePhoto.approvedUrl,
-                onPhotoError = { appState.refreshProfilePhoto() },
+                photoUrl = appState.profilePhoto.approvedUrl ?: profile?.avatarUrl,
+                onPhotoError = { appState.refreshProfilePhoto(fromImageError = true) },
                 onAvatar = {
                     haptics.tick()
                     appState.openProfile()
@@ -572,6 +573,20 @@ private fun CompanySection(appState: FsyAppState, modifier: Modifier = Modifier)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(FsyIcons.BedDouble, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                     Text("Quarto $room", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            val whatsappUrl = appState.companyWhatsapp?.validInviteUrl
+            if (whatsappUrl != null) {
+                Spacer(Modifier.height(14.dp))
+                FsyButton(
+                    onClick = { ExternalUrlLauncher.openWhatsappInvite(context, whatsappUrl) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    FsyButtonIcon(FsyIcons.MessageCircle)
+                    Text(
+                        text = "Entrar no grupo da companhia",
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 }
             }
         }

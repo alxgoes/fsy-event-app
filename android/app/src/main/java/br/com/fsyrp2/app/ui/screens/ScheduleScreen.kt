@@ -451,26 +451,49 @@ private fun TimelineEntry(
                         modifier = Modifier.padding(top = 8.dp, end = 8.dp),
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (hasDescription) {
-                        Icon(
-                            imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Text(
-                            text = if (expanded) "Menos" else "Detalhes",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
+                if (largeText && hasDescription) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = if (expanded) "Menos" else "Detalhes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                        ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
                     }
-                    Spacer(Modifier.weight(1f))
-                    ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (hasDescription) {
+                            Icon(
+                                imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = if (expanded) "Menos" else "Detalhes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
+                    }
                 }
             }
         }

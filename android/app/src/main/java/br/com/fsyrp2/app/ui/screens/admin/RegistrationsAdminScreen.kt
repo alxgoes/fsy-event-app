@@ -167,7 +167,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                 }
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "${metrics.totalCount} inscritos (${metrics.participantCount} participantes • ${metrics.counselorCount} conselheiros)",
+                    text = "${metrics.totalCount} inscritos (${metrics.participantCount} participantes • ${metrics.counselorCount} consultores)",
                     style = MaterialTheme.typography.bodyMedium.merge(TabularTextStyle),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -201,6 +201,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
 
         // Ações de Importação, Lotes e Downloads Oficiais (PDF, ZIP, XLSX, Template)
         item {
+            val compactActions = isCompactActionLayout(minSideBySideWidthDp = 400)
             FsySectionCard {
                 Text(
                     text = "Planilha e autorizações",
@@ -226,100 +227,124 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
 
                 Spacer(Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FsyOutlinedButton(
-                        onClick = {
-                            haptics.confirm()
-                            isDownloading = true
-                            errorMsg = null
-                            scope.launch {
-                                try {
-                                    val s = appState.withValidSession()
-                                    val bytes = appState.apiClient.downloadExportedXlsx(
-                                        session = s,
-                                        batchId = selectedBatchId,
-                                        roleCategory = roleCategory,
-                                        search = search,
-                                        useNormalizedNames = useNormalizedNames
-                                    )
-                                    ExternalUrlLauncher.shareOrViewPrivateDocument(
-                                        context = context,
-                                        filename = "Inscritos_FSY_RP2_Normalizado.xlsx",
-                                        mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                        bytes = bytes
-                                    )
-                                    feedback = "Planilha Excel exportada com sucesso."
-                                } catch (e: Exception) {
-                                    errorMsg = e.message
-                                } finally {
-                                    isDownloading = false
-                                }
-                            }
-                        },
-                        enabled = !isDownloading && metrics.totalCount > 0,
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
-                    ) {
-                        Icon(FsyIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Exportar .xlsx")
+                val exportXlsxAction = {
+                    haptics.confirm()
+                    isDownloading = true
+                    errorMsg = null
+                    scope.launch {
+                        try {
+                            val s = appState.withValidSession()
+                            val bytes = appState.apiClient.downloadExportedXlsx(
+                                session = s,
+                                batchId = selectedBatchId,
+                                roleCategory = roleCategory,
+                                search = search,
+                                useNormalizedNames = useNormalizedNames
+                            )
+                            ExternalUrlLauncher.shareOrViewPrivateDocument(
+                                context = context,
+                                filename = "Inscritos_FSY_RP2_Normalizado.xlsx",
+                                mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                bytes = bytes
+                            )
+                            feedback = "Planilha Excel exportada com sucesso."
+                        } catch (e: Exception) {
+                            errorMsg = e.message
+                        } finally {
+                            isDownloading = false
+                        }
                     }
+                }
 
-                    FsyOutlinedButton(
-                        onClick = {
-                            haptics.confirm()
-                            isDownloading = true
-                            errorMsg = null
-                            scope.launch {
-                                try {
-                                    val s = appState.withValidSession()
-                                    val bytes = appState.apiClient.downloadBlankTemplatePdf(s)
-                                    ExternalUrlLauncher.shareOrViewPrivateDocument(
-                                        context = context,
-                                        filename = "FICHA_AUTORIZACAO_EM_BRANCO.pdf",
-                                        mimeType = "application/pdf",
-                                        bytes = bytes
-                                    )
-                                    feedback = "Modelo em branco da Ficha de Autorização baixado."
-                                } catch (e: Exception) {
-                                    errorMsg = e.message
-                                } finally {
-                                    isDownloading = false
-                                }
-                            }
-                        },
-                        enabled = !isDownloading,
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minHeight = 48.dp)
+                val blankPdfAction = {
+                    haptics.confirm()
+                    isDownloading = true
+                    errorMsg = null
+                    scope.launch {
+                        try {
+                            val s = appState.withValidSession()
+                            val bytes = appState.apiClient.downloadBlankTemplatePdf(s)
+                            ExternalUrlLauncher.shareOrViewPrivateDocument(
+                                context = context,
+                                filename = "FICHA_AUTORIZACAO_EM_BRANCO.pdf",
+                                mimeType = "application/pdf",
+                                bytes = bytes
+                            )
+                            feedback = "Modelo em branco da Ficha de Autorização baixado."
+                        } catch (e: Exception) {
+                            errorMsg = e.message
+                        } finally {
+                            isDownloading = false
+                        }
+                    }
+                }
+
+                if (compactActions) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(FsyIcons.FileText, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Ficha em Branco")
+                        FsyOutlinedButton(
+                            onClick = { exportXlsxAction() },
+                            enabled = !isDownloading && metrics.totalCount > 0,
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Exportar .xlsx")
+                        }
+                        FsyOutlinedButton(
+                            onClick = { blankPdfAction() },
+                            enabled = !isDownloading,
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.FileText, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Ficha em branco")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FsyOutlinedButton(
+                            onClick = { exportXlsxAction() },
+                            enabled = !isDownloading && metrics.totalCount > 0,
+                            modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Exportar .xlsx")
+                        }
+                        FsyOutlinedButton(
+                            onClick = { blankPdfAction() },
+                            enabled = !isDownloading,
+                            modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Icon(FsyIcons.FileText, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Ficha em branco")
+                        }
                     }
                 }
 
                 Spacer(Modifier.height(8.dp))
 
                 // Lote ZIP de Fichas de Autorização (até 50 PDFs por parte)
-                Row(
+                val totalParts = ((metrics.participantCount.coerceAtLeast(1) + 49) / 50).coerceAtLeast(1)
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val totalParts = ((metrics.participantCount.coerceAtLeast(1) + 49) / 50).coerceAtLeast(1)
                     FsyOutlinedButton(
                         onClick = {
                             zipPartIndex = if (zipPartIndex >= totalParts) 1 else zipPartIndex + 1
                         },
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
                     ) {
                         Text(
-                            text = "Parte $zipPartIndex/$totalParts",
+                            text = "Parte $zipPartIndex de $totalParts · trocar",
                             style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
                         )
                     }
@@ -358,7 +383,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                         },
                         enabled = !isDownloading && metrics.totalCount > 0,
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxWidth()
                             .defaultMinSize(minHeight = 48.dp)
                     ) {
                         Icon(FsyIcons.FolderArchive, contentDescription = null)
@@ -372,6 +397,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
         // Histórico de Lotes Importados + Exclusão Escopada por UUID
         if (listState.batches.isNotEmpty()) {
             item {
+                val compactBatch = isCompactActionLayout()
                 FsySectionCard {
                     Text(
                         text = "Lotes de Importação (${listState.batches.size})",
@@ -388,48 +414,94 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                 shape = MaterialTheme.shapes.small,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(10.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                if (compactBatch) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth().padding(10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
                                         Text(
-                                            text = "${batch.filename} (Rev #${batch.revision})",
+                                            text = batch.filename,
                                             style = MaterialTheme.typography.titleSmall,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = "${batch.totalCount} registros (${batch.participantCount} part. / ${batch.counselorCount} cons.)",
+                                            text = formatRegistrationBatchSummary(batch),
                                             style = MaterialTheme.typography.labelSmall.merge(TabularTextStyle),
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                    }
-
-                                    Row {
-                                        FsyTextButton(
-                                            onClick = {
-                                                selectedBatchId = if (isSelected) null else batch.id
-                                                page = 1
-                                            },
-                                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.End,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text(if (isSelected) "Todos" else "Filtrar")
+                                            FsyTextButton(
+                                                onClick = {
+                                                    selectedBatchId = if (isSelected) null else batch.id
+                                                    page = 1
+                                                },
+                                                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                                            ) {
+                                                Text(if (isSelected) "Todos" else "Filtrar")
+                                            }
+                                            IconButton(
+                                                onClick = {
+                                                    haptics.reject()
+                                                    batchToDelete = batch
+                                                },
+                                                modifier = Modifier.size(48.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = FsyIcons.Trash2,
+                                                    contentDescription = "Excluir lote ${batch.filename}",
+                                                    tint = FsyPalette.Danger
+                                                )
+                                            }
                                         }
-                                        IconButton(
-                                            onClick = {
-                                                haptics.reject()
-                                                batchToDelete = batch
-                                            },
-                                            modifier = Modifier.size(48.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = FsyIcons.Trash2,
-                                                contentDescription = "Excluir lote ${batch.filename}",
-                                                tint = FsyPalette.Danger
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = batch.filename,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold
                                             )
+                                            Text(
+                                                text = formatRegistrationBatchSummary(batch),
+                                                style = MaterialTheme.typography.labelSmall.merge(TabularTextStyle),
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+
+                                        Row {
+                                            FsyTextButton(
+                                                onClick = {
+                                                    selectedBatchId = if (isSelected) null else batch.id
+                                                    page = 1
+                                                },
+                                                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                                            ) {
+                                                Text(if (isSelected) "Todos" else "Filtrar")
+                                            }
+                                            IconButton(
+                                                onClick = {
+                                                    haptics.reject()
+                                                    batchToDelete = batch
+                                                },
+                                                modifier = Modifier.size(48.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = FsyIcons.Trash2,
+                                                    contentDescription = "Excluir lote ${batch.filename}",
+                                                    tint = FsyPalette.Danger
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -442,29 +514,56 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
 
         // Busca e Filtros
         item {
+            val compactSearch = isCompactActionLayout()
             FsySectionCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = search,
-                        onValueChange = { search = it },
-                        label = { Text("Buscar por nome, ID participante, estaca ou ala") },
-                        leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    FsyButton(
-                        onClick = {
-                            haptics.tick()
-                            page = 1
-                            reload()
-                        },
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                if (compactSearch) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Filtrar")
+                        OutlinedTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = { Text("Buscar por nome, ID participante, estaca ou ala") },
+                            leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        FsyButton(
+                            onClick = {
+                                haptics.tick()
+                                page = 1
+                                reload()
+                            },
+                            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Text("Filtrar")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = search,
+                            onValueChange = { search = it },
+                            label = { Text("Buscar por nome, ID participante, estaca ou ala") },
+                            leadingIcon = { Icon(FsyIcons.Search, contentDescription = null) },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FsyButton(
+                            onClick = {
+                                haptics.tick()
+                                page = 1
+                                reload()
+                            },
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) {
+                            Text("Filtrar")
+                        }
                     }
                 }
 
@@ -596,10 +695,9 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
 
                     Spacer(Modifier.height(10.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    val compactCardActions = isCompactActionLayout()
+                    @Composable
+                    fun viewDataButton(modifier: Modifier) {
                         FsyOutlinedButton(
                             onClick = {
                                 haptics.tick()
@@ -612,15 +710,16 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                     }
                                 }
                             },
-                            modifier = Modifier
-                                .weight(1f)
-                                .defaultMinSize(minHeight = 48.dp)
+                            modifier = modifier.defaultMinSize(minHeight = 48.dp)
                         ) {
                             Icon(FsyIcons.Eye, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Ver dados")
                         }
+                    }
 
+                    @Composable
+                    fun pdfButton(modifier: Modifier) {
                         FsyButton(
                             onClick = {
                                 haptics.confirm()
@@ -647,15 +746,32 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                                 }
                             },
                             enabled = !isDownloading && !item.isCancelledRegistration(),
-                            modifier = Modifier
-                                .weight(1f)
-                                .defaultMinSize(minHeight = 48.dp)
+                            modifier = modifier.defaultMinSize(minHeight = 48.dp)
                         ) {
                             Icon(FsyIcons.FileDown, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
                             Text("Ficha PDF")
                         }
                     }
+
+                    if (compactCardActions) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            viewDataButton(Modifier.fillMaxWidth())
+                            pdfButton(Modifier.fillMaxWidth())
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            viewDataButton(Modifier.weight(1f))
+                            pdfButton(Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
                     FsyOutlinedButton(
                         onClick = {
                             errorMsg = null
@@ -677,27 +793,61 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
 
         if (pagination.totalPages > 1) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FsyOutlinedButton(
-                        onClick = { if (page > 1) page-- },
-                        enabled = page > 1,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    ) { Text("Anterior") }
+                val compactPagination = isCompactActionLayout()
+                if (compactPagination) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Página ${pagination.page} de ${pagination.totalPages} (${pagination.totalFiltered} registros)",
+                            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FsyOutlinedButton(
+                                onClick = { if (page > 1) page-- },
+                                enabled = page > 1,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Anterior") }
 
-                    Text(
-                        text = "Página ${pagination.page} de ${pagination.totalPages} (${pagination.totalFiltered} registros)",
-                        style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
-                    )
+                            FsyOutlinedButton(
+                                onClick = { if (page < pagination.totalPages) page++ },
+                                enabled = page < pagination.totalPages,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Próxima") }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FsyOutlinedButton(
+                            onClick = { if (page > 1) page-- },
+                            enabled = page > 1,
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) { Text("Anterior") }
 
-                    FsyOutlinedButton(
-                        onClick = { if (page < pagination.totalPages) page++ },
-                        enabled = page < pagination.totalPages,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-                    ) { Text("Próxima") }
+                        Text(
+                            text = "Página ${pagination.page} de ${pagination.totalPages} (${pagination.totalFiltered} registros)",
+                            style = MaterialTheme.typography.labelLarge.merge(TabularTextStyle)
+                        )
+
+                        FsyOutlinedButton(
+                            onClick = { if (page < pagination.totalPages) page++ },
+                            enabled = page < pagination.totalPages,
+                            modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                        ) { Text("Próxima") }
+                    }
                 }
             }
         }
@@ -715,7 +865,7 @@ fun RegistrationsAdminScreen(appState: FsyAppState) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Total lido: ${preview.totalCanonicalRows} (${preview.participantCount} Participantes • ${preview.counselorCount} Conselheiros)",
+                        text = "Total lido: ${preview.totalCanonicalRows} (${preview.participantCount} participantes • ${preview.counselorCount} consultores)",
                         fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -1161,6 +1311,14 @@ private suspend fun renderAuthorizationPreview(context: android.content.Context,
     } catch (e: Exception) {
         throw IllegalStateException("Não foi possível exibir a prévia. Tente novamente ou baixe o PDF salvo.", e)
     } finally { file.delete() }
+}
+
+private fun formatRegistrationBatchSummary(batch: RegistrationImportBatchSummaryDto): String {
+    val dateLabel = FsyFormat.parseInstant(batch.createdAt)
+        ?.atZone(br.com.fsyrp2.app.data.EventCalendar.EVENT_ZONE)
+        ?.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM"))
+    val prefix = if (!dateLabel.isNullOrBlank()) "Importada em $dateLabel · " else ""
+    return "${prefix}${batch.participantCount} participantes e ${batch.counselorCount} consultores"
 }
 
 private fun resolveDisplayName(contentResolver: android.content.ContentResolver, uri: Uri): String? {

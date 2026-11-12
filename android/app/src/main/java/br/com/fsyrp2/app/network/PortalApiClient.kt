@@ -263,6 +263,19 @@ class PortalApiClient(
         json.decodeFromString(text)
     }
 
+    /** Manifesto público de versões (`GET /api/app-release`), usado pelo atualizador interno. */
+    suspend fun fetchAppReleaseManifest(): br.com.fsyrp2.app.update.AppReleaseManifestDto =
+        withContext(Dispatchers.IO) {
+            val text = executeJsonRequest(
+                url = "$portalBaseUrl/api/app-release",
+                method = "GET",
+                body = null,
+                bearerToken = null,
+                includeApiKey = false
+            )
+            json.decodeFromString(text)
+        }
+
     suspend fun fetchInstagramFeed(): InstagramFeedResponse =
         withContext(Dispatchers.IO) {
             val text = executeJsonRequest(
@@ -1226,6 +1239,77 @@ class PortalApiClient(
                 bearerToken = session.accessToken
             )
         }
+
+    // -------------------------------------------------------------------------
+    // Link do Grupo de WhatsApp da Companhia
+    // -------------------------------------------------------------------------
+
+    suspend fun fetchCompanyWhatsapp(session: UserSession): List<CompanyWhatsappLink> =
+        withContext(Dispatchers.IO) {
+            val responseText = executeJsonRequest(
+                url = "$portalBaseUrl/api/companies/whatsapp",
+                method = "GET",
+                body = null,
+                bearerToken = session.accessToken,
+                includeApiKey = false
+            )
+            val rootEl = json.parseToJsonElement(responseText)
+            if (rootEl is JsonArray) {
+                return@withContext rootEl.map { json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), it) }
+            }
+            val root = rootEl.jsonObject
+            val dataElement = root["data"] ?: root
+            when (dataElement) {
+                is JsonArray -> dataElement.map { json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), it) }
+                is JsonObject -> {
+                    val companiesArr = dataElement["companies"] as? JsonArray
+                    val singleCompany = dataElement["company"] as? JsonObject
+                    when {
+                        companiesArr != null -> companiesArr.map { json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), it) }
+                        singleCompany != null -> listOf(json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), singleCompany))
+                        dataElement.containsKey("company_id") -> listOf(json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), dataElement))
+                        else -> emptyList()
+                    }
+                }
+                else -> emptyList()
+            }
+        }
+
+    suspend fun saveCompanyWhatsapp(
+        session: UserSession,
+        companyId: String,
+        inviteUrl: String?
+    ): CompanyWhatsappLink = withContext(Dispatchers.IO) {
+        val normalized = if (inviteUrl.isNullOrBlank()) {
+            null
+        } else {
+            WhatsappInviteValidator.normalizeWhatsappInvite(inviteUrl)
+                ?: throw ApiException(400, "Informe um link válido do WhatsApp (https://chat.whatsapp.com/...).")
+        }
+        val payload = buildJsonObject {
+            put("company_id", companyId)
+            if (normalized == null) put("invite_url", JsonNull) else put("invite_url", normalized)
+        }.toString()
+        val responseText = executeJsonRequest(
+            url = "$portalBaseUrl/api/companies/whatsapp",
+            method = "PUT",
+            body = payload,
+            bearerToken = session.accessToken,
+            includeApiKey = false
+        )
+        val root = json.parseToJsonElement(responseText).jsonObject
+        val dataElement = root["data"] ?: root
+        if (dataElement is JsonObject) {
+            val inner = (dataElement["company"] as? JsonObject) ?: dataElement
+            if (inner.containsKey("company_id")) {
+                json.decodeFromJsonElement(CompanyWhatsappLink.serializer(), inner)
+            } else {
+                CompanyWhatsappLink(companyId = companyId, inviteUrl = normalized, canEdit = true)
+            }
+        } else {
+            CompanyWhatsappLink(companyId = companyId, inviteUrl = normalized, canEdit = true)
+        }
+    }
 
     // -------------------------------------------------------------------------
     // Helpers Privados de Transporte HTTP

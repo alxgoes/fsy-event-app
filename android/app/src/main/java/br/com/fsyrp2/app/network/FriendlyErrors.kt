@@ -24,6 +24,10 @@ object FriendlyErrors {
             "Novos cadastros estão fechados no momento.",
         Regex("flow state|pkce|code verifier|auth code", RegexOption.IGNORE_CASE) to
             "Não foi possível concluir a entrada com Google. Tente novamente.",
+        Regex("unauthorized|not authenticated|unauthenticated", RegexOption.IGNORE_CASE) to
+            "Sua sessão terminou. Entre novamente.",
+        Regex("forbidden|access denied|insufficient permissions|not allowed", RegexOption.IGNORE_CASE) to
+            "Você não tem permissão para concluir esta ação.",
     )
 
     private val portugueseHint = Regex(
@@ -57,7 +61,8 @@ object FriendlyErrors {
     const val OFFLINE = "Sem conexão. Verifique a internet e tente de novo."
 
     fun of(error: Throwable, fallback: String = "Não foi possível concluir agora. Tente de novo."): String = when (error) {
-        is ApiException -> error.message
+        is ApiException -> message(error.message, error.statusCode)
+        is br.com.fsyrp2.app.security.SessionTokens.SessionEndedException -> byStatus(401)
         is java.io.IOException -> OFFLINE
         else -> fallback
     }

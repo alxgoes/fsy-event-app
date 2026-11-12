@@ -330,7 +330,7 @@ fun AuthScreen(appState: FsyAppState) {
                             if (currentMode == AuthMode.RECOVER) {
                                 TextButton(
                                     onClick = { switchMode(AuthMode.LOGIN) },
-                                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                                 ) {
                                     Icon(FsyIcons.ArrowLeft, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.size(6.dp))

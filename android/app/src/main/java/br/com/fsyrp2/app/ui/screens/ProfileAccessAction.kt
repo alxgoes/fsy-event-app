@@ -9,8 +9,8 @@ import br.com.fsyrp2.app.ui.components.FsyProfileButton
 internal fun ProfileAccessAction(appState: FsyAppState) {
     FsyProfileButton(
         name = appState.profile?.fullName.orEmpty(),
-        photoUrl = appState.profilePhoto.approvedUrl,
+        photoUrl = appState.profilePhoto.approvedUrl ?: appState.profile?.avatarUrl,
         onClick = { appState.openProfile() },
-        onImageError = { appState.refreshProfilePhoto() }
+        onImageError = { appState.refreshProfilePhoto(fromImageError = true) }
     )
 }

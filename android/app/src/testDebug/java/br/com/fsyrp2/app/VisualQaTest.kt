@@ -33,14 +33,37 @@ class VisualQaTest {
         FsyAppearance.update(ApplicationProvider.getApplicationContext(), FsyThemeMode.SYSTEM)
     }
 
-    @After fun stopFixtures() { fixtures.close(); br.com.fsyrp2.app.ui.components.FsyClock.override = null; compose.mainClock.autoAdvance = true }
+    @After fun stopFixtures() {
+        fixtures.close()
+        br.com.fsyrp2.app.ui.components.FsyClock.override = null
+        compose.mainClock.autoAdvance = true
+        org.robolectric.RuntimeEnvironment.setFontScale(1f)
+    }
 
-    private fun launch(screen: String, role: String = "jovem", empty: Boolean = false, module: String? = null, pending: Boolean = false, clock: String? = null): ActivityScenario<VisualQaActivity> {
+    private fun launch(
+        screen: String,
+        role: String = "jovem",
+        empty: Boolean = false,
+        module: String? = null,
+        pending: Boolean = false,
+        clock: String? = null,
+        whatsappUrl: String? = null,
+        includeWhatsappExtra: Boolean = false,
+        editWhatsapp: Boolean = false,
+        approvedPhoto: Boolean = false,
+    ): ActivityScenario<VisualQaActivity> {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val intent = Intent(context, VisualQaActivity::class.java)
             .putExtra("clock", clock).putExtra("screen", screen).putExtra("role", role).putExtra("empty", empty)
             .putExtra("module", module).putExtra("disable_native_ripple", true)
-            .putExtra("fixture_host", "127.0.0.1").putExtra("fixture_port", fixtures.port).putExtra("pending_photo", pending)
+            .putExtra("fixture_host", "127.0.0.1").putExtra("fixture_port", fixtures.port)
+            .putExtra("pending_photo", pending).putExtra("approved_photo", approvedPhoto)
+            .putExtra("edit_whatsapp", editWhatsapp)
+            .apply {
+                if (includeWhatsappExtra || whatsappUrl != null) {
+                    putExtra("whatsapp_url", whatsappUrl.orEmpty())
+                }
+            }
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return ActivityScenario.launch(intent)
     }
@@ -297,6 +320,219 @@ class VisualQaTest {
             compose.onNodeWithText("Descartar o rascunho?").assertExists()
             compose.onNodeWithText("Descartar e fechar").performClick()
             scenario.onActivity { activity -> org.junit.Assert.assertNull(activity.state.registrationAuthorizationEditor) }
+        }
+    }
+
+    @Test fun companyWhatsappYouthCounselorAndManagement() {
+        val canonicalInvite = "https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv"
+
+        // 1. Jovem com link válido em Início e Mais
+        launch("home", role = "jovem", whatsappUrl = canonicalInvite, approvedPhoto = true).use {
+            compose.onNodeWithText("Entrar no grupo da companhia").performScrollTo().assertIsDisplayed()
+            compose.onAllNodesWithText("Adicionar link").assertCountEquals(0)
+            compose.onAllNodesWithText("Trocar link").assertCountEquals(0)
+            capture("whatsapp-youth-home-with-link")
+        }
+        launch("more", role = "jovem", whatsappUrl = canonicalInvite, approvedPhoto = true).use {
+            compose.onNodeWithText("Grupo da companhia no WhatsApp").performScrollTo().assertIsDisplayed()
+            compose.onAllNodesWithText("Adicionar link").assertCountEquals(0)
+            compose.onAllNodesWithText("Trocar link").assertCountEquals(0)
+            capture("whatsapp-youth-more-with-link")
+        }
+
+        // 2. Jovem sem link cadastrado (bloco/linha não aparecem)
+        launch("home", role = "jovem", whatsappUrl = "", includeWhatsappExtra = true).use {
+            compose.onAllNodesWithText("Entrar no grupo da companhia").assertCountEquals(0)
+            capture("whatsapp-youth-home-without-link")
+        }
+        launch("more", role = "jovem", whatsappUrl = "", includeWhatsappExtra = true).use {
+            compose.onAllNodesWithText("Grupo da companhia no WhatsApp").assertCountEquals(0)
+            capture("whatsapp-youth-more-without-link")
+        }
+
+        // 3. Consultor visualizando card e editando link no modal
+        launch("counselor", role = "consultor", whatsappUrl = canonicalInvite).use {
+            compose.onNodeWithText("Grupo do WhatsApp").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("Link cadastrado").assertIsDisplayed()
+            compose.onNodeWithText("Trocar link").performScrollTo().assertIsDisplayed()
+            capture("whatsapp-counselor-card")
+        }
+        launch("counselor", role = "consultor", whatsappUrl = canonicalInvite, editWhatsapp = true).use {
+            compose.onNodeWithText("Grupo do WhatsApp — Companhia Girassol").assertIsDisplayed()
+            compose.onNodeWithText("Remover link").assertIsDisplayed()
+            capture("whatsapp-counselor-editing")
+        }
+
+        // 4. Gestão (Companhias) com companhia sem consultor designado
+        launch("admin", role = "coordenador", module = "companies").use {
+            compose.waitUntil(10_000L) {
+                compose.onAllNodesWithText("Companhia Ipê").fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithText("1 companhia sem consultor").assertIsDisplayed()
+            compose.onNodeWithText("1 companhia ainda está sem consultor designado.").assertIsDisplayed()
+            compose.onNodeWithText("Sem consultor designado").performScrollTo().assertIsDisplayed()
+            capture("whatsapp-admin-companies-no-counselor")
+        }
+    }
+
+    private fun assertNoButtonTextOverflow(contextLabel: String) {
+        compose.waitForIdle()
+        val rootNode = compose.onRoot().fetchSemanticsNode()
+        val rootBounds = rootNode.boundsInRoot
+
+        fun countTextDescendants(n: androidx.compose.ui.semantics.SemanticsNode): Int {
+            val self = if (n.config.contains(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult)) 1 else 0
+            return self + n.children.sumOf { countTextDescendants(it) }
+        }
+
+        fun checkNodeRecursive(
+            node: androidx.compose.ui.semantics.SemanticsNode,
+            buttonNode: androidx.compose.ui.semantics.SemanticsNode?,
+        ) {
+            val role = node.config.getOrElseNullable(androidx.compose.ui.semantics.SemanticsProperties.Role) { null }
+            val hasClick = node.config.contains(androidx.compose.ui.semantics.SemanticsActions.OnClick)
+            val isButtonLike = hasClick && (
+                role == androidx.compose.ui.semantics.Role.Tab ||
+                    role == androidx.compose.ui.semantics.Role.RadioButton ||
+                    role == androidx.compose.ui.semantics.Role.Checkbox ||
+                    role == androidx.compose.ui.semantics.Role.Switch ||
+                    (role == androidx.compose.ui.semantics.Role.Button && countTextDescendants(node) == 1)
+                )
+
+            if (hasClick && node.boundsInRoot.width > 0f && node.boundsInRoot.height > 0f) {
+                org.junit.Assert.assertTrue(
+                    "[$contextLabel] Controle clicável fora da largura da tela: bounds=${node.boundsInRoot}, root=$rootBounds",
+                    node.boundsInRoot.left >= rootBounds.left - 2f && node.boundsInRoot.right <= rootBounds.right + 2f,
+                )
+            }
+
+            val activeButtonNode = if (isButtonLike) node else buttonNode
+            val activeButtonBounds = activeButtonNode?.boundsInRoot
+            val activeButtonSize = activeButtonNode?.size
+            if (
+                activeButtonNode != null &&
+                activeButtonBounds != null &&
+                activeButtonSize != null &&
+                node.config.contains(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult)
+            ) {
+                val results = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+                node.config[androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+                val tb = node.boundsInRoot
+                val isUnclippedByScroll =
+                    kotlin.math.abs(activeButtonSize.width - activeButtonBounds.width) <= 2f &&
+                        kotlin.math.abs(activeButtonSize.height - activeButtonBounds.height) <= 2f
+                if (isUnclippedByScroll && tb.width > 0f && tb.height > 0f && activeButtonBounds.width > 0f && activeButtonBounds.height > 0f) {
+                    org.junit.Assert.assertTrue(
+                        "[$contextLabel] Texto '${results.firstOrNull()?.layoutInput?.text}' extravasa botão pai: texto=$tb, botão=$activeButtonBounds",
+                        tb.left >= activeButtonBounds.left - 3f &&
+                            tb.right <= activeButtonBounds.right + 3f &&
+                            tb.top >= activeButtonBounds.top - 3f &&
+                            tb.bottom <= activeButtonBounds.bottom + 3f,
+                    )
+                }
+                results.forEach { layout ->
+                    val labelText = layout.layoutInput.text.text
+                    if (labelText.isNotBlank() && layout.lineCount > 0) {
+                        val lastLine = layout.lineCount - 1
+                        org.junit.Assert.assertFalse(
+                            "[$contextLabel] Texto de botão '$labelText' foi truncado com reticências",
+                            layout.isLineEllipsized(lastLine),
+                        )
+                        org.junit.Assert.assertEquals(
+                            "[$contextLabel] Texto de botão '$labelText' teve caracteres cortados",
+                            labelText.trimEnd().length,
+                            layout.getLineEnd(lastLine, visibleEnd = true),
+                        )
+                    }
+                    for (line in 0 until layout.lineCount) {
+                        val lineWidth = layout.getLineRight(line) - layout.getLineLeft(line)
+                        val fitsHorizontally = lineWidth <= layout.size.width + 3f && lineWidth <= activeButtonSize.width + 2f
+                        val fitsVertically =
+                            layout.getLineTop(line) >= -3f &&
+                                layout.getLineBottom(line) <= layout.size.height + 3f &&
+                                layout.size.height <= activeButtonSize.height + 2f
+                        org.junit.Assert.assertTrue(
+                            "[$contextLabel] Linha $line do botão '$labelText' cortada: box=${layout.size}, btnSize=$activeButtonSize, lineWidth=$lineWidth, line=${layout.getLineLeft(line)}..${layout.getLineRight(line)} x ${layout.getLineTop(line)}..${layout.getLineBottom(line)}",
+                            fitsHorizontally && fitsVertically,
+                        )
+                    }
+                }
+            }
+            node.children.forEach { child -> checkNodeRecursive(child, activeButtonNode) }
+        }
+
+        val unmergedRoot = compose.onRoot(useUnmergedTree = true).fetchSemanticsNode()
+        checkNodeRecursive(unmergedRoot, null)
+    }
+
+    @Test fun framingMatrixAcrossWidthsAndFontScales() {
+        val sampleRecord = """{"id":"qa-reg-1","firstNameRaw":"Gabriel","lastNameRaw":"Oliveira","fullNameRaw":"Gabriel Oliveira","fullNameNormalized":"Gabriel Oliveira","status":"Aprovado","ageAtRegistration":16,"stakeName":"Ribeirão Preto Leste","wardName":"Ala Jardim Macedo","hasHealthAlert":true,"hasMissingGuardianForMinor":false}"""
+        val sampleBatch = """{"id":"qa-batch-1","filename":"inscricoes-fsy-rp2.xlsx","totalCount":120,"participantCount":108,"counselorCount":12,"createdAt":"2026-11-10T14:20:00Z","isActiveBatch":true}"""
+        val registrationsJson = """{"items":[$sampleRecord],"batches":[$sampleBatch],"metrics":{"totalCount":120,"participantCount":108,"counselorCount":12,"confirmedCount":115,"healthAlertCount":8,"missingGuardianMinorCount":2,"documentWarningCount":1},"pagination":{"page":1,"pageSize":25,"totalPages":5,"totalFiltered":120}}"""
+        fixtures.close()
+        fixtures = VisualFixtures(mapOf("/api/admin/registrations" to registrationsJson))
+
+        val widths = listOf(320, 360, 393, 412)
+        val fontScales = listOf(1.0f, 1.3f, 2.0f)
+        val canonicalInvite = "https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv"
+
+        for (width in widths) {
+            for (scale in fontScales) {
+                val scaleTag = (scale * 100).toInt()
+                org.robolectric.RuntimeEnvironment.setQualifiers("w${width}dp-h840dp-xhdpi")
+                org.robolectric.RuntimeEnvironment.setFontScale(scale)
+
+                // Inscrições (RegistrationsAdminScreen) em todas as combinações de largura × fonte
+                launch("admin", role = "coordenador", module = "registrations").use {
+                    compose.waitUntil(10_000L) {
+                        compose.onAllNodesWithText("120 inscritos", substring = true).fetchSemanticsNodes().isNotEmpty()
+                    }
+                    assertNoButtonTextOverflow("registrations-top-w$width-font$scaleTag-light")
+                    if (width in listOf(320, 360, 393, 412) && (width == 320 || scale == 1.3f || scale == 2.0f)) {
+                        capture("framing-registrations-w$width-font$scaleTag-light")
+                    }
+                    compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Gabriel Oliveira", substring = true))
+                    assertNoButtonTextOverflow("registrations-cards-w$width-font$scaleTag-light")
+                }
+
+                // Telas principais (Início, Agenda, Mais, Painel do Consultor)
+                launch("home", role = "jovem", whatsappUrl = canonicalInvite, approvedPhoto = true).use {
+                    assertNoButtonTextOverflow("home-w$width-font$scaleTag-light")
+                    if (width == 320 && (scale == 1.0f || scale == 1.3f || scale == 2.0f)) {
+                        capture("framing-home-w$width-font$scaleTag-light")
+                    }
+                }
+                launch("agenda", role = "jovem", approvedPhoto = true).use {
+                    assertNoButtonTextOverflow("agenda-w$width-font$scaleTag-light")
+                    if (width == 320 && scale == 2.0f) {
+                        capture("framing-agenda-w$width-font$scaleTag-light")
+                    }
+                }
+                launch("more", role = "jovem", whatsappUrl = canonicalInvite, approvedPhoto = true).use {
+                    assertNoButtonTextOverflow("more-w$width-font$scaleTag-light")
+                    if (width == 320 && scale == 2.0f) {
+                        capture("framing-more-w$width-font$scaleTag-light")
+                    }
+                }
+                if (width == 320 && scale == 2.0f) {
+                    launch("counselor", role = "consultor", whatsappUrl = canonicalInvite).use {
+                        compose.onNodeWithText("Minha companhia").performScrollTo()
+                        assertNoButtonTextOverflow("counselor-w320-font200-light")
+                        capture("framing-counselor-w320-font200-light")
+                    }
+                    org.robolectric.RuntimeEnvironment.setQualifiers("w320dp-h840dp-night-xhdpi")
+                    org.robolectric.RuntimeEnvironment.setFontScale(2.0f)
+                    launch("admin", role = "coordenador", module = "registrations").use {
+                        compose.waitUntil(10_000L) {
+                            compose.onAllNodesWithText("120 inscritos", substring = true).fetchSemanticsNodes().isNotEmpty()
+                        }
+                        assertNoButtonTextOverflow("registrations-top-w320-font200-dark")
+                        capture("framing-registrations-w320-font200-dark")
+                        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Gabriel Oliveira", substring = true))
+                        assertNoButtonTextOverflow("registrations-cards-w320-font200-dark")
+                    }
+                }
+            }
         }
     }
 }

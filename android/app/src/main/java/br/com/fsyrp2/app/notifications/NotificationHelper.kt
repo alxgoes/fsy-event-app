@@ -44,7 +44,7 @@ object NotificationHelper {
             "Comunicados da sessão e companhia",
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Avisos gerais da sessão e recados dos conselheiros da sua companhia."
+            description = "Avisos gerais da sessão e recados dos consultores da sua companhia."
             lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
         }
 

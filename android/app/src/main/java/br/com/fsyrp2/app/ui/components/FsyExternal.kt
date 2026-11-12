@@ -194,6 +194,25 @@ object ExternalUrlLauncher {
         }
     }
 
+    /**
+     * Abre o link de convite do grupo de WhatsApp somente se corresponder exatamente
+     * a `^https://chat\.whatsapp\.com/[A-Za-z0-9]{16,32}$`.
+     */
+    fun openWhatsappInvite(context: Context, rawUrl: String?): Boolean {
+        val trimmed = rawUrl?.trim().orEmpty()
+        if (!br.com.fsyrp2.app.model.WhatsappInviteValidator.isValidCanonical(trimmed)) return false
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trimmed)).apply {
+                addCategory(Intent.CATEGORY_BROWSABLE)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     fun shareOrViewPrivateDocument(
         context: Context,
         filename: String,
