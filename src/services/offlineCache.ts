@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 
 /** Partition private offline data; session identity is not server authorization. */
 export async function getOfflineCacheKey(
-  resource: "company" | "announcements",
+  resource: "company" | "announcements" | "company_whatsapp",
   companyId?: string | null
 ): Promise<string | null> {
   if (typeof window === "undefined") return null;

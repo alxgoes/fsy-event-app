@@ -11,7 +11,7 @@ import type { InstagramPost } from "@/types/instagram";
 
 const OFFICIAL_URL = "https://www.instagram.com/fsy_ribeiraopreto/";
 const DEFAULT_FEED = "KjHNorrOyv2vHpAmLE0F";
-const controlClass = "inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-[#005E7C] dark:text-[#7DE3F4] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30 dark:text-[#7DE3F4]";
+const controlClass = "inline-flex min-h-11 max-w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold text-[#005E7C] dark:text-[#7DE3F4] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/30 whitespace-normal break-words [overflow-wrap:anywhere]";
 
 function Caption({ text }: { text: string }) {
   return <>{tokenizeCaption(text).map((token, index) => token.type === "text"
@@ -85,6 +85,9 @@ export function InstagramFeed() {
     {failed && <div role="status"><p className="text-sm text-muted-foreground">Não foi possível carregar as publicações. Você pode acessar o perfil oficial.</p><button type="button" onClick={() => setAttempt(attempt + 1)} className={controlClass}>Tentar novamente</button></div>}
     {!loading && !failed && posts.length === 0 && <p className="text-sm text-muted-foreground">As publicações estão disponíveis no perfil oficial do FSY Ribeirão Preto.</p>}
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{posts.map(post => <PostCard key={post.id} post={post} />)}</div>
-    <a href={OFFICIAL_URL} target="_blank" rel="noopener noreferrer" className={controlClass}>Ver perfil oficial @fsy_ribeiraopreto <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+    <a href={OFFICIAL_URL} target="_blank" rel="noopener noreferrer" className={controlClass}>
+      <span className="min-w-0 break-words [overflow-wrap:anywhere]">Ver perfil oficial @fsy_ribeiraopreto</span>
+      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
+    </a>
   </div>;
 }

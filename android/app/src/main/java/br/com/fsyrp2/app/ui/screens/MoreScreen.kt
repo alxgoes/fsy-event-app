@@ -110,8 +110,24 @@ fun MoreScreen(appState: FsyAppState) {
             FsyTextButton(onClick = { confirm.ask("Remover foto?", "Seu perfil voltará a mostrar suas iniciais.") { appState.removeProfilePhoto("approved") } }, enabled = !appState.isPhotoBusy) { Text("Remover foto") }
         }
 
-        // Fotos
+        // Fotos e Evento
+        val whatsappUrl = appState.companyWhatsapp?.validInviteUrl
         FsySectionCard(contentPadding = PaddingValues(6.dp), modifier = Modifier.fsyReveal(1)) {
+            if (whatsappUrl != null) {
+                FsyListRow(
+                    title = "Grupo da companhia no WhatsApp",
+                    supporting = appState.company?.name?.takeIf { it.isNotBlank() } ?: "Abrir convite oficial da companhia",
+                    icon = FsyIcons.MessageCircle,
+                    iconContainer = MaterialTheme.colorScheme.primaryContainer,
+                    iconTint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onClick = {
+                        haptics.confirm()
+                        ExternalUrlLauncher.openWhatsappInvite(context, whatsappUrl)
+                    },
+                    trailing = { Icon(FsyIcons.ExternalLink, contentDescription = "Abre fora do app", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp)) },
+                )
+                RowDivider()
+            }
             FsyListRow(
                 title = "Fotos",
                 supporting = "Da sessão e do Instagram",
@@ -142,6 +158,20 @@ fun MoreScreen(appState: FsyAppState) {
                 onSelect = { mode ->
                     haptics.tick()
                     FsyAppearance.update(context, mode)
+                },
+            )
+        }
+
+        // Atualização do app: faixa quando há versão nova e linha "Sobre o app".
+        br.com.fsyrp2.app.update.FsyUpdateBanner(appState = appState)
+        FsySectionCard(contentPadding = PaddingValues(6.dp)) {
+            FsyListRow(
+                title = "Sobre o app",
+                supporting = "Versão ${br.com.fsyrp2.app.BuildConfig.VERSION_NAME.removeSuffix("-debug")} · Verificar atualização",
+                icon = FsyIcons.Info,
+                onClick = {
+                    haptics.tick()
+                    appState.open(OverlayDestination.AboutApp)
                 },
             )
         }
@@ -254,7 +284,7 @@ private fun ProfileHeader(appState: FsyAppState, onEditPhoto: () -> Unit, modifi
     val company = appState.company
     val photo = appState.profilePhoto
     // A própria pessoa vê a foto em análise no lugar; para os outros só vale a aprovada.
-    val shownUrl = photo.approvedUrl ?: photo.pendingUrl.takeIf { photo.isPending }
+    val shownUrl = photo.approvedUrl ?: photo.pendingUrl.takeIf { photo.isPending } ?: profile?.avatarUrl
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.BottomEnd) {
             Box(
@@ -262,7 +292,7 @@ private fun ProfileHeader(appState: FsyAppState, onEditPhoto: () -> Unit, modifi
                     .clip(CircleShape)
                     .clickable(role = Role.Button, onClickLabel = "Editar foto", onClick = onEditPhoto),
             ) {
-                FsyAvatar(name = name, photoUrl = shownUrl, size = 116.dp, ring = true, onImageError = { appState.refreshProfilePhoto() })
+                FsyAvatar(name = name, photoUrl = shownUrl, size = 116.dp, ring = true, onImageError = { appState.refreshProfilePhoto(fromImageError = true) })
             }
             Surface(
                 shape = CircleShape,
@@ -344,7 +374,7 @@ private fun PhotoStatusCard(appState: FsyAppState, onPickAnother: () -> Unit) {
     when {
         requiresApproval && photo.isPending -> FsySectionCard(contentPadding = PaddingValues(18.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                FsyAvatar(name = "Foto enviada", photoUrl = photo.pendingUrl, size = 56.dp, onImageError = { appState.refreshProfilePhoto() })
+                FsyAvatar(name = "Foto enviada", photoUrl = photo.pendingUrl, size = 56.dp, onImageError = { appState.refreshProfilePhoto(fromImageError = true) })
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     FsyStatusBadge(
                         text = "Em análise pelo seu consultor",

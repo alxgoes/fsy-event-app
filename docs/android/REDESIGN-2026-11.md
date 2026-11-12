@@ -1,6 +1,6 @@
-# Android 1.2.0 (3) — simplificação de novembro de 2026
+# Android 1.2.2 (5) — simplificação e atualização de novembro de 2026
 
-Este documento substitui as descrições de personalização, Perfil e rotação de avisos presentes no histórico da versão 1.1.0.
+Este documento substitui as descrições de personalização, Perfil e rotação de avisos presentes no histórico da versão 1.1.0, e incorpora as entregas da versão 1.2.2 (`versionCode = 5`, 11/11/2026): sincronização ponta a ponta da foto de perfil com proteção contra laço de tentativa em URLs assinadas expiradas, link do grupo da companhia no WhatsApp (Jovem, Consultor e Gestão com alerta de companhia sem consultor) e auditoria completa de enquadramento responsivo (320 a 412 dp × fontes 1.0, 1.3 e 2.0). Veja detalhes em [RELATORIO-2026-11-11.md](RELATORIO-2026-11-11.md).
 
 ## Telas e navegação
 

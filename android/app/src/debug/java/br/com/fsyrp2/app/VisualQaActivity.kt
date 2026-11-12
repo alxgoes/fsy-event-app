@@ -56,6 +56,23 @@ class VisualQaActivity : ComponentActivity() {
             setFixture(state, "lastSyncedAtLabel", "09:41")
             br.com.fsyrp2.app.ui.components.FsyClock.override = java.time.Instant.parse(intent.getStringExtra("clock") ?: "2027-02-06T12:30:00Z")
             if (intent.getBooleanExtra("pending_photo", false)) setFixture(state, "profilePhoto", ProfilePhotoState(status = "pending", pendingUrl = "http://$fixtureHost:$port/qa/photo.png"))
+            if (intent.getBooleanExtra("approved_photo", false)) setFixture(state, "profilePhoto", ProfilePhotoState(status = "approved", approvedUrl = "http://$fixtureHost:$port/qa/photo.png"))
+            if (intent.hasExtra("whatsapp_url")) {
+                val rawWhatsapp = intent.getStringExtra("whatsapp_url")?.takeIf { it.isNotBlank() }
+                setFixture(
+                    state,
+                    "companyWhatsapp",
+                    CompanyWhatsappLink(
+                        companyId = "qa-company",
+                        companyName = "Companhia Girassol",
+                        inviteUrl = rawWhatsapp,
+                        canEdit = role != "jovem",
+                        updatedAt = if (rawWhatsapp != null) "2027-02-06T09:00:00Z" else null,
+                        updatedByName = if (rawWhatsapp != null) "Ana Exemplo" else null,
+                        hasCounselor = true,
+                    ),
+                )
+            }
             if (role != "jovem") setFixture(state, "photoReviews", listOf(ProfilePhotoReview("qa-2", "Jovem Exemplo", "qa-company", "Companhia Girassol", "http://$fixtureHost:$port/qa/photo.png")))
             val fixtureBitmap = android.graphics.Bitmap.createBitmap(512, 512, android.graphics.Bitmap.Config.ARGB_8888)
             android.graphics.Canvas(fixtureBitmap).apply {

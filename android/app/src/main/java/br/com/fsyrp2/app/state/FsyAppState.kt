@@ -56,6 +56,7 @@ sealed interface OverlayDestination {
     data object None : OverlayDestination
     data object Gallery : OverlayDestination
     data object NotificationSettings : OverlayDestination
+    data object AboutApp : OverlayDestination
     data object CounselorPanel : OverlayDestination
     data class AdminHub(val initialModule: AdminModule? = null) : OverlayDestination
 }
@@ -141,6 +142,27 @@ class FsyAppState(
     var companyProfilePhotos by mutableStateOf<Map<String, String>>(emptyMap())
         private set
 
+    var companyWhatsapp by mutableStateOf<CompanyWhatsappLink?>(null)
+        private set
+
+    var allCompaniesWhatsapp by mutableStateOf<List<CompanyWhatsappLink>>(emptyList())
+
+    var isCompanyWhatsappBusy by mutableStateOf(false)
+        private set
+
+    var companyWhatsappError by mutableStateOf<String?>(null)
+        private set
+
+    var companyWhatsappFeedback by mutableStateOf<String?>(null)
+        private set
+
+    private var photoUrlErrorRetryUsed = false
+    private var companyPhotosErrorRetryUsed = false
+    private var photoReviewsErrorRetryUsed = false
+
+    var profilePhotoFetchCount by mutableStateOf(0)
+        private set
+
     var registrationAuthorizationEditor by mutableStateOf<RegistrationAuthorizationEditorState?>(null)
         private set
 
@@ -200,6 +222,165 @@ class FsyAppState(
         bootstrapFromKeystore()
     }
 
+    // --- Atualização automática do app ------------------------------------------------------
+
+    private val updatePrefs = br.com.fsyrp2.app.update.AppUpdatePreferences(appContext)
+    var updateUiState by mutableStateOf<br.com.fsyrp2.app.update.AppUpdateUiState>(br.com.fsyrp2.app.update.AppUpdateUiState.Idle)
+        private set
+    var postUpdateNotice by mutableStateOf(updatePrefs.peekPostUpdateNotice())
+        private set
+    var autoUpdateEnabled by mutableStateOf(updatePrefs.autoUpdateEnabled)
+        private set
+    var lastUpdateCheckLabel by mutableStateOf(formatUpdateCheck(updatePrefs.lastCheckEpochMs))
+        private set
+    private var updateJob: kotlinx.coroutines.Job? = null
+
+    private fun formatUpdateCheck(epochMs: Long): String? {
+        if (epochMs <= 0L) return null
+        return java.time.Instant.ofEpochMilli(epochMs)
+            .atZone(java.time.ZoneId.systemDefault())
+            .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm"))
+    }
+
+    /** Ao abrir/voltar ao app (no máximo a cada 6 h) e pelo botão "Verificar atualização". */
+    fun checkForAppUpdate(force: Boolean = false) {
+        // Build de teste ("FSY (teste)") só verifica quando a pessoa pede.
+        if (br.com.fsyrp2.app.BuildConfig.DEBUG && !force) return
+        val current = updateUiState
+        if (current is br.com.fsyrp2.app.update.AppUpdateUiState.Downloading || current is br.com.fsyrp2.app.update.AppUpdateUiState.Installing || current is br.com.fsyrp2.app.update.AppUpdateUiState.Checking) return
+        val now = System.currentTimeMillis()
+        if (!force && !br.com.fsyrp2.app.update.AppUpdateValidator.shouldRunAutomaticCheck(updatePrefs.lastCheckEpochMs, now)) return
+        updatePrefs.consumePendingInstallError()?.let { msg -> updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(msg) }
+        if (force) updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Checking
+        updateJob = scope.launch {
+            try {
+                val manifest = apiClient.fetchAppReleaseManifest()
+                updatePrefs.lastCheckEpochMs = now
+                lastUpdateCheckLabel = formatUpdateCheck(now)
+                val available = br.com.fsyrp2.app.update.AppUpdateValidator.evaluateManifest(manifest)
+                if (available == null) {
+                    updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.UpToDate(lastUpdateCheckLabel)
+                    return@launch
+                }
+                updatePrefs.saveUpcomingReleaseNotes(available.versionCode, available.versionName, available.releaseNotesPtBr)
+                updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Available(available)
+                if (autoUpdateEnabled || available.isMandatory) startUpdateDownload(allowMetered = false)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                updateUiState = if (force) {
+                    br.com.fsyrp2.app.update.AppUpdateUiState.Error("Não foi possível verificar atualizações agora. Confira a internet e tente de novo.")
+                } else br.com.fsyrp2.app.update.AppUpdateUiState.Idle
+            }
+        }
+    }
+
+    fun startUpdateDownload(allowMetered: Boolean) {
+        val update = updateUiState.activeUpdate ?: return
+        if (updateUiState is br.com.fsyrp2.app.update.AppUpdateUiState.Downloading) return
+        if (!allowMetered && br.com.fsyrp2.app.update.AppUpdateInstaller.isNetworkMetered(appContext)) {
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.AwaitingMeteredConfirmation(update)
+            return
+        }
+        updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Downloading(update)
+        updateJob?.cancel()
+        updateJob = scope.launch {
+            try {
+                val file = br.com.fsyrp2.app.update.AppUpdateInstaller.downloadAndVerifyApk(appContext, update) { bytes, fraction ->
+                    scope.launch {
+                        if (updateUiState is br.com.fsyrp2.app.update.AppUpdateUiState.Downloading) updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Downloading(update, fraction, bytes)
+                    }
+                }
+                if (br.com.fsyrp2.app.update.AppUpdateInstaller.canRequestPackageInstalls(appContext)) {
+                    updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall(update, file.absolutePath)
+                    if (autoUpdateEnabled || update.isMandatory) triggerUpdateInstall(appContext)
+                } else {
+                    updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission(update, file.absolutePath)
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: br.com.fsyrp2.app.update.UpdateDownloadException) {
+                updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(e.messagePtBr, update)
+            } catch (e: Exception) {
+                updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error("Não foi possível baixar a atualização. Confira a internet e tente de novo.", update)
+            }
+        }
+    }
+
+    fun cancelMeteredDownloadPrompt() {
+        val update = updateUiState.activeUpdate ?: return
+        updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Available(update)
+    }
+
+    fun triggerUpdateInstall(context: Context) {
+        val (update, path) = when (val current = updateUiState) {
+            is br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall -> current.update to current.apkFilePath
+            is br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission -> current.update to current.apkFilePath
+            else -> return
+        }
+        if (!br.com.fsyrp2.app.update.AppUpdateInstaller.canRequestPackageInstalls(context)) {
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission(update, path)
+            return
+        }
+        updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Installing(update)
+        br.com.fsyrp2.app.update.AppUpdateInstallReceiver.listener = { status, message ->
+            scope.launch {
+                if (status != android.content.pm.PackageInstaller.STATUS_SUCCESS &&
+                    status != android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION
+                ) {
+                    updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(message ?: "Não foi possível concluir a instalação da atualização.", update)
+                }
+            }
+        }
+        scope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    br.com.fsyrp2.app.update.AppUpdateInstaller.startPackageInstallerSession(context, java.io.File(path), update)
+                }
+            }.onFailure {
+                updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error("Não foi possível iniciar a instalação. Tente de novo.", update)
+            }
+        }
+    }
+
+    fun openInstallPermissionSettings(context: Context) {
+        if (!br.com.fsyrp2.app.update.AppUpdateInstaller.openUnknownSourcesSettings(context)) {
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(
+                "Abra Configurações › Apps › FSY e permita instalar apps desta fonte.",
+                updateUiState.activeUpdate,
+            )
+        }
+    }
+
+    /** Ao voltar das configurações de permissão: se já pode instalar, segue sozinho. */
+    fun resumeUpdateAfterPermission() {
+        val current = updateUiState
+        if (current is br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission && br.com.fsyrp2.app.update.AppUpdateInstaller.canRequestPackageInstalls(appContext)) {
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall(current.update, current.apkFilePath)
+            triggerUpdateInstall(appContext)
+        }
+    }
+
+    fun retryUpdateAction() {
+        val update = updateUiState.activeUpdate
+        if (update == null) {
+            checkForAppUpdate(force = true)
+        } else {
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Available(update)
+            startUpdateDownload(allowMetered = false)
+        }
+    }
+
+    fun dismissPostUpdateNotice() {
+        updatePrefs.markPostUpdateNoticeDismissed()
+        postUpdateNotice = null
+    }
+
+    fun updateAutoUpdatePreference(enabled: Boolean) {
+        updatePrefs.autoUpdateEnabled = enabled
+        autoUpdateEnabled = enabled
+    }
+
     fun dispose() {
         closeRegistrationAuthorizationEditor()
         networkCallback?.let { cb ->
@@ -231,6 +412,7 @@ class FsyAppState(
         // O papel salvo não concede acesso: precisa ser confirmado nesta sessão pelo servidor.
         profile = snap.profile?.copy(role = "jovem")
         company = snap.company
+        companyWhatsapp = snap.companyWhatsapp?.takeIf { snap.company != null || !snap.profile?.companyId.isNullOrBlank() }
         rawScheduleItems = snap.scheduleItems
         announcements = snap.announcements
         if (snap.savedAtEpochMs > 0L) lastSyncedAtLabel = syncLabel(Instant.ofEpochMilli(snap.savedAtEpochMs))
@@ -522,10 +704,19 @@ class FsyAppState(
         rawScheduleItems = emptyList()
         announcements = emptyList()
         profilePhoto = ProfilePhotoState()
+        photoError = null
         photoSuccessMessage = null
         isPhotoBusy = false
         photoReviews = emptyList()
         companyProfilePhotos = emptyMap()
+        companyWhatsapp = null
+        allCompaniesWhatsapp = emptyList()
+        isCompanyWhatsappBusy = false
+        companyWhatsappError = null
+        companyWhatsappFeedback = null
+        photoUrlErrorRetryUsed = false
+        companyPhotosErrorRetryUsed = false
+        photoReviewsErrorRetryUsed = false
         lastSyncedAtLabel = null
         personalReminderIds = keyStore.loadPersonalReminderIds(newSession.userId)
         notificationPreferences = keyStore.loadNotificationPreferences(newSession.userId)
@@ -565,7 +756,13 @@ class FsyAppState(
                     photoSuccessMessage = null
                     br.com.fsyrp2.app.ui.components.RemoteImageMemory.clear()
                     br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
-                    if (previous?.companyId != loaded.companyId) company = null
+                    if (previous?.companyId != loaded.companyId) {
+                        company = null
+                        companyWhatsapp = null
+                    }
+                    if (!loaded.roleEnum.isStaff) {
+                        allCompaniesWhatsapp = emptyList()
+                    }
                     announcements = emptyList()
                 }
                 profile = loaded
@@ -584,7 +781,8 @@ class FsyAppState(
                         profile = loaded.copy(role = "jovem"),
                         company = company,
                         scheduleItems = scheduleItems,
-                        announcements = announcements
+                        announcements = announcements,
+                        companyWhatsapp = companyWhatsapp,
                     ))
                     try {
                         updateWidgetsAndReminders(validSession, scheduleItems, announcements, company)
@@ -633,14 +831,16 @@ class FsyAppState(
                     val announcementsD = async { runCatching { apiClient.fetchAnnouncements(validSession) } }
                     val instagramD = async { runCatching { apiClient.fetchInstagramFeed() }.getOrNull() }
                     val mediaD = async { runCatching { apiClient.fetchPublicMedia(validSession) }.getOrNull() }
-                    val photoD = async { runCatching { apiClient.fetchProfilePhoto(validSession) }.getOrNull() }
+                    val photoD = async { runCatching { apiClient.fetchProfilePhoto(validSession) } }
+                    val whatsappD = async { runCatching { apiClient.fetchCompanyWhatsapp(validSession) }.getOrNull() }
 
                     val profileRes = profileD.await()
                     val scheduleRes = scheduleD.await()
                     val announcementsRes = announcementsD.await()
                     val loadedInsta = instagramD.await()
                     val loadedMedia = mediaD.await()
-                    val loadedPhoto = photoD.await()
+                    val photoRes = photoD.await()
+                    val loadedWhatsappList = whatsappD.await()
 
                     currentCoroutineContext().ensureActive()
                     if (sessionGeneration != expectedGen || session?.userId != expectedUserId || profileAccessRevision != expectedAccessRevision) return@coroutineScope
@@ -679,6 +879,16 @@ class FsyAppState(
                         br.com.fsyrp2.app.ui.components.ExternalUrlLauncher.clearPrivateDocuments(appContext)
                     }
                     company = loadedCompany
+                    if (companyId != null) {
+                        val matchedWhatsapp = loadedWhatsappList?.firstOrNull { it.companyId == companyId }
+                            ?: loadedWhatsappList?.firstOrNull()
+                        companyWhatsapp = matchedWhatsapp ?: companyWhatsapp?.takeIf { it.companyId == companyId }
+                    } else {
+                        companyWhatsapp = null
+                    }
+                    if (loadedWhatsappList != null) {
+                        allCompaniesWhatsapp = loadedWhatsappList
+                    }
                     companyYouth = loadedYouth
                     photoReviews = loadedReviews
                     companyProfilePhotos = approvedPhotos
@@ -695,7 +905,18 @@ class FsyAppState(
                         instagramProfileUrl = loadedInsta.profileUrl
                     }
                     loadedMedia?.let { publicMediaPhotos = it }
-                    loadedPhoto?.let { profilePhoto = it }
+                    photoRes.onSuccess {
+                        profilePhoto = it
+                        photoUrlErrorRetryUsed = false
+                        if (it.approvedUrl != null) {
+                            profile = profile?.copy(avatarUrl = it.approvedUrl)
+                        }
+                    }
+                    photoRes.onFailure { err ->
+                        if (err is ApiException && err.statusCode in listOf(401, 403)) {
+                            photoError = FriendlyErrors.of(err)
+                        }
+                    }
 
                     val failures = listOfNotNull(profileError, scheduleRes.exceptionOrNull(), announcementsRes.exceptionOrNull())
                     val anyCoreSuccess = profileRes.isSuccess || scheduleRes.isSuccess || announcementsRes.isSuccess
@@ -710,6 +931,7 @@ class FsyAppState(
                                 company = company,
                                 scheduleItems = rawScheduleItems,
                                 announcements = announcements,
+                                companyWhatsapp = companyWhatsapp,
                             )
                         )
                     }
@@ -885,6 +1107,13 @@ class FsyAppState(
                 val result = apiClient.uploadProfilePhoto(withValidSession(), bytes)
                 if (sessionGeneration == expectedGen) {
                     profilePhoto = result
+                    photoUrlErrorRetryUsed = false
+                    if (result.approvedUrl != null) {
+                        profile = profile?.copy(avatarUrl = result.approvedUrl)
+                        session?.userId?.let { uid ->
+                            if (canReviewPhotos) companyProfilePhotos = companyProfilePhotos + (uid to result.approvedUrl)
+                        }
+                    }
                     photoSuccessMessage = result.uploadMessageFor(effectiveRole)
                 }
             } catch (e: Exception) {
@@ -895,11 +1124,31 @@ class FsyAppState(
         }
     }
 
-    fun refreshProfilePhoto() {
+    fun refreshProfilePhoto(fromImageError: Boolean = false) {
+        if (session == null) return
+        if (fromImageError) {
+            if (photoUrlErrorRetryUsed) return
+            photoUrlErrorRetryUsed = true
+        } else {
+            photoUrlErrorRetryUsed = false
+        }
         val expectedGen = sessionGeneration
         scope.launch {
             runCatching { apiClient.fetchProfilePhoto(withValidSession()) }
-                .onSuccess { if (sessionGeneration == expectedGen) profilePhoto = it }
+                .onSuccess {
+                    if (sessionGeneration == expectedGen) {
+                        profilePhoto = it
+                        if (it.approvedUrl != null) {
+                            profile = profile?.copy(avatarUrl = it.approvedUrl)
+                        }
+                    }
+                }
+                .onFailure { err ->
+                    if (sessionGeneration == expectedGen && err is ApiException && err.statusCode in listOf(401, 403)) {
+                        photoError = FriendlyErrors.of(err)
+                    }
+                }
+            profilePhotoFetchCount += 1
         }
     }
 
@@ -913,6 +1162,13 @@ class FsyAppState(
                 val result = apiClient.uploadProfilePhoto(withValidSession(), jpegBytes)
                 if (sessionGeneration == expectedGen) {
                     profilePhoto = result
+                    photoUrlErrorRetryUsed = false
+                    if (result.approvedUrl != null) {
+                        profile = profile?.copy(avatarUrl = result.approvedUrl)
+                        session?.userId?.let { uid ->
+                            if (canReviewPhotos) companyProfilePhotos = companyProfilePhotos + (uid to result.approvedUrl)
+                        }
+                    }
                     photoSuccessMessage = result.uploadMessageFor(effectiveRole)
                 }
             } catch (e: Exception) {
@@ -933,6 +1189,10 @@ class FsyAppState(
                 val result = apiClient.deleteProfilePhoto(withValidSession(), scopeName)
                 if (sessionGeneration == expectedGen) {
                     profilePhoto = result
+                    photoUrlErrorRetryUsed = false
+                    if (scopeName == "approved" || result.approvedUrl == null) {
+                        profile = profile?.copy(avatarUrl = result.approvedUrl)
+                    }
                     photoSuccessMessage = if (scopeName == "pending") "Envio cancelado." else "Foto removida."
                 }
             } catch (e: Exception) {
@@ -947,23 +1207,45 @@ class FsyAppState(
         photoError = message
     }
 
-    fun refreshPhotoReviews() {
+    fun refreshPhotoReviews(fromImageError: Boolean = false) {
         if (!canReviewPhotos) return
+        if (fromImageError) {
+            if (photoReviewsErrorRetryUsed) return
+            photoReviewsErrorRetryUsed = true
+        } else {
+            photoReviewsErrorRetryUsed = false
+        }
         val expectedGen = sessionGeneration
         val expectedAccessRevision = profileAccessRevision
         scope.launch {
             runCatching { apiClient.fetchPhotoReviews(withValidSession()) }
                 .onSuccess { if (sessionGeneration == expectedGen && profileAccessRevision == expectedAccessRevision && canReviewPhotos) photoReviews = it }
+                .onFailure { err ->
+                    if (sessionGeneration == expectedGen && err is ApiException && err.statusCode in listOf(401, 403)) {
+                        photoError = FriendlyErrors.of(err)
+                    }
+                }
         }
     }
 
-    fun refreshCompanyProfilePhotos() {
+    fun refreshCompanyProfilePhotos(fromImageError: Boolean = false) {
         if (!canReviewPhotos) return
+        if (fromImageError) {
+            if (companyPhotosErrorRetryUsed) return
+            companyPhotosErrorRetryUsed = true
+        } else {
+            companyPhotosErrorRetryUsed = false
+        }
         val expectedGen = sessionGeneration
         val expectedAccessRevision = profileAccessRevision
         scope.launch {
             runCatching { apiClient.fetchCompanyProfilePhotos(withValidSession()) }
                 .onSuccess { if (sessionGeneration == expectedGen && profileAccessRevision == expectedAccessRevision && canReviewPhotos) companyProfilePhotos = it }
+                .onFailure { err ->
+                    if (sessionGeneration == expectedGen && err is ApiException && err.statusCode in listOf(401, 403)) {
+                        photoError = FriendlyErrors.of(err)
+                    }
+                }
         }
     }
 
@@ -985,6 +1267,96 @@ class FsyAppState(
                 refreshCompanyProfilePhotos()
             } catch (e: Exception) {
                 onDone(FriendlyErrors.of(e))
+            }
+        }
+    }
+
+    // --- Link do Grupo de WhatsApp da Companhia -----------------------------------------------
+
+    fun clearCompanyWhatsappMessages() {
+        companyWhatsappError = null
+        companyWhatsappFeedback = null
+    }
+
+    fun refreshCompanyWhatsapp() {
+        if (session == null) return
+        val expectedGen = sessionGeneration
+        val expectedAccessRevision = profileAccessRevision
+        scope.launch {
+            runCatching { apiClient.fetchCompanyWhatsapp(withValidSession()) }
+                .onSuccess { list ->
+                    if (sessionGeneration == expectedGen && profileAccessRevision == expectedAccessRevision) {
+                        allCompaniesWhatsapp = list
+                        val companyId = profile?.companyId?.takeIf { it.isNotBlank() } ?: company?.id
+                        companyWhatsapp = if (companyId != null) {
+                            list.firstOrNull { it.companyId == companyId } ?: list.firstOrNull()
+                        } else null
+                    }
+                }
+                .onFailure { err ->
+                    if (sessionGeneration == expectedGen && err is ApiException && err.statusCode in listOf(401, 403)) {
+                        companyWhatsappError = FriendlyErrors.of(err)
+                    }
+                }
+        }
+    }
+
+    fun saveCompanyWhatsappLink(
+        companyId: String,
+        rawInviteUrl: String?,
+        onDone: ((String?) -> Unit)? = null,
+    ) {
+        val trimmed = rawInviteUrl?.trim().orEmpty()
+        val normalized: String? = if (trimmed.isEmpty()) {
+            null
+        } else {
+            WhatsappInviteValidator.normalizeWhatsappInvite(trimmed) ?: run {
+                val msg = "Informe um link válido do WhatsApp (https://chat.whatsapp.com/...)."
+                companyWhatsappError = msg
+                onDone?.invoke(msg)
+                return
+            }
+        }
+        val expectedGen = sessionGeneration
+        isCompanyWhatsappBusy = true
+        companyWhatsappError = null
+        companyWhatsappFeedback = null
+        scope.launch {
+            try {
+                val validSession = withValidSession()
+                val updated = apiClient.saveCompanyWhatsapp(validSession, companyId, normalized)
+                if (sessionGeneration == expectedGen) {
+                    val myCompanyId = profile?.companyId?.takeIf { it.isNotBlank() } ?: company?.id
+                    if (myCompanyId == companyId) {
+                        companyWhatsapp = updated
+                        offlineCache.save(
+                            OfflineSnapshot(
+                                userId = validSession.userId,
+                                savedAtEpochMs = Instant.now().toEpochMilli(),
+                                profile = profile?.copy(role = "jovem"),
+                                company = company,
+                                scheduleItems = rawScheduleItems,
+                                announcements = announcements,
+                                companyWhatsapp = updated,
+                            )
+                        )
+                    }
+                    allCompaniesWhatsapp = if (allCompaniesWhatsapp.any { it.companyId == companyId }) {
+                        allCompaniesWhatsapp.map { if (it.companyId == companyId) updated else it }
+                    } else {
+                        allCompaniesWhatsapp + updated
+                    }
+                    companyWhatsappFeedback = if (normalized == null) "Link do grupo removido." else "Link do grupo salvo."
+                    onDone?.invoke(null)
+                }
+            } catch (e: Exception) {
+                val errText = FriendlyErrors.of(e, "Não foi possível salvar o link do grupo agora.")
+                if (sessionGeneration == expectedGen) {
+                    companyWhatsappError = errText
+                    onDone?.invoke(errText)
+                }
+            } finally {
+                if (sessionGeneration == expectedGen) isCompanyWhatsappBusy = false
             }
         }
     }
@@ -1023,6 +1395,14 @@ class FsyAppState(
         companyProfilePhotos = emptyMap()
         photoError = null
         photoSuccessMessage = null
+        companyWhatsapp = null
+        allCompaniesWhatsapp = emptyList()
+        isCompanyWhatsappBusy = false
+        companyWhatsappError = null
+        companyWhatsappFeedback = null
+        photoUrlErrorRetryUsed = false
+        companyPhotosErrorRetryUsed = false
+        photoReviewsErrorRetryUsed = false
         notificationPreferences = NotificationChannelPreferencesDto()
         overlayDestination = OverlayDestination.None
         selectedTab = MainTab.HOME

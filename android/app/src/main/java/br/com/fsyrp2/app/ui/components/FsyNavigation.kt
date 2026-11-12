@@ -38,6 +38,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import br.com.fsyrp2.app.ui.motion.FsyMotion
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
 import br.com.fsyrp2.app.ui.motion.fsyStateTween
@@ -156,11 +159,17 @@ fun FsyNavigationBar(
                                     }
                                 }
                             }
+                            val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+                            val screenWidthDp = LocalConfiguration.current.screenWidthDp
+                            val maxNavScale = if (screenWidthDp < 340) 1.2f else 1.38f
+                            val navLabelSp = (12f * fontScale.coerceAtMost(maxNavScale) / fontScale).sp
                             Text(
                                 text = dest.label,
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.labelMedium.copy(fontSize = navLabelSp, lineHeight = (navLabelSp.value * 1.2f).sp),
                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false,
                                 overflow = TextOverflow.Clip,
                                 textAlign = TextAlign.Center,
                             )
@@ -186,62 +195,118 @@ fun FsySegmentedSelector(
     descriptions: List<String>? = null,
 ) {
     val reduce = fsyMotionPreferences().reduceMotion
+    val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = FsyPillShape,
+        shape = if (secondaryLines == null && fontScale >= 1.3f && options.size >= 3) RoundedCornerShape(20.dp) else FsyPillShape,
         modifier = modifier.fillMaxWidth(),
     ) {
         BoxWithConstraints(modifier = Modifier.padding(4.dp)) {
             val itemWidth = maxWidth / options.size.coerceAtLeast(1)
-            val x by animateDpAsState(
-                targetValue = itemWidth * selectedIndex,
-                animationSpec = if (reduce) snap() else spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = FsyMotion.STIFFNESS_SNAPPY,
-                ),
-                label = "segmentIndicator",
-            )
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shape = FsyPillShape,
-                shadowElevation = 1.dp,
-                modifier = Modifier
-                    .offset { IntOffset(x.roundToPx(), 0) }
-                    .width(itemWidth)
-                    .matchParentSize(),
-            ) {}
-            Row(modifier = Modifier.fillMaxWidth().selectableGroup()) {
-                options.forEachIndexed { index, label ->
-                    val selected = index == selectedIndex
-                    val desc = descriptions?.getOrNull(index)
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = 48.dp)
-                            .clip(FsyPillShape)
-                            .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(index) })
-                            .then(if (desc != null) Modifier.semantics(mergeDescendants = true) { contentDescription = desc } else Modifier)
-                            .padding(vertical = 6.dp, horizontal = 2.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        val sub = secondaryLines?.getOrNull(index)
-                        if (sub != null) {
+            val stackVertically = secondaryLines == null && (
+                (fontScale >= 1.3f && itemWidth < 120.dp) ||
+                    (fontScale >= 1.7f && itemWidth < 160.dp) ||
+                    itemWidth < 92.dp
+                )
+            if (stackVertically) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().selectableGroup(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    options.forEachIndexed { index, label ->
+                        val selected = index == selectedIndex
+                        val desc = descriptions?.getOrNull(index)
+                        Surface(
+                            color = if (selected) MaterialTheme.colorScheme.surface else androidx.compose.ui.graphics.Color.Transparent,
+                            shape = FsyPillShape,
+                            shadowElevation = if (selected) 1.dp else 0.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .clip(FsyPillShape)
+                                .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(index) })
+                                .then(if (desc != null) Modifier.semantics(mergeDescendants = true) { contentDescription = desc } else Modifier),
+                        ) {
+                            Box(
+                                modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                val x by animateDpAsState(
+                    targetValue = itemWidth * selectedIndex,
+                    animationSpec = if (reduce) snap() else spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = FsyMotion.STIFFNESS_SNAPPY,
+                    ),
+                    label = "segmentIndicator",
+                )
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = FsyPillShape,
+                    shadowElevation = 1.dp,
+                    modifier = Modifier
+                        .offset { IntOffset(x.roundToPx(), 0) }
+                        .width(itemWidth)
+                        .matchParentSize(),
+                ) {}
+                Row(modifier = Modifier.fillMaxWidth().selectableGroup()) {
+                    val maxPillScale = when {
+                        itemWidth < 48.dp -> 1.35f
+                        itemWidth < 56.dp -> 1.65f
+                        else -> 2.0f
+                    }
+                    val subSp = (11f * fontScale.coerceAtMost(maxPillScale) / fontScale).sp
+                    val mainBase = if (secondaryLines != null) 16f else 14f
+                    val mainSp = (mainBase * fontScale.coerceAtMost(maxPillScale) / fontScale).sp
+                    options.forEachIndexed { index, label ->
+                        val selected = index == selectedIndex
+                        val desc = descriptions?.getOrNull(index)
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 48.dp)
+                                .clip(FsyPillShape)
+                                .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(index) })
+                                .then(if (desc != null) Modifier.semantics(mergeDescendants = true) { contentDescription = desc } else Modifier)
+                                .padding(vertical = 6.dp, horizontal = 2.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            val sub = secondaryLines?.getOrNull(index)
+                            if (sub != null) {
+                                Text(
+                                    text = sub,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = subSp, lineHeight = (subSp.value * 1.15f).sp),
+                                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                )
+                            }
                             Text(
-                                text = sub,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = label,
+                                style = (if (sub != null) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge).copy(
+                                    fontSize = mainSp,
+                                    lineHeight = (mainSp.value * 1.15f).sp,
+                                ),
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Clip,
+                                textAlign = TextAlign.Center,
                             )
                         }
-                        Text(
-                            text = label,
-                            style = if (sub != null) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                            overflow = TextOverflow.Clip,
-                            textAlign = TextAlign.Center,
-                        )
                     }
                 }
             }

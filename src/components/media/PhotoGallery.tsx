@@ -38,15 +38,15 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
   }, [open]);
 
   return (
-    <section aria-labelledby="gallery-title" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-900 sm:p-7">
-      <header className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex items-center gap-3">
+    <section aria-labelledby="gallery-title" className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-900 sm:p-7">
+      <header className="mb-5 flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#E6F4F9] text-[#005E7C] dark:bg-[#01B6D1] dark:text-slate-950">
             <Camera className="h-5 w-5" aria-hidden="true" />
           </span>
-          <div>
-            <h2 id="gallery-title" className="font-heading text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">Galeria do FSY</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
+          <div className="min-w-0">
+            <h2 id="gallery-title" className="break-words font-heading text-xl font-bold text-slate-900 [overflow-wrap:anywhere] dark:text-white sm:text-2xl">Galeria do FSY</h2>
+            <p className="break-words text-sm text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
               {items.length === 0 ? "As fotos aparecem aqui assim que a equipe de mídia publicar." : `${filtered.length} ${filtered.length === 1 ? "foto" : "fotos"} · toque para ver inteira`}
             </p>
           </div>
@@ -55,9 +55,9 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
           href={DRIVE_FOLDER_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="fsy-action-link inline-flex min-h-11 items-center gap-2 self-start rounded-xl border border-slate-300 px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 sm:self-auto"
+          className="fsy-action-link inline-flex min-h-11 max-w-full items-center gap-2 self-start rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 whitespace-normal break-words dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800 sm:self-auto"
         >
-          Pasta no Google Drive <ExternalLink className="h-4 w-4" aria-hidden="true" />
+          <span>Pasta no Google Drive</span> <ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">(abre em nova aba)</span>
         </a>
       </header>
@@ -98,7 +98,7 @@ export function PhotoGallery({ photos }: { photos: MediaPhoto[] }) {
           <button
             type="button"
             onClick={() => setVisible((v) => v + PAGE_SIZE)}
-            className="min-h-11 rounded-xl bg-slate-100 px-5 text-sm font-semibold text-slate-900 hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            className="min-h-11 rounded-xl bg-slate-100 px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#007DA5]/25 whitespace-normal break-words dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
           >
             Ver mais {Math.min(PAGE_SIZE, filtered.length - visible)} fotos
           </button>

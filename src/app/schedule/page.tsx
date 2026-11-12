@@ -7,7 +7,7 @@ import { ChevronDown, MapPin, Shirt } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { OFFICIAL_FSY_SCHEDULE } from "@/data/officialSchedule";
 import { useProfile } from "@/lib/supabase/useProfile";
-import { effectiveEndTime, eventClock, getSchedule, scheduleVisibleTo, type ScheduleItem } from "@/services/scheduleService";
+import { effectiveEndTime, eventClock, getSchedule, isStaffOnlyActivity, scheduleVisibleTo, type ScheduleItem } from "@/services/scheduleService";
 import { cn } from "@/lib/utils";
 
 const DAY_DATES: Record<string, string> = {
@@ -20,16 +20,19 @@ const DAY_DATES: Record<string, string> = {
 };
 const WEEKDAY: Record<string, string> = { dia0: "Sex", dia1: "Sáb", dia2: "Dom", dia3: "Seg", dia4: "Ter", dia5: "Qua" };
 
-/** Uma cor por tipo de atividade, sempre acompanhada do nome (cor nunca é o único sinal). */
+/**
+ * Atividades para todos: uma cor por tipo. Atividades só da equipe: cinza, com o selo "Só equipe"
+ * (cor nunca é o único sinal). Mesmas cores do app Android.
+ */
 const CATEGORY_DOT: Record<string, string> = {
   Espiritual: "bg-[#007DA5]",
   Alimentação: "bg-[#93C742]",
   Show: "bg-[#FC4E6D]",
   Baile: "bg-[#FC4E6D]",
   Atividade: "bg-[#F68D2E]",
-  Logística: "bg-slate-400",
-  Equipe: "bg-slate-400",
+  Logística: "bg-[#01B6D1]",
 };
+const STAFF_DOT = "bg-slate-400";
 
 function Activity({ item, live, past }: { item: ScheduleItem; live: boolean; past: boolean }) {
   const [open, setOpen] = useState(false);
@@ -43,7 +46,7 @@ function Activity({ item, live, past }: { item: ScheduleItem; live: boolean; pas
         aria-hidden
         className={cn(
           "absolute left-[3.55rem] top-[1.35rem] h-2.5 w-2.5 -translate-x-1/2 rounded-full ring-4 ring-[#FAF8F5] dark:ring-slate-950",
-          CATEGORY_DOT[item.category] ?? "bg-[#FFB81C]"
+          isStaffOnlyActivity(item) ? STAFF_DOT : CATEGORY_DOT[item.category] ?? "bg-[#FFB81C]"
         )}
       />
       <div
@@ -67,6 +70,11 @@ function Activity({ item, live, past }: { item: ScheduleItem; live: boolean; pas
                 </span>
               )}
               <span>{item.category}</span>
+              {isStaffOnlyActivity(item) && (
+                <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", live ? "bg-white/20 text-white" : "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200")}>
+                  Só equipe
+                </span>
+              )}
             </p>
           </div>
           {item.description && (

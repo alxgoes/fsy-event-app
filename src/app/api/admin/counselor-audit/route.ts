@@ -109,6 +109,12 @@ export async function POST(request: Request) {
     if (!content) return json({ error: "Informe o conteúdo da alteração." }, 400);
 
     // Consultores registram apenas na própria companhia; autoria vem do perfil.
+    if (identity.role === "consultor") {
+      const ownCompanyId = identity.profile.company_id?.trim() || null;
+      if (!ownCompanyId) {
+        return json({ error: "Você ainda não tem uma companhia designada." }, 403);
+      }
+    }
     const companyId = identity.role === "consultor" ? identity.profile.company_id : body.company_id || null;
     const payload = {
       author_id: identity.user.id,

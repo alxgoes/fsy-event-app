@@ -118,12 +118,27 @@ async function run() {
       await page.evaluate(() => document.fonts.ready);
       await sleep(250);
     }
+    // Conteúdo que chega depois (ex.: link do WhatsApp em Mais) pode re-renderizar a lista entre achar e clicar:
+    // busca de novo e tenta outra vez em vez de clicar num elemento substituído.
     async function clickVisible(selector) {
-      for (const element of await page.$$(selector)) {
-        const box = await element.boundingBox();
-        if (box?.width && box?.height) { await element.click(); return element; }
+      let lastError = null;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        for (const element of await page.$$(selector)) {
+          try {
+            const box = await element.boundingBox();
+            if (box?.width && box?.height) {
+              // Centraliza antes de clicar: na borda de baixo o clique cairia na barra de navegação fixa.
+              await element.evaluate((node) => node.scrollIntoView({ block: 'center', inline: 'nearest' }));
+              await element.click();
+              return element;
+            }
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        await sleep(300);
       }
-      throw new Error(`Controle visível ausente: ${selector}`);
+      throw lastError ?? new Error(`Controle visível ausente: ${selector}`);
     }
     async function audit(context) {
       const state = await page.evaluate(() => {
@@ -206,7 +221,7 @@ async function run() {
     }
 
     // Fonte ampliada mantém o mesmo gate de alvos, rótulos, contraste e transbordamento.
-    for (const width of [768, 390]) for (const route of ['/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/admin/users', '/admin/schedule', '/consultor', '/admin/inscricoes']) {
+    for (const width of [1280, 768, 390]) for (const route of ['/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/admin/users', '/admin/companies', '/admin/schedule', '/consultor', '/admin/inscricoes']) {
       await page.setViewport({ width, height: 1024 });
       await visit(route, youthRoutes.has(route) ? '5' : route === '/consultor' ? '4' : '1');
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
@@ -214,13 +229,25 @@ async function run() {
       await audit({ textScale200: true, width, route, mobile: width < 768, dark: false, youth: youthRoutes.has(route) });
     }
 
-    for (const width of [320, 360]) for (const route of ['/consultor', '/admin/schedule']) for (const enlarged of [false, true]) {
+    for (const width of [320, 360]) for (const route of ['/mais', '/fotos', '/consultor', '/admin/companies', '/admin/inscricoes', '/admin/schedule']) for (const enlarged of [false, true]) {
       await page.setViewport({ width, height: 844 });
-      await visit(route, route === '/consultor' ? '4' : '3', true);
+      const who = youthRoutes.has(route) ? '5' : route === '/consultor' ? '4' : '3';
+      await visit(route, who, true);
       if (enlarged) await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
-      await audit({ mobileLayoutRegression: true, enlarged, width, route, mobile: true, dark: true });
+      await audit({ mobileLayoutRegression: true, enlarged, width, route, mobile: true, dark: true, youth: youthRoutes.has(route) });
       await page.screenshot({ path: output(`fsy-correcao-${route.slice(1).replaceAll('/', '-')}-${width}-${enlarged ? 'fonte200' : 'normal'}.png`), fullPage: true });
     }
+
+    // Verifica diálogos de WhatsApp da companhia em /consultor e /admin/companies (320px e fonte 200%).
+    await page.setViewport({ width: 320, height: 844 });
+    await visit('/consultor', '4', false);
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+    await clickVisible('section[aria-label="Grupo do WhatsApp"] button');
+    await page.waitForSelector('[role=dialog]');
+    await audit({ route: '/consultor', mobile: true, dark: false, enlarged: true, width: 320, whatsappDialog: true });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+    await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 
     await page.setViewport({ width: 390, height: 844 });
     await visit('/dashboard', '5');

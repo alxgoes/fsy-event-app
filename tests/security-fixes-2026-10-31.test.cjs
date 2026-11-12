@@ -185,9 +185,80 @@ test("Proxy e /api/app-release: /instalar e GET /api/app-release são públicos;
   const prevUrl = process.env.NEXT_PUBLIC_ANDROID_APK_URL;
   try {
     process.env.NEXT_PUBLIC_ANDROID_APK_URL = "https://cdn.fsyrp2.test/app.apk?ref=play.google.com";
-    const { getAppDistributionManifest } = loadRoute("src/lib/app-distribution/android-release.ts");
+    const {
+      getAppDistributionManifest,
+      GITHUB_ANDROID_RELEASE_REPO,
+    } = loadRoute("src/lib/app-distribution/android-release.ts");
     const manifest = getAppDistributionManifest();
     assert.equal(manifest.android.availability, "ready_direct_download");
+    assert.equal(
+      manifest.android.downloadUrl,
+      "https://cdn.fsyrp2.test/app.apk?ref=play.google.com"
+    );
+
+    // Sem NEXT_PUBLIC_ANDROID_APK_URL: deriva URL do GitHub Releases se metadado tiver sha256 e sizeBytes
+    delete process.env.NEXT_PUBLIC_ANDROID_APK_URL;
+    const derivedManifest = getAppDistributionManifest({
+      metadataOverride: {
+        versionName: "1.3.0",
+        versionCode: 6,
+        apkFileName: "fsy-rp2-2027-v1.3.0-release.apk",
+        sizeBytes: 10500000,
+        sha256: "a".repeat(64),
+        signingSchemes: ["v2", "v3"],
+        minSupportedVersionCode: 5,
+        releaseNotesPtBr: [
+          "Atualização automática integrada.",
+          "Melhorias nas inscrições e no grupo da companhia.",
+        ],
+      },
+    });
+    assert.equal(derivedManifest.android.availability, "ready_direct_download");
+    assert.equal(
+      derivedManifest.android.downloadUrl,
+      `https://github.com/${GITHUB_ANDROID_RELEASE_REPO}/releases/download/android-v1.3.0/fsy-rp2-2027-v1.3.0-release.apk`
+    );
+    assert.equal(
+      derivedManifest.android.androidMetadata.minSupportedVersionCode,
+      5
+    );
+    assert.deepEqual(
+      derivedManifest.android.androidMetadata.releaseNotesPtBr,
+      [
+        "Atualização automática integrada.",
+        "Melhorias nas inscrições e no grupo da companhia.",
+      ]
+    );
+
+    // Variável de ambiente tem precedência sobre URL derivada
+    process.env.NEXT_PUBLIC_ANDROID_APK_URL = "https://custom.fsyrp2.test/custom.apk";
+    const envPrecedenceManifest = getAppDistributionManifest({
+      metadataOverride: {
+        versionName: "1.3.0",
+        versionCode: 6,
+        apkFileName: "fsy-rp2-2027-v1.3.0-release.apk",
+        sizeBytes: 10500000,
+        sha256: "a".repeat(64),
+      },
+    });
+    assert.equal(
+      envPrecedenceManifest.android.downloadUrl,
+      "https://custom.fsyrp2.test/custom.apk"
+    );
+
+    // Metadado incompleto (sem sha256 ou sizeBytes) e sem variável de ambiente -> sem link (null)
+    delete process.env.NEXT_PUBLIC_ANDROID_APK_URL;
+    const incompleteManifest = getAppDistributionManifest({
+      metadataOverride: {
+        versionName: "1.3.0",
+        versionCode: 6,
+        apkFileName: "fsy-rp2-2027-v1.3.0-release.apk",
+        sizeBytes: null,
+        sha256: null,
+      },
+    });
+    assert.equal(incompleteManifest.android.downloadUrl, null);
+    assert.equal(incompleteManifest.android.availability, "pwa_fallback");
   } finally {
     if (prevUrl === undefined) delete process.env.NEXT_PUBLIC_ANDROID_APK_URL;
     else process.env.NEXT_PUBLIC_ANDROID_APK_URL = prevUrl;

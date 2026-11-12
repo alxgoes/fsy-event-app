@@ -498,3 +498,10 @@ input, textarea {
   border-radius: 1.6rem;
   box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.35), 0 8px 12px -8px rgba(15, 23, 42, 0.2);
 }
+
+/* Barra inferior fixa no celular: rolagens para foco/âncoras param acima dela, nunca escondidas embaixo. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}

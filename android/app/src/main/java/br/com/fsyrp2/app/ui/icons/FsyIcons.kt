@@ -582,6 +582,14 @@ object FsyIcons {
         )
     }
 
+    /** Lucide `message-circle` */
+    val MessageCircle: ImageVector by lazy {
+        lucide(
+            "MessageCircle",
+            "M7.9 20A9 9 0 1 0 4 16.1L2 22Z",
+        )
+    }
+
     /** Lucide `moon` */
     val Moon: ImageVector by lazy {
         lucide(

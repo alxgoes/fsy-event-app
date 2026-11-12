@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Clock, MapPin, WifiOff } from "lucide-react";
+import { ArrowRight, Clock, MapPin, MessageCircle, WifiOff } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Avatar } from "@/components/profile/Avatar";
 import { useProfile } from "@/lib/supabase/useProfile";
@@ -19,6 +19,7 @@ import {
 } from "@/services/scheduleService";
 import { getAnnouncements, type Announcement } from "@/services/announcementsService";
 import { getCompany, type CompanyData } from "@/services/companyService";
+import { getCompanyWhatsappLink } from "@/services/companyWhatsappService";
 import { getFeaturedPhotos } from "@/services/mediaService";
 import { photoSources } from "@/lib/media/drive";
 import { relativeTime } from "@/lib/ui/relativeTime";
@@ -214,7 +215,19 @@ function DayAgenda({ items, now, loading }: { items: ScheduleItem[]; now: Date; 
   );
 }
 
-function CompanyCard({ company, room, loading, hasCompany }: { company: CompanyData | null; room: string | null; loading: boolean; hasCompany: boolean }) {
+function CompanyCard({
+  company,
+  room,
+  whatsappUrl,
+  loading,
+  hasCompany,
+}: {
+  company: CompanyData | null;
+  room: string | null;
+  whatsappUrl: string | null;
+  loading: boolean;
+  hasCompany: boolean;
+}) {
   return (
     <Card label="Minha companhia" className="bg-[#FFF4CC] dark:bg-slate-900">
       <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Minha companhia</h2>
@@ -224,20 +237,31 @@ function CompanyCard({ company, room, loading, hasCompany }: { company: CompanyD
         <div className="mt-3 space-y-2"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-5 w-1/2" /></div>
       ) : company ? (
         <>
-          <p className="mt-1 font-heading text-2xl font-bold text-slate-950 dark:text-white">{company.name}</p>
-          {company.motto && <p className="mt-1 font-scripture text-lg italic text-slate-800 dark:text-slate-200">“{company.motto}”</p>}
+          <p className="mt-1 break-words font-heading text-2xl font-bold text-slate-950 [overflow-wrap:anywhere] dark:text-white">{company.name}</p>
+          {company.motto && <p className="mt-1 break-words font-scripture text-lg italic text-slate-800 [overflow-wrap:anywhere] dark:text-slate-200">“{company.motto}”</p>}
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
             {(company.counselors ?? []).map((name) => (
-              <span key={name} className="inline-flex items-center gap-2">
+              <span key={name} className="inline-flex min-w-0 items-center gap-2">
                 <Avatar name={name} size={36} />
-                <span className="leading-tight">
-                  <span className="block text-[15px] font-medium text-slate-950 dark:text-white">{name}</span>
+                <span className="min-w-0 leading-tight">
+                  <span className="block break-words text-[15px] font-medium text-slate-950 [overflow-wrap:anywhere] dark:text-white">{name}</span>
                   <span className="block text-xs text-slate-600 dark:text-slate-300">Consultor(a)</span>
                 </span>
               </span>
             ))}
             {room && <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-100">Quarto {room}</span>}
           </div>
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#007DA5] px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#005E7C] active:scale-[0.99] whitespace-normal break-words"
+            >
+              <MessageCircle className="h-4 w-4 shrink-0" />
+              <span>Entrar no grupo da companhia</span>
+            </a>
+          )}
         </>
       ) : (
         <p className="mt-2 text-[15px] text-slate-700 dark:text-slate-300">Não foi possível carregar sua companhia agora.</p>
@@ -313,6 +337,7 @@ export function YouthDashboard() {
 
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [company, setCompany] = useState<CompanyData | null>(null);
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
   const [notices, setNotices] = useState<Announcement[]>([]);
   const [photos, setPhotos] = useState<MediaPhoto[]>([]);
   const [loading, setLoading] = useState({ schedule: true, company: true, notices: true });
@@ -342,6 +367,9 @@ export function YouthDashboard() {
         .then(({ data }) => !signal.aborted && setCompany(data))
         .catch(() => {})
         .finally(() => done("company"));
+      getCompanyWhatsappLink(profile.company_id, signal)
+        .then((item) => !signal.aborted && setWhatsappUrl(item?.invite_url ?? null))
+        .catch(() => {});
     } else done("company");
 
     getAnnouncements(profile.company_id, signal)
@@ -380,7 +408,13 @@ export function YouthDashboard() {
             <DayAgenda items={schedule} now={now} loading={loading.schedule} />
           </div>
           <div className="min-w-0 space-y-5">
-            <CompanyCard company={company} room={profile?.room ?? null} loading={loading.company} hasCompany={Boolean(profile?.company_id)} />
+            <CompanyCard
+              company={company}
+              room={profile?.room ?? null}
+              whatsappUrl={whatsappUrl}
+              loading={loading.company}
+              hasCompany={Boolean(profile?.company_id)}
+            />
             <RecentNotices notices={notices} loading={loading.notices} />
           </div>
         </div>

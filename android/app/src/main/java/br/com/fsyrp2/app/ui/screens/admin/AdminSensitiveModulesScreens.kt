@@ -137,22 +137,43 @@ fun MedicalAdminModuleView(appState: FsyAppState) {
 
         FsyCardGroup(cards = metricCards)
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                selected = activeTab == "records",
-                onClick = { haptics.tick(); activeTab = "records" },
-                label = { Text("Fichas Médicas (${records.size})") },
-                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
-            )
-            FilterChip(
-                selected = activeTab == "appointments",
-                onClick = { haptics.tick(); activeTab = "appointments" },
-                label = { Text("Consultas (${appointments.size})") },
-                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
-            )
+        val compactMedicalTabs = isCompactActionLayout()
+        if (compactMedicalTabs) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = activeTab == "records",
+                    onClick = { haptics.tick(); activeTab = "records" },
+                    label = { Text("Fichas Médicas (${records.size})") },
+                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                )
+                FilterChip(
+                    selected = activeTab == "appointments",
+                    onClick = { haptics.tick(); activeTab = "appointments" },
+                    label = { Text("Consultas (${appointments.size})") },
+                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = activeTab == "records",
+                    onClick = { haptics.tick(); activeTab = "records" },
+                    label = { Text("Fichas Médicas (${records.size})") },
+                    modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                )
+                FilterChip(
+                    selected = activeTab == "appointments",
+                    onClick = { haptics.tick(); activeTab = "appointments" },
+                    label = { Text("Consultas (${appointments.size})") },
+                    modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                )
+            }
         }
 
         if (isLoading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -467,22 +488,47 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
             contentColor = FsyPalette.PrimarySky
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Exibir arquivados")
-                FsySwitch(checked = includeArchived, onCheckedChange = { includeArchived = it })
-            }
-            FsyButton(
-                onClick = { creatingCase = true },
-                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+        val compactInclusionHeader = isCompactActionLayout()
+        if (compactInclusionHeader) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(FsyIcons.Plus, contentDescription = null)
-                Spacer(Modifier.width(4.dp))
-                Text("Novo caso")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Exibir arquivados", modifier = Modifier.weight(1f))
+                    FsySwitch(checked = includeArchived, onCheckedChange = { includeArchived = it })
+                }
+                FsyButton(
+                    onClick = { creatingCase = true },
+                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                ) {
+                    Icon(FsyIcons.Plus, contentDescription = null)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Novo caso")
+                }
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Exibir arquivados")
+                    FsySwitch(checked = includeArchived, onCheckedChange = { includeArchived = it })
+                }
+                FsyButton(
+                    onClick = { creatingCase = true },
+                    modifier = Modifier.defaultMinSize(minHeight = 48.dp)
+                ) {
+                    Icon(FsyIcons.Plus, contentDescription = null)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Novo caso")
+                }
             }
         }
 
@@ -526,31 +572,62 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
 
                     Spacer(Modifier.height(8.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        FsyOutlinedButton(
-                            onClick = {
-                                scope.launch {
-                                    runCatching {
-                                        val s = appState.withValidSession()
-                                        val (detail, interviews) = appState.apiClient.fetchInclusionCaseDetail(s, c.id)
-                                        selectedCaseDetail = detail
-                                        selectedCaseInterviews = interviews
-                                    }.onFailure { errorMsg = it.message }
-                                }
-                            },
-                            modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
-                        ) { Text("Entrevistas") }
-
-                        FsyOutlinedButton(
-                            onClick = { recordingDecisionForCase = c },
-                            modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                    val compactCaseActions = isCompactActionLayout()
+                    if (compactCaseActions) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Icon(FsyIcons.CircleCheck, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Decisão")
+                            FsyOutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            val (detail, interviews) = appState.apiClient.fetchInclusionCaseDetail(s, c.id)
+                                            selectedCaseDetail = detail
+                                            selectedCaseInterviews = interviews
+                                        }.onFailure { errorMsg = it.message }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Entrevistas") }
+
+                            FsyOutlinedButton(
+                                onClick = { recordingDecisionForCase = c },
+                                modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
+                            ) {
+                                Icon(FsyIcons.CircleCheck, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Decisão")
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            FsyOutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        runCatching {
+                                            val s = appState.withValidSession()
+                                            val (detail, interviews) = appState.apiClient.fetchInclusionCaseDetail(s, c.id)
+                                            selectedCaseDetail = detail
+                                            selectedCaseInterviews = interviews
+                                        }.onFailure { errorMsg = it.message }
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                            ) { Text("Entrevistas") }
+
+                            FsyOutlinedButton(
+                                onClick = { recordingDecisionForCase = c },
+                                modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                            ) {
+                                Icon(FsyIcons.CircleCheck, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Decisão")
+                            }
                         }
                     }
                 }
@@ -748,7 +825,10 @@ fun InclusionAdminModuleView(appState: FsyAppState) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Confirmo que esta decisão foi revisada por liderança humana")
+                        Text(
+                            "Confirmo que esta decisão foi revisada por liderança humana",
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
                         Checkbox(checked = humanConfirmed, onCheckedChange = { humanConfirmed = it })
                     }
                 }

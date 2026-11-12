@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import br.com.fsyrp2.app.data.EventCalendar
 import br.com.fsyrp2.app.model.ScheduleItem
+import br.com.fsyrp2.app.model.ScheduleVisibility
 import br.com.fsyrp2.app.model.UserRole
 import br.com.fsyrp2.app.notifications.NotificationHelper
 import br.com.fsyrp2.app.state.FsyAppState
@@ -92,18 +93,26 @@ private data class DayOption(
     val spoken: String,
 )
 
-private data class CategoryStyle(val label: String, val color: Color)
+private data class CategoryStyle(val label: String, val color: Color, val staffOnly: Boolean)
 
+/**
+ * Atividades para todos: uma cor por tipo (as mesmas do site). Atividades só da equipe: cinza,
+ * com o selo "Só equipe" — a cor nunca é o único sinal. Jovem nunca recebe essas atividades.
+ */
 @Composable
-private fun categoryStyle(category: String): CategoryStyle {
-    val normalized = ScheduleDays.normalizeCategory(category)
-    val color = when (normalized) {
-        "Espiritual", "Logística", "Equipe" -> MaterialTheme.colorScheme.primary
-        "Alimentação" -> FsyPalette.Success
-        "Show", "Baile" -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+private fun categoryStyle(item: ScheduleItem): CategoryStyle {
+    val normalized = ScheduleDays.normalizeCategory(item.category)
+    val staffOnly = ScheduleVisibility.isStaffOnly(item)
+    val color = when {
+        staffOnly -> Color(0xFF94A3B8)
+        normalized == "Espiritual" -> Color(0xFF007DA5)
+        normalized == "Alimentação" -> Color(0xFF93C742)
+        normalized == "Show" || normalized == "Baile" -> Color(0xFFFC4E6D)
+        normalized == "Atividade" -> Color(0xFFF68D2E)
+        normalized == "Logística" -> Color(0xFF01B6D1)
+        else -> Color(0xFFFFB81C)
     }
-    return CategoryStyle(normalized, color)
+    return CategoryStyle(normalized, color, staffOnly)
 }
 
 @Composable
@@ -353,7 +362,7 @@ private fun TimelineEntry(
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     LaunchedEffect(isFocused) { if (isFocused) expanded = true }
-    val cat = categoryStyle(item.category)
+    val cat = categoryStyle(item)
     val primary = MaterialTheme.colorScheme.primary
     val rail = MaterialTheme.colorScheme.outlineVariant
     val hasDescription = !item.description.isNullOrBlank()
@@ -420,13 +429,29 @@ private fun TimelineEntry(
                         color = if (isCurrent) primary else MaterialTheme.colorScheme.onSurface,
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     if (isCurrent) {
                         Text("Agora", style = MaterialTheme.typography.labelMedium, color = primary, fontWeight = FontWeight.Bold)
                         Text("·", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Box(Modifier.size(8.dp).clip(CircleShape).background(cat.color))
                     Text(cat.label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (cat.staffOnly) {
+                        Text(
+                            text = "Só equipe",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 8.dp, vertical = 2.dp),
+                        )
+                    }
                 }
                 Text(
                     text = item.title,
@@ -451,26 +476,49 @@ private fun TimelineEntry(
                         modifier = Modifier.padding(top = 8.dp, end = 8.dp),
                     )
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (hasDescription) {
-                        Icon(
-                            imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Text(
-                            text = if (expanded) "Menos" else "Detalhes",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
+                if (largeText && hasDescription) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = if (expanded) "Menos" else "Detalhes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                        ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
                     }
-                    Spacer(Modifier.weight(1f))
-                    ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (hasDescription) {
+                            Icon(
+                                imageVector = if (expanded) FsyIcons.ChevronDown else FsyIcons.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = if (expanded) "Menos" else "Detalhes",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                        ReminderToggle(isSet = isReminderSet, title = item.title, onClick = { onToggleReminder(item, isReminderSet) })
+                    }
                 }
             }
         }

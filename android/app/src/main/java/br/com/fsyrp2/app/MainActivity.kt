@@ -61,12 +61,17 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             // Revalida ao voltar ao app e a cada minuto somente enquanto a tela está ativa.
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                appState.refreshProfilePhoto(fromImageError = false)
+                appState.refreshCompanyWhatsapp()
+                appState.resumeUpdateAfterPermission()
+                appState.checkForAppUpdate()
                 while (isActive) {
                     appState.refreshProfileAccess()
                     delay(60_000L)
                 }
             }
         }
+        if (!BuildConfig.DEBUG) br.com.fsyrp2.app.update.AppUpdateWorker.schedulePeriodicCheck(applicationContext)
         if (savedInstanceState == null) {
             intent?.dataString?.let { appState.handleIncomingDeepLink(it) }
         }
@@ -95,6 +100,7 @@ private fun OverlayDestination.layerKey(): String = when (this) {
     OverlayDestination.None -> "tabs"
     OverlayDestination.Gallery -> "gallery"
     OverlayDestination.NotificationSettings -> "notifications"
+    OverlayDestination.AboutApp -> "about"
     OverlayDestination.CounselorPanel -> "counselor"
     is OverlayDestination.AdminHub -> "admin"
 }
@@ -137,6 +143,12 @@ internal fun FsyRootContent(appState: FsyAppState) {
         return
     }
 
+    // Versão abaixo da mínima suportada: só a tela de atualização, sem atalho para pular.
+    if (appState.updateUiState.isMandatoryBlocking) {
+        br.com.fsyrp2.app.update.MandatoryUpdateScreen(appState = appState)
+        return
+    }
+
     // Portão por papel também na renderização: destino de equipe sem permissão cai no Início.
     val requested = appState.overlayDestination
     val overlay = when (requested) {
@@ -170,6 +182,7 @@ internal fun FsyRootContent(appState: FsyAppState) {
             when (layer) {
                 is OverlayDestination.Gallery -> GalleryScreen(appState = appState)
                 is OverlayDestination.NotificationSettings -> NotificationSettingsScreen(appState = appState)
+                is OverlayDestination.AboutApp -> br.com.fsyrp2.app.update.AboutAppScreen(appState = appState)
                 is OverlayDestination.CounselorPanel -> CounselorScreen(appState = appState)
                 is OverlayDestination.AdminHub -> AdminHubScreen(appState = appState, initialModule = layer.initialModule)
                 OverlayDestination.None -> MainTabs(appState, stateHolder, reduceMotion, onTabTick = { haptics.tick() })

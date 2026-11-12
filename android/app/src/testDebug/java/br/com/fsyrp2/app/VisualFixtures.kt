@@ -32,6 +32,11 @@ internal class VisualFixtures(
                     "/api/admin/accounts" -> """{"data":[],"total":0,"page":1,"per_page":20}"""
                     "/api/admin/registrations" -> """{"items":[],"batches":[],"metrics":{},"pagination":{}}"""
                     "/api/announcements/like" -> """{"is_liked":true,"likes_count":13}"""
+                    "/api/companies" -> """{"companies":[{"id":"qa-company","name":"Companhia Girassol","motto":"Juntos em Cristo","color":"#007DA5","room":"Sala 12"},{"id":"qa-company-2","name":"Companhia Ipê","motto":"Firmes na Fé","color":"#0F5D7A","room":"Sala 14"}],"all_counselors":[{"id":"qa-c1","full_name":"Ana Exemplo","company_id":"qa-company"}]}"""
+                    "/rest/v1/companies" -> """[{"id":"qa-company","name":"Companhia Girassol","motto":"Juntos em Cristo","color":"#007DA5","room":"Sala 12"},{"id":"qa-company-2","name":"Companhia Ipê","motto":"Firmes na Fé","color":"#0F5D7A","room":"Sala 14"}]"""
+                    "/rest/v1/profiles" -> """[{"id":"qa-c1","full_name":"Ana Exemplo","email":"ana@example.invalid","role":"consultor","company_id":"qa-company"}]"""
+                    "/rest/v1/company_members" -> """[{"company_id":"qa-company","user_id":"qa-c1","role":"consultor"}]"""
+                    "/api/companies/whatsapp" -> """{"data":{"company":{"company_id":"qa-company","company_name":"Companhia Girassol","invite_url":"https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv","can_edit":true,"updated_at":"2027-02-06T09:00:00Z","updated_by_name":"Ana Exemplo","has_counselor":true},"companies":[{"company_id":"qa-company","company_name":"Companhia Girassol","invite_url":"https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv","can_edit":true,"updated_at":"2027-02-06T09:00:00Z","updated_by_name":"Ana Exemplo","has_counselor":true},{"company_id":"qa-company-2","company_name":"Companhia Ipê","invite_url":null,"can_edit":true,"updated_at":null,"updated_by_name":null,"has_counselor":false}]}}"""
                     else -> """{"data":[]}"""
                 }
                 val photo = path.startsWith("/qa/photo")

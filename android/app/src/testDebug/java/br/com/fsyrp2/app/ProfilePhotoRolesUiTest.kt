@@ -193,4 +193,107 @@ class ProfilePhotoRolesUiTest {
             compose.onNodeWithText("Não aprovar").performScrollTo().assertIsDisplayed()
         }
     }
+
+    @Test fun expiredSignedUrlRefreshesOnceWithoutLooping() {
+        prepareResponse(pending = false)
+        launch("home", "jovem").use { scenario ->
+            lateinit var state: FsyAppState
+            scenario.onActivity { activity ->
+                state = activity.state
+                registerPhotos()
+            }
+            val initialCount = state.profilePhotoFetchCount
+            scenario.onActivity { state.refreshProfilePhoto(fromImageError = true) }
+            val deadline = System.nanoTime() + 5_000_000_000L
+            while (state.profilePhotoFetchCount == initialCount && System.nanoTime() < deadline) {
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(25))
+                Thread.sleep(10)
+            }
+            assertEquals("Deve buscar nova URL assinada exatamente uma vez após erro de imagem", initialCount + 1, state.profilePhotoFetchCount)
+            assertEquals(approvedUrl, state.profilePhoto.approvedUrl)
+            assertEquals(approvedUrl, state.profile?.avatarUrl)
+
+            // Se a nova URL também falhar em seguida, não deve entrar em loop infinito
+            scenario.onActivity { state.refreshProfilePhoto(fromImageError = true) }
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+            assertEquals("Não deve repetir a busca em loop para erro consecutivo de imagem", initialCount + 1, state.profilePhotoFetchCount)
+
+            // Uma atualização explícita (ex.: retorno ao primeiro plano) volta a permitir renovação
+            scenario.onActivity { state.refreshProfilePhoto(fromImageError = false) }
+            val secondDeadline = System.nanoTime() + 5_000_000_000L
+            while (state.profilePhotoFetchCount == initialCount + 1 && System.nanoTime() < secondDeadline) {
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(25))
+                Thread.sleep(10)
+            }
+            assertEquals(initialCount + 2, state.profilePhotoFetchCount)
+        }
+    }
+
+    @Test fun photoOperationsSurfacePortugueseMessageOn401And403() {
+        val server = java.net.ServerSocket(0)
+        var statusToReturn = 403
+        val worker = kotlin.concurrent.thread(isDaemon = true) {
+            while (!server.isClosed) {
+                val client = try { server.accept() } catch (_: Exception) { break }
+                client.use {
+                    val reader = it.getInputStream().bufferedReader(Charsets.ISO_8859_1)
+                    reader.readLine() ?: return@use
+                    var length = 0
+                    while (true) {
+                        val line = reader.readLine() ?: break
+                        if (line.isEmpty()) break
+                        if (line.startsWith("Content-Length:", true)) length = line.substringAfter(':').trim().toInt()
+                    }
+                    repeat(length) { reader.read() }
+                    val bodyText = if (statusToReturn == 401) """{"error":"Unauthorized"}""" else """{"error":"Forbidden"}"""
+                    val body = bodyText.toByteArray(Charsets.UTF_8)
+                    val statusLine = if (statusToReturn == 401) "401 Unauthorized" else "403 Forbidden"
+                    it.getOutputStream().apply {
+                        write("HTTP/1.1 $statusLine\r\nContent-Type: application/json\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n".toByteArray())
+                        write(body)
+                        flush()
+                    }
+                }
+            }
+        }
+        try {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            ActivityScenario.launch<VisualQaActivity>(
+                Intent(context, VisualQaActivity::class.java)
+                    .putExtra("screen", "more")
+                    .putExtra("role", "jovem")
+                    .putExtra("disable_native_ripple", true)
+                    .putExtra("fixture_host", "127.0.0.1")
+                    .putExtra("fixture_port", server.localPort)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ).use { scenario ->
+                lateinit var state: FsyAppState
+                scenario.onActivity { activity ->
+                    state = activity.state
+                    state.refreshProfilePhoto(fromImageError = false)
+                }
+                val deadline = System.nanoTime() + 5_000_000_000L
+                while (state.photoError == null && System.nanoTime() < deadline) {
+                    shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(25))
+                    Thread.sleep(10)
+                }
+                assertEquals("Você não tem permissão para concluir esta ação.", state.photoError)
+
+                statusToReturn = 401
+                scenario.onActivity {
+                    state.photoError = null
+                    state.uploadProfilePhoto(byteArrayOf(-1, -40, -1, 0))
+                }
+                val secondDeadline = System.nanoTime() + 5_000_000_000L
+                while (state.isPhotoBusy && System.nanoTime() < secondDeadline) {
+                    shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(25))
+                    Thread.sleep(10)
+                }
+                assertEquals("Sua sessão terminou. Entre novamente.", state.photoError)
+            }
+        } finally {
+            server.close()
+            worker.join(1000)
+        }
+    }
 }

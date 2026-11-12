@@ -25,6 +25,8 @@ export interface AndroidApkSignatureMetadata {
   readonly signingSchemes: readonly ("v2" | "v3")[];
   readonly signerCertificateSha256: string | null;
   readonly builtAtIso: string | null;
+  readonly minSupportedVersionCode?: number;
+  readonly releaseNotesPtBr?: readonly string[];
 }
 
 export interface PlatformReleaseStatus {

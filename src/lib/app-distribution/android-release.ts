@@ -7,13 +7,63 @@ import type {
   AppReleaseAvailability,
 } from "@/types/app-distribution";
 
+export const GITHUB_ANDROID_RELEASE_REPO = "alxgoes/fsy-event-app";
+
 const ANDROID_RELEASE_METADATA_PATH = path.join(
   process.cwd(),
   "android",
   "release-metadata.json"
 );
 
-function readLocalAndroidReleaseMetadata(): AndroidApkSignatureMetadata {
+export interface AppDistributionManifestOptions {
+  readonly metadataPath?: string;
+  readonly metadataOverride?: Partial<AndroidApkSignatureMetadata>;
+}
+
+function normalizeReleaseNotesPtBr(raw: unknown): readonly string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const cleaned = raw
+    .filter((line): line is string => typeof line === "string")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .slice(0, 5);
+  return cleaned.length > 0 ? cleaned : undefined;
+}
+
+function normalizeMinSupportedVersionCode(raw: unknown): number | undefined {
+  if (typeof raw === "number" && Number.isInteger(raw) && raw >= 1) {
+    return raw;
+  }
+  return undefined;
+}
+
+export function deriveGithubReleaseDownloadUrl(
+  meta: Pick<AndroidApkSignatureMetadata, "versionName" | "apkFileName" | "sha256" | "sizeBytes">
+): string | null {
+  const hasVerifiedArtifact =
+    typeof meta.sha256 === "string" &&
+    /^[a-f0-9]{64}$/i.test(meta.sha256) &&
+    typeof meta.sizeBytes === "number" &&
+    meta.sizeBytes > 0;
+  if (!hasVerifiedArtifact) return null;
+
+  const versionName = (meta.versionName ?? "").trim();
+  const apkFileName = (meta.apkFileName ?? "").trim();
+  if (
+    !versionName ||
+    !apkFileName ||
+    !/^[A-Za-z0-9._-]+$/.test(versionName) ||
+    !/^[A-Za-z0-9._-]+\.apk$/i.test(apkFileName)
+  ) {
+    return null;
+  }
+
+  return `https://github.com/${GITHUB_ANDROID_RELEASE_REPO}/releases/download/android-v${versionName}/${apkFileName}`;
+}
+
+function readLocalAndroidReleaseMetadata(
+  options?: AppDistributionManifestOptions
+): AndroidApkSignatureMetadata {
   const fallback: AndroidApkSignatureMetadata = {
     applicationId: "br.com.fsyrp2.app",
     versionName: "1.0.0",
@@ -30,33 +80,53 @@ function readLocalAndroidReleaseMetadata(): AndroidApkSignatureMetadata {
   };
 
   try {
-    if (!fs.existsSync(ANDROID_RELEASE_METADATA_PATH)) {
-      return fallback;
+    let parsed: Partial<AndroidApkSignatureMetadata> = {};
+    if (options?.metadataOverride) {
+      parsed = options.metadataOverride;
+    } else {
+      const targetPath = options?.metadataPath ?? ANDROID_RELEASE_METADATA_PATH;
+      if (!fs.existsSync(targetPath)) {
+        return fallback;
+      }
+      parsed = JSON.parse(
+        fs.readFileSync(targetPath, "utf8")
+      ) as Partial<AndroidApkSignatureMetadata>;
     }
-    const parsed = JSON.parse(
-      fs.readFileSync(ANDROID_RELEASE_METADATA_PATH, "utf8")
-    ) as Partial<AndroidApkSignatureMetadata>;
+
     const hasVerifiedArtifact =
       typeof parsed.sha256 === "string" &&
-      parsed.sha256.length === 64 &&
+      /^[a-f0-9]{64}$/i.test(parsed.sha256) &&
       typeof parsed.sizeBytes === "number" &&
       parsed.sizeBytes > 0;
     const schemes =
       hasVerifiedArtifact && Array.isArray(parsed.signingSchemes)
         ? parsed.signingSchemes.filter((s): s is "v2" | "v3" => s === "v2" || s === "v3")
         : [];
+    const minSupportedVersionCode = normalizeMinSupportedVersionCode(
+      parsed.minSupportedVersionCode
+    );
+    const releaseNotesPtBr = normalizeReleaseNotesPtBr(parsed.releaseNotesPtBr);
+
     return {
       ...fallback,
       ...parsed,
       applicationId: "br.com.fsyrp2.app",
+      sha256: hasVerifiedArtifact ? parsed.sha256 ?? null : null,
+      sizeBytes: hasVerifiedArtifact ? parsed.sizeBytes ?? null : null,
       signingSchemes: schemes,
+      ...(minSupportedVersionCode !== undefined
+        ? { minSupportedVersionCode }
+        : { minSupportedVersionCode: undefined }),
+      ...(releaseNotesPtBr !== undefined
+        ? { releaseNotesPtBr }
+        : { releaseNotesPtBr: undefined }),
     };
   } catch {
     return fallback;
   }
 }
 
-function validateHttpsDownloadUrl(rawUrl: string | undefined): {
+function validateHttpsDownloadUrl(rawUrl: string | undefined | null): {
   url: string;
   hostname: string;
 } | null {
@@ -72,11 +142,16 @@ function validateHttpsDownloadUrl(rawUrl: string | undefined): {
   }
 }
 
-export function getAppDistributionManifest(): AppDistributionManifest {
-  const androidMeta = readLocalAndroidReleaseMetadata();
-  const androidHttps = validateHttpsDownloadUrl(
+export function getAppDistributionManifest(
+  options?: AppDistributionManifestOptions
+): AppDistributionManifest {
+  const androidMeta = readLocalAndroidReleaseMetadata(options);
+  const envAndroidHttps = validateHttpsDownloadUrl(
     process.env.NEXT_PUBLIC_ANDROID_APK_URL
   );
+  const derivedGithubUrl = deriveGithubReleaseDownloadUrl(androidMeta);
+  const androidHttps =
+    envAndroidHttps ?? validateHttpsDownloadUrl(derivedGithubUrl);
   const iosHttps = validateHttpsDownloadUrl(process.env.NEXT_PUBLIC_IOS_APP_URL);
 
   const hasLocalArtifact = Boolean(androidMeta.sha256 && androidMeta.sizeBytes);

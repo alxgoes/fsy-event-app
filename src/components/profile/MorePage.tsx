@@ -10,10 +10,12 @@ import {
   ChevronRight,
   Clock3,
   Download,
+  ExternalLink,
   Images,
   LayoutDashboard,
   Loader2,
   LogOut,
+  MessageCircle,
   Monitor,
   Moon,
   Sun,
@@ -24,6 +26,7 @@ import { Avatar, avatarInitials } from "@/components/profile/Avatar";
 import { useProfile, canAccessAdmin, ROLE_LABELS } from "@/lib/supabase/useProfile";
 import { prepareSquarePhoto, useOwnPhoto } from "@/lib/profile-photo/useOwnPhoto";
 import { getCompany, type CompanyData } from "@/services/companyService";
+import { getCompanyWhatsappLink } from "@/services/companyWhatsappService";
 import { createClient } from "@/lib/supabase/client";
 import { usePwa } from "@/components/pwa/PwaContext";
 import { useHydrated } from "@/lib/ui/useHydrated";
@@ -35,27 +38,46 @@ function Row({
   label,
   hint,
   badge,
+  external,
 }: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   hint?: string;
   badge?: number;
+  external?: boolean;
 }) {
-  return (
-    <Link
-      href={href}
-      className="group flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-slate-800/50 dark:active:bg-slate-800"
-    >
+  const rowClassName =
+    "group flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-slate-800/50 dark:active:bg-slate-800";
+  const content = (
+    <>
       <Icon className="h-5 w-5 shrink-0 text-slate-700 dark:text-slate-200" />
       <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-medium text-slate-950 dark:text-white">{label}</span>
-        {hint && <span className="block text-sm text-slate-600 dark:text-slate-300">{hint}</span>}
+        <span className="block break-words text-[15px] font-medium text-slate-950 [overflow-wrap:anywhere] dark:text-white">{label}</span>
+        {hint && <span className="block break-words text-sm text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">{hint}</span>}
       </span>
       {badge ? (
-        <span className="fsy-figure rounded-full bg-[#FC4E6D] px-2 py-0.5 text-xs font-semibold text-slate-950">{badge}</span>
+        <span className="fsy-figure shrink-0 rounded-full bg-[#FC4E6D] px-2 py-0.5 text-xs font-semibold text-slate-950">{badge}</span>
       ) : null}
-      <ChevronRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5" />
+      {external ? (
+        <ExternalLink className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
+      ) : (
+        <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
+      )}
+    </>
+  );
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={rowClassName}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={rowClassName}>
+      {content}
     </Link>
   );
 }
@@ -82,7 +104,7 @@ function AppearancePicker() {
   return (
     <div className="px-4 py-3">
       <p className="mb-2 text-[15px] font-medium text-slate-950 dark:text-white">Aparência</p>
-      <div role="radiogroup" aria-label="Aparência" className="grid grid-cols-3 gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-800">
+      <div role="radiogroup" aria-label="Aparência" className="flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800 sm:grid sm:grid-cols-3 sm:rounded-full">
         {options.map(({ value, label, icon: Icon }) => {
           const active = hydrated && (theme ?? "system") === value;
           return (
@@ -93,12 +115,12 @@ function AppearancePicker() {
               aria-checked={active}
               onClick={() => setTheme(value)}
               className={cn(
-                "flex min-h-11 items-center justify-center gap-1.5 rounded-full text-sm font-medium transition-colors",
+                "flex min-h-11 min-w-[5.25rem] flex-1 items-center justify-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-normal break-words sm:rounded-full",
                 active ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300"
               )}
             >
-              <Icon className="h-4 w-4" />
-              {label}
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{label}</span>
             </button>
           );
         })}
@@ -188,6 +210,7 @@ export function MorePage() {
   const { profile, loading } = useProfile();
   const { isInstalled } = usePwa();
   const [company, setCompany] = useState<CompanyData | null>(null);
+  const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
   const [pendingReviews, setPendingReviews] = useState(0);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -198,6 +221,7 @@ export function MorePage() {
   useEffect(() => {
     if (!profile?.company_id) return;
     getCompany(profile.company_id).then(({ data }) => setCompany(data));
+    getCompanyWhatsappLink(profile.company_id).then((item) => setWhatsappUrl(item?.invite_url ?? null));
   }, [profile?.company_id]);
 
   // Cargos de equipe só aparecem quando o perfil já confirmou o acesso. Jovem nunca vê essas entradas.
@@ -250,6 +274,15 @@ export function MorePage() {
 
         <Section title="Evento">
           <Row href="/fotos" icon={Images} label="Fotos" hint="Galeria do evento e Instagram" />
+          {whatsappUrl && (
+            <Row
+              href={whatsappUrl}
+              external
+              icon={MessageCircle}
+              label="Grupo da companhia no WhatsApp"
+              hint={company?.name ? `Conversa da ${company.name}` : "Abrir convite no WhatsApp"}
+            />
+          )}
           {!isInstalled && <Row href="/instalar" icon={Download} label="Instalar o app" hint="Android ou atalho na tela inicial" />}
         </Section>
 

@@ -16,6 +16,8 @@ export const BEARER_API_PREFIXES = [
   "/api/media",
   "/api/medical",
   "/api/notifications",
+  // Foto de perfil (ver, enviar, moderar): sem isto o app nativo recebe 401 em toda chamada de foto.
+  "/api/profile",
   "/api/schedule",
   "/api/users",
 ] as const;

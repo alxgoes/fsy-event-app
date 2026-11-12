@@ -61,8 +61,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import br.com.fsyrp2.app.model.WhatsappInviteValidator
 import br.com.fsyrp2.app.ui.icons.FsyIcons
 import br.com.fsyrp2.app.ui.motion.FsyMotion
 import br.com.fsyrp2.app.ui.motion.fsyMotionPreferences
@@ -80,6 +82,23 @@ import java.time.Instant
  */
 
 private val FsyButtonPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+private val FsyCompactButtonPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+
+/** Indica quando botões lado a lado devem empilhar em coluna para não estourar nem quebrar palavras. */
+@Composable
+fun isCompactActionLayout(minSideBySideWidthDp: Int = 380): Boolean {
+    val widthDp = LocalConfiguration.current.screenWidthDp
+    val fontScale = LocalDensity.current.fontScale
+    return widthDp < minSideBySideWidthDp || fontScale >= 1.3f
+}
+
+@Composable
+private fun defaultFsyButtonPadding(): PaddingValues =
+    if (LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale >= 1.3f) {
+        FsyCompactButtonPadding
+    } else {
+        FsyButtonPadding
+    }
 
 /** Botão principal (azul oficial). Aceita cores próprias, por exemplo para exclusão. */
 @Composable
@@ -88,7 +107,7 @@ fun FsyButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     colors: ButtonColors? = null,
-    contentPadding: PaddingValues = FsyButtonPadding,
+    contentPadding: PaddingValues? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -101,7 +120,7 @@ fun FsyButton(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
         ),
-        contentPadding = contentPadding,
+        contentPadding = contentPadding ?: defaultFsyButtonPadding(),
         interactionSource = interaction,
         content = content,
     )
@@ -114,7 +133,7 @@ fun FsyOutlinedButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     colors: ButtonColors? = null,
-    contentPadding: PaddingValues = FsyButtonPadding,
+    contentPadding: PaddingValues? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -128,7 +147,7 @@ fun FsyOutlinedButton(
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
-        contentPadding = contentPadding,
+        contentPadding = contentPadding ?: defaultFsyButtonPadding(),
         interactionSource = interaction,
         content = content,
     )
@@ -399,6 +418,18 @@ fun FsyAvatar(
     val initial = name.trim().firstOrNull { it.isLetter() }?.uppercaseChar()?.toString() ?: "F"
     val ringWidth = if (ring) (size.value * 0.04f).coerceIn(2f, 4f).dp else 0.dp
     val gap = if (ring) ringWidth else 0.dp
+    // Impede loop infinito de recarga caso a URL assinada renovada também falhe.
+    var errorRetries by remember { mutableStateOf(0) }
+    var lastFailedUrl by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(photoUrl) {
+        if (photoUrl.isNullOrBlank()) {
+            errorRetries = 0
+            lastFailedUrl = null
+        } else if (RemoteImageMemory.get(photoUrl) != null) {
+            errorRetries = 0
+            lastFailedUrl = null
+        }
+    }
     Box(
         modifier = modifier
             .size(size)
@@ -411,14 +442,18 @@ fun FsyAvatar(
             .semantics { contentDescription = "Foto de $name" },
         contentAlignment = Alignment.Center,
     ) {
+        val initialSp = with(LocalDensity.current) { (size * 0.38f).toSp() }
         Text(
             text = initial,
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontSize = initialSp,
+                lineHeight = initialSp,
+            ),
             fontFamily = LibreBaskervilleFontFamily,
             fontWeight = FontWeight.Bold,
             color = contentColor,
-            fontSize = androidx.compose.ui.unit.TextUnit((size.value * 0.4f), androidx.compose.ui.unit.TextUnitType.Sp),
-            textAlign = TextAlign.Center,
             maxLines = 1,
+            softWrap = false,
             overflow = TextOverflow.Clip,
         )
         if (!photoUrl.isNullOrBlank()) {
@@ -426,9 +461,153 @@ fun FsyAvatar(
                 url = photoUrl,
                 contentDescription = null,
                 showPlaceholder = false,
-                onError = onImageError,
+                onError = {
+                    if (errorRetries < 1 && lastFailedUrl != photoUrl) {
+                        lastFailedUrl = photoUrl
+                        errorRetries += 1
+                        onImageError?.invoke()
+                    }
+                },
                 modifier = Modifier.matchParentSize(),
             )
+        }
+    }
+}
+
+/**
+ * Diálogo compartilhado (Consultor e Gestão) para cadastrar, trocar ou remover o link
+ * do grupo de WhatsApp da companhia, com validação imediata do convite e confirmação ao remover.
+ */
+@Composable
+fun FsyWhatsappLinkDialog(
+    companyName: String,
+    currentInviteUrl: String?,
+    busy: Boolean = false,
+    errorMessage: String? = null,
+    onSave: (String) -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var draft by rememberSaveable(currentInviteUrl) { mutableStateOf(currentInviteUrl.orEmpty()) }
+    var confirmingRemoval by rememberSaveable { mutableStateOf(false) }
+    val trimmed = draft.trim()
+    val normalized = WhatsappInviteValidator.normalizeWhatsappInvite(trimmed)
+    val showValidationError = trimmed.isNotEmpty() && normalized == null
+
+    Dialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(20.dp)
+                .widthIn(max = 560.dp)
+                .fillMaxWidth()
+                .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.88f),
+            color = MaterialTheme.colorScheme.surface,
+            shape = FsyCardShape,
+        ) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()).padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                if (confirmingRemoval) {
+                    Text(
+                        text = "Remover link do grupo?",
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        text = "Os jovens de $companyName deixarão de ver o botão de entrada no WhatsApp até que um novo convite seja salvo.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    FsyButton(
+                        onClick = onRemove,
+                        enabled = !busy,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(if (busy) "Removendo…" else "Confirmar remoção")
+                    }
+                    FsyTextButton(
+                        onClick = { confirmingRemoval = false },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Voltar")
+                    }
+                } else {
+                    Text(
+                        text = if (currentInviteUrl.isNullOrBlank()) "Adicionar link do WhatsApp" else "Trocar link do WhatsApp",
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        text = "Grupo do WhatsApp — ${companyName.ifBlank { "Companhia" }}",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = "Cole o link de convite oficial do grupo da companhia (https://chat.whatsapp.com/...).",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    OutlinedTextField(
+                        value = draft,
+                        onValueChange = { if (it.length <= 200) draft = it },
+                        label = { Text("Link do grupo no WhatsApp") },
+                        placeholder = { Text("https://chat.whatsapp.com/...") },
+                        isError = showValidationError,
+                        singleLine = true,
+                        shape = FsyControlShape,
+                        supportingText = {
+                            if (showValidationError) {
+                                Text("Use um link de convite oficial: https://chat.whatsapp.com/...")
+                            } else {
+                                Text("Somente links https://chat.whatsapp.com/ são aceitos.")
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (!errorMessage.isNullOrBlank()) {
+                        FsyNotice(
+                            icon = FsyIcons.CircleAlert,
+                            text = errorMessage,
+                            container = MaterialTheme.colorScheme.errorContainer,
+                            content = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                    FsyButton(
+                        onClick = { normalized?.let(onSave) },
+                        enabled = normalized != null && !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(if (busy) "Salvando…" else "Salvar")
+                    }
+                    if (!currentInviteUrl.isNullOrBlank()) {
+                        FsyOutlinedButton(
+                            onClick = { confirmingRemoval = true },
+                            enabled = !busy,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error,
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            FsyButtonIcon(FsyIcons.Trash2)
+                            Text("Remover link")
+                        }
+                    }
+                    FsyTextButton(
+                        onClick = onDismiss,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            }
         }
     }
 }

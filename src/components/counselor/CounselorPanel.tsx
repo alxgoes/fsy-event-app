@@ -2,16 +2,18 @@
 
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Heart, Loader2, MessageCircle, Pencil, Phone, Plus, Search, Trash2 } from "lucide-react";
+import { ExternalLink, Heart, Loader2, MessageCircle, Pencil, Phone, Plus, Search, Trash2 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Avatar } from "@/components/profile/Avatar";
 import { PhotoReviews } from "@/components/counselor/PhotoReviews";
+import { CompanyWhatsappDialog } from "@/components/counselor/CompanyWhatsappDialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useProfile } from "@/lib/supabase/useProfile";
 import { createClient } from "@/lib/supabase/client";
 import { relativeTime } from "@/lib/ui/relativeTime";
+import { normalizeWhatsappInvite, type CompanyWhatsappLink } from "@/types/company-whatsapp";
 import { cn } from "@/lib/utils";
 
 interface CompanyData {
@@ -83,6 +85,9 @@ export function CounselorPanel() {
   const [savingMotto, setSavingMotto] = useState(false);
   const [mottoError, setMottoError] = useState<string | null>(null);
 
+  const [whatsappLink, setWhatsappLink] = useState<CompanyWhatsappLink | null>(null);
+  const [whatsappDialogOpen, setWhatsappDialogOpen] = useState(false);
+
   const companyId = profile?.company_id ?? null;
 
   /** Recarrega em segundo plano: a tela nunca some durante uma ação. */
@@ -94,11 +99,12 @@ export function CounselorPanel() {
     setLoadError(null);
     try {
       const supabase = createClient();
-      const [comp, members, ann, pics] = await Promise.all([
+      const [comp, members, ann, pics, whatsappRes] = await Promise.all([
         supabase.from("companies").select("*").eq("id", companyId).single(),
         supabase.from("profiles").select("id, full_name, room, stake, phone").eq("company_id", companyId).eq("role", "jovem").order("full_name"),
         fetch(`/api/announcements?company_id=${encodeURIComponent(companyId)}&_t=${Date.now()}`).then(readJson),
         fetch("/api/profile/photo/company", { cache: "no-store" }).then((r) => (r.ok ? r.json() : { data: {} })),
+        fetch("/api/companies/whatsapp", { cache: "no-store" }).then((r) => (r.ok ? r.json() : { data: [] })).catch(() => ({ data: [] })),
       ]);
       if (comp.error) throw comp.error;
       if (members.error) throw members.error;
@@ -106,6 +112,16 @@ export function CounselorPanel() {
       setYouth((members.data ?? []) as YouthMember[]);
       setNotices(((ann.data ?? []) as Announcement[]).filter((a) => a.target_company_id === companyId));
       setAvatars(pics.data ?? {});
+      const waList = Array.isArray(whatsappRes?.data) ? (whatsappRes.data as CompanyWhatsappLink[]) : [];
+      const waMatch = waList.find((item) => item.company_id === companyId) ?? null;
+      setWhatsappLink(
+        waMatch
+          ? {
+              ...waMatch,
+              invite_url: waMatch.invite_url ? normalizeWhatsappInvite(waMatch.invite_url) : null,
+            }
+          : null
+      );
     } catch {
       setLoadError("Não foi possível atualizar o painel agora. Verifique a conexão e tente de novo.");
     } finally {
@@ -201,9 +217,6 @@ export function CounselorPanel() {
             <p className="mx-auto mt-2 max-w-md text-[15px] text-slate-700 dark:text-slate-300">
               Você ainda não está vinculado a uma companhia. Assim que a coordenação designar, seus jovens e recados aparecem aqui.
             </p>
-            <div className="mt-6 text-left">
-              <PhotoReviews />
-            </div>
           </section>
         ) : (
           <>
@@ -228,10 +241,59 @@ export function CounselorPanel() {
               <button
                 type="button"
                 onClick={() => setComposeOpen(true)}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#007DA5] px-5 text-[15px] font-semibold text-white transition-[background-color,transform] hover:bg-[#005E7C] active:scale-[0.97]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#007DA5] px-5 py-2.5 text-[15px] font-semibold text-white transition-[background-color,transform] hover:bg-[#005E7C] active:scale-[0.97] whitespace-normal break-words"
               >
-                <Plus className="h-5 w-5" /> Novo recado
+                <Plus className="h-5 w-5 shrink-0" /> <span>Novo recado</span>
               </button>
+            </section>
+
+            <section
+              aria-label="Grupo do WhatsApp"
+              className="flex min-w-0 flex-col justify-between gap-3 rounded-3xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:px-5"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <MessageCircle className="h-5 w-5 shrink-0 text-[#007DA5]" />
+                  <h2 className="font-heading text-base font-bold text-slate-950 dark:text-white">
+                    Grupo do WhatsApp
+                  </h2>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                      whatsappLink?.invite_url
+                        ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    )}
+                  >
+                    {whatsappLink?.invite_url ? "Link ativo" : "Sem link"}
+                  </span>
+                </div>
+                <p className="mt-1 break-words text-sm text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
+                  {whatsappLink?.invite_url
+                    ? "Os jovens da sua companhia já podem entrar no grupo pelo Início e em Mais."
+                    : "Adicione o link de convite do grupo da companhia para liberar o botão aos jovens."}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {whatsappLink?.invite_url && (
+                  <a
+                    href={whatsappLink.invite_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 whitespace-normal break-words dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    <span>Abrir grupo</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setWhatsappDialogOpen(true)}
+                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#007DA5] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005E7C] whitespace-normal break-words"
+                >
+                  <span>{whatsappLink?.invite_url ? "Trocar link" : "Adicionar link"}</span>
+                </button>
+              </div>
             </section>
 
             {loadError && (
@@ -243,7 +305,7 @@ export function CounselorPanel() {
 
             <PhotoReviews />
 
-            <div role="tablist" aria-label="Seções do painel" className="grid w-full min-w-0 max-w-md grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-1 rounded-2xl bg-slate-200/60 p-1 dark:bg-slate-800">
+            <div role="tablist" aria-label="Seções do painel" className="grid w-full min-w-0 max-w-md grid-cols-[repeat(auto-fit,minmax(min(100%,7.25rem),1fr))] gap-1 rounded-2xl bg-slate-200/60 p-1 dark:bg-slate-800">
               {([
                 ["jovens", `Jovens (${youth.length})`],
                 ["recados", `Recados (${notices.length})`],
@@ -346,7 +408,7 @@ export function CounselorPanel() {
             </DialogHeader>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título" required minLength={2} maxLength={150} aria-label="Título" className="h-12" />
             <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Mensagem" required minLength={2} maxLength={5000} aria-label="Mensagem" className="min-h-32" />
-            <div role="radiogroup" aria-label="Prioridade" className="grid grid-cols-3 gap-1 rounded-full bg-slate-100 p-1 dark:bg-slate-800">
+            <div role="radiogroup" aria-label="Prioridade" className="flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1 dark:bg-slate-800 sm:grid sm:grid-cols-3 sm:rounded-full">
               {PRIORITIES.map((p) => (
                 <button
                   key={p.value}
@@ -354,7 +416,7 @@ export function CounselorPanel() {
                   role="radio"
                   aria-checked={priority === p.value}
                   onClick={() => setPriority(p.value)}
-                  className={cn("min-h-11 rounded-full text-sm font-medium", priority === p.value ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300")}
+                  className={cn("min-h-11 min-w-[5.25rem] flex-1 rounded-xl px-2.5 py-1.5 text-sm font-medium whitespace-normal break-words sm:rounded-full", priority === p.value ? "bg-white text-slate-950 shadow-sm dark:bg-slate-950 dark:text-white" : "text-slate-600 dark:text-slate-300")}
                 >
                   {p.label}
                 </button>
@@ -403,6 +465,18 @@ export function CounselorPanel() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {companyId && (
+        <CompanyWhatsappDialog
+          key={`${companyId}-${whatsappLink?.invite_url ?? "none"}-${whatsappDialogOpen ? "open" : "closed"}`}
+          open={whatsappDialogOpen}
+          onOpenChange={setWhatsappDialogOpen}
+          companyId={companyId}
+          companyName={company?.name || whatsappLink?.company_name || "Minha companhia"}
+          currentUrl={whatsappLink?.invite_url ?? null}
+          onSaved={(updated) => setWhatsappLink(updated)}
+        />
+      )}
     </div>
   );
 }
