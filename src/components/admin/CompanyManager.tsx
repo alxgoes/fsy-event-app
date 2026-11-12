@@ -19,6 +19,8 @@ import {
   AlertTriangle,
   Palette,
   UserCheck,
+  MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CompanyWhatsappDialog } from "@/components/counselor/CompanyWhatsappDialog";
+import {
+  normalizeWhatsappInvite,
+  type CompanyWhatsappLink,
+} from "@/types/company-whatsapp";
 
 interface CounselorProfile {
   id: string;
@@ -57,7 +64,7 @@ const PRESET_COLORS = [
   { name: "Coral Vivo Festivo", value: "#FC4E6D" },
   { name: "Verde FSY", value: "#93C742" },
   { name: "Ouro Solar Radiante", value: "#FFE48A" },
-  { name: "Azul FSY", value: "#007DA5" },
+  { name: "Azul Profundo FSY", value: "#005E7C" },
   { name: "Laranja Solar", value: "#F77F00" },
   { name: "Ciano Marinho", value: "#4CC9F0" },
   { name: "Rubi Intenso", value: "#E63946" },
@@ -66,6 +73,8 @@ const PRESET_COLORS = [
 export function CompanyManager() {
   const [companies, setCompanies] = useState<CompanyItem[]>([]);
   const [counselors, setCounselors] = useState<CounselorProfile[]>([]);
+  const [whatsappByCompany, setWhatsappByCompany] = useState<Record<string, CompanyWhatsappLink>>({});
+  const [whatsappEditingCompany, setWhatsappEditingCompany] = useState<CompanyItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -91,9 +100,10 @@ export function CompanyManager() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/companies?_t=${Date.now()}`, {
-        cache: "no-store",
-      });
+      const [res, whatsappRes] = await Promise.all([
+        fetch(`/api/companies?_t=${Date.now()}`, { cache: "no-store" }),
+        fetch(`/api/companies/whatsapp?_t=${Date.now()}`, { cache: "no-store" }).catch(() => null),
+      ]);
 
       if (!res.ok) {
         throw new Error("Falha ao carregar companhias.");
@@ -102,6 +112,24 @@ export function CompanyManager() {
       const json = await res.json();
       setCompanies(json.companies ?? []);
       setCounselors(json.all_counselors ?? []);
+
+      if (whatsappRes && whatsappRes.ok) {
+        const waJson = (await whatsappRes.json().catch(() => ({}))) as {
+          data?: CompanyWhatsappLink[];
+        };
+        const map: Record<string, CompanyWhatsappLink> = {};
+        for (const item of waJson.data ?? []) {
+          if (item && item.company_id) {
+            map[item.company_id] = {
+              ...item,
+              invite_url: item.invite_url
+                ? normalizeWhatsappInvite(item.invite_url)
+                : null,
+            };
+          }
+        }
+        setWhatsappByCompany(map);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido";
       setError(msg);
@@ -233,42 +261,67 @@ export function CompanyManager() {
 
   const totalYouth = companies.reduce((acc, c) => acc + (c.youth_count || 0), 0);
   const totalAssignedCounselors = counselors.filter((c) => c.company_id).length;
+  const companiesWithoutCounselorCount = companies.filter((c) => {
+    const waEntry = whatsappByCompany[c.id];
+    const hasCounselorNames =
+      Array.isArray(c.counselors) &&
+      c.counselors.some((n) => typeof n === "string" && n.trim().length > 0);
+    return !hasCounselorNames && !waEntry?.has_counselor;
+  }).length;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#007DA5] text-white border border-slate-200 dark:border-slate-700 shadow-sm">
-            <Building2 className="h-6 w-6" />
+      <div className="flex min-w-0 flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-[#007DA5] text-white shadow-sm dark:border-slate-700">
+            <Building2 className="h-6 w-6 shrink-0" />
           </div>
-          <div>
-            <h2 className="font-heading text-2xl font-bold text-slate-900 dark:text-white">
+          <div className="min-w-0">
+            <h2 className="break-words font-heading text-2xl font-bold text-slate-900 [overflow-wrap:anywhere] dark:text-white">
               Gestão de Companhias do FSY
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-300 dark:text-slate-400">
+            <p className="break-words text-xs text-slate-500 [overflow-wrap:anywhere] dark:text-slate-300">
               Casal Diretor, Coordenação e Logística • Criação e designação de consultores
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
+            type="button"
             onClick={loadData}
-            className="flex items-center gap-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 text-xs font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors min-h-[36px]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold shadow-sm transition-colors hover:bg-slate-50 whitespace-normal break-words dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
           >
-            <RefreshCw className="h-4 w-4" />
-            Atualizar
+            <RefreshCw className="h-4 w-4 shrink-0" />
+            <span>Atualizar</span>
           </button>
           <button
+            type="button"
             onClick={openCreateModal}
-            className="flex items-center gap-2 rounded-2xl bg-[#93C742] text-emerald-950 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-xs font-bold shadow-sm hover:opacity-90 transition-opacity min-h-[36px]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-[#93C742] px-4 py-2.5 text-xs font-bold text-emerald-950 shadow-sm transition-opacity hover:opacity-90 whitespace-normal break-words dark:border-slate-700"
           >
-            <Plus className="h-4 w-4" />
-            Nova Companhia
+            <Plus className="h-4 w-4 shrink-0" />
+            <span>Nova Companhia</span>
           </button>
         </div>
       </div>
+
+      {/* Resumo de companhias sem consultor */}
+      {!loading && companiesWithoutCounselorCount > 0 && (
+        <div
+          role="status"
+          className="flex min-w-0 flex-wrap items-center gap-2.5 rounded-2xl border border-amber-300 bg-amber-50/90 px-4 py-3 text-sm font-semibold text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+          <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+            {companiesWithoutCounselorCount === 1
+              ? "1 companhia sem consultor"
+              : `${companiesWithoutCounselorCount} companhias sem consultor`}
+            {" · "}Você já pode configurar o grupo do WhatsApp de cada companhia antes da designação.
+          </span>
+        </div>
+      )}
 
       {/* Success Notification */}
       <AnimatePresence>
@@ -277,22 +330,28 @@ export function CompanyManager() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fsy-panel rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-sm"
+            className="fsy-panel flex min-w-0 items-center gap-2 rounded-2xl border-2 border-emerald-600 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 shadow-sm dark:bg-emerald-950/40 dark:text-emerald-200"
           >
-            <CheckCircle2 className="h-5 w-5 text-emerald-800 dark:text-emerald-300 shrink-0" />
-            <span>Companhia e consultores salvos no banco de dados com sucesso!</span>
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-800 dark:text-emerald-300" />
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+              Companhia e consultores salvos no banco de dados com sucesso!
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Error Banner */}
       {error && (
-        <div className="fsy-panel rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-2">
+        <div className="fsy-panel flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-red-500 bg-red-50 px-4 py-3 text-sm font-bold text-red-700 shadow-sm dark:bg-red-950/30 dark:text-red-300">
+          <div className="flex min-w-0 items-center gap-2">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
+            <span className="min-w-0 break-words [overflow-wrap:anywhere]">{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="underline text-xs">
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs underline"
+          >
             fechar
           </button>
         </div>
@@ -339,14 +398,14 @@ export function CompanyManager() {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600 dark:text-slate-300" />
         <Input
           type="text"
           aria-label="Buscar por companhia, lema ou consultor"
           placeholder="Buscar por companhia, lema ou consultor..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10"
+          className="min-h-11 w-full pl-10"
         />
       </div>
 
@@ -370,93 +429,148 @@ export function CompanyManager() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredCompanies.map((comp) => (
-            <motion.div
-              key={comp.id}
-              whileHover={{ y: -3 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="fsy-panel rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-brutal-md flex flex-col justify-between"
-            >
-              <div>
-                {/* Color Pill & Actions */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-white font-bold text-xs border border-slate-900/40 shadow-sm"
-                    style={{ backgroundColor: comp.color || "#007DA5", color: contrastText(comp.color || "#007DA5") }}
-                  >
-                    <span className="h-2 w-2 rounded-full bg-white/80" />
-                    <span>{comp.id.toUpperCase()}</span>
-                  </div>
+          {filteredCompanies.map((comp) => {
+            const waItem = whatsappByCompany[comp.id];
+            const waUrl = waItem?.invite_url ?? null;
+            const hasCounselors =
+              Array.isArray(comp.counselors) &&
+              comp.counselors.some((cName) => typeof cName === "string" && cName.trim().length > 0);
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => openEditModal(comp)}
-                      aria-label={`Editar ${comp.name}`}
-                      className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
-                      title="Editar Companhia"
+            return (
+              <motion.div
+                key={comp.id}
+                whileHover={{ y: -3 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="fsy-panel flex min-w-0 flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-brutal-md dark:border-slate-700 dark:bg-slate-900"
+              >
+                <div className="min-w-0">
+                  {/* Color Pill & Actions */}
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div
+                      className="flex min-w-0 items-center gap-1.5 rounded-xl border border-slate-900/40 px-2.5 py-1 text-xs font-bold text-white shadow-sm"
+                      style={{ backgroundColor: comp.color || "#007DA5", color: contrastText(comp.color || "#007DA5") }}
                     >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setCompanyToDelete(comp)}
-                      aria-label={`Excluir ${comp.name}`}
-                      className="p-1.5 rounded-xl border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors min-h-[36px] min-w-[36px] inline-flex items-center justify-center"
-                      title="Excluir Companhia"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Company Name */}
-                <h3 className="font-heading text-xl font-bold text-slate-900 dark:text-white leading-snug">
-                  {comp.name}
-                </h3>
-
-                {/* Motto */}
-                {comp.motto && (
-                  <p className="mt-1 text-xs italic font-semibold text-slate-600 dark:text-slate-400 line-clamp-2">
-                    &ldquo;{comp.motto}&rdquo;
-                  </p>
-                )}
-
-                {/* Counselors Section */}
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1.5">
-                    Consultores Designados
-                  </span>
-                  {comp.counselors && comp.counselors.length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {comp.counselors.map((cName, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-[#005E7C] dark:text-cyan-300 border border-sky-200 dark:border-sky-800 px-2 py-0.5 text-xs font-bold"
-                        >
-                          <UserCheck className="h-3 w-3" />
-                          {cName}
-                        </span>
-                      ))}
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-white/80" />
+                      <span className="break-words [overflow-wrap:anywhere]">{comp.id.toUpperCase()}</span>
                     </div>
-                  ) : (
-                    <span className="text-xs font-semibold text-amber-800 dark:text-amber-300 dark:text-amber-400 flex items-center gap-1">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Nenhum consultor designado
-                    </span>
-                  )}
-                </div>
-              </div>
 
-              {/* Footer KPI */}
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-300 dark:text-slate-400 font-bold">
-                  Jovens registrados:
-                </span>
-                <span className="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 font-bold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700">
-                  {comp.youth_count || 0} jovens
-                </span>
-              </div>
-            </motion.div>
-          ))}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(comp)}
+                        aria-label={`Editar ${comp.name}`}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        title="Editar Companhia"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCompanyToDelete(comp)}
+                        aria-label={`Excluir ${comp.name}`}
+                        className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-red-200 p-2 text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/40"
+                        title="Excluir Companhia"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Company Name */}
+                  <h3 className="break-words font-heading text-xl font-bold leading-snug text-slate-900 [overflow-wrap:anywhere] dark:text-white">
+                    {comp.name}
+                  </h3>
+
+                  {/* Motto */}
+                  {comp.motto && (
+                    <p className="mt-1 line-clamp-2 break-words text-xs font-semibold italic text-slate-600 [overflow-wrap:anywhere] dark:text-slate-400">
+                      &ldquo;{comp.motto}&rdquo;
+                    </p>
+                  )}
+
+                  {/* Counselors Section */}
+                  <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+                    <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                      Consultores Designados
+                    </span>
+                    {hasCounselors ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {comp.counselors.map((cName, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex min-w-0 items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-bold text-[#005E7C] dark:border-sky-800 dark:bg-sky-950/60 dark:text-cyan-300"
+                          >
+                            <UserCheck className="h-3 w-3 shrink-0" />
+                            <span className="break-words [overflow-wrap:anywhere]">{cName}</span>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        <span>Sem consultor designado</span>
+                      </span>
+                    )}
+                  </div>
+
+                  {/* WhatsApp Group Link Section */}
+                  <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                        <MessageCircle className="h-3.5 w-3.5 shrink-0 text-[#007DA5]" />
+                        <span>Grupo do WhatsApp</span>
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          waUrl
+                            ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200"
+                            : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        {waUrl ? "Link ativo" : "Sem link"}
+                      </span>
+                    </div>
+                    {waItem?.updated_by_name && waUrl && (
+                      <p className="mt-1 break-words text-xs text-slate-500 [overflow-wrap:anywhere] dark:text-slate-400">
+                        Atualizado por {waItem.updated_by_name}
+                      </p>
+                    )}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                      {waUrl && (
+                        <a
+                          href={waUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-800 transition-colors hover:bg-slate-50 whitespace-normal break-words dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          <span>Abrir grupo</span>
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setWhatsappEditingCompany(comp)}
+                        aria-label={`${waUrl ? "Trocar link" : "Adicionar link"} do WhatsApp — ${comp.name}`}
+                        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-[#007DA5] px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-[#005E7C] whitespace-normal break-words"
+                      >
+                        <span>{waUrl ? "Trocar link" : "Adicionar link"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer KPI */}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs dark:border-slate-800">
+                  <span className="font-bold text-slate-500 dark:text-slate-300">
+                    Jovens registrados:
+                  </span>
+                  <span className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+                    {comp.youth_count || 0} jovens
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
@@ -524,10 +638,10 @@ export function CompanyManager() {
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map((col) => (
                   <button
-                    key={col.value}
+                    key={col.name}
                     type="button"
                     onClick={() => setFormColor(col.value)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold border-2 transition-all min-h-[36px] ${
+                    className={`flex min-h-11 items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-bold transition-all whitespace-normal break-words ${
                       formColor === col.value
                         ? "border-slate-900 dark:border-white shadow-sm scale-105"
                         : "border-transparent opacity-80 hover:opacity-100"
@@ -583,24 +697,24 @@ export function CompanyManager() {
                       return (
                         <label
                           key={c.id}
-                          className={`flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-colors text-xs font-semibold ${
+                          className={`flex min-h-11 flex-wrap items-center justify-between gap-2 rounded-xl border p-2.5 text-xs font-semibold cursor-pointer transition-colors ${
                             isSelected
                               ? "bg-sky-50 dark:bg-sky-950/60 border-[#007DA5] text-[#005E7C] dark:text-cyan-200"
                               : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                           }`}
                         >
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex min-w-0 items-center gap-2.5">
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleCounselorSelection(c.id)}
-                              className="rounded border-slate-400 text-[#005E7C] dark:text-[#7DE3F4] focus:ring-[#007DA5]"
+                              className="h-4 w-4 shrink-0 rounded border-slate-400 text-[#005E7C] focus:ring-[#007DA5] dark:text-[#7DE3F4]"
                             />
-                            <span className="font-bold">{c.full_name}</span>
+                            <span className="break-words font-bold [overflow-wrap:anywhere]">{c.full_name}</span>
                           </div>
 
                           {isAssignedOther && !isSelected && (
-                            <span className="text-xs text-amber-800 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
+                            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                               Na {companies.find((company) => company.id === c.company_id)?.name ?? "outra companhia"}
                             </span>
                           )}
@@ -612,12 +726,12 @@ export function CompanyManager() {
             </div>
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              className="rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold min-h-[36px]"
+              className="min-h-11 rounded-2xl border border-slate-200 px-4 py-2 text-xs font-bold whitespace-normal break-words dark:border-slate-700"
             >
               Cancelar
             </Button>
@@ -625,17 +739,17 @@ export function CompanyManager() {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="rounded-2xl bg-[#007DA5] hover:bg-[#005E7C] text-white font-bold text-xs shadow-sm min-h-[36px]"
+              className="min-h-11 rounded-2xl bg-[#007DA5] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#005E7C] whitespace-normal break-words"
             >
               {saving ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
-                  Salvando...
+                  <Loader2 className="mr-1.5 h-4 w-4 shrink-0 animate-spin" />
+                  <span>Salvando...</span>
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-1.5" />
-                  Salvar Companhia
+                  <Save className="mr-1.5 h-4 w-4 shrink-0" />
+                  <span>Salvar Companhia</span>
                 </>
               )}
             </Button>
@@ -651,8 +765,8 @@ export function CompanyManager() {
         <DialogContent className="fsy-panel sm:max-w-md rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-brutal-lg">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Confirmar Exclusão de Companhia
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              <span>Confirmar Exclusão de Companhia</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-600 dark:text-slate-400">
               Tem certeza que deseja excluir a <strong>{companyToDelete?.name}</strong>?
@@ -660,12 +774,12 @@ export function CompanyManager() {
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setCompanyToDelete(null)}
-              className="rounded-2xl text-xs font-bold"
+              className="min-h-11 rounded-2xl px-4 py-2 text-xs font-bold whitespace-normal break-words"
             >
               Cancelar
             </Button>
@@ -673,20 +787,37 @@ export function CompanyManager() {
               type="button"
               onClick={handleDelete}
               disabled={!!deletingId}
-              className="rounded-2xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+              className="min-h-11 rounded-2xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 whitespace-normal break-words"
             >
               {deletingId ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
-                  Excluindo...
+                  <Loader2 className="mr-1.5 h-4 w-4 shrink-0 animate-spin" />
+                  <span>Excluindo...</span>
                 </>
               ) : (
-                "Sim, Excluir Companhia"
+                <span>Sim, Excluir Companhia</span>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {whatsappEditingCompany && (
+        <CompanyWhatsappDialog
+          key={`${whatsappEditingCompany.id}-${whatsappByCompany[whatsappEditingCompany.id]?.invite_url ?? "none"}`}
+          open={Boolean(whatsappEditingCompany)}
+          onOpenChange={(open) => !open && setWhatsappEditingCompany(null)}
+          companyId={whatsappEditingCompany.id}
+          companyName={whatsappEditingCompany.name}
+          currentUrl={whatsappByCompany[whatsappEditingCompany.id]?.invite_url ?? null}
+          onSaved={(updated) => {
+            setWhatsappByCompany((prev) => ({
+              ...prev,
+              [updated.company_id]: updated,
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }

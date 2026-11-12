@@ -29,20 +29,20 @@ export function MemoriesCard() {
     <motion.div
       whileHover={shouldReduceMotion ? undefined : { y: -2 }}
       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-      className="relative flex flex-col justify-between rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-7 text-slate-900 dark:text-slate-100 shadow-sm"
+      className="relative flex min-w-0 flex-col justify-between rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-7 text-slate-900 dark:text-slate-100 shadow-sm"
     >
-      <div>
+      <div className="min-w-0">
         {/* Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3.5">
+        <div className="flex min-w-0 flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex min-w-0 items-center gap-3.5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FD1D1D] via-[#E1306C] to-[#C13584] text-white border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
               <InstagramIcon className="h-6 w-6" />
             </div>
-            <div>
-              <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div className="min-w-0">
+              <h3 className="break-words font-heading text-xl sm:text-2xl font-black text-slate-900 [overflow-wrap:anywhere] dark:text-white">
                 Mural do FSY no Instagram
               </h3>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-300 dark:text-slate-400 mt-0.5">
+              <p className="break-words text-xs font-bold text-slate-500 [overflow-wrap:anywhere] dark:text-slate-300 mt-0.5">
                 @fsy_ribeiraopreto
               </p>
             </div>

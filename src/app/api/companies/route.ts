@@ -111,7 +111,9 @@ export async function PUT(request: Request) {
     if (Object.keys(body ?? {}).some((key) => !allowedKeys.has(key))) {
       return json({ error: "Consultores podem alterar apenas o lema da companhia." }, 403);
     }
-    if (!body.id || body.id !== auth.identity.profile.company_id) {
+    const ownCompanyId = auth.identity.profile.company_id?.trim() || null;
+    const targetId = typeof body.id === "string" ? body.id.trim() : "";
+    if (!targetId || !ownCompanyId || targetId !== ownCompanyId) {
       return json({ error: "Você só pode alterar o lema da sua companhia." }, 403);
     }
     const motto = typeof body.motto === "string" && body.motto.trim() ? body.motto.trim().slice(0, 300) : null;

@@ -57,7 +57,16 @@ export async function GET(request: Request) {
 
     const { data, error } = await query;
     if (error) return serverError("announcements.get", error);
-    const rows = data ?? [];
+    const rawRows = data ?? [];
+    const rows = rawRows.filter((row) => {
+      if (scope && COMPANY_ID.test(scope)) {
+        return !row.target_company_id || row.target_company_id === scope;
+      }
+      if (!canManageAll(identity) || (requested && !COMPANY_ID.test(requested))) {
+        return !row.target_company_id;
+      }
+      return true;
+    });
 
     const ids = rows.map((row) => row.id);
     const likes = new Map<string, { count: number; mine: boolean }>();

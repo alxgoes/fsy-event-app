@@ -206,7 +206,7 @@ async function run() {
     }
 
     // Fonte ampliada mantém o mesmo gate de alvos, rótulos, contraste e transbordamento.
-    for (const width of [768, 390]) for (const route of ['/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/admin/users', '/admin/schedule', '/consultor', '/admin/inscricoes']) {
+    for (const width of [1280, 768, 390]) for (const route of ['/dashboard', '/schedule', '/announcements', '/mais', '/fotos', '/admin/users', '/admin/companies', '/admin/schedule', '/consultor', '/admin/inscricoes']) {
       await page.setViewport({ width, height: 1024 });
       await visit(route, youthRoutes.has(route) ? '5' : route === '/consultor' ? '4' : '1');
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
@@ -214,13 +214,25 @@ async function run() {
       await audit({ textScale200: true, width, route, mobile: width < 768, dark: false, youth: youthRoutes.has(route) });
     }
 
-    for (const width of [320, 360]) for (const route of ['/consultor', '/admin/schedule']) for (const enlarged of [false, true]) {
+    for (const width of [320, 360]) for (const route of ['/mais', '/fotos', '/consultor', '/admin/companies', '/admin/inscricoes', '/admin/schedule']) for (const enlarged of [false, true]) {
       await page.setViewport({ width, height: 844 });
-      await visit(route, route === '/consultor' ? '4' : '3', true);
+      const who = youthRoutes.has(route) ? '5' : route === '/consultor' ? '4' : '3';
+      await visit(route, who, true);
       if (enlarged) await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
-      await audit({ mobileLayoutRegression: true, enlarged, width, route, mobile: true, dark: true });
+      await audit({ mobileLayoutRegression: true, enlarged, width, route, mobile: true, dark: true, youth: youthRoutes.has(route) });
       await page.screenshot({ path: output(`fsy-correcao-${route.slice(1).replaceAll('/', '-')}-${width}-${enlarged ? 'fonte200' : 'normal'}.png`), fullPage: true });
     }
+
+    // Verifica diálogos de WhatsApp da companhia em /consultor e /admin/companies (320px e fonte 200%).
+    await page.setViewport({ width: 320, height: 844 });
+    await visit('/consultor', '4', false);
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+    await clickVisible('section[aria-label="Grupo do WhatsApp"] button');
+    await page.waitForSelector('[role=dialog]');
+    await audit({ route: '/consultor', mobile: true, dark: false, enlarged: true, width: 320, whatsappDialog: true });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.querySelector('[role=dialog]'));
+    await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 
     await page.setViewport({ width: 390, height: 844 });
     await visit('/dashboard', '5');

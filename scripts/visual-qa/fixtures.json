@@ -370,6 +370,14 @@
   ],
   "schedule_items": [],
   "medical_appointments": [],
-  "inclusion_cases": []
+  "inclusion_cases": [],
+  "company_whatsapp_links": [
+   {
+    "company_id": "cia-1",
+    "invite_url": "https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv",
+    "updated_by": "50000000-0000-4000-8000-000000000004",
+    "updated_at": "2026-11-11T12:00:00Z"
+   }
+  ]
  }
 }

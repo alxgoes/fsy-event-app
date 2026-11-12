@@ -51,7 +51,9 @@ export async function GET() {
     const { data, error } = await query;
     if (error) return serverError("profile-photo.reviews.list", error);
 
-    const rows = ((data ?? []) as PhotoProfileRow[]).filter((row) => row.role === "jovem");
+    const rows = ((data ?? []) as PhotoProfileRow[]).filter(
+      (row) => row.role === "jovem" && (scope.all || row.company_id === scope.companyId)
+    );
     const companyIds = Array.from(new Set(rows.map((r) => r.company_id).filter((id): id is string => Boolean(id))));
     const { data: companies } = companyIds.length
       ? await admin.from("companies").select("id, name").in("id", companyIds)
