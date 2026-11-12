@@ -117,15 +117,19 @@ const TIME_RE = /^\d{2}:\d{2}$/;
  * O que cada pessoa vê na agenda. Jovens não veem o dia zero nem atividades
  * internas da equipe (reuniões de coordenação, preparação de check-in etc.).
  */
+/** Atividade interna da equipe: todo o dia zero, categoria "Equipe" e preparações antigas marcadas como "Logística". */
+export function isStaffOnlyActivity(item: Pick<ScheduleItem, "day" | "category" | "title">): boolean {
+  return (
+    item.day === "dia0" ||
+    item.category === "Equipe" ||
+    // Bancos semeados antes de nov/2026 marcam a preparação da equipe como "Logística".
+    (item.category === "Logística" && /^Prepara/i.test(item.title))
+  );
+}
+
 export function scheduleVisibleTo(role: string | null | undefined, items: ScheduleItem[]): ScheduleItem[] {
   if (role && role !== "jovem") return items;
-  return items.filter(
-    (item) =>
-      item.day !== "dia0" &&
-      item.category !== "Equipe" &&
-      // Bancos semeados antes de nov/2026 marcam a preparação da equipe como "Logística".
-      !(item.category === "Logística" && /^Prepara/i.test(item.title))
-  );
+  return items.filter((item) => !isStaffOnlyActivity(item));
 }
 
 function addMinutes(hhmm: string, minutes: number) {
