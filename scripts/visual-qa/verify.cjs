@@ -118,12 +118,22 @@ async function run() {
       await page.evaluate(() => document.fonts.ready);
       await sleep(250);
     }
+    // Conteúdo que chega depois (ex.: link do WhatsApp em Mais) pode re-renderizar a lista entre achar e clicar:
+    // busca de novo e tenta outra vez em vez de clicar num elemento substituído.
     async function clickVisible(selector) {
-      for (const element of await page.$$(selector)) {
-        const box = await element.boundingBox();
-        if (box?.width && box?.height) { await element.click(); return element; }
+      let lastError = null;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        for (const element of await page.$$(selector)) {
+          try {
+            const box = await element.boundingBox();
+            if (box?.width && box?.height) { await element.click(); return element; }
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        await sleep(300);
       }
-      throw new Error(`Controle visível ausente: ${selector}`);
+      throw lastError ?? new Error(`Controle visível ausente: ${selector}`);
     }
     async function audit(context) {
       const state = await page.evaluate(() => {
