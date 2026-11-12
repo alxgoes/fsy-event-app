@@ -77,6 +77,14 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            // Confirmação de instalação pedida pelo Android: aberta por esta tela em primeiro plano.
+            val confirm = appState.pendingInstallConfirmation
+            androidx.compose.runtime.LaunchedEffect(confirm) {
+                if (confirm != null) {
+                    runCatching { startActivity(confirm) }
+                    appState.consumeInstallConfirmation()
+                }
+            }
             FsyTheme {
                 FsyRootContent(appState = appState)
             }
