@@ -67,8 +67,8 @@ android {
         applicationId = "br.com.fsyrp2.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.3.0"
+        versionCode = 7
+        versionName = "1.3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -210,6 +210,7 @@ dependencies {
     "testDebugImplementation"("androidx.test:core:1.6.1")
     "testDebugImplementation"("androidx.test.ext:junit:1.2.1")
     "testDebugImplementation"("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi:1.29.0")
     "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi-compose:1.29.0")
 }
