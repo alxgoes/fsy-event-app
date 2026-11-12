@@ -1168,18 +1168,18 @@ fun CompaniesAdminModuleView(appState: FsyAppState) {
         var name by remember(compTarget) { mutableStateOf(compTarget.name) }
         var motto by remember(compTarget) { mutableStateOf(compTarget.motto.orEmpty()) }
 
-        var color by remember(compTarget) { mutableStateOf(compTarget.color ?: "#006184") }
+        var color by remember(compTarget) { mutableStateOf(compTarget.color ?: "#007DA5") }
 
 
         AlertDialog(
             onDismissRequest = { editingCompany = null },
             title = { Text(if (creatingNew) "Nova Companhia" else "Editar Companhia") },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.verticalScroll(rememberScrollState())) {
                     OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nome da companhia") }, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(value = motto, onValueChange = { motto = it }, label = { Text("Lema / Grito de guerra") }, modifier = Modifier.fillMaxWidth())
 
-                    OutlinedTextField(value = color, onValueChange = { color = it }, label = { Text("Cor Hex (ex: #007DA5)") }, modifier = Modifier.fillMaxWidth())
+                    br.com.fsyrp2.app.ui.components.FsyColorPicker(selectedHex = color, onSelect = { color = it })
                     Text("Consultores vinculados", fontWeight = FontWeight.Bold)
                     Column(modifier = Modifier.heightIn(max = 200.dp).verticalScroll(rememberScrollState())) {
                         counselors.forEach { counselor ->

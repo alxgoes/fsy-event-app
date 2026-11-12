@@ -210,6 +210,7 @@ dependencies {
     "testDebugImplementation"("androidx.test:core:1.6.1")
     "testDebugImplementation"("androidx.test.ext:junit:1.2.1")
     "testDebugImplementation"("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi:1.29.0")
     "testDebugImplementation"("io.github.takahirom.roborazzi:roborazzi-compose:1.29.0")
 }

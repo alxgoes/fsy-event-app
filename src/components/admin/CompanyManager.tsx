@@ -651,6 +651,23 @@ export function CompanyManager() {
                     <span>{col.name}</span>
                   </button>
                 ))}
+                {/* Roda de cores do próprio navegador: escolhe qualquer cor sem digitar código. */}
+                <label
+                  className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border-2 px-3 py-1.5 text-xs font-bold transition-all ${
+                    PRESET_COLORS.some((col) => col.value.toLowerCase() === formColor.toLowerCase())
+                      ? "border-slate-300 text-slate-800 dark:border-slate-700 dark:text-slate-100"
+                      : "border-slate-900 dark:border-white shadow-sm"
+                  }`}
+                >
+                  <input
+                    type="color"
+                    value={/^#[0-9a-f]{6}$/i.test(formColor) ? formColor : "#007DA5"}
+                    onChange={(e) => setFormColor(e.target.value.toUpperCase())}
+                    className="h-7 w-7 cursor-pointer rounded-full border-0 bg-transparent p-0"
+                    aria-label="Outra cor (roda de cores)"
+                  />
+                  <span>Outra cor</span>
+                </label>
               </div>
             </div>
 
