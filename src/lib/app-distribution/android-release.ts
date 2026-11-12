@@ -150,8 +150,14 @@ export function getAppDistributionManifest(
     process.env.NEXT_PUBLIC_ANDROID_APK_URL
   );
   const derivedGithubUrl = deriveGithubReleaseDownloadUrl(androidMeta);
+  // O link derivado aponta exatamente para o APK cujo SHA-256 está no metadado; uma variável
+  // de ambiente antiga não pode mandar baixar outra versão (o app recusaria o arquivo).
+  // A variável só vale para a loja (Play) ou quando ainda não há artefato verificado.
+  const derivedHttps = validateHttpsDownloadUrl(derivedGithubUrl);
   const androidHttps =
-    envAndroidHttps ?? validateHttpsDownloadUrl(derivedGithubUrl);
+    envAndroidHttps?.hostname === "play.google.com"
+      ? envAndroidHttps
+      : derivedHttps ?? envAndroidHttps;
   const iosHttps = validateHttpsDownloadUrl(process.env.NEXT_PUBLIC_IOS_APP_URL);
 
   const hasLocalArtifact = Boolean(androidMeta.sha256 && androidMeta.sizeBytes);

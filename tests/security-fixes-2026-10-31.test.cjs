@@ -189,7 +189,8 @@ test("Proxy e /api/app-release: /instalar e GET /api/app-release são públicos;
       getAppDistributionManifest,
       GITHUB_ANDROID_RELEASE_REPO,
     } = loadRoute("src/lib/app-distribution/android-release.ts");
-    const manifest = getAppDistributionManifest();
+    const unverified = { versionName: "1.0.0", versionCode: 1, apkFileName: "x.apk", sizeBytes: null, sha256: null };
+    const manifest = getAppDistributionManifest({ metadataOverride: unverified });
     assert.equal(manifest.android.availability, "ready_direct_download");
     assert.equal(
       manifest.android.downloadUrl,
@@ -230,7 +231,7 @@ test("Proxy e /api/app-release: /instalar e GET /api/app-release são públicos;
       ]
     );
 
-    // Variável de ambiente tem precedência sobre URL derivada
+    // Com artefato verificado, o link derivado vence uma variável antiga (que apontava para outra versão)
     process.env.NEXT_PUBLIC_ANDROID_APK_URL = "https://custom.fsyrp2.test/custom.apk";
     const envPrecedenceManifest = getAppDistributionManifest({
       metadataOverride: {
@@ -243,7 +244,13 @@ test("Proxy e /api/app-release: /instalar e GET /api/app-release são públicos;
     });
     assert.equal(
       envPrecedenceManifest.android.downloadUrl,
-      "https://custom.fsyrp2.test/custom.apk"
+      `https://github.com/${GITHUB_ANDROID_RELEASE_REPO}/releases/download/android-v1.3.0/fsy-rp2-2027-v1.3.0-release.apk`
+    );
+    // A loja oficial (Play) continua tendo prioridade
+    process.env.NEXT_PUBLIC_ANDROID_APK_URL = "https://play.google.com/store/apps/details?id=br.com.fsyrp2.app";
+    assert.equal(
+      getAppDistributionManifest({ metadataOverride: { versionName: "1.3.0", versionCode: 6, apkFileName: "fsy-rp2-2027-v1.3.0-release.apk", sizeBytes: 10500000, sha256: "a".repeat(64) } }).android.availability,
+      "ready_external_store"
     );
 
     // Metadado incompleto (sem sha256 ou sizeBytes) e sem variável de ambiente -> sem link (null)
