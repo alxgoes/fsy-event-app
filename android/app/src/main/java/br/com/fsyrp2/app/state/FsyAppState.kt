@@ -234,6 +234,13 @@ class FsyAppState(
     var lastUpdateCheckLabel by mutableStateOf(formatUpdateCheck(updatePrefs.lastCheckEpochMs))
         private set
     private var updateJob: kotlinx.coroutines.Job? = null
+    /** Pedido de confirmação do Android para a tela aberta exibir (ver MainActivity). */
+    var pendingInstallConfirmation by mutableStateOf<android.content.Intent?>(null)
+        private set
+    /** Último APK baixado e conferido, para tentar de novo sem baixar outra vez. */
+    private var lastVerifiedApk: Pair<br.com.fsyrp2.app.update.AvailableAppUpdate, String>? = null
+
+    fun consumeInstallConfirmation() { pendingInstallConfirmation = null }
 
     private fun formatUpdateCheck(epochMs: Long): String? {
         if (epochMs <= 0L) return null
@@ -291,9 +298,10 @@ class FsyAppState(
                         if (updateUiState is br.com.fsyrp2.app.update.AppUpdateUiState.Downloading) updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Downloading(update, fraction, bytes)
                     }
                 }
+                lastVerifiedApk = update to file.absolutePath
                 if (br.com.fsyrp2.app.update.AppUpdateInstaller.canRequestPackageInstalls(appContext)) {
                     updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall(update, file.absolutePath)
-                    if (autoUpdateEnabled || update.isMandatory) triggerUpdateInstall(appContext)
+                    if ((autoUpdateEnabled || update.isMandatory) && installedBySelf()) triggerUpdateInstall(appContext)
                 } else {
                     updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission(update, file.absolutePath)
                 }
@@ -306,6 +314,15 @@ class FsyAppState(
             }
         }
     }
+
+    /**
+     * A atualização sem toque (Android 12+) só é aceita quando a versão atual foi instalada pelo
+     * próprio app. Instalada pelo navegador, a sessão silenciosa é cancelada: mostra "Instalar".
+     */
+    private fun installedBySelf(): Boolean = runCatching {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return false
+        appContext.packageManager.getInstallSourceInfo(appContext.packageName).installingPackageName == appContext.packageName
+    }.getOrDefault(false)
 
     fun cancelMeteredDownloadPrompt() {
         val update = updateUiState.activeUpdate ?: return
@@ -322,13 +339,24 @@ class FsyAppState(
             updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.NeedsInstallPermission(update, path)
             return
         }
+        // Toque da pessoa (tela aberta): instalador padrão do Android, que mostra a confirmação
+        // de forma confiável. A sessão silenciosa fica para a instalação automática.
+        if (context is android.app.Activity) {
+            if (br.com.fsyrp2.app.update.AppUpdateInstaller.openSystemInstaller(context, java.io.File(path))) {
+                updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall(update, path)
+                return
+            }
+        }
         updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Installing(update)
-        br.com.fsyrp2.app.update.AppUpdateInstallReceiver.listener = { status, message ->
+        br.com.fsyrp2.app.update.AppUpdateInstallReceiver.listener = { status, message, confirmIntent ->
             scope.launch {
-                if (status != android.content.pm.PackageInstaller.STATUS_SUCCESS &&
-                    status != android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION
-                ) {
-                    updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(message ?: "Não foi possível concluir a instalação da atualização.", update)
+                when {
+                    confirmIntent != null -> pendingInstallConfirmation = confirmIntent
+                    status != android.content.pm.PackageInstaller.STATUS_SUCCESS -> {
+                        // "Tentar de novo" leva direto a "Instalar" com o arquivo já conferido (instalador padrão).
+                        updatePrefs.consumePendingInstallError()
+                        updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.Error(message ?: "Toque em Instalar para abrir o instalador do Android.", update)
+                    }
                 }
             }
         }
@@ -363,6 +391,12 @@ class FsyAppState(
 
     fun retryUpdateAction() {
         val update = updateUiState.activeUpdate
+        val saved = lastVerifiedApk
+        if (update != null && saved != null && saved.first.versionCode == update.versionCode && java.io.File(saved.second).exists()) {
+            // Arquivo já baixado e conferido: vai direto para "Instalar".
+            updateUiState = br.com.fsyrp2.app.update.AppUpdateUiState.ReadyToInstall(update, saved.second)
+            return
+        }
         if (update == null) {
             checkForAppUpdate(force = true)
         } else {

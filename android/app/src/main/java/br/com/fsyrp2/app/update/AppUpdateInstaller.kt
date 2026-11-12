@@ -222,6 +222,22 @@ object AppUpdateInstaller {
         throw UpdateDownloadException("Muitos redirecionamentos ao baixar a atualização.")
     }
 
+    /**
+     * Abre o APK já conferido no instalador padrão do Android. Usado quando a pessoa toca em
+     * "Instalar": funciona em aparelhos que cancelam a sessão silenciosa (ex.: Samsung).
+     */
+    fun openSystemInstaller(context: Context, apkFile: File): Boolean = runCatching {
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            context, "${context.packageName}.fileprovider", apkFile
+        )
+        val intent = Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, "application/vnd.android.package-archive")
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        if (context !is android.app.Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+        true
+    }.getOrDefault(false)
+
     fun startPackageInstallerSession(
         context: Context,
         apkFile: File,
