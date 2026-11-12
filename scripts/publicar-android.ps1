@@ -123,7 +123,8 @@ try {
 # Atualizar versão em android/app/build.gradle.kts
 $gradleAtualizado = $gradleTexto -replace 'versionCode\s*=\s*\d+', "versionCode = $novoVersionCode"
 $gradleAtualizado = $gradleAtualizado -replace 'versionName\s*=\s*"[^"]+"', "versionName = ""$Versao"""
-Set-Content -LiteralPath $gradleFile -Value $gradleAtualizado -Encoding UTF8 -NoNewline
+# UTF-8 sem BOM: o servidor (Node) e o Gradle leem estes arquivos diretamente.
+[IO.File]::WriteAllText($gradleFile, $gradleAtualizado, (New-Object System.Text.UTF8Encoding $false))
 
 # 2. Compilar e testar Release (uma tarefa Gradle por vez)
 $env:JAVA_HOME = 'C:/Program Files/Java/jdk-21'
@@ -205,7 +206,7 @@ if ($minimaEfetiva -gt 0) {
 $novoMeta['releaseNotesPtBr'] = $notasLimpas
 
 $novoMetaJson = $novoMeta | ConvertTo-Json -Depth 5
-Set-Content -LiteralPath $metadataFile -Value $novoMetaJson -Encoding UTF8
+[IO.File]::WriteAllText($metadataFile, $novoMetaJson + "`n", (New-Object System.Text.UTF8Encoding $false))
 
 # 5. Mostrar resumo e pedir confirmação antes de qualquer ação externa
 Write-Output ""

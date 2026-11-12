@@ -1,24 +1,24 @@
-﻿{
-    "applicationId":  "br.com.fsyrp2.app",
-    "versionName":  "1.3.0",
-    "versionCode":  6,
-    "minSdk":  26,
-    "targetSdk":  35,
-    "compileSdk":  35,
-    "apkFileName":  "fsy-rp2-2027-v1.3.0-release.apk",
-    "sizeBytes":  10518209,
-    "sha256":  "2bd9e89d5b250fcca4c75d49f849219364a3bddef1eadaf128a77a6b4455fec0",
-    "signingSchemes":  [
-                           "v2",
-                           "v3"
-                       ],
-    "signerCertificateSha256":  "c3c9fd79cec0e893c8853344eca458a0f472265caaec3491bfff12367df8852c",
-    "builtAtIso":  "2026-11-12T03:27:55.1557548Z",
-    "releaseNotesPtBr":  [
-                             "Atualizações automáticas: o app avisa e instala as próximas versões",
-                             "Botão do grupo da companhia no WhatsApp",
-                             "Foto de perfil funcionando no app",
-                             "Agenda diferencia atividades da equipe",
-                             "Textos e botões ajustados para telas pequenas"
-                         ]
+{
+  "applicationId": "br.com.fsyrp2.app",
+  "versionName": "1.3.0",
+  "versionCode": 6,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "compileSdk": 35,
+  "apkFileName": "fsy-rp2-2027-v1.3.0-release.apk",
+  "sizeBytes": 10518209,
+  "sha256": "2bd9e89d5b250fcca4c75d49f849219364a3bddef1eadaf128a77a6b4455fec0",
+  "signingSchemes": [
+    "v2",
+    "v3"
+  ],
+  "signerCertificateSha256": "c3c9fd79cec0e893c8853344eca458a0f472265caaec3491bfff12367df8852c",
+  "builtAtIso": "2026-11-12T03:27:55.1557548Z",
+  "releaseNotesPtBr": [
+    "Atualizações automáticas: o app avisa e instala as próximas versões",
+    "Botão do grupo da companhia no WhatsApp",
+    "Foto de perfil funcionando no app",
+    "Agenda diferencia atividades da equipe",
+    "Textos e botões ajustados para telas pequenas"
+  ]
 }
